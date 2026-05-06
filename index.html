@@ -2,116 +2,115 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>ARCHIVE V10</title>
+<title>ARCHIVE STAGE SELECT</title>
 
 <style>
 body{
   margin:0;
   overflow:hidden;
-  background:black;
   font-family:Arial;
+  transition:background 1s ease;
 }
 
-/* ================= TOP BAR ================= */
-#topBar{
+/* TOP NAV */
+#nav{
   position:fixed;
-  top:15px;
+  top:20px;
   left:50%;
   transform:translateX(-50%);
   display:flex;
+  align-items:center;
   gap:25px;
   z-index:50;
 }
 
-.tab{
+.arrow{
   color:white;
-  font-size:12px;
-  letter-spacing:4px;
-  opacity:0.4;
+  font-size:32px;
   cursor:pointer;
-  transition:0.3s;
+  opacity:0.7;
 }
 
-.tab.active{
+/* LABEL */
+#label{
+  color:white;
+  font-size:14px;
+  letter-spacing:5px;
+}
+
+/* STAGE */
+#stage{
+  position:relative;
+  width:100vw;
+  height:100vh;
+}
+
+/* BACKGROUND */
+#bg{
+  position:absolute;
+  width:100%;
+  height:100%;
+  background-size:cover;
+  background-position:center;
+  transition:1s ease;
+  filter:brightness(0.8);
+}
+
+/* OVERLAY */
+#overlay{
+  position:absolute;
+  width:100%;
+  height:100%;
+  transition:1s ease;
+  background:rgba(0,0,0,0.3);
+}
+
+/* THUMBS */
+#thumbs{
+  position:absolute;
+  bottom:40px;
+  left:50%;
+  transform:translateX(-50%);
+  display:flex;
+  gap:10px;
+  z-index:20;
+}
+
+.thumb{
+  width:60px;
+  height:40px;
+  opacity:0.4;
+  filter:blur(1px);
+  transition:0.4s;
+}
+
+.thumb.active{
   opacity:1;
+  filter:none;
   transform:scale(1.2);
 }
 
-/* ================= STAGE ================= */
-#stage{
-  width:100vw;
-  height:100vh;
-  position:relative;
-}
-
-/* ACTIVE BIOME */
-.biome{
-  position:absolute;
+.thumb img{
   width:100%;
   height:100%;
-  background-size:cover;
-  background-position:center;
-  transition:1s;
-}
-
-/* DARK OVERLAY */
-.overlay{
-  position:absolute;
-  width:100%;
-  height:100%;
-  background:rgba(0,0,0,0.35);
-}
-
-/* ================= SIDE PREVIEWS ================= */
-.side{
-  position:absolute;
-  top:50%;
-  transform:translateY(-50%);
-  width:200px;
-  height:120px;
-  opacity:0.25;
-  filter:blur(2px);
-  transition:0.5s;
-  background-size:cover;
-  background-position:center;
-}
-
-.left{
-  left:40px;
-}
-
-.right{
-  right:40px;
-}
-
-/* ================= NEON LAYER ================= */
-#neonCanvas{
-  position:absolute;
-  width:100%;
-  height:100%;
+  object-fit:cover;
 }
 </style>
 </head>
 
 <body>
 
-<div id="topBar">
-  <div class="tab active" onclick="go(0)">ALL VIBES</div>
-  <div class="tab" onclick="go(1)">COLD TAKE</div>
-  <div class="tab" onclick="go(2)">HOT TAKE</div>
-  <div class="tab" onclick="go(3)">NEW NEON</div>
+<div id="nav">
+  <div class="arrow" onclick="go(index-1)">‹</div>
+  <div id="label"></div>
+  <div class="arrow" onclick="go(index+1)">›</div>
 </div>
 
 <div id="stage">
+  <div id="bg"></div>
+  <div id="overlay"></div>
 
-  <div id="biome" class="biome"></div>
-  <div class="overlay"></div>
-
-  <div id="left" class="side left"></div>
-  <div id="right" class="side right"></div>
-
-  <canvas id="neonCanvas"></canvas>
-
+  <div id="thumbs"></div>
 </div>
 
 <script src="archive.js"></script>
