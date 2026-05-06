@@ -1,6 +1,6 @@
+
 const canvas = document.getElementById("c");
 const ctx = canvas.getContext("2d");
-const tip = document.getElementById("tip");
 
 let w = canvas.width = window.innerWidth;
 let h = canvas.height = window.innerHeight;
@@ -10,28 +10,39 @@ let mouse = { x:0, y:0 };
 document.addEventListener("mousemove",(e)=>{
   mouse.x = e.clientX;
   mouse.y = e.clientY;
-
-  tip.style.left = (mouse.x + 12) + "px";
-  tip.style.top = (mouse.y + 12) + "px";
 });
 
 /* =========================
-   STATIC FIXED NODES
+   PLATFORM COLORS
+========================= */
+
+const colors = {
+  youtube:"#ff4b4b",
+  spotify:"#1ed760",
+  soundcloud:"#ff8c42",
+  twitter:"#7aa2ff",
+  instagram:"#ff5ccf"
+};
+
+/* =========================
+   ORDERED CONSTELLATION LAYOUT
 ========================= */
 
 const nodes = [
-  { name:"9ojeez9 youtube", x:w*0.25, y:h*0.5, url:"https://www.youtube.com/@9ojeez9" },
-  { name:"9ojeez9 spotify", x:w*0.6, y:h*0.35, url:"https://open.spotify.com/artist/4XH3BH9SPGEaTzp1suzdCL" },
-  { name:"9ojeez9 soundcloud", x:w*0.3, y:h*0.25, url:"https://soundcloud.com/9ojeez9" },
-  { name:"9ojeez9 twitter", x:w*0.55, y:h*0.55, url:"https://twitter.com/9ojeez9" },
-  { name:"9ojeez9 twitch", x:w*0.7, y:h*0.45, url:"https://twitch.tv/ojeez9" }
+  { name:"9ojeez9 YouTube", x:w*0.2, y:h*0.25, url:"https://www.youtube.com/@9ojeez9", type:"youtube" },
+  { name:"9ojeez9 Spotify", x:w*0.5, y:h*0.2, url:"https://open.spotify.com/artist/4XH3BH9SPGEaTzp1suzdCL", type:"spotify" },
+  { name:"9ojeez9 Twitter", x:w*0.8, y:h*0.25, url:"https://twitter.com/9ojeez9", type:"twitter" },
+
+  { name:"9ojeez9 SoundCloud", x:w*0.3, y:h*0.55, url:"https://soundcloud.com/9ojeez9", type:"soundcloud" },
+  { name:"9ojeez9 Instagram", x:w*0.7, y:h*0.55, url:"https://instagram.com/9ojeez9", type:"instagram" }
 ];
 
 /* =========================
-   STAR SHAPE
+   DRAW STAR NODE
 ========================= */
 
-function star(x,y,r){
+function drawStar(x,y,r){
+
   ctx.beginPath();
   for(let i=0;i<5;i++){
     let a = (Math.PI*2/5)*i - Math.PI/2;
@@ -44,7 +55,7 @@ function star(x,y,r){
 }
 
 /* =========================
-   DRAW (NO STATE CHANGE)
+   RENDER
 ========================= */
 
 function draw(){
@@ -59,36 +70,42 @@ function draw(){
     let dy = n.y - mouse.y;
     let d = Math.sqrt(dx*dx + dy*dy);
 
-    let isHover = d < 40;
+    let isHover = d < 45;
 
     if(isHover) hovered = n;
 
-    /* NODE */
+    let col = colors[n.type] || "#ffffff";
+
+    /* glow */
+    ctx.beginPath();
+    ctx.arc(n.x,n.y,16,0,Math.PI*2);
+    ctx.fillStyle = col + "22";
+    ctx.fill();
+
+    /* star */
     ctx.save();
 
-    star(n.x,n.y, isHover ? 14 : 10);
+    drawStar(n.x,n.y, isHover ? 14 : 10);
 
-    ctx.fillStyle = isHover ? "white" : "rgba(180,200,255,0.85)";
-    ctx.shadowColor = "rgba(120,160,255,0.35)";
-    ctx.shadowBlur = isHover ? 18 : 6;
+    ctx.fillStyle = col;
+    ctx.shadowColor = col;
+    ctx.shadowBlur = isHover ? 18 : 8;
 
     ctx.fill();
 
     ctx.restore();
 
+    /* label */
+    ctx.fillStyle = "rgba(255,255,255,0.85)";
+    ctx.font = "12px Arial";
+    ctx.fillText(n.name, n.x + 14, n.y + 4);
+
   });
 
-  /* TOOLTIP */
-  if(hovered){
-    tip.style.display = "block";
-    tip.innerText = hovered.name;
-  } else {
-    tip.style.display = "none";
-  }
 }
 
 /* =========================
-   CLICK → OPEN LINK
+   CLICK
 ========================= */
 
 canvas.addEventListener("click",(e)=>{
@@ -106,7 +123,7 @@ canvas.addEventListener("click",(e)=>{
 });
 
 /* =========================
-   LOOP (PURE RENDER ONLY)
+   LOOP
 ========================= */
 
 function loop(){
@@ -117,7 +134,7 @@ function loop(){
 loop();
 
 /* =========================
-   RESIZE FIX
+   RESIZE SAFE
 ========================= */
 
 window.addEventListener("resize",()=>{
