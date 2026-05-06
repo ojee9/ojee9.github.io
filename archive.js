@@ -1,3 +1,4 @@
+
 let index = 0;
 
 const bg = document.getElementById("bg");
@@ -29,6 +30,7 @@ const data = [
   }
 ];
 
+/* 🎮 MAIN NAV */
 function go(i){
 
   if(i < 0) i = 3;
@@ -38,34 +40,43 @@ function go(i){
   render();
 }
 
+/* 🧠 RENDER ENGINE */
 function render(){
 
   const cur = data[index];
   const prev = data[(index-1+4)%4];
   const next = data[(index+1)%4];
 
-  /* FADE RESET */
+  /* smooth fade */
   bg.style.opacity = 0;
   overlay.style.opacity = 0;
 
   setTimeout(()=>{
 
-    /* MAIN */
     bg.style.backgroundImage = `url(${cur.bg})`;
     document.body.style.background = cur.color;
     label.innerText = cur.name;
 
-    /* SIDE PREVIEWS */
     left.style.backgroundImage = `url(${prev.bg})`;
     right.style.backgroundImage = `url(${next.bg})`;
 
-    left.classList.add("activePop");
-    right.classList.add("activePop");
+    left.classList.add("active");
+    right.classList.add("active");
 
     bg.style.opacity = 1;
     overlay.style.opacity = 1;
 
-  },200);
+  },180);
 }
 
+/* 🧲 MICRO PARALLAX (mouse depth) */
+document.addEventListener("mousemove",(e)=>{
+
+  let x = (e.clientX / window.innerWidth - 0.5) * 10;
+  let y = (e.clientY / window.innerHeight - 0.5) * 10;
+
+  bg.style.transform = `scale(1.05) translate(${x}px,${y}px)`;
+});
+
+/* INIT */
 render();
