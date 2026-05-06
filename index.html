@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>ARCHIVE V10.3</title>
+<title>ARCHIVE V10.4</title>
 
 <style>
 body{
@@ -12,16 +12,16 @@ body{
   transition:background 1s ease;
 }
 
-/* TOP BAR */
+/* TOP NAV */
 #nav{
   position:fixed;
   top:20px;
   left:50%;
   transform:translateX(-50%);
   display:flex;
-  align-items:center;
   gap:20px;
   z-index:50;
+  align-items:center;
 }
 
 .arrow{
@@ -29,6 +29,12 @@ body{
   font-size:34px;
   cursor:pointer;
   opacity:0.7;
+  transition:0.2s;
+}
+
+.arrow:hover{
+  opacity:1;
+  transform:scale(1.2);
 }
 
 #label{
@@ -37,7 +43,7 @@ body{
   letter-spacing:5px;
 }
 
-/* STAGE WRAPPER */
+/* STAGE */
 #stage{
   width:100vw;
   height:100vh;
@@ -45,32 +51,23 @@ body{
   overflow:hidden;
 }
 
-/* MAIN BACKGROUND */
+/* BACKGROUND */
 #bg{
   position:absolute;
-  width:100%;
-  height:100%;
+  width:110%;
+  height:110%;
   background-size:cover;
   background-position:center;
-  transition:1s ease;
+  transition:1s cubic-bezier(.2,.8,.2,1);
   transform:scale(1.05);
 }
 
-/* DARK MOOD LAYER */
+/* OVERLAY */
 #overlay{
   position:absolute;
   width:100%;
   height:100%;
-  transition:1s ease;
   background:rgba(0,0,0,0.35);
-}
-
-/* CENTER GLOW */
-#glow{
-  position:absolute;
-  width:100%;
-  height:100%;
-  background:radial-gradient(circle at center, transparent 20%, rgba(0,0,0,0.4));
 }
 
 /* SIDE PREVIEWS */
@@ -83,30 +80,25 @@ body{
   background-size:cover;
   background-position:center;
   filter:blur(2px) brightness(0.4);
-  opacity:0.5;
-  transition:0.6s;
+  opacity:0.4;
+  transition:0.5s;
 }
 
 #left{left:30px;}
 #right{right:30px;}
 
-/* ACTIVE POP FEEL */
-.activePop{
-  transform:scale(1.08);
+.side.active{
   filter:none;
-  opacity:1;
+  opacity:0.9;
+  transform:translateY(-50%) scale(1.05);
 }
 
-/* LOCK INDICATOR */
-#lock{
+/* CENTER GLOW */
+#glow{
   position:absolute;
-  bottom:30px;
-  left:50%;
-  transform:translateX(-50%);
-  color:white;
-  font-size:12px;
-  letter-spacing:4px;
-  opacity:0.6;
+  width:100%;
+  height:100%;
+  background:radial-gradient(circle at center, transparent 20%, rgba(0,0,0,0.5));
 }
 </style>
 </head>
@@ -127,8 +119,6 @@ body{
 
   <div id="left" class="side"></div>
   <div id="right" class="side"></div>
-
-  <div id="lock">LOCKED STAGE SELECT</div>
 
 </div>
 
