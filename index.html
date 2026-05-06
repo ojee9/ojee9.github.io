@@ -36,6 +36,7 @@ h1 {
   justify-content: center;
 }
 
+/* BUTTONS */
 button {
   padding: 12px 26px;
   border-radius: 999px;
@@ -54,7 +55,7 @@ button:hover {
   transform: translateY(-2px);
 }
 
-/* FADE TRANSITION */
+/* FADE */
 #fade {
   position: fixed;
   top:0;
@@ -76,7 +77,7 @@ button:hover {
 
   <div class="buttons">
     <button onclick="enterSpace()">SPACE</button>
-    <button onclick="alert('ARCHIVE coming soon')">ARCHIVE</button>
+    <button onclick="enterArchive()">ARCHIVE</button>
     <button onclick="alert('VISUAL coming soon')">VISUAL</button>
   </div>
 </div>
@@ -90,6 +91,15 @@ function enterSpace() {
 
   setTimeout(() => {
     window.location.href = "space.html";
+  }, 900);
+}
+
+function enterArchive() {
+  const fade = document.getElementById("fade");
+  fade.style.opacity = 1;
+
+  setTimeout(() => {
+    window.location.href = "archive.html";
   }, 900);
 }
 </script>
