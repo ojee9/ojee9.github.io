@@ -1,143 +1,64 @@
 
-const canvas = document.getElementById("c");
-const ctx = canvas.getContext("2d");
-
-let w = canvas.width = window.innerWidth;
-let h = canvas.height = window.innerHeight;
-
-let mouse = { x:0, y:0 };
-
-document.addEventListener("mousemove",(e)=>{
-  mouse.x = e.clientX;
-  mouse.y = e.clientY;
-});
-
-/* =========================
-   PLATFORM COLORS
-========================= */
-
-const colors = {
-  youtube:"#ff4b4b",
-  spotify:"#1ed760",
-  soundcloud:"#ff8c42",
-  twitter:"#7aa2ff",
-  instagram:"#ff5ccf"
-};
-
-/* =========================
-   ORDERED CONSTELLATION LAYOUT
-========================= */
+const map = document.getElementById("map");
 
 const nodes = [
-  { name:"9ojeez9 YouTube", x:w*0.2, y:h*0.25, url:"https://www.youtube.com/@9ojeez9", type:"youtube" },
-  { name:"9ojeez9 Spotify", x:w*0.5, y:h*0.2, url:"https://open.spotify.com/artist/4XH3BH9SPGEaTzp1suzdCL", type:"spotify" },
-  { name:"9ojeez9 Twitter", x:w*0.8, y:h*0.25, url:"https://twitter.com/9ojeez9", type:"twitter" },
-
-  { name:"9ojeez9 SoundCloud", x:w*0.3, y:h*0.55, url:"https://soundcloud.com/9ojeez9", type:"soundcloud" },
-  { name:"9ojeez9 Instagram", x:w*0.7, y:h*0.55, url:"https://instagram.com/9ojeez9", type:"instagram" }
+  {
+    name:"9ojeez9 YouTube",
+    icon:"https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/youtube.svg",
+    x:0.2, y:0.3,
+    url:"https://www.youtube.com/@9ojeez9",
+    color:"#ff4b4b"
+  },
+  {
+    name:"9ojeez9 Spotify",
+    icon:"https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/spotify.svg",
+    x:0.5, y:0.2,
+    url:"https://open.spotify.com/artist/4XH3BH9SPGEaTzp1suzdCL",
+    color:"#1ed760"
+  },
+  {
+    name:"9ojeez9 Twitter",
+    icon:"https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/x.svg",
+    x:0.8, y:0.3,
+    url:"https://twitter.com/9ojeez9",
+    color:"#7aa2ff"
+  },
+  {
+    name:"9ojeez9 SoundCloud",
+    icon:"https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/soundcloud.svg",
+    x:0.3, y:0.65,
+    url:"https://soundcloud.com/9ojeez9",
+    color:"#ff8c42"
+  },
+  {
+    name:"9ojeez9 Instagram",
+    icon:"https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/instagram.svg",
+    x:0.7, y:0.65,
+    url:"https://instagram.com/9ojeez9",
+    color:"#ff5ccf"
+  }
 ];
 
 /* =========================
-   DRAW STAR NODE
+   BUILD UI
 ========================= */
 
-function drawStar(x,y,r){
+nodes.forEach(n=>{
 
-  ctx.beginPath();
-  for(let i=0;i<5;i++){
-    let a = (Math.PI*2/5)*i - Math.PI/2;
-    ctx.lineTo(
-      x + Math.cos(a)*r,
-      y + Math.sin(a)*r
-    );
-  }
-  ctx.closePath();
-}
+  const el = document.createElement("div");
+  el.className = "node";
 
-/* =========================
-   RENDER
-========================= */
+  el.style.left = (n.x * 100) + "vw";
+  el.style.top = (n.y * 100) + "vh";
 
-function draw(){
+  el.innerHTML = `
+    <img src="${n.icon}">
+    <span>${n.name}</span>
+  `;
 
-  ctx.clearRect(0,0,w,h);
-
-  let hovered = null;
-
-  nodes.forEach(n=>{
-
-    let dx = n.x - mouse.x;
-    let dy = n.y - mouse.y;
-    let d = Math.sqrt(dx*dx + dy*dy);
-
-    let isHover = d < 45;
-
-    if(isHover) hovered = n;
-
-    let col = colors[n.type] || "#ffffff";
-
-    /* glow */
-    ctx.beginPath();
-    ctx.arc(n.x,n.y,16,0,Math.PI*2);
-    ctx.fillStyle = col + "22";
-    ctx.fill();
-
-    /* star */
-    ctx.save();
-
-    drawStar(n.x,n.y, isHover ? 14 : 10);
-
-    ctx.fillStyle = col;
-    ctx.shadowColor = col;
-    ctx.shadowBlur = isHover ? 18 : 8;
-
-    ctx.fill();
-
-    ctx.restore();
-
-    /* label */
-    ctx.fillStyle = "rgba(255,255,255,0.85)";
-    ctx.font = "12px Arial";
-    ctx.fillText(n.name, n.x + 14, n.y + 4);
-
+  el.addEventListener("click",()=>{
+    window.open(n.url, "_blank");
   });
 
-}
-
-/* =========================
-   CLICK
-========================= */
-
-canvas.addEventListener("click",(e)=>{
-
-  nodes.forEach(n=>{
-
-    let dx = e.clientX - n.x;
-    let dy = e.clientY - n.y;
-
-    if(Math.sqrt(dx*dx + dy*dy) < 20){
-      window.open(n.url, "_blank");
-    }
-  });
-
-});
-
-/* =========================
-   LOOP
-========================= */
-
-function loop(){
-  draw();
-  requestAnimationFrame(loop);
-}
-
-loop();
-
-/* =========================
-   RESIZE SAFE
-========================= */
-
-window.addEventListener("resize",()=>{
-  w = canvas.width = window.innerWidth;
-  h = canvas.height = window.innerHeight;
+  map.appendChild(el);
 });
