@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>ARCHIVE STAGE SELECT</title>
+<title>ARCHIVE V10.3</title>
 
 <style>
 body{
@@ -12,7 +12,7 @@ body{
   transition:background 1s ease;
 }
 
-/* TOP NAV */
+/* TOP BAR */
 #nav{
   position:fixed;
   top:20px;
@@ -20,32 +20,32 @@ body{
   transform:translateX(-50%);
   display:flex;
   align-items:center;
-  gap:25px;
+  gap:20px;
   z-index:50;
 }
 
 .arrow{
   color:white;
-  font-size:32px;
+  font-size:34px;
   cursor:pointer;
   opacity:0.7;
 }
 
-/* LABEL */
 #label{
   color:white;
   font-size:14px;
   letter-spacing:5px;
 }
 
-/* STAGE */
+/* STAGE WRAPPER */
 #stage{
-  position:relative;
   width:100vw;
   height:100vh;
+  position:relative;
+  overflow:hidden;
 }
 
-/* BACKGROUND */
+/* MAIN BACKGROUND */
 #bg{
   position:absolute;
   width:100%;
@@ -53,47 +53,60 @@ body{
   background-size:cover;
   background-position:center;
   transition:1s ease;
-  filter:brightness(0.8);
+  transform:scale(1.05);
 }
 
-/* OVERLAY */
+/* DARK MOOD LAYER */
 #overlay{
   position:absolute;
   width:100%;
   height:100%;
   transition:1s ease;
-  background:rgba(0,0,0,0.3);
+  background:rgba(0,0,0,0.35);
 }
 
-/* THUMBS */
-#thumbs{
+/* CENTER GLOW */
+#glow{
   position:absolute;
-  bottom:40px;
-  left:50%;
-  transform:translateX(-50%);
-  display:flex;
-  gap:10px;
-  z-index:20;
-}
-
-.thumb{
-  width:60px;
-  height:40px;
-  opacity:0.4;
-  filter:blur(1px);
-  transition:0.4s;
-}
-
-.thumb.active{
-  opacity:1;
-  filter:none;
-  transform:scale(1.2);
-}
-
-.thumb img{
   width:100%;
   height:100%;
-  object-fit:cover;
+  background:radial-gradient(circle at center, transparent 20%, rgba(0,0,0,0.4));
+}
+
+/* SIDE PREVIEWS */
+.side{
+  position:absolute;
+  top:50%;
+  transform:translateY(-50%);
+  width:180px;
+  height:110px;
+  background-size:cover;
+  background-position:center;
+  filter:blur(2px) brightness(0.4);
+  opacity:0.5;
+  transition:0.6s;
+}
+
+#left{left:30px;}
+#right{right:30px;}
+
+/* ACTIVE POP FEEL */
+.activePop{
+  transform:scale(1.08);
+  filter:none;
+  opacity:1;
+}
+
+/* LOCK INDICATOR */
+#lock{
+  position:absolute;
+  bottom:30px;
+  left:50%;
+  transform:translateX(-50%);
+  color:white;
+  font-size:12px;
+  letter-spacing:4px;
+  opacity:0.6;
 }
 </style>
 </head>
@@ -107,10 +120,16 @@ body{
 </div>
 
 <div id="stage">
+
   <div id="bg"></div>
   <div id="overlay"></div>
+  <div id="glow"></div>
 
-  <div id="thumbs"></div>
+  <div id="left" class="side"></div>
+  <div id="right" class="side"></div>
+
+  <div id="lock">LOCKED STAGE SELECT</div>
+
 </div>
 
 <script src="archive.js"></script>
