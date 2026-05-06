@@ -2,42 +2,27 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>SPACE v3.3</title>
+<title>SPACE — NETWORK</title>
 
 <style>
 body{
   margin:0;
   overflow:hidden;
   background:#05060a;
+  font-family:Arial;
 }
 
 canvas{
   display:block;
 }
 
-/* 🧠 PREVIEW CARD */
-#preview{
-  position:fixed;
-  top:0;
-  left:0;
-  padding:10px 12px;
-  background:rgba(10,10,15,0.75);
-  border:1px solid rgba(255,255,255,0.1);
-  color:white;
-  font-family:Arial;
-  font-size:12px;
-  border-radius:10px;
-  pointer-events:none;
-  transform:translate(-50%,-120%);
-  display:none;
-}
+/* minimal mobile readability fallback */
 </style>
 </head>
 
 <body>
 
 <canvas id="c"></canvas>
-<div id="preview"></div>
 
 <script src="space.js"></script>
 
