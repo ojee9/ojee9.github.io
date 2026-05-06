@@ -3,54 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ARCHIVE — 9OJEez9</title>
+<title>ARCHIVE</title>
 <link rel="stylesheet" href="archive.css">
 </head>
 <body>
 
-<div class="archive-wrapper">
-
-  <!-- TOP SELECT BAR -->
-  <div class="top-bar">
-    <button id="prevBtn">&#10094;</button>
-    <div id="sceneTitle">HOT TAKE</div>
-    <button id="nextBtn">&#10095;</button>
-  </div>
-
-  <!-- SCENE CONTAINER -->
-  <div class="scene-container">
-
-    <div class="scene hot active">
-      <div class="highlight-box hot-box">
-        <div class="track">HOT TRACK 01</div>
-        <div class="track">HOT TRACK 02</div>
-      </div>
-    </div>
-
-    <div class="scene neon">
-      <div class="highlight-box neon-box">
-        <div class="track">NEON TRACK 01</div>
-        <div class="track">NEON TRACK 02</div>
-      </div>
-    </div>
-
-    <div class="scene cold">
-      <div class="highlight-box cold-box">
-        <div class="track">COLD TRACK 01</div>
-        <div class="track">COLD TRACK 02</div>
-      </div>
-    </div>
-
-    <div class="scene all">
-      <div class="highlight-box all-box">
-        <div class="track">ALL TRACK 01</div>
-        <div class="track">ALL TRACK 02</div>
-      </div>
-    </div>
-
-  </div>
-
+<div class="top">
+  <button id="prev">←</button>
+  <div id="title">HOT TAKE</div>
+  <button id="next">→</button>
 </div>
+
+<div class="scene hot active"></div>
+<div class="scene neon"></div>
+<div class="scene cold"></div>
+<div class="scene all"></div>
 
 <script src="archive.js"></script>
 </body>
