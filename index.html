@@ -2,127 +2,51 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>ARCHIVE V10.4</title>
+<title>9o9</title>
 
 <style>
 body{
   margin:0;
-  overflow:hidden;
-  font-family:Arial;
-  transition:background 1s ease;
-}
-
-/* TOP NAV */
-#nav{
-  position:fixed;
-  top:20px;
-  left:50%;
-  transform:translateX(-50%);
+  height:100vh;
   display:flex;
-  gap:20px;
-  z-index:50;
+  justify-content:center;
   align-items:center;
+  background:#0b0b0b;
+  font-family:Arial;
+  color:white;
 }
 
-.arrow{
+.menu{
+  text-align:center;
+}
+
+a{
+  display:block;
+  margin:15px;
+  font-size:18px;
+  letter-spacing:3px;
   color:white;
-  font-size:34px;
-  cursor:pointer;
+  text-decoration:none;
   opacity:0.7;
   transition:0.2s;
 }
 
-.arrow:hover{
+a:hover{
   opacity:1;
-  transform:scale(1.2);
-}
-
-#label{
-  color:white;
-  font-size:14px;
-  letter-spacing:5px;
-}
-
-/* STAGE */
-#stage{
-  width:100vw;
-  height:100vh;
-  position:relative;
-  overflow:hidden;
-}
-
-/* BACKGROUND */
-#bg{
-  position:absolute;
-  width:110%;
-  height:110%;
-  background-size:cover;
-  background-position:center;
-  transition:1s cubic-bezier(.2,.8,.2,1);
-  transform:scale(1.05);
-}
-
-/* OVERLAY */
-#overlay{
-  position:absolute;
-  width:100%;
-  height:100%;
-  background:rgba(0,0,0,0.35);
-}
-
-/* SIDE PREVIEWS */
-.side{
-  position:absolute;
-  top:50%;
-  transform:translateY(-50%);
-  width:180px;
-  height:110px;
-  background-size:cover;
-  background-position:center;
-  filter:blur(2px) brightness(0.4);
-  opacity:0.4;
-  transition:0.5s;
-}
-
-#left{left:30px;}
-#right{right:30px;}
-
-.side.active{
-  filter:none;
-  opacity:0.9;
-  transform:translateY(-50%) scale(1.05);
-}
-
-/* CENTER GLOW */
-#glow{
-  position:absolute;
-  width:100%;
-  height:100%;
-  background:radial-gradient(circle at center, transparent 20%, rgba(0,0,0,0.5));
+  transform:scale(1.1);
 }
 </style>
 </head>
 
 <body>
 
-<div id="nav">
-  <div class="arrow" onclick="go(index-1)">‹</div>
-  <div id="label"></div>
-  <div class="arrow" onclick="go(index+1)">›</div>
+<div class="menu">
+  <h1>9o9</h1>
+
+  <a href="archive.html">ARCHIVE</a>
+  <a href="space.html">SPACE (coming)</a>
+  <a href="visual.html">VISUAL (coming)</a>
 </div>
-
-<div id="stage">
-
-  <div id="bg"></div>
-  <div id="overlay"></div>
-  <div id="glow"></div>
-
-  <div id="left" class="side"></div>
-  <div id="right" class="side"></div>
-
-</div>
-
-<script src="archive.js"></script>
 
 </body>
 </html>
