@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>SPACE</title>
+
+<style>
+body {
+  margin:0;
+  overflow:hidden;
+  background:#000;
+}
+
+canvas {
+  position:fixed;
+  top:0;
+  left:0;
+}
+
+/* NODE STYLE */
+.node {
+  position:absolute;
+  color:white;
+  font-family:Arial;
+  font-size:12px;
+  cursor:pointer;
+  opacity:0.8;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.node:hover {
+  transform: scale(2.5);
+  opacity:1;
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="space"></canvas>
+
+<script src="space.js"></script>
+
+</body>
+</html>
