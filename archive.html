@@ -13,7 +13,7 @@ body {
   color:white;
 }
 
-/* TOP UI */
+/* TOP NAV */
 #top {
   position:fixed;
   top:20px;
@@ -41,15 +41,15 @@ body {
   font-size:13px;
 }
 
-/* WORLD WRAPPER */
+/* WORLD */
 #world {
   display:flex;
-  width:400vw; /* 4 kategori */
+  width:400vw;
   height:100vh;
   transition:transform 0.8s ease;
 }
 
-/* PANEL */
+/* PANELS */
 .panel {
   width:100vw;
   height:100vh;
@@ -59,12 +59,17 @@ body {
   font-size:24px;
 }
 
-/* BIOME STYLES */
-#all { background:linear-gradient(#1a1a1a,#000); }
+/* BIOMES */
+#all { background:linear-gradient(#2a2a2a,#000); }
 #cold { background:#0b1b2b; }
 #hot { background:#c49a3c; color:black; }
 #neon { background:#050014; color:#00ffcc; }
 
+#neonCanvas {
+  width:100%;
+  height:100%;
+  display:block;
+}
 </style>
 </head>
 
@@ -78,20 +83,12 @@ body {
 
 <div id="world">
 
-  <div class="panel" id="all">
-    🏛 ROMA GARDEN / ALL VIBES
-  </div>
-
-  <div class="panel" id="cold">
-    ❄ ICE WALL / COLD TAKE
-  </div>
-
-  <div class="panel" id="hot">
-    🏺 ANCIENT EGYPT / HOT TAKE
-  </div>
+  <div class="panel" id="all">🏛 ROMA GARDEN</div>
+  <div class="panel" id="cold">❄ ICE WALL</div>
+  <div class="panel" id="hot">🏺 ANCIENT EGYPT</div>
 
   <div class="panel" id="neon">
-    🌃 NEON CITY / GRAVITY NIGHT
+    <canvas id="neonCanvas"></canvas>
   </div>
 
 </div>
