@@ -5,12 +5,7 @@ const ctx = canvas.getContext("2d");
 let w = canvas.width = window.innerWidth;
 let h = canvas.height = window.innerHeight;
 
-/* =========================
-   INPUT STATE
-========================= */
-
 let mouse = { x:w/2, y:h/2 };
-let focusNode = null;
 
 document.addEventListener("mousemove",(e)=>{
   mouse.x = e.clientX;
@@ -18,36 +13,77 @@ document.addEventListener("mousemove",(e)=>{
 });
 
 /* =========================
-   CONSTELLATION NODES
+   ICON NODES (REAL LINKS)
 ========================= */
 
 let nodes = [
-  { name:"INSTAGRAM", x:w*0.25, y:h*0.3, vx:0, vy:0, group:"social" },
-  { name:"TWITTER", x:w*0.3, y:h*0.4, vx:0, vy:0, group:"social" },
-  { name:"YOUTUBE", x:w*0.2, y:h*0.5, vx:0, vy:0, group:"social" },
+  {
+    name:"Spotify",
+    icon:"https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/spotify.svg",
+    x:w*0.65, y:h*0.3, vx:0, vy:0,
+    group:"music",
+    url:"https://open.spotify.com/artist/4XH3BH9SPGEaTzp1suzdCL"
+  },
+  {
+    name:"SoundCloud",
+    icon:"https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/soundcloud.svg",
+    x:w*0.3, y:h*0.35, vx:0, vy:0,
+    group:"music",
+    url:"https://soundcloud.com/9ojeez9"
+  },
+  {
+    name:"Apple Music",
+    icon:"https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/applemusic.svg",
+    x:w*0.6, y:h*0.45, vx:0, vy:0,
+    group:"music",
+    url:"https://music.apple.com/tr/artist/9ojeez9/1702764220"
+  },
 
-  { name:"SPOTIFY", x:w*0.65, y:h*0.3, vx:0, vy:0, group:"music" },
-  { name:"SOUNDCLOUD", x:w*0.7, y:h*0.4, vx:0, vy:0, group:"music" },
-  { name:"APPLE MUSIC", x:w*0.6, y:h*0.5, vx:0, vy:0, group:"music" },
+  {
+    name:"YouTube",
+    icon:"https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/youtube.svg",
+    x:w*0.25, y:h*0.55, vx:0, vy:0,
+    group:"video",
+    url:"https://www.youtube.com/@9ojeez9"
+  },
+  {
+    name:"Twitch",
+    icon:"https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/twitch.svg",
+    x:w*0.7, y:h*0.55, vx:0, vy:0,
+    group:"video",
+    url:"https://www.twitch.tv/ojeez9"
+  },
 
-  { name:"TWITCH", x:w*0.5, y:h*0.65, vx:0, vy:0, group:"video" }
+  {
+    name:"Deezer",
+    icon:"https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/deezer.svg",
+    x:w*0.5, y:h*0.65, vx:0, vy:0,
+    group:"music",
+    url:"https://www.deezer.com/tr/artist/226595515"
+  },
+
+  {
+    name:"Twitter",
+    icon:"https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/x.svg",
+    x:w*0.4, y:h*0.25, vx:0, vy:0,
+    group:"social",
+    url:"https://www.twitter.com/9ojeez9"
+  }
 ];
 
 const colors = {
-  social:"#6aa6ff",
   music:"#ff7ad9",
-  video:"#7affc2"
+  video:"#7affc2",
+  social:"#6aa6ff"
 };
 
 /* =========================
-   MAIN LOOP
+   LOOP (RESTORED SIMPLE PHYSICS)
 ========================= */
 
 function update(){
 
   ctx.clearRect(0,0,w,h);
-
-  drawLinks();
 
   nodes.forEach(n=>{
 
@@ -55,60 +91,33 @@ function update(){
     let dy = n.y - mouse.y;
     let dist = Math.sqrt(dx*dx + dy*dy);
 
-    /* =========================
-       MOUSE FIELD (SOFT)
-    ========================= */
-    if(dist < 220){
-
-      let force = (1 - dist/220) * 0.35;
-
-      n.vx += dx * force * 0.002;
-      n.vy += dy * force * 0.002;
+    /* minimal soft repel */
+    if(dist < 160){
+      let f = (1 - dist/160) * 0.25;
+      n.vx += dx * f * 0.002;
+      n.vy += dy * f * 0.002;
     }
 
-    /* =========================
-       CLUSTER GRAVITY
-    ========================= */
-    let gx = w*0.5;
-    let gy = h*0.5;
+    /* light drift ONLY (no heavy clustering) */
+    n.vx += (w/2 - n.x) * 0.0008;
+    n.vy += (h/2 - n.y) * 0.0008;
 
-    if(n.group === "social") gx = w*0.3;
-    if(n.group === "music") gx = w*0.65;
-    if(n.group === "video") gx = w*0.5;
-
-    n.vx += (gx - n.x) * 0.0015;
-    n.vy += (gy - n.y) * 0.0015;
-
-    /* =========================
-       FOCUS STATE (ZOOM FEEL)
-    ========================= */
-    if(focusNode && focusNode !== n){
-
-      let fx = focusNode.x - n.x;
-      let fy = focusNode.y - n.y;
-
-      n.vx += fx * 0.0008;
-      n.vy += fy * 0.0008;
-    }
-
-    /* =========================
-       DAMPING (STABILITY)
-    ========================= */
-    n.vx *= 0.92;
-    n.vy *= 0.92;
+    /* damping */
+    n.vx *= 0.93;
+    n.vy *= 0.93;
 
     n.x += n.vx;
     n.y += n.vy;
-
   });
 
+  drawLinks();
   drawNodes();
 
   requestAnimationFrame(update);
 }
 
 /* =========================
-   CONSTELLATION LINKS
+   LINKS (simple restore)
 ========================= */
 
 function drawLinks(){
@@ -125,7 +134,7 @@ function drawLinks(){
       let dy = a.y - b.y;
       let d = Math.sqrt(dx*dx + dy*dy);
 
-      if(d < 200){
+      if(d < 180){
 
         ctx.beginPath();
         ctx.moveTo(a.x,a.y);
@@ -133,9 +142,7 @@ function drawLinks(){
 
         ctx.strokeStyle = colors[a.group];
         ctx.globalAlpha = 0.12;
-        ctx.lineWidth = 1;
         ctx.stroke();
-
         ctx.globalAlpha = 1;
       }
     }
@@ -143,58 +150,50 @@ function drawLinks(){
 }
 
 /* =========================
-   DRAW NODES
+   ICON DRAW (FIXED)
 ========================= */
 
 function drawNodes(){
 
   nodes.forEach(n=>{
 
-    let col = colors[n.group];
+    let img = new Image();
+    img.src = n.icon;
 
-    let size = 10;
+    let size = 18;
 
-    if(focusNode === n) size = 16;
+    let dx = n.x - mouse.x;
+    let dy = n.y - mouse.y;
+    let hover = Math.sqrt(dx*dx + dy*dy) < 60;
 
-    /* glow */
+    if(hover) size = 24;
+
+    ctx.save();
     ctx.beginPath();
     ctx.arc(n.x,n.y,size,0,Math.PI*2);
+    ctx.clip();
 
-    ctx.fillStyle = col;
-    ctx.shadowColor = col;
-    ctx.shadowBlur = focusNode === n ? 35 : 20;
+    ctx.drawImage(img, n.x-size, n.y-size, size*2, size*2);
 
-    ctx.fill();
-
-    ctx.shadowBlur = 0;
-
-    ctx.fillStyle = "white";
-    ctx.font = focusNode === n ? "12px Arial" : "10px Arial";
-    ctx.fillText(n.name, n.x+14, n.y+4);
+    ctx.restore();
   });
 }
 
 /* =========================
-   CLICK → FOCUS SYSTEM
+   CLICK
 ========================= */
 
 canvas.addEventListener("click",(e)=>{
-
-  let clicked = null;
 
   nodes.forEach(n=>{
 
     let dx = e.clientX - n.x;
     let dy = e.clientY - n.y;
 
-    if(Math.sqrt(dx*dx + dy*dy) < 15){
-      clicked = n;
+    if(Math.sqrt(dx*dx + dy*dy) < 18){
+      window.open(n.url, "_blank");
     }
   });
-
-  if(clicked){
-    focusNode = (focusNode === clicked) ? null : clicked;
-  }
 });
 
 /* =========================
@@ -206,5 +205,4 @@ window.addEventListener("resize",()=>{
   h = canvas.height = window.innerHeight;
 });
 
-/* START */
 update();
