@@ -1,57 +1,53 @@
-
 const map = document.getElementById("map");
 
-const nodes = [
-  {
-    name:"9ojeez9 YouTube",
-    icon:"https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/youtube.svg",
-    x:0.25,y:0.25,
-    url:"https://youtube.com/@9ojeez9",
-    color:"#ff4b4b"
-  },
-  {
-    name:"9ojeez9 Spotify",
-    icon:"https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/spotify.svg",
-    x:0.55,y:0.2,
-    url:"https://open.spotify.com/artist/4XH3BH9SPGEaTzp1suzdCL",
-    color:"#1ed760"
-  },
-  {
-    name:"9ojeez9 Twitter",
-    icon:"https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/x.svg",
-    x:0.8,y:0.3,
-    url:"https://twitter.com/9ojeez9",
-    color:"#7aa2ff"
-  },
-  {
-    name:"9ojeez9 SoundCloud",
-    icon:"https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/soundcloud.svg",
-    x:0.35,y:0.65,
-    url:"https://soundcloud.com/9ojeez9",
-    color:"#ff8c42"
-  }
+const links = [
+  {name:"9ojeez9 YouTube", url:"https://youtube.com/@9ojeez9"},
+  {name:"9ojeez9 Spotify", url:"https://open.spotify.com/artist/4XH3BH9SPGEaTzp1suzdCL"},
+  {name:"9ojeez9 Twitter", url:"https://twitter.com/9ojeez9"},
+  {name:"9ojeez9 Instagram", url:"https://instagram.com/9ojeez9"},
+  {name:"9ojeez9 SoundCloud", url:"https://soundcloud.com/9ojeez9"}
 ];
 
 /* =========================
-   BUILD NODES
+   CURVE PLACEMENT
 ========================= */
 
-nodes.forEach(n=>{
+const centerX = window.innerWidth / 2;
+const centerY = window.innerHeight * 0.55;
+const radius = Math.min(window.innerWidth, window.innerHeight) * 0.35;
 
-  const el = document.createElement("div");
-  el.className = "node";
+const startAngle = -0.8;   // curve start
+const endAngle = 0.8;      // curve end
 
-  el.style.left = (n.x * 100) + "vw";
-  el.style.top = (n.y * 100) + "vh";
+links.forEach((link, i) => {
 
-  el.style.filter = `drop-shadow(0 0 16px ${n.color})`;
+  const angle = startAngle + 
+    (i / (links.length - 1)) * (endAngle - startAngle);
 
-  el.innerHTML = `
-    <img src="${n.icon}">
-    <span>${n.name}</span>
+  const x = centerX + radius * Math.sin(angle);
+  const y = centerY - radius * Math.cos(angle) * 0.35;
+
+  const node = document.createElement("div");
+  node.className = "node";
+
+  node.style.left = x + "px";
+  node.style.top = y + "px";
+
+  node.innerHTML = `
+    <div class="star"></div>
+    <div class="label">${link.name}</div>
   `;
 
-  el.onclick = ()=>window.open(n.url,"_blank");
+  /* desktop click */
+  node.onclick = () => {
+    window.open(link.url, "_blank");
+  };
 
-  map.appendChild(el);
+  /* mobile tap label reveal */
+  node.addEventListener("touchstart", () => {
+    node.classList.add("active");
+    setTimeout(()=>node.classList.remove("active"),2000);
+  });
+
+  map.appendChild(node);
 });
