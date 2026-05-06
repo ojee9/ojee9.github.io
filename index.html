@@ -2,149 +2,56 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>ENTER THE FREQUENCY</title>
+<title>OJEE9</title>
 <style>
 body {
   margin:0;
-  background:black;
-  color:white;
-  font-family:Arial, Helvetica, sans-serif;
+  background:#000;
+  color:#fff;
+  font-family:Arial;
   display:flex;
   justify-content:center;
   align-items:center;
   height:100vh;
+}
+
+.container {
   text-align:center;
 }
+
 h1 {
-  font-size:40px;
-  letter-spacing:4px;
-}
-p {
-  opacity:0.6;
-}
-a {
-  color:white;
-  text-decoration:none;
-  border:1px solid white;
-  padding:10px 20px;
-  display:inline-block;
-  margin-top:20px;
-}
-a:hover {
-  background:white;
-  color:black;
-}
-</style>
-</head>
-<body>
-<div>
-<h1>THIS IS NOT A SONG.</h1>
-<p>THIS IS A SIGNAL.</p>
-<a href="https://spotify.com">ENTER</a>
-</div>
-</body>
-</html>
-<style>
-body {
-  margin:0;
-  font-family: Arial, sans-serif;
+  letter-spacing:6px;
+  margin-bottom:40px;
 }
 
-/* FADE IN WHOLE PAGE */
-body {
-  animation: fadeIn 1.2s ease-out;
-}
-
-@keyframes fadeIn {
-  from { opacity:0; transform: scale(1.01); }
-  to { opacity:1; transform: scale(1); }
-}
-
-/* HERO FLOAT */
-.hero {
-  height:100vh;
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  align-items:center;
-  text-align:center;
-  animation: floatIn 1.5s ease-out;
-}
-
-@keyframes floatIn {
-  from { transform: translateY(20px); opacity:0; }
-  to { transform: translateY(0); opacity:1; }
-}
-
-/* BUTTON HOVER MOTION */
-.button {
-  margin-top:30px;
+button {
+  display:block;
+  margin:10px auto;
   padding:12px 24px;
-  border:1px solid #000;
+  background:transparent;
+  border:1px solid #fff;
+  color:#fff;
   cursor:pointer;
-  transition: transform 0.25s ease, background 0.25s ease;
+  transition:0.3s;
 }
 
-.button:hover {
-  transform: scale(1.05);
-}
-
-/* SECTION REVEAL BASE */
-.section {
-  padding:120px 20px;
-  max-width:700px;
-  margin:auto;
-  opacity:0;
-  transform: translateY(40px);
-  transition: all 0.8s ease;
-}
-
-.section.show {
-  opacity:1;
-  transform: translateY(0);
-}
-</style>
-<script>
-const sections = document.querySelectorAll('.section');
-
-function reveal() {
-  const trigger = window.innerHeight * 0.85;
-
-  sections.forEach(sec => {
-    const top = sec.getBoundingClientRect().top;
-
-    if(top < trigger) {
-      sec.classList.add('show');
-    }
-  });
-}
-
-window.addEventListener('scroll', reveal);
-window.addEventListener('load', reveal);
-</script>
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>UNIVERSE</title>
-<style>
-body {
-  margin: 0;
-  overflow: hidden;
-  background: #000;
-}
-canvas {
-  position: fixed;
-  top: 0;
-  left: 0;
+button:hover {
+  transform:scale(1.05);
+  background:#fff;
+  color:#000;
 }
 </style>
 </head>
+
 <body>
 
-<canvas id="space"></canvas>
+<div class="container">
+  <h1>OJEE9</h1>
 
-<script src="main.js"></script>
+  <button onclick="location.href='space.html'">SPACE</button>
+  <button onclick="location.href='archive.html'">ARCHIVE</button>
+  <button onclick="location.href='visual.html'">VISUAL</button>
+</div>
 
 </body>
 </html>
