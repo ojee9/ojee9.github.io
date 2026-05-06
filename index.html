@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>ARCHIVE V9</title>
+<title>ARCHIVE V10</title>
 
 <style>
 body{
@@ -12,77 +12,49 @@ body{
   font-family:Arial;
 }
 
-/* TOP UI */
-#top{
+/* ================= TOP BAR ================= */
+#topBar{
   position:fixed;
-  top:20px;
+  top:15px;
   left:50%;
   transform:translateX(-50%);
   display:flex;
-  align-items:center;
   gap:25px;
   z-index:50;
 }
 
-.arrow{
+.tab{
   color:white;
-  font-size:34px;
+  font-size:12px;
+  letter-spacing:4px;
+  opacity:0.4;
   cursor:pointer;
-  opacity:0.7;
-}
-.arrow:hover{opacity:1; transform:scale(1.2);}
-
-/* CENTER TITLE */
-#title{
-  position:fixed;
-  top:20px;
-  left:50%;
-  transform:translateX(-50%);
-  color:white;
-  font-size:13px;
-  letter-spacing:6px;
-  z-index:50;
-  opacity:0.8;
+  transition:0.3s;
 }
 
-/* BIOME NAME */
-#label{
-  position:fixed;
-  bottom:25px;
-  left:50%;
-  transform:translateX(-50%);
-  color:white;
-  font-size:16px;
-  letter-spacing:5px;
-  z-index:50;
+.tab.active{
+  opacity:1;
+  transform:scale(1.2);
 }
 
-/* WORLD */
-#world{
-  display:flex;
-  width:400vw;
-  height:100vh;
-  transition:transform 1s cubic-bezier(.77,0,.18,1);
-}
-
-.panel{
+/* ================= STAGE ================= */
+#stage{
   width:100vw;
   height:100vh;
   position:relative;
-  overflow:hidden;
 }
 
-/* ================= COMMON BACK ================= */
-.bg{
+/* ACTIVE BIOME */
+.biome{
   position:absolute;
   width:100%;
   height:100%;
   background-size:cover;
   background-position:center;
-  filter:brightness(0.7);
+  transition:1s;
 }
 
-/* overlay */
+/* DARK OVERLAY */
 .overlay{
   position:absolute;
   width:100%;
@@ -90,106 +62,55 @@ body{
   background:rgba(0,0,0,0.35);
 }
 
-/* ================= THUMB STRIP ================= */
-#thumbs{
-  position:fixed;
-  top:70px;
-  left:50%;
-  transform:translateX(-50%);
-  display:flex;
-  gap:10px;
-  z-index:50;
+/* ================= SIDE PREVIEWS ================= */
+.side{
+  position:absolute;
+  top:50%;
+  transform:translateY(-50%);
+  width:200px;
+  height:120px;
+  opacity:0.25;
+  filter:blur(2px);
+  transition:0.5s;
+  background-size:cover;
+  background-position:center;
 }
 
-.thumb{
-  width:70px;
-  height:45px;
-  border-radius:6px;
-  overflow:hidden;
-  opacity:0.4;
-  filter:blur(1px);
-  transition:0.4s;
+.left{
+  left:40px;
 }
 
-.thumb img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
+.right{
+  right:40px;
 }
 
-.thumb.active{
-  opacity:1;
-  filter:none;
-  transform:scale(1.2);
-  box-shadow:0 0 25px rgba(255,255,255,0.3);
-}
-
-/* ================= NEON PARTICLES ================= */
+/* ================= NEON LAYER ================= */
 #neonCanvas{
+  position:absolute;
   width:100%;
   height:100%;
-  display:block;
 }
 </style>
 </head>
 
 <body>
 
-<div id="title">ARCHIVE SELECT</div>
-
-<div id="top">
-  <div class="arrow" onclick="go(index-1)">‹</div>
-  <div class="arrow" onclick="go(index+1)">›</div>
+<div id="topBar">
+  <div class="tab active" onclick="go(0)">ALL VIBES</div>
+  <div class="tab" onclick="go(1)">COLD TAKE</div>
+  <div class="tab" onclick="go(2)">HOT TAKE</div>
+  <div class="tab" onclick="go(3)">NEW NEON</div>
 </div>
 
-<div id="thumbs">
+<div id="stage">
 
-  <div class="thumb" onclick="go(0)">
-    <img src="https://images.unsplash.com/photo-1520975928316-56b5b6a2b4f5">
-  </div>
+  <div id="biome" class="biome"></div>
+  <div class="overlay"></div>
 
-  <div class="thumb" onclick="go(1)">
-    <img src="https://images.unsplash.com/photo-1608889175123-1c6f9f6c9b6c">
-  </div>
+  <div id="left" class="side left"></div>
+  <div id="right" class="side right"></div>
 
-  <div class="thumb" onclick="go(2)">
-    <img src="https://images.unsplash.com/photo-1547887537-6158d64c35b3">
-  </div>
-
-  <div class="thumb" onclick="go(3)">
-    <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee">
-  </div>
-
-</div>
-
-<div id="label"></div>
-
-<div id="world">
-
-  <!-- ROMA -->
-  <div class="panel">
-    <div class="bg" style="background-image:url('https://images.unsplash.com/photo-1524492449090-8b8f2c7b0b8c')"></div>
-    <div class="overlay"></div>
-  </div>
-
-  <!-- COLD -->
-  <div class="panel">
-    <div class="bg" style="background-image:url('https://images.unsplash.com/photo-1608889175123-1c6f9f6c9b6c')"></div>
-    <div class="overlay"></div>
-  </div>
-
-  <!-- HOT -->
-  <div class="panel">
-    <div class="bg" style="background-image:url('https://images.unsplash.com/photo-1547887537-6158d64c35b3')"></div>
-    <div class="overlay"></div>
-  </div>
-
-  <!-- NEON -->
-  <div class="panel">
-    <div class="bg" style="background-image:url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee')"></div>
-    <div class="overlay"></div>
-    <canvas id="neonCanvas"></canvas>
-  </div>
+  <canvas id="neonCanvas"></canvas>
 
 </div>
 
