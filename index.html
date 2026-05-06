@@ -2,78 +2,66 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>SPACE MOBILE</title>
+<title>9ojeez9</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 body{
   margin:0;
-  background:#05060a;
   font-family:Arial;
+  background:#05060a;
   overflow:hidden;
 }
 
-#map{
-  position:relative;
-  width:100vw;
-  height:100vh;
+/* NAV BUTTONS */
+.nav{
+  position:fixed;
+  top:12px;
+  left:12px;
+  z-index:10;
+  display:flex;
+  gap:10px;
 }
 
-/* NODE */
-.node{
-  position:absolute;
-  width:180px;
-  text-align:center;
-  cursor:pointer;
-  transform:translate(-50%,-50%);
-  transition:transform 0.25s ease;
-}
-
-.node:hover{
-  transform:translate(-50%,-50%) scale(1.1);
-}
-
-/* ICON BIGGER */
-.node img{
-  width:64px;
-  height:64px;
-  filter:drop-shadow(0 0 12px rgba(255,255,255,0.25));
-}
-
-/* TEXT */
-.node span{
-  display:block;
-  margin-top:8px;
+.nav button{
+  background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.15);
   color:white;
-  font-size:15px;
-  opacity:0.9;
+  padding:8px 12px;
+  border-radius:10px;
+  font-size:12px;
 }
 
-/* MOBILE BOOST */
-@media (max-width: 768px){
-
-  .node{
-    width:220px;
-  }
-
-  .node img{
-    width:84px;
-    height:84px;
-  }
-
-  .node span{
-    font-size:16px;
-  }
+/* STARFIELD CANVAS */
+canvas{
+  position:fixed;
+  top:0;
+  left:0;
 }
 </style>
 </head>
 
 <body>
 
-<div id="map"></div>
+<div class="nav">
+  <button onclick="goSpace()">SPACE</button>
+  <button onclick="goArchive()">ARCHIVE</button>
+</div>
 
-<script src="space.js"></script>
+<canvas id="bg"></canvas>
+
+<script src="home.js"></script>
+
+<script>
+function goSpace(){
+  window.location.href = "space.html";
+}
+
+function goArchive(){
+  window.location.href = "archive.html";
+}
+</script>
 
 </body>
 </html>
