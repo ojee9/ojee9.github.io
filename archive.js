@@ -1,3 +1,4 @@
+
 const labels = [
   "ALL / VIBES",
   "COLD TAKE",
@@ -10,10 +11,13 @@ let index = 0;
 const world = document.getElementById("world");
 const label = document.getElementById("label");
 
-/* UPDATE SLIDE */
 function update(){
   world.style.transform = `translateX(-${index * 100}vw)`;
   label.innerText = labels[index];
+
+  if(index === 3){
+    setTimeout(() => neonEngine(), 300);
+  }
 }
 
 /* NAV */
@@ -27,105 +31,52 @@ function prev(){
   update();
 }
 
-/* ===== BIOME EFFECTS ===== */
+/* ===== NEON ENGINE ===== */
+function neonEngine(){
 
-/* ROMA GARDEN */
-function roma(){
-  const el = document.getElementById("all");
-  el.innerHTML = `
-    <div style="
-      width:100%;
-      height:100%;
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
-      align-items:center;
-      background:linear-gradient(#2a2a2a,#000);
-      letter-spacing:3px;
-    ">
-      🏛 ROMA GARDEN
-      <div style="opacity:0.5;margin-top:10px;">
-        marble / symmetry / archive order
-      </div>
-    </div>
-  `;
+  const canvas = document.getElementById("neonCanvas");
+  if(!canvas) return;
+
+  const ctx = canvas.getContext("2d");
+
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  let t = 0;
+
+  let signs = [
+    { x:200, y:200, text:"9o9" },
+    { x:500, y:300, text:"NEON" },
+    { x:800, y:400, text:"SOUND" },
+    { x:300, y:500, text:"STREAM" }
+  ];
+
+  function draw(){
+
+    ctx.fillStyle = "rgba(5,0,20,0.25)";
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    signs.forEach(s => {
+
+      s.y += Math.sin(t + s.x) * 0.4;
+      s.x += Math.cos(t + s.y) * 0.3;
+
+      let glow = Math.abs(Math.sin(t * 2)) * 25;
+
+      ctx.font = "28px Arial";
+      ctx.fillStyle = "#00ffcc";
+      ctx.shadowColor = "#00ffcc";
+      ctx.shadowBlur = glow;
+
+      ctx.fillText(s.text, s.x, s.y);
+    });
+
+    t += 0.01;
+
+    requestAnimationFrame(draw);
+  }
+
+  draw();
 }
 
-/* ICE WALL */
-function cold(){
-  const el = document.getElementById("cold");
-  el.innerHTML = `
-    <div style="
-      width:100%;
-      height:100%;
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
-      align-items:center;
-      background:#0b1b2b;
-      letter-spacing:3px;
-    ">
-      ❄ ICE WALL
-      <div style="opacity:0.6;margin-top:10px;">
-        silence / north / frozen memory
-      </div>
-    </div>
-  `;
-}
-
-/* EGYPT */
-function hot(){
-  const el = document.getElementById("hot");
-  el.innerHTML = `
-    <div style="
-      width:100%;
-      height:100%;
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
-      align-items:center;
-      background:#c49a3c;
-      color:black;
-      letter-spacing:3px;
-    ">
-      🏺 ANCIENT EGYPT
-      <div style="opacity:0.7;margin-top:10px;">
-        sand / papyrus / old signal
-      </div>
-    </div>
-  `;
-}
-
-/* NEON */
-function neon(){
-  const el = document.getElementById("neon");
-  el.innerHTML = `
-    <div style="
-      width:100%;
-      height:100%;
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
-      align-items:center;
-      background:#050014;
-      color:#00ffcc;
-      letter-spacing:3px;
-    ">
-      🌃 NEON CITY
-      <div style="opacity:0.7;margin-top:10px;">
-        glitch / gravity / night signals
-      </div>
-    </div>
-  `;
-}
-
-/* INIT */
-function init(){
-  roma();
-  cold();
-  hot();
-  neon();
-  update();
-}
-
-init();
+update();
