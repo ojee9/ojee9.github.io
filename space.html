@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>SPACE — CONSTELLATION</title>
+<title>SPACE STATIC</title>
 
 <style>
 body{
@@ -12,8 +12,18 @@ body{
   font-family:Arial;
 }
 
-canvas{
-  display:block;
+canvas{ display:block; }
+
+/* tooltip */
+#tip{
+  position:fixed;
+  color:white;
+  font-size:12px;
+  background:rgba(0,0,0,0.6);
+  padding:6px 10px;
+  border-radius:8px;
+  pointer-events:none;
+  display:none;
 }
 </style>
 </head>
@@ -21,6 +31,7 @@ canvas{
 <body>
 
 <canvas id="c"></canvas>
+<div id="tip"></div>
 
 <script src="space.js"></script>
 
