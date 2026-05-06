@@ -2,7 +2,9 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>SPACE NETWORK</title>
+<title>SPACE MOBILE</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 body{
@@ -12,7 +14,6 @@ body{
   overflow:hidden;
 }
 
-/* GRID MAP */
 #map{
   position:relative;
   width:100vw;
@@ -22,31 +23,48 @@ body{
 /* NODE */
 .node{
   position:absolute;
-  width:140px;
+  width:180px;
   text-align:center;
   cursor:pointer;
   transform:translate(-50%,-50%);
-  transition:transform 0.2s ease;
+  transition:transform 0.25s ease;
 }
 
 .node:hover{
-  transform:translate(-50%,-50%) scale(1.08);
+  transform:translate(-50%,-50%) scale(1.1);
 }
 
-/* ICON */
+/* ICON BIGGER */
 .node img{
-  width:44px;
-  height:44px;
-  filter:drop-shadow(0 0 10px rgba(255,255,255,0.25));
+  width:64px;
+  height:64px;
+  filter:drop-shadow(0 0 12px rgba(255,255,255,0.25));
 }
 
-/* LABEL */
+/* TEXT */
 .node span{
   display:block;
-  margin-top:6px;
+  margin-top:8px;
   color:white;
-  font-size:13px;
+  font-size:15px;
   opacity:0.9;
+}
+
+/* MOBILE BOOST */
+@media (max-width: 768px){
+
+  .node{
+    width:220px;
+  }
+
+  .node img{
+    width:84px;
+    height:84px;
+  }
+
+  .node span{
+    font-size:16px;
+  }
 }
 </style>
 </head>
