@@ -1,94 +1,57 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>ARCHIVE</title>
-
-<style>
-body{
-  margin:0;
-  overflow:hidden;
-  font-family:Arial;
-  transition:background 1s ease;
-}
-
-#nav{
-  position:fixed;
-  top:20px;
-  left:50%;
-  transform:translateX(-50%);
-  display:flex;
-  gap:20px;
-  z-index:50;
-}
-
-.arrow{
-  color:white;
-  font-size:34px;
-  cursor:pointer;
-}
-
-#label{
-  color:white;
-  font-size:14px;
-  letter-spacing:5px;
-}
-
-#stage{
-  position:relative;
-  width:100vw;
-  height:100vh;
-}
-
-#bg{
-  position:absolute;
-  width:100%;
-  height:100%;
-  background-size:cover;
-  background-position:center;
-  transition:1s ease;
-}
-
-#overlay{
-  position:absolute;
-  width:100%;
-  height:100%;
-  background:rgba(0,0,0,0.4);
-}
-
-.side{
-  position:absolute;
-  top:50%;
-  transform:translateY(-50%);
-  width:180px;
-  height:110px;
-  background-size:cover;
-  background-position:center;
-  opacity:0.4;
-  filter:blur(2px);
-}
-
-#left{left:30px;}
-#right{right:30px;}
-</style>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARCHIVE — 9OJEez9</title>
+<link rel="stylesheet" href="archive.css">
 </head>
-
 <body>
 
-<div id="nav">
-  <div class="arrow" onclick="go(index-1)">‹</div>
-  <div id="label"></div>
-  <div class="arrow" onclick="go(index+1)">›</div>
+<div class="archive-wrapper">
+
+  <!-- TOP SELECT BAR -->
+  <div class="top-bar">
+    <button id="prevBtn">&#10094;</button>
+    <div id="sceneTitle">HOT TAKE</div>
+    <button id="nextBtn">&#10095;</button>
+  </div>
+
+  <!-- SCENE CONTAINER -->
+  <div class="scene-container">
+
+    <div class="scene hot active">
+      <div class="highlight-box hot-box">
+        <div class="track">HOT TRACK 01</div>
+        <div class="track">HOT TRACK 02</div>
+      </div>
+    </div>
+
+    <div class="scene neon">
+      <div class="highlight-box neon-box">
+        <div class="track">NEON TRACK 01</div>
+        <div class="track">NEON TRACK 02</div>
+      </div>
+    </div>
+
+    <div class="scene cold">
+      <div class="highlight-box cold-box">
+        <div class="track">COLD TRACK 01</div>
+        <div class="track">COLD TRACK 02</div>
+      </div>
+    </div>
+
+    <div class="scene all">
+      <div class="highlight-box all-box">
+        <div class="track">ALL TRACK 01</div>
+        <div class="track">ALL TRACK 02</div>
+      </div>
+    </div>
+
+  </div>
+
 </div>
 
-<div id="stage">
-  <div id="bg"></div>
-  <div id="overlay"></div>
-  <div id="left" class="side"></div>
-  <div id="right" class="side"></div>
-</div>
-
-<script src="js/archive.js"></script>
-
+<script src="archive.js"></script>
 </body>
 </html>
