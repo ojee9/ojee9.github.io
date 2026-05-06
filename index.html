@@ -2,107 +2,198 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>9o9</title>
+<title>ARCHIVE V9</title>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap');
-
-body {
-  margin: 0;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  background: #f3e9dc;
-  color: #1a1a1a;
-
-  font-family: 'Inter', sans-serif;
+body{
+  margin:0;
+  overflow:hidden;
+  background:black;
+  font-family:Arial;
 }
 
-.container {
-  text-align: center;
+/* TOP UI */
+#top{
+  position:fixed;
+  top:20px;
+  left:50%;
+  transform:translateX(-50%);
+  display:flex;
+  align-items:center;
+  gap:25px;
+  z-index:50;
 }
 
-h1 {
-  font-weight: 300;
-  letter-spacing: 10px;
-  margin-bottom: 40px;
+.arrow{
+  color:white;
+  font-size:34px;
+  cursor:pointer;
+  opacity:0.7;
+}
+.arrow:hover{opacity:1; transform:scale(1.2);}
+
+/* CENTER TITLE */
+#title{
+  position:fixed;
+  top:20px;
+  left:50%;
+  transform:translateX(-50%);
+  color:white;
+  font-size:13px;
+  letter-spacing:6px;
+  z-index:50;
+  opacity:0.8;
 }
 
-.buttons {
-  display: flex;
-  gap: 12px;
-  justify-content: center;
+/* BIOME NAME */
+#label{
+  position:fixed;
+  bottom:25px;
+  left:50%;
+  transform:translateX(-50%);
+  color:white;
+  font-size:16px;
+  letter-spacing:5px;
+  z-index:50;
 }
 
-/* BUTTONS */
-button {
-  padding: 12px 26px;
-  border-radius: 999px;
-  border: 1px solid rgba(0,0,0,0.3);
-  background: transparent;
-  color: #1a1a1a;
-  font-size: 12px;
-  letter-spacing: 2px;
-  cursor: pointer;
-  transition: all 0.25s ease;
+/* WORLD */
+#world{
+  display:flex;
+  width:400vw;
+  height:100vh;
+  transition:transform 1s cubic-bezier(.77,0,.18,1);
 }
 
-button:hover {
-  background: #1a1a1a;
-  color: #f3e9dc;
-  transform: translateY(-2px);
+.panel{
+  width:100vw;
+  height:100vh;
+  position:relative;
+  overflow:hidden;
 }
 
-/* FADE */
-#fade {
-  position: fixed;
-  top:0;
-  left:0;
+/* ================= COMMON BACK ================= */
+.bg{
+  position:absolute;
   width:100%;
   height:100%;
-  background:black;
-  opacity:0;
-  pointer-events:none;
-  transition: opacity 0.9s ease;
+  background-size:cover;
+  background-position:center;
+  filter:brightness(0.7);
+}
+
+/* overlay */
+.overlay{
+  position:absolute;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.35);
+}
+
+/* ================= THUMB STRIP ================= */
+#thumbs{
+  position:fixed;
+  top:70px;
+  left:50%;
+  transform:translateX(-50%);
+  display:flex;
+  gap:10px;
+  z-index:50;
+}
+
+.thumb{
+  width:70px;
+  height:45px;
+  border-radius:6px;
+  overflow:hidden;
+  opacity:0.4;
+  filter:blur(1px);
+  transition:0.4s;
+}
+
+.thumb img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.thumb.active{
+  opacity:1;
+  filter:none;
+  transform:scale(1.2);
+  box-shadow:0 0 25px rgba(255,255,255,0.3);
+}
+
+/* ================= NEON PARTICLES ================= */
+#neonCanvas{
+  width:100%;
+  height:100%;
+  display:block;
 }
 </style>
 </head>
 
 <body>
 
-<div class="container">
-  <h1>9o9</h1>
+<div id="title">ARCHIVE SELECT</div>
 
-  <div class="buttons">
-    <button onclick="enterSpace()">SPACE</button>
-    <button onclick="enterArchive()">ARCHIVE</button>
-    <button onclick="alert('VISUAL coming soon')">VISUAL</button>
-  </div>
+<div id="top">
+  <div class="arrow" onclick="go(index-1)">‹</div>
+  <div class="arrow" onclick="go(index+1)">›</div>
 </div>
 
-<div id="fade"></div>
+<div id="thumbs">
 
-<script>
-function enterSpace() {
-  const fade = document.getElementById("fade");
-  fade.style.opacity = 1;
+  <div class="thumb" onclick="go(0)">
+    <img src="https://images.unsplash.com/photo-1520975928316-56b5b6a2b4f5">
+  </div>
 
-  setTimeout(() => {
-    window.location.href = "space.html";
-  }, 900);
-}
+  <div class="thumb" onclick="go(1)">
+    <img src="https://images.unsplash.com/photo-1608889175123-1c6f9f6c9b6c">
+  </div>
 
-function enterArchive() {
-  const fade = document.getElementById("fade");
-  fade.style.opacity = 1;
+  <div class="thumb" onclick="go(2)">
+    <img src="https://images.unsplash.com/photo-1547887537-6158d64c35b3">
+  </div>
 
-  setTimeout(() => {
-    window.location.href = "archive.html";
-  }, 900);
-}
-</script>
+  <div class="thumb" onclick="go(3)">
+    <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee">
+  </div>
+
+</div>
+
+<div id="label"></div>
+
+<div id="world">
+
+  <!-- ROMA -->
+  <div class="panel">
+    <div class="bg" style="background-image:url('https://images.unsplash.com/photo-1524492449090-8b8f2c7b0b8c')"></div>
+    <div class="overlay"></div>
+  </div>
+
+  <!-- COLD -->
+  <div class="panel">
+    <div class="bg" style="background-image:url('https://images.unsplash.com/photo-1608889175123-1c6f9f6c9b6c')"></div>
+    <div class="overlay"></div>
+  </div>
+
+  <!-- HOT -->
+  <div class="panel">
+    <div class="bg" style="background-image:url('https://images.unsplash.com/photo-1547887537-6158d64c35b3')"></div>
+    <div class="overlay"></div>
+  </div>
+
+  <!-- NEON -->
+  <div class="panel">
+    <div class="bg" style="background-image:url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee')"></div>
+    <div class="overlay"></div>
+    <canvas id="neonCanvas"></canvas>
+  </div>
+
+</div>
+
+<script src="archive.js"></script>
 
 </body>
 </html>
