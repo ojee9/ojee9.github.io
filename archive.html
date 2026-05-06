@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>ARCHIVE v8</title>
+<title>ARCHIVE v8.2</title>
 
 <style>
 body{
@@ -12,8 +12,8 @@ body{
   font-family:Arial;
 }
 
-/* ================= TOP CATEGORY TEXT ================= */
-#titleBar{
+/* TOP TITLE */
+#header{
   position:fixed;
   top:10px;
   left:50%;
@@ -25,43 +25,36 @@ body{
   z-index:30;
 }
 
-/* ================= THUMBNAIL SELECT ================= */
-#top{
+/* NAV ARROWS */
+#nav{
   position:fixed;
-  top:40px;
+  top:45px;
   left:50%;
   transform:translateX(-50%);
   display:flex;
-  gap:10px;
-  z-index:20;
+  align-items:center;
+  gap:15px;
+  z-index:30;
 }
 
-.navBtn{
-  width:70px;
-  height:45px;
-  border:1px solid rgba(255,255,255,0.25);
-  border-radius:6px;
-  overflow:hidden;
+.arrow{
+  color:white;
+  font-size:28px;
   cursor:pointer;
+  user-select:none;
   opacity:0.6;
-  transition:0.3s;
+  transition:0.2s;
 }
 
-.navBtn:hover{
-  transform:scale(1.15);
+.arrow:hover{
   opacity:1;
+  transform:scale(1.2);
 }
 
-.navBtn img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-}
-
-/* ================= CENTER LABEL ================= */
+/* CATEGORY LABEL */
 #centerLabel{
   position:fixed;
-  bottom:40px;
+  bottom:30px;
   left:50%;
   transform:translateX(-50%);
   color:white;
@@ -71,7 +64,40 @@ body{
   z-index:30;
 }
 
-/* ================= WORLD ================= */
+/* THUMBNAILS */
+#thumbs{
+  position:fixed;
+  top:80px;
+  left:50%;
+  transform:translateX(-50%);
+  display:flex;
+  gap:10px;
+  z-index:30;
+}
+
+.thumb{
+  width:70px;
+  height:45px;
+  border-radius:6px;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,0.25);
+  opacity:0.6;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+.thumb:hover{
+  transform:scale(1.1);
+  opacity:1;
+}
+
+.thumb img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+/* WORLD */
 #world{
   display:flex;
   width:400vw;
@@ -83,6 +109,7 @@ body{
   width:100vw;
   height:100vh;
   position:relative;
+  overflow:hidden;
 }
 
 /* ================= ROMA ================= */
@@ -90,21 +117,6 @@ body{
   width:100%;
   height:100%;
   background:radial-gradient(circle,#3a3a3a,#000);
-}
-
-/* columns */
-.roma::before{
-  content:"";
-  position:absolute;
-  width:100%;
-  height:100%;
-  background:repeating-linear-gradient(
-    90deg,
-    rgba(255,255,255,0.06),
-    rgba(255,255,255,0.06) 40px,
-    transparent 40px,
-    transparent 120px
-  );
 }
 
 /* ================= COLD ================= */
@@ -118,9 +130,7 @@ body{
   position:absolute;
   width:100%;
   height:100%;
-  background:
-    radial-gradient(circle at 30% 30%, rgba(255,255,255,0.2), transparent),
-    radial-gradient(circle at 70% 70%, rgba(255,255,255,0.1), transparent);
+  background:radial-gradient(circle at 30% 30%, rgba(255,255,255,0.2), transparent);
 }
 
 /* ================= HOT ================= */
@@ -128,8 +138,6 @@ body{
   width:100%;
   height:100%;
   background:linear-gradient(#d8b45a,#6b4b1a);
-  position:relative;
-  overflow:hidden;
 }
 
 .sand{
@@ -156,8 +164,8 @@ body{
   bottom:20px;
   left:50%;
   transform:translateX(-50%);
-  width:180px;
-  height:180px;
+  width:160px;
+  height:160px;
   background:linear-gradient(135deg,#c9a24a,#6b4b1a);
   clip-path:polygon(50% 0,0 100%,100% 100%);
 }
@@ -173,40 +181,45 @@ body{
 
 <body>
 
-<!-- TOP TITLE -->
-<div id="titleBar">SELECT ARCHIVE BIOME</div>
+<div id="header">ARCHIVE SELECT</div>
 
-<!-- THUMBNAILS -->
-<div id="top">
-  <div class="navBtn" onclick="go(0)"><img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee"></div>
-  <div class="navBtn" onclick="go(1)"><img src="https://images.unsplash.com/photo-1608889175123-1c6f9f6c9b6c"></div>
-  <div class="navBtn" onclick="go(2)"><img src="https://images.unsplash.com/photo-1547887537-6158d64c35b3"></div>
-  <div class="navBtn" onclick="go(3)"><img src="https://images.unsplash.com/photo-1520975928316-56b5b6a2b4f5"></div>
+<div id="nav">
+  <div class="arrow" onclick="go(index-1)">‹</div>
+  <div class="arrow" onclick="go(index+1)">›</div>
 </div>
 
-<!-- CENTER LABEL -->
+<!-- THUMBNAILS -->
+<div id="thumbs">
+
+  <div class="thumb" onclick="go(0)">
+    <img src="https://images.unsplash.com/photo-1548013146-72479768bada">
+  </div>
+
+  <div class="thumb" onclick="go(1)">
+    <img src="https://images.unsplash.com/photo-1608889175123-1c6f9f6c9b6c">
+  </div>
+
+  <div class="thumb" onclick="go(2)">
+    <img src="https://images.unsplash.com/photo-1547887537-6158d64c35b3">
+  </div>
+
+  <div class="thumb" onclick="go(3)">
+    <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee">
+  </div>
+
+</div>
+
 <div id="centerLabel"></div>
 
 <div id="world">
 
-  <div class="panel">
-    <div class="roma"></div>
-  </div>
+  <div class="panel"><div class="roma"></div></div>
 
-  <div class="panel">
-    <div class="cold"><div class="ice"></div></div>
-  </div>
+  <div class="panel"><div class="cold"><div class="ice"></div></div></div>
 
-  <div class="panel">
-    <div class="hot">
-      <div class="sand"></div>
-      <div class="pyramid"></div>
-    </div>
-  </div>
+  <div class="panel"><div class="hot"><div class="sand"></div><div class="pyramid"></div></div></div>
 
-  <div class="panel">
-    <canvas id="neonCanvas"></canvas>
-  </div>
+  <div class="panel"><canvas id="neonCanvas"></canvas></div>
 
 </div>
 
