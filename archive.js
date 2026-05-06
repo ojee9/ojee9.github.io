@@ -1,8 +1,8 @@
-
 let index = 0;
 
 const world = document.getElementById("world");
 const centerLabel = document.getElementById("centerLabel");
+const thumbs = document.querySelectorAll(".thumb");
 
 const labels = [
   "ROMA GARDEN",
@@ -21,25 +21,30 @@ function go(i){
 }
 
 function update(){
+
   world.style.transform = `translateX(-${index * 100}vw)`;
   centerLabel.innerText = labels[index];
+
+  /* thumbnail focus system */
+  thumbs.forEach((t,i)=>{
+    t.classList.remove("active");
+    if(i === index) t.classList.add("active");
+  });
 
   if(index === 3){
     setTimeout(neon,200);
   }
 }
 
-/* NEON */
-let neonStarted = false;
+/* ================= NEON ================= */
+let started = false;
 
 function neon(){
 
-  if(neonStarted) return;
-  neonStarted = true;
+  if(started) return;
+  started = true;
 
   const canvas = document.getElementById("neonCanvas");
-  if(!canvas) return;
-
   const ctx = canvas.getContext("2d");
 
   canvas.width = window.innerWidth;
@@ -47,7 +52,7 @@ function neon(){
 
   let t = 0;
 
-  let lights = Array.from({length:70}).map(()=>({
+  let lights = Array.from({length:80}).map(()=>({
     x:Math.random()*canvas.width,
     y:Math.random()*canvas.height
   }));
@@ -67,7 +72,7 @@ function neon(){
 
       ctx.fillStyle="#00ffe1";
       ctx.shadowColor="#00ffe1";
-      ctx.shadowBlur=18;
+      ctx.shadowBlur=20;
 
       ctx.fill();
     });
