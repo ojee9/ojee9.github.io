@@ -2,51 +2,60 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>9o9</title>
+<title>SPACE NETWORK</title>
 
 <style>
 body{
   margin:0;
-  height:100vh;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  background:#0b0b0b;
+  background:#05060a;
   font-family:Arial;
-  color:white;
+  overflow:hidden;
 }
 
-.menu{
+/* GRID MAP */
+#map{
+  position:relative;
+  width:100vw;
+  height:100vh;
+}
+
+/* NODE */
+.node{
+  position:absolute;
+  width:140px;
   text-align:center;
+  cursor:pointer;
+  transform:translate(-50%,-50%);
+  transition:transform 0.2s ease;
 }
 
-a{
+.node:hover{
+  transform:translate(-50%,-50%) scale(1.08);
+}
+
+/* ICON */
+.node img{
+  width:44px;
+  height:44px;
+  filter:drop-shadow(0 0 10px rgba(255,255,255,0.25));
+}
+
+/* LABEL */
+.node span{
   display:block;
-  margin:15px;
-  font-size:18px;
-  letter-spacing:3px;
+  margin-top:6px;
   color:white;
-  text-decoration:none;
-  opacity:0.7;
-  transition:0.2s;
-}
-
-a:hover{
-  opacity:1;
-  transform:scale(1.1);
+  font-size:13px;
+  opacity:0.9;
 }
 </style>
 </head>
 
 <body>
 
-<div class="menu">
-  <h1>9o9</h1>
+<div id="map"></div>
 
-  <a href="archive.html">ARCHIVE</a>
-  <a href="space.html">SPACE (coming)</a>
-  <a href="visual.html">VISUAL (coming)</a>
-</div>
+<script src="space.js"></script>
 
 </body>
 </html>
