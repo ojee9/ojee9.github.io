@@ -16,11 +16,10 @@ function update(){
   label.innerText = labels[index];
 
   if(index === 3){
-    setTimeout(() => neonEngine(), 300);
+    setTimeout(() => neon(), 200);
   }
 }
 
-/* NAV */
 function next(){
   index = (index + 1) % 4;
   update();
@@ -31,8 +30,8 @@ function prev(){
   update();
 }
 
-/* ===== NEON ENGINE ===== */
-function neonEngine(){
+/* ================= NEON ENGINE ================= */
+function neon(){
 
   const canvas = document.getElementById("neonCanvas");
   if(!canvas) return;
@@ -58,8 +57,8 @@ function neonEngine(){
 
     signs.forEach(s => {
 
-      s.y += Math.sin(t + s.x) * 0.4;
       s.x += Math.cos(t + s.y) * 0.3;
+      s.y += Math.sin(t + s.x) * 0.3;
 
       let glow = Math.abs(Math.sin(t * 2)) * 25;
 
