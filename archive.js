@@ -1,64 +1,28 @@
-let index = 0;
+const scenes = document.querySelectorAll(".scene");
+const sceneTitle = document.getElementById("sceneTitle");
+const prevBtn = document.getElementById("prevBtn");
+const nextBtn = document.getElementById("nextBtn");
 
-const bg = document.getElementById("bg");
-const overlay = document.getElementById("overlay");
-const label = document.getElementById("label");
-const left = document.getElementById("left");
-const right = document.getElementById("right");
+const sceneNames = ["HOT TAKE", "NEW NEON", "COLD TAKE", "ALL VIBES"];
 
-const data = [
-  {
-    name:"ALL VIBES",
-    color:"rgb(90,140,190)",
-    bg:"https://images.unsplash.com/photo-1524492449090-8b8f2c7b0b8c"
-  },
-  {
-    name:"COLD TAKE",
-    color:"rgb(80,120,170)",
-    bg:"https://images.unsplash.com/photo-1608889175123-1c6f9f6c9b6c"
-  },
-  {
-    name:"HOT TAKE",
-    color:"rgb(180,130,80)",
-    bg:"https://images.unsplash.com/photo-1547887537-6158d64c35b3"
-  },
-  {
-    name:"NEW NEON",
-    color:"rgb(130,90,180)",
-    bg:"https://images.unsplash.com/photo-1500530855697-b586d89ba3ee"
-  }
-];
+let current = 0;
 
-function go(i){
-  if(i < 0) i = 3;
-  if(i > 3) i = 0;
-
-  index = i;
-  render();
+function updateScene() {
+  scenes.forEach(scene => scene.classList.remove("active"));
+  scenes[current].classList.add("active");
+  sceneTitle.textContent = sceneNames[current];
 }
 
-function render(){
+prevBtn.addEventListener("click", () => {
+  current--;
+  if (current < 0) current = scenes.length - 1;
+  updateScene();
+});
 
-  const cur = data[index];
-  const prev = data[(index+3)%4];
-  const next = data[(index+1)%4];
+nextBtn.addEventListener("click", () => {
+  current++;
+  if (current >= scenes.length) current = 0;
+  updateScene();
+});
 
-  bg.style.opacity = 0;
-  overlay.style.opacity = 0;
-
-  setTimeout(()=>{
-
-    bg.style.backgroundImage = `url(${cur.bg})`;
-    document.body.style.background = cur.color;
-    label.innerText = cur.name;
-
-    left.style.backgroundImage = `url(${prev.bg})`;
-    right.style.backgroundImage = `url(${next.bg})`;
-
-    bg.style.opacity = 1;
-    overlay.style.opacity = 1;
-
-  },150);
-}
-
-render();
+updateScene();
