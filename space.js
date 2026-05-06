@@ -1,4 +1,3 @@
-
 const canvas = document.getElementById("c");
 const ctx = canvas.getContext("2d");
 const tip = document.getElementById("tip");
@@ -11,40 +10,41 @@ let mouse = { x:0, y:0 };
 document.addEventListener("mousemove",(e)=>{
   mouse.x = e.clientX;
   mouse.y = e.clientY;
+
   tip.style.left = (mouse.x + 12) + "px";
   tip.style.top = (mouse.y + 12) + "px";
 });
 
 /* =========================
-   STATIC NODES (NO PHYSICS)
+   STATIC FIXED NODES
 ========================= */
 
-let nodes = [
+const nodes = [
   { name:"9ojeez9 youtube", x:w*0.25, y:h*0.5, url:"https://www.youtube.com/@9ojeez9" },
   { name:"9ojeez9 spotify", x:w*0.6, y:h*0.35, url:"https://open.spotify.com/artist/4XH3BH9SPGEaTzp1suzdCL" },
   { name:"9ojeez9 soundcloud", x:w*0.3, y:h*0.25, url:"https://soundcloud.com/9ojeez9" },
-  { name:"9ojeez9 twitter", x:w*0.55, y:h*0.55, url:"https://www.twitter.com/9ojeez9" },
-  { name:"9ojeez9 twitch", x:w*0.7, y:h*0.45, url:"https://www.twitch.tv/ojeez9" }
+  { name:"9ojeez9 twitter", x:w*0.55, y:h*0.55, url:"https://twitter.com/9ojeez9" },
+  { name:"9ojeez9 twitch", x:w*0.7, y:h*0.45, url:"https://twitch.tv/ojeez9" }
 ];
 
 /* =========================
-   DRAW STAR ICON (NO IMAGES)
+   STAR SHAPE
 ========================= */
 
-function drawStar(x,y,r){
-
+function star(x,y,r){
   ctx.beginPath();
   for(let i=0;i<5;i++){
-    let angle = (Math.PI*2/5)*i - Math.PI/2;
-    let sx = x + Math.cos(angle)*r;
-    let sy = y + Math.sin(angle)*r;
-    ctx.lineTo(sx,sy);
+    let a = (Math.PI*2/5)*i - Math.PI/2;
+    ctx.lineTo(
+      x + Math.cos(a)*r,
+      y + Math.sin(a)*r
+    );
   }
   ctx.closePath();
 }
 
 /* =========================
-   RENDER
+   DRAW (NO STATE CHANGE)
 ========================= */
 
 function draw(){
@@ -63,31 +63,32 @@ function draw(){
 
     if(isHover) hovered = n;
 
-    /* star */
-    ctx.beginPath();
-    drawStar(n.x,n.y, isHover ? 14 : 10);
+    /* NODE */
+    ctx.save();
 
-    ctx.fillStyle = isHover ? "white" : "rgba(180,200,255,0.8)";
-    ctx.shadowColor = "rgba(120,160,255,0.4)";
-    ctx.shadowBlur = isHover ? 20 : 8;
+    star(n.x,n.y, isHover ? 14 : 10);
+
+    ctx.fillStyle = isHover ? "white" : "rgba(180,200,255,0.85)";
+    ctx.shadowColor = "rgba(120,160,255,0.35)";
+    ctx.shadowBlur = isHover ? 18 : 6;
 
     ctx.fill();
 
-    ctx.shadowBlur = 0;
+    ctx.restore();
+
   });
 
-  /* tooltip */
+  /* TOOLTIP */
   if(hovered){
     tip.style.display = "block";
     tip.innerText = hovered.name;
   } else {
     tip.style.display = "none";
   }
-
 }
 
 /* =========================
-   CLICK → OPEN
+   CLICK → OPEN LINK
 ========================= */
 
 canvas.addEventListener("click",(e)=>{
@@ -105,7 +106,7 @@ canvas.addEventListener("click",(e)=>{
 });
 
 /* =========================
-   LOOP (NO PHYSICS)
+   LOOP (PURE RENDER ONLY)
 ========================= */
 
 function loop(){
@@ -114,3 +115,12 @@ function loop(){
 }
 
 loop();
+
+/* =========================
+   RESIZE FIX
+========================= */
+
+window.addEventListener("resize",()=>{
+  w = canvas.width = window.innerWidth;
+  h = canvas.height = window.innerHeight;
+});
