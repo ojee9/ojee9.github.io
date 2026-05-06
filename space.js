@@ -104,3 +104,14 @@ function draw(){
 }
 
 draw();
+const imgCache = {};
+
+/* SAFE IMAGE CACHE (DO NOT MODIFY LAYOUT OR COORDS) */
+function getImg(src){
+  if(!imgCache[src]){
+    const img = new Image();
+    img.src = src;
+    imgCache[src] = img;
+  }
+  return imgCache[src];
+}
