@@ -30,6 +30,18 @@ function prev(){
   update();
 }
 
+/* ================= SOUND SYSTEM ================= */
+function focusTrack(id){
+  document.body.style.transition = "0.5s";
+  document.body.style.filter = "brightness(1.2) contrast(1.1)";
+
+  setTimeout(() => {
+    document.body.style.filter = "none";
+  }, 700);
+
+  console.log("TRACK FOCUS:", id);
+}
+
 /* ================= NEON ENGINE ================= */
 function neon(){
 
@@ -71,7 +83,6 @@ function neon(){
     });
 
     t += 0.01;
-
     requestAnimationFrame(draw);
   }
 
