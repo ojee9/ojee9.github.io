@@ -6,9 +6,11 @@ let w = canvas.width = window.innerWidth;
 let h = canvas.height = window.innerHeight;
 
 /* =========================
-   MOUSE FIELD
+   INPUT STATE
 ========================= */
+
 let mouse = { x:w/2, y:h/2 };
+let focusNode = null;
 
 document.addEventListener("mousemove",(e)=>{
   mouse.x = e.clientX;
@@ -16,28 +18,20 @@ document.addEventListener("mousemove",(e)=>{
 });
 
 /* =========================
-   CONSTELLATION GROUPS
+   CONSTELLATION NODES
 ========================= */
 
 let nodes = [
-  // SOCIAL CORE CLUSTER
-  { name:"INSTAGRAM", x:w*0.3, y:h*0.3, vx:0, vy:0, group:"social" },
-  { name:"TWITTER", x:w*0.35, y:h*0.4, vx:0, vy:0, group:"social" },
-  { name:"TIKTOK", x:w*0.25, y:h*0.45, vx:0, vy:0, group:"social" },
+  { name:"INSTAGRAM", x:w*0.25, y:h*0.3, vx:0, vy:0, group:"social" },
+  { name:"TWITTER", x:w*0.3, y:h*0.4, vx:0, vy:0, group:"social" },
+  { name:"YOUTUBE", x:w*0.2, y:h*0.5, vx:0, vy:0, group:"social" },
 
-  // MUSIC CLUSTER
-  { name:"SPOTIFY", x:w*0.6, y:h*0.3, vx:0, vy:0, group:"music" },
-  { name:"SOUNDCLOUD", x:w*0.65, y:h*0.4, vx:0, vy:0, group:"music" },
-  { name:"APPLE MUSIC", x:w*0.55, y:h*0.45, vx:0, vy:0, group:"music" },
+  { name:"SPOTIFY", x:w*0.65, y:h*0.3, vx:0, vy:0, group:"music" },
+  { name:"SOUNDCLOUD", x:w*0.7, y:h*0.4, vx:0, vy:0, group:"music" },
+  { name:"APPLE MUSIC", x:w*0.6, y:h*0.5, vx:0, vy:0, group:"music" },
 
-  // VIDEO CLUSTER
-  { name:"YOUTUBE", x:w*0.5, y:h*0.6, vx:0, vy:0, group:"video" },
-  { name:"TWITCH", x:w*0.6, y:h*0.65, vx:0, vy:0, group:"video" },
+  { name:"TWITCH", x:w*0.5, y:h*0.65, vx:0, vy:0, group:"video" }
 ];
-
-/* =========================
-   COLORS BY GROUP
-========================= */
 
 const colors = {
   social:"#6aa6ff",
@@ -46,14 +40,13 @@ const colors = {
 };
 
 /* =========================
-   UPDATE LOOP
+   MAIN LOOP
 ========================= */
 
 function update(){
 
   ctx.clearRect(0,0,w,h);
 
-  /* LINKS FIRST (behind nodes) */
   drawLinks();
 
   nodes.forEach(n=>{
@@ -62,27 +55,45 @@ function update(){
     let dy = n.y - mouse.y;
     let dist = Math.sqrt(dx*dx + dy*dy);
 
-    /* SOFT FIELD (NOT REPULSION) */
-    if(dist < 180){
+    /* =========================
+       MOUSE FIELD (SOFT)
+    ========================= */
+    if(dist < 220){
 
-      let force = (1 - dist/180) * 0.4;
+      let force = (1 - dist/220) * 0.35;
 
       n.vx += dx * force * 0.002;
       n.vy += dy * force * 0.002;
     }
 
-    /* GROUP GRAVITY (cluster stability) */
+    /* =========================
+       CLUSTER GRAVITY
+    ========================= */
     let gx = w*0.5;
     let gy = h*0.5;
 
     if(n.group === "social") gx = w*0.3;
-    if(n.group === "music") gx = w*0.6;
+    if(n.group === "music") gx = w*0.65;
     if(n.group === "video") gx = w*0.5;
 
-    n.vx += (gx - n.x) * 0.002;
-    n.vy += (gy - n.y) * 0.002;
+    n.vx += (gx - n.x) * 0.0015;
+    n.vy += (gy - n.y) * 0.0015;
 
-    /* damping */
+    /* =========================
+       FOCUS STATE (ZOOM FEEL)
+    ========================= */
+    if(focusNode && focusNode !== n){
+
+      let fx = focusNode.x - n.x;
+      let fy = focusNode.y - n.y;
+
+      n.vx += fx * 0.0008;
+      n.vy += fy * 0.0008;
+    }
+
+    /* =========================
+       DAMPING (STABILITY)
+    ========================= */
     n.vx *= 0.92;
     n.vy *= 0.92;
 
@@ -97,7 +108,7 @@ function update(){
 }
 
 /* =========================
-   DRAW LINKS
+   CONSTELLATION LINKS
 ========================= */
 
 function drawLinks(){
@@ -114,15 +125,17 @@ function drawLinks(){
       let dy = a.y - b.y;
       let d = Math.sqrt(dx*dx + dy*dy);
 
-      if(d < 180){
+      if(d < 200){
 
         ctx.beginPath();
         ctx.moveTo(a.x,a.y);
         ctx.lineTo(b.x,b.y);
 
         ctx.strokeStyle = colors[a.group];
-        ctx.globalAlpha = 0.15;
+        ctx.globalAlpha = 0.12;
+        ctx.lineWidth = 1;
         ctx.stroke();
+
         ctx.globalAlpha = 1;
       }
     }
@@ -139,28 +152,35 @@ function drawNodes(){
 
     let col = colors[n.group];
 
+    let size = 10;
+
+    if(focusNode === n) size = 16;
+
     /* glow */
     ctx.beginPath();
-    ctx.arc(n.x,n.y,12,0,Math.PI*2);
+    ctx.arc(n.x,n.y,size,0,Math.PI*2);
 
     ctx.fillStyle = col;
     ctx.shadowColor = col;
-    ctx.shadowBlur = 20;
+    ctx.shadowBlur = focusNode === n ? 35 : 20;
+
     ctx.fill();
 
-    /* label */
     ctx.shadowBlur = 0;
+
     ctx.fillStyle = "white";
-    ctx.font = "10px Arial";
+    ctx.font = focusNode === n ? "12px Arial" : "10px Arial";
     ctx.fillText(n.name, n.x+14, n.y+4);
   });
 }
 
 /* =========================
-   CLICK INTERACTION
+   CLICK → FOCUS SYSTEM
 ========================= */
 
 canvas.addEventListener("click",(e)=>{
+
+  let clicked = null;
 
   nodes.forEach(n=>{
 
@@ -168,10 +188,13 @@ canvas.addEventListener("click",(e)=>{
     let dy = e.clientY - n.y;
 
     if(Math.sqrt(dx*dx + dy*dy) < 15){
-      console.log("OPEN NODE:", n.name);
+      clicked = n;
     }
   });
 
+  if(clicked){
+    focusNode = (focusNode === clicked) ? null : clicked;
+  }
 });
 
 /* =========================
