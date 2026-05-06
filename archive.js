@@ -1,4 +1,3 @@
-
 let index = 0;
 
 const bg = document.getElementById("bg");
@@ -30,9 +29,7 @@ const data = [
   }
 ];
 
-/* 🎮 MAIN NAV */
 function go(i){
-
   if(i < 0) i = 3;
   if(i > 3) i = 0;
 
@@ -40,14 +37,12 @@ function go(i){
   render();
 }
 
-/* 🧠 RENDER ENGINE */
 function render(){
 
   const cur = data[index];
-  const prev = data[(index-1+4)%4];
+  const prev = data[(index+3)%4];
   const next = data[(index+1)%4];
 
-  /* smooth fade */
   bg.style.opacity = 0;
   overlay.style.opacity = 0;
 
@@ -60,23 +55,10 @@ function render(){
     left.style.backgroundImage = `url(${prev.bg})`;
     right.style.backgroundImage = `url(${next.bg})`;
 
-    left.classList.add("active");
-    right.classList.add("active");
-
     bg.style.opacity = 1;
     overlay.style.opacity = 1;
 
-  },180);
+  },150);
 }
 
-/* 🧲 MICRO PARALLAX (mouse depth) */
-document.addEventListener("mousemove",(e)=>{
-
-  let x = (e.clientX / window.innerWidth - 0.5) * 10;
-  let y = (e.clientY / window.innerHeight - 0.5) * 10;
-
-  bg.style.transform = `scale(1.05) translate(${x}px,${y}px)`;
-});
-
-/* INIT */
 render();
