@@ -12,9 +12,6 @@ window.addEventListener("mousemove", (e) => {
   mouse.y = e.clientY;
 });
 
-/* CLICK STATE */
-let selectedNode = null;
-
 /* STARS */
 let stars = [];
 
@@ -27,7 +24,7 @@ for (let i = 0; i < 150; i++) {
   });
 }
 
-/* NODES */
+/* NODES (NEURAL ROOT SYSTEM) */
 let nodes = [
   { name: "INSTAGRAM", x: 200, y: 200, baseX: 200, baseY: 200, url:"https://instagram.com" },
   { name: "TWITTER", x: 350, y: 300, baseX: 350, baseY: 300, url:"https://x.com" },
@@ -60,7 +57,7 @@ function drawStars() {
   });
 }
 
-/* NODE PHYSICS */
+/* NODE LIVING SYSTEM */
 function updateNodes() {
 
   nodes.forEach(n => {
@@ -96,7 +93,7 @@ function drawLinks() {
   });
 }
 
-/* NODES DRAW */
+/* DRAW NODES */
 function drawNodes() {
 
   nodes.forEach(n => {
@@ -109,18 +106,11 @@ function drawNodes() {
     ctx.font = "12px Arial";
     ctx.fillText(n.name, n.x + 10, n.y + 4);
 
-    if (selectedNode === n) {
-      ctx.strokeStyle = "rgba(255,255,255,0.5)";
-      ctx.beginPath();
-      ctx.arc(n.x, n.y, 25, 0, Math.PI * 2);
-      ctx.stroke();
-    }
-
   });
 
 }
 
-/* CLICK */
+/* CLICK SYSTEM */
 window.addEventListener("click", () => {
 
   nodes.forEach(n => {
@@ -131,13 +121,7 @@ window.addEventListener("click", () => {
     let dist = Math.sqrt(dx * dx + dy * dy);
 
     if (dist < 20) {
-
-      if (selectedNode === n) {
-        window.open(n.url, "_blank");
-      } else {
-        selectedNode = n;
-      }
-
+      window.open(n.url, "_blank");
     }
 
   });
