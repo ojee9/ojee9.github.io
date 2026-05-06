@@ -1,24 +1,7 @@
 
-const labels = [
-  "ALL / VIBES",
-  "COLD TAKE",
-  "HOT TAKE",
-  "NEON"
-];
-
 let index = 0;
 
 const world = document.getElementById("world");
-const label = document.getElementById("label");
-
-function update(){
-  world.style.transform = `translateX(-${index * 100}vw)`;
-  label.innerText = labels[index];
-
-  if(index === 3){
-    setTimeout(() => neon(), 200);
-  }
-}
 
 function next(){
   index = (index + 1) % 4;
@@ -30,19 +13,15 @@ function prev(){
   update();
 }
 
-/* ================= SOUND SYSTEM ================= */
-function focusTrack(id){
-  document.body.style.transition = "0.5s";
-  document.body.style.filter = "brightness(1.2) contrast(1.1)";
+function update(){
+  world.style.transform = `translateX(-${index * 100}vw)`;
 
-  setTimeout(() => {
-    document.body.style.filter = "none";
-  }, 700);
-
-  console.log("TRACK FOCUS:", id);
+  if(index === 3){
+    setTimeout(() => neon(), 300);
+  }
 }
 
-/* ================= NEON ENGINE ================= */
+/* ================= NEON CITY ENGINE ================= */
 function neon(){
 
   const canvas = document.getElementById("neonCanvas");
@@ -55,34 +34,34 @@ function neon(){
 
   let t = 0;
 
-  let signs = [
-    { x:200, y:200, text:"9o9" },
-    { x:500, y:300, text:"NEON" },
-    { x:800, y:400, text:"SOUND" },
-    { x:300, y:500, text:"STREAM" }
-  ];
+  let lights = Array.from({length:40}).map(() => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    r: Math.random() * 2 + 1
+  }));
 
   function draw(){
 
-    ctx.fillStyle = "rgba(5,0,20,0.25)";
+    ctx.fillStyle = "rgba(5,0,10,0.25)";
     ctx.fillRect(0,0,canvas.width,canvas.height);
 
-    signs.forEach(s => {
+    lights.forEach(l => {
 
-      s.x += Math.cos(t + s.y) * 0.3;
-      s.y += Math.sin(t + s.x) * 0.3;
+      l.y += Math.sin(t + l.x) * 0.5;
+      l.x += Math.cos(t + l.y) * 0.3;
 
-      let glow = Math.abs(Math.sin(t * 2)) * 25;
+      ctx.beginPath();
+      ctx.arc(l.x, l.y, l.r, 0, Math.PI * 2);
 
-      ctx.font = "28px Arial";
-      ctx.fillStyle = "#00ffcc";
-      ctx.shadowColor = "#00ffcc";
-      ctx.shadowBlur = glow;
+      ctx.fillStyle = "#00ffe1";
+      ctx.shadowColor = "#00ffe1";
+      ctx.shadowBlur = 15;
 
-      ctx.fillText(s.text, s.x, s.y);
+      ctx.fill();
     });
 
     t += 0.01;
+
     requestAnimationFrame(draw);
   }
 
