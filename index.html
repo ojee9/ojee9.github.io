@@ -2,66 +2,57 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>9ojeez9</title>
-
+<title>9O9</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
 body{
   margin:0;
-  font-family:Arial;
-  background:#05060a;
-  overflow:hidden;
-}
-
-/* NAV BUTTONS */
-.nav{
-  position:fixed;
-  top:12px;
-  left:12px;
-  z-index:10;
-  display:flex;
-  gap:10px;
-}
-
-.nav button{
-  background:rgba(255,255,255,0.08);
-  border:1px solid rgba(255,255,255,0.15);
+  background:#0b0c12;
+  font-family:Arial, sans-serif;
   color:white;
-  padding:8px 12px;
-  border-radius:10px;
-  font-size:12px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
 }
 
-/* STARFIELD CANVAS */
-canvas{
-  position:fixed;
-  top:0;
-  left:0;
+.menu{
+  display:flex;
+  flex-direction:column;
+  gap:40px;
+  text-align:center;
+}
+
+.menu a{
+  text-decoration:none;
+  color:#fff4c2;
+  font-size:48px;
+  letter-spacing:4px;
+  font-weight:bold;
+  transition:0.3s;
+}
+
+.menu a:hover{
+  color:#ffd54f;
+  transform:scale(1.08);
+}
+
+@media(max-width:768px){
+  .menu a{
+    font-size:36px;
+  }
 }
 </style>
 </head>
 
 <body>
 
-<div class="nav">
-  <button onclick="goSpace()">SPACE</button>
-  <button onclick="goArchive()">ARCHIVE</button>
+<div class="menu">
+  <a href="space.html">SPACE</a>
+  <a href="archive.html">ARCHIVE</a>
+  <a href="visual.html">VISUAL</a>
 </div>
-
-<canvas id="bg"></canvas>
-
-<script src="home.js"></script>
-
-<script>
-function goSpace(){
-  window.location.href = "space.html";
-}
-
-function goArchive(){
-  window.location.href = "archive.html";
-}
-</script>
 
 </body>
 </html>
