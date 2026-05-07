@@ -1,26 +1,34 @@
-body{
+html,body{
   margin:0;
+  padding:0;
   overflow:hidden;
-  background:#07090f;
+  background:black;
+  font-family:Arial, sans-serif;
 }
 
 canvas{
-  position:absolute;
-  width:100vw;
-  height:100vh;
+  position:fixed;
+  top:0;
+  left:0;
 }
 
-.back{
-  position:absolute;
+/* MENU */
+#ui{
+  position:fixed;
   top:20px;
   left:20px;
-  color:white;
-  text-decoration:none;
-  font-size:22px;
   z-index:10;
-  opacity:0.7;
 }
 
-.back:hover{
+.menu{
+  color:white;
+  text-decoration:none;
+  font-size:14px;
+  letter-spacing:2px;
+  opacity:0.7;
+  transition:0.2s;
+}
+
+.menu:hover{
   opacity:1;
 }
