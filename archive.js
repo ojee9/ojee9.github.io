@@ -1,25 +1,80 @@
+
+(function(){
+
+/* =========================
+   ARCHIVE CORE DATA
+   (DO NOT TOUCH ENGINE)
+========================= */
+
 window.SCENES = window.SCENES || {};
 
 /* =========================
-   HOT TAKE (DESERT)
+   HOT TAKE — DESERT
 ========================= */
-window.SCENES.HOT = window.SCENES.HOT || {};
-window.SCENES.HOT.bg = "images/desert.jpg";
+window.SCENES.HOT = {
+  id: "HOT",
+  name: "HOT TAKE",
+  bg: "images/desert.jpg",
+  skin: "skins/papyrus.css",
+  color: "#ffb347",
+  highlights: []
+};
 
 /* =========================
-   COLD TAKE (ICEWALL)
+   COLD TAKE — ICEWALL
 ========================= */
-window.SCENES.COLD = window.SCENES.COLD || {};
-window.SCENES.COLD.bg = "images/icewall.jpg";
+window.SCENES.COLD = {
+  id: "COLD",
+  name: "COLD TAKE",
+  bg: "images/icewall.jpg",
+  skin: "skins/stone.css",
+  color: "#6ec6ff",
+  highlights: []
+};
 
 /* =========================
-   ALL VIBES (ROME)
+   ALL VIBES — ROME
 ========================= */
-window.SCENES.ALL = window.SCENES.ALL || {};
-window.SCENES.ALL.bg = "images/rome.jpg";
+window.SCENES.ALL = {
+  id: "ALL",
+  name: "ALL VIBES",
+  bg: "images/rome.jpg",
+  skin: "skins/glass.css",
+  color: "#9ad0ff",
+  highlights: []
+};
 
 /* =========================
-   NEW NEON (NEON)
+   NEW NEON — RETROWAVE
 ========================= */
-window.SCENES.NEON = window.SCENES.NEON || {};
-window.SCENES.NEON.bg = "images/neon.jpg";
+window.SCENES.NEON = {
+  id: "NEON",
+  name: "NEW NEON",
+  bg: "images/neon.jpg",
+  skin: "skins/neonboard.css",
+  color: "#c77dff",
+  highlights: []
+};
+
+/* =========================
+   ACTIVE SCENE STATE
+========================= */
+window.currentScene = window.currentScene || "HOT";
+
+/* =========================
+   SAFE GETTER
+========================= */
+window.getScene = function(){
+  return window.SCENES[window.currentScene];
+};
+
+/* =========================
+   SWITCH SCENE (SAFE)
+========================= */
+window.setScene = function(id){
+  if(window.SCENES[id]){
+    window.currentScene = id;
+  }
+};
+
+})();
