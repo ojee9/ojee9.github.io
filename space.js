@@ -9,30 +9,31 @@ resize();
 window.addEventListener("resize", resize);
 
 /* =========================
-   STARFIELD (subtle)
+   STARFIELD (SPACE BACKGROUND)
 ========================= */
 let stars = [];
 
-for(let i=0;i<120;i++){
+for(let i=0;i<140;i++){
   stars.push({
     x: Math.random()*innerWidth,
     y: Math.random()*innerHeight,
-    s: Math.random()*0.6
+    s: Math.random()*0.8
   });
 }
 
 /* =========================
-   ICONS (NO BACKGROUND, NO TEXT)
+   ICON NODES
 ========================= */
 const nodes = [
-  { icon:"icons/youtube.png", url:"https://youtube.com/@9ojeez9", x:innerWidth*0.2 },
-  { icon:"icons/twitter.png", url:"https://twitter.com/9ojeez9", x:innerWidth*0.35 },
-  { icon:"icons/soundcloud.png", url:"https://soundcloud.com/9ojeez9", x:innerWidth*0.5 },
-  { icon:"icons/spotify.png", url:"https://open.spotify.com/artist/4XH3BH9SPGEaTzp1suzdCL", x:innerWidth*0.65 },
-  { icon:"icons/applemusic.png", url:"https://music.apple.com", x:innerWidth*0.8 }
+  { name:"YouTube", icon:"icons/youtube.png", url:"https://youtube.com/@9ojeez9", x:0.2 },
+  { name:"Twitter", icon:"icons/twitter.png", url:"https://twitter.com/9ojeez9", x:0.35 },
+  { name:"SoundCloud", icon:"icons/soundcloud.png", url:"https://soundcloud.com/9ojeez9", x:0.5 },
+  { name:"Spotify", icon:"icons/spotify.png", url:"https://open.spotify.com/artist/4XH3BH9SPGEaTzp1suzdCL", x:0.65 },
+  { name:"Apple Music", icon:"icons/applemusic.png", url:"https://music.apple.com", x:0.8 }
 ];
 
 const cache = {};
+
 function load(src){
   if(!cache[src]){
     const img = new Image();
@@ -43,57 +44,120 @@ function load(src){
 }
 
 /* =========================
-   CLICK
+   HOVER TAG STATE
 ========================= */
+let hoverText = "";
+let hoverX = 0;
+let hoverY = 0;
+
+/* =========================
+   MOUSE INTERACTION
+========================= */
+canvas.addEventListener("mousemove",(e)=>{
+
+  const mx = e.clientX;
+  const my = e.clientY;
+
+  hoverText = "";
+
+  nodes.forEach(n=>{
+    const x = n.x * innerWidth;
+    const y = innerHeight/2;
+
+    const dist = Math.abs(mx - x);
+
+    if(dist < 40){
+      hoverText = n.name;
+      hoverX = x;
+      hoverY = y - 60;
+    }
+  });
+
+});
+
 canvas.addEventListener("click",(e)=>{
+
   const mx = e.clientX;
 
   nodes.forEach(n=>{
-    if(Math.abs(mx - n.x) < 30){
+    const x = n.x * innerWidth;
+
+    if(Math.abs(mx - x) < 40){
       window.open(n.url,"_blank");
     }
   });
+
 });
 
 /* =========================
-   DRAW
+   DRAW LOOP
 ========================= */
 function draw(){
 
   ctx.clearRect(0,0,innerWidth,innerHeight);
 
-  /* STARFIELD */
+  /* ===== SPACE BACKGROUND ===== */
   ctx.fillStyle="white";
+
   stars.forEach(s=>{
     ctx.fillRect(s.x,s.y,1.2,1.2);
+
     s.y += s.s;
-    if(s.y>innerHeight){
-      s.y=0;
-      s.x=Math.random()*innerWidth;
+
+    if(s.y > innerHeight){
+      s.y = 0;
+      s.x = Math.random()*innerWidth;
     }
   });
 
-  /* ICONS (CLEAN + BLEND) */
+  /* ===== ICONS (BLENDED FLOATING) ===== */
   nodes.forEach((n,i)=>{
 
     const img = load(n.icon);
-    const x = n.x;
-    const y = innerHeight/2 + Math.sin(Date.now()*0.001 + i)*10;
 
-    /* soft space shadow */
+    const x = n.x * innerWidth;
+    const y = innerHeight/2 + Math.sin(Date.now()*0.001 + i)*12;
+
     ctx.save();
-    ctx.shadowColor = "rgba(255,255,255,0.18)";
-    ctx.shadowBlur = 16;
+
+    /* blend glow */
+    ctx.shadowColor = "rgba(255,255,255,0.25)";
+    ctx.shadowBlur = 20;
+
+    ctx.globalAlpha = 0.95;
 
     if(img && img.complete){
-      ctx.drawImage(img, x-30, y-30, 60, 60);
+      ctx.drawImage(img, x-32, y-32, 64, 64);
     }
 
     ctx.restore();
 
   });
 
+  /* ===== HOVER TAG (SPACE STYLE TEXT) ===== */
+  if(hoverText){
+
+    ctx.save();
+
+    ctx.font = "14px Arial";
+    ctx.fillStyle = "rgba(255,255,255,0.85)";
+    ctx.textAlign = "center";
+
+    ctx.fillText(hoverText, hoverX, hoverY);
+
+    ctx.restore();
+  }
+
   requestAnimationFrame(draw);
 }
 
 draw();
+
+/* =========================
+   MENU BACK BUTTON (OPTIONAL)
+========================= */
+document.addEventListener("keydown",(e)=>{
+  if(e.key === "Escape"){
+    window.location.href = "index.html";
+  }
+});
