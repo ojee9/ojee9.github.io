@@ -9,20 +9,20 @@ resize();
 window.addEventListener("resize", resize);
 
 /* =========================
-   STARFIELD
+   STARFIELD (subtle)
 ========================= */
 let stars = [];
 
 for(let i=0;i<120;i++){
   stars.push({
-    x:Math.random()*innerWidth,
-    y:Math.random()*innerHeight,
-    s:Math.random()*0.6
+    x: Math.random()*innerWidth,
+    y: Math.random()*innerHeight,
+    s: Math.random()*0.6
   });
 }
 
 /* =========================
-   ICONS
+   ICONS (NO BACKGROUND, NO TEXT)
 ========================= */
 const nodes = [
   { icon:"icons/youtube.png", url:"https://youtube.com/@9ojeez9", x:innerWidth*0.2 },
@@ -73,16 +73,23 @@ function draw(){
     }
   });
 
-  /* ICONS */
+  /* ICONS (CLEAN + BLEND) */
   nodes.forEach((n,i)=>{
 
     const img = load(n.icon);
     const x = n.x;
-    const y = innerHeight/2 + Math.sin(Date.now()*0.001+i)*10;
+    const y = innerHeight/2 + Math.sin(Date.now()*0.001 + i)*10;
+
+    /* soft space shadow */
+    ctx.save();
+    ctx.shadowColor = "rgba(255,255,255,0.18)";
+    ctx.shadowBlur = 16;
 
     if(img && img.complete){
-      ctx.drawImage(img,x-28,y-28,56,56);
+      ctx.drawImage(img, x-30, y-30, 60, 60);
     }
+
+    ctx.restore();
 
   });
 
@@ -90,8 +97,3 @@ function draw(){
 }
 
 draw();
-
-/* SYNC HOOK */
-window.addEventListener("sceneChanged",()=>{
-  console.log("space synced:", window.APP.scene);
-});
