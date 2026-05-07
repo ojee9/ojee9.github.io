@@ -1,10 +1,10 @@
 const canvas = document.getElementById("spaceCanvas");
 const ctx = canvas.getContext("2d");
 
-const DEBUG = true;
+const DEBUG = false;
 
 /* =========================
-   RESIZE + SCALE FIX
+   RESIZE FIX
 ========================= */
 function resize(){
   const dpr = window.devicePixelRatio || 1;
@@ -31,7 +31,7 @@ for(let i=0;i<120;i++){
 }
 
 /* =========================
-   NODES (ICONS SYSTEM)
+   ICON NODES
 ========================= */
 const nodes = [
   { name:"YouTube", icon:"icons/youtube.png", url:"https://www.youtube.com/@9ojeez9", x:window.innerWidth*0.2 },
@@ -42,7 +42,7 @@ const nodes = [
 ];
 
 /* =========================
-   IMAGE LOADER
+   IMAGE CACHE
 ========================= */
 const cache = {};
 
@@ -56,21 +56,19 @@ function load(src){
 }
 
 /* =========================
-   CLICK SYSTEM
+   CLICK
 ========================= */
 canvas.addEventListener("click",(e)=>{
   const mx = e.clientX;
   const my = e.clientY;
 
   nodes.forEach(n=>{
-    const dy = window.innerHeight/2;
-
     const dx = mx - n.x;
-    const dy2 = my - dy;
+    const dy = my - window.innerHeight/2;
 
-    const dist = Math.sqrt(dx*dx + dy2*dy2);
+    const dist = Math.sqrt(dx*dx + dy*dy);
 
-    if(dist < 35){
+    if(dist < 30){
       window.open(n.url,"_blank");
     }
   });
@@ -97,52 +95,30 @@ function draw(){
   });
 
   /* =========================
-     NODES RENDER
+     ICON RENDER (CLEAN)
   ========================= */
   nodes.forEach((n,i)=>{
 
     const img = load(n.icon);
 
     const x = n.x;
-
     const y = (window.innerHeight/2) + Math.sin(Date.now()*0.001 + i)*10;
 
-    /* DEBUG HITBOX */
-    if(DEBUG){
-      ctx.beginPath();
-      ctx.arc(x,y,38,0,Math.PI*2);
-      ctx.strokeStyle="rgba(255,0,0,0.5)";
-      ctx.stroke();
-    }
+    /* ❌ NO BACKGROUND
+       ❌ NO CIRCLE
+       ❌ NO STROKE
+       ❌ NO GLOW
+    */
 
-    /* CENTER DOT */
-    if(DEBUG){
-      ctx.beginPath();
-      ctx.arc(x,y,3,0,Math.PI*2);
-      ctx.fillStyle="yellow";
-      ctx.fill();
-    }
-
-    /* ICON */
     if(img && img.complete){
-      ctx.drawImage(img,x-26,y-26,52,52);
-    } else {
-      /* PLACEHOLDER */
-      ctx.fillStyle="rgba(255255255,0.2)";
-      ctx.fillRect(x-20,y-20,40,40);
+      ctx.drawImage(img, x-28, y-28, 56, 56);
     }
 
-    /* LABEL */
-    ctx.fillStyle="white";
+    /* LABEL (hover feel yerine always visible light) */
+    ctx.fillStyle="rgba(255,255,255,0.7)";
     ctx.font="12px Arial";
     ctx.textAlign="center";
-    ctx.fillText(n.name,x,y+55);
-
-    /* COORD DEBUG */
-    if(DEBUG){
-      ctx.fillStyle="rgba(255,255,255,0.4)";
-      ctx.fillText(`${Math.round(x)},${Math.round(y)}`,x,y-45);
-    }
+    ctx.fillText(n.name, x, y+55);
 
   });
 
