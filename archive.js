@@ -1,140 +1,83 @@
-
 (function(){
 
 /* =========================
-   SCENES DATA
+   SCENES
 ========================= */
-window.SCENES = window.SCENES || {
-
+window.SCENES = {
   HOT: {
     name: "HOT TAKE",
-    bg: "images/desert.jpg",
-    skin: "skins/papyrus.css",
-    color: "#ffb347",
-    highlights: []
+    bg: "images/desert.jpg"
   },
-
   COLD: {
     name: "COLD TAKE",
-    bg: "images/icewall.jpg",
-    skin: "skins/stone.css",
-    color: "#6ec6ff",
-    highlights []
+    bg: "images/icewall.jpg"
   },
-
   ALL: {
     name: "ALL VIBES",
-    bg: "images/rome.jpg",
-    skin: "skins/glass.css",
-    color: "#9ad0ff",
-    highlights: []
+    bg: "images/rome.jpg"
   },
-
   NEON: {
     name: "NEW NEON",
-    bg: "images/neon.jpg",
-    skin: "skins/neonboard.css",
-    color: "#c77dff",
-    highlights: []
-  }
-
-};
-
-/* =========================
-   STATE
-========================= */
-window.currentScene = window.currentScene || "HOT";
-
-/* =========================
-   GET SCENE
-========================= */
-window.getScene = function(){
-  return window.SCENES[window.currentScene];
-};
-
-/* =========================
-   SET SCENE
-========================= */
-window.setScene = function(id){
-  if(window.SCENES[id]){
-    window.currentScene = id;
-    renderScene();
+    bg: "images/neon.jpg"
   }
 };
 
-/* =========================
-   MAIN MENU RETURN
-========================= */
-window.goMainMenu = function(){
-  window.currentScene = "MENU";
-  renderScene();
-};
+const order = ["HOT","COLD","ALL","NEON"];
+
+window.state = { scene:"HOT" };
 
 /* =========================
-   RENDER BACKGROUND
+   APPLY SCENE
 ========================= */
-function renderBackground(){
+function render(){
 
-  const scene = window.getScene();
-  if(!scene || !scene.bg) return;
+  const scene = SCENES[state.scene];
 
   const bg = document.getElementById("archive-bg");
-
   if(bg){
     bg.style.backgroundImage = `url(${scene.bg})`;
     bg.style.backgroundSize = "cover";
     bg.style.backgroundPosition = "center";
   }
-}
-
-/* =========================
-   SCENE RENDER
-========================= */
-function renderScene(){
-
-  const scene = window.getScene();
-  if(!scene) return;
-
-  renderBackground();
 
   const title = document.getElementById("archive-title");
   if(title){
-    title.innerText = scene.name || "";
+    title.innerText = scene.name;
   }
-
 }
 
 /* =========================
-   NAV ARROWS (FIXED)
+   SWITCH
 ========================= */
-const order = ["HOT","COLD","ALL","NEON"];
-
-function nextScene(){
-  let i = order.indexOf(window.currentScene);
-  i = (i + 1) % order.length;
-  setScene(order[i]);
+function setScene(id){
+  state.scene = id;
+  render();
 }
 
-function prevScene(){
-  let i = order.indexOf(window.currentScene);
-  i = (i - 1 + order.length) % order.length;
-  setScene(order[i]);
+function next(){
+  let i = order.indexOf(state.scene);
+  setScene(order[(i+1)%order.length]);
+}
+
+function prev(){
+  let i = order.indexOf(state.scene);
+  setScene(order[(i-1+order.length)%order.length]);
+}
+
+function home(){
+  setScene("HOT");
 }
 
 /* =========================
-   BUTTON BINDINGS
+   INIT
 ========================= */
 document.addEventListener("DOMContentLoaded",()=>{
 
-  const left = document.getElementById("archive-left");
-  const right = document.getElementById("archive-right");
-  const home = document.getElementById("archive-home");
+  document.getElementById("archive-left").onclick = prev;
+  document.getElementById("archive-right").onclick = next;
+  document.getElementById("archive-home").onclick = home;
 
-  if(left) left.onclick = prevScene;
-  if(right) right.onclick = nextScene;
-  if(home) home.onclick = goMainMenu;
-
-  renderScene();
+  render();
 
 });
 
