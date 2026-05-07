@@ -3,6 +3,9 @@ const ctx = canvas.getContext("2d");
 
 const dpr = window.devicePixelRatio || 1;
 
+/* =========================
+   SCALE FIX
+========================= */
 function resize(){
   canvas.width = window.innerWidth * dpr;
   canvas.height = window.innerHeight * dpr;
@@ -11,7 +14,9 @@ function resize(){
 resize();
 window.addEventListener("resize", resize);
 
-/* ===== STARFIELD ===== */
+/* =========================
+   STARFIELD (UNCHANGED)
+========================= */
 let stars = [];
 
 for(let i=0;i<120;i++){
@@ -22,13 +27,15 @@ for(let i=0;i<120;i++){
   });
 }
 
-/* ===== ICONS ===== */
+/* =========================
+   ICONS
+========================= */
 const nodes = [
-  { icon:"icons/youtube.png", url:"https://youtube.com/@9ojeez9", x:window.innerWidth*0.2 },
-  { icon:"icons/twitter.png", url:"https://twitter.com/9ojeez9", x:window.innerWidth*0.35 },
-  { icon:"icons/soundcloud.png", url:"https://soundcloud.com/9ojeez9", x:window.innerWidth*0.5 },
-  { icon:"icons/spotify.png", url:"https://open.spotify.com/artist/4XH3BH9SPGEaTzp1suzdCL", x:window.innerWidth*0.65 },
-  { icon:"icons/applemusic.png", url:"https://music.apple.com/tr/artist/9ojeez9/1702764220", x:window.innerWidth*0.8 }
+  { name:"YouTube", icon:"icons/youtube.png", url:"https://www.youtube.com/@9ojeez9", x:window.innerWidth*0.2 },
+  { name:"Twitter", icon:"icons/twitter.png", url:"https://twitter.com/9ojeez9", x:window.innerWidth*0.35 },
+  { name:"SoundCloud", icon:"icons/soundcloud.png", url:"https://soundcloud.com/9ojeez9", x:window.innerWidth*0.5 },
+  { name:"Spotify", icon:"icons/spotify.png", url:"https://open.spotify.com/artist/4XH3BH9SPGEaTzp1suzdCL", x:window.innerWidth*0.65 },
+  { name:"Apple Music", icon:"icons/applemusic.png", url:"https://music.apple.com/tr/artist/9ojeez9/1702764220", x:window.innerWidth*0.8 }
 ];
 
 const cache = {};
@@ -42,39 +49,44 @@ function load(src){
   return cache[src];
 }
 
-/* ===== CLICK ===== */
+/* =========================
+   CLICK SYSTEM
+========================= */
 canvas.addEventListener("click",(e)=>{
   const mx = e.clientX;
 
   nodes.forEach(n=>{
-    const dy = window.innerHeight/2;
     const dx = mx - n.x;
 
-    if(Math.abs(dx) < 30){
+    if(Math.abs(dx) < 35){
       window.open(n.url,"_blank");
     }
   });
 });
 
-/* ===== DRAW ===== */
+/* =========================
+   DRAW LOOP
+========================= */
 function draw(){
 
   ctx.clearRect(0,0,window.innerWidth,window.innerHeight);
 
-  /* STARFIELD */
+  /* ===== STARFIELD ===== */
   ctx.fillStyle="white";
 
   stars.forEach(s=>{
     ctx.fillRect(s.x,s.y,1.2,1.2);
-    s.y += s.s;
 
+    s.y += s.s;
     if(s.y>window.innerHeight){
       s.y=0;
       s.x=Math.random()*window.innerWidth;
     }
   });
 
-  /* ICONS (SPACE BLEND) */
+  /* =========================
+     ICONS (CLEAN BLEND MODE)
+  ========================= */
   nodes.forEach((n,i)=>{
 
     const img = load(n.icon);
@@ -82,24 +94,30 @@ function draw(){
     const x = n.x;
     const y = (window.innerHeight/2) + Math.sin(Date.now()*0.001 + i)*10;
 
-    /* ===== SOFT SHADOW (space depth) ===== */
+    /* ❌ NO BACKGROUND SHAPES
+       ❌ NO CIRCLES
+       ❌ NO BOXES
+       ❌ NO STROKES
+    */
+
+    /* ===== SOFT SPACE SHADOW ===== */
     ctx.save();
-    ctx.shadowColor = "rgba(255,255,255,0.25)";
-    ctx.shadowBlur = 12;
+    ctx.shadowColor = "rgba(255,255,255,0.18)";
+    ctx.shadowBlur = 18;
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
 
-    /* ===== ICON DRAW ===== */
+    /* ===== ICON (BIGGER + CLEAR) ===== */
     if(img && img.complete){
-      ctx.drawImage(img, x-26, y-26, 52, 52);
+      ctx.drawImage(img, x-30, y-30, 60, 60);
     }
 
     ctx.restore();
 
-    /* ===== SUBTLE SPACE GLOW (very minimal) ===== */
-    ctx.globalAlpha = 0.08;
+    /* ===== VERY SUBTLE GLOW (BLEND WITH SPACE) ===== */
+    ctx.globalAlpha = 0.06;
     ctx.beginPath();
-    ctx.arc(x,y,28,0,Math.PI*2);
+    ctx.arc(x,y,34,0,Math.PI*2);
     ctx.fillStyle = "white";
     ctx.fill();
     ctx.globalAlpha = 1;
