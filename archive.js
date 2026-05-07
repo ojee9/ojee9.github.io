@@ -1,36 +1,25 @@
-const scenes = document.querySelectorAll(".scene");
-const title = document.getElementById("title");
+window.SCENES = window.SCENES || {};
 
-const names = ["HOT TAKE","NEW NEON","COLD TAKE","ALL VIBES"];
+/* =========================
+   HOT TAKE (DESERT)
+========================= */
+window.SCENES.HOT = window.SCENES.HOT || {};
+window.SCENES.HOT.bg = "images/desert.jpg";
 
-const skins = [
-  "images/hot.jpg",
-  "images/neon.jpg",
-  "images/cold.jpg",
-  "images/all.jpg"
-];
+/* =========================
+   COLD TAKE (ICEWALL)
+========================= */
+window.SCENES.COLD = window.SCENES.COLD || {};
+window.SCENES.COLD.bg = "images/icewall.jpg";
 
-let current = 0;
+/* =========================
+   ALL VIBES (ROME)
+========================= */
+window.SCENES.ALL = window.SCENES.ALL || {};
+window.SCENES.ALL.bg = "images/rome.jpg";
 
-function update(){
-
-  scenes.forEach(s=>s.classList.remove("active"));
-  scenes[current].classList.add("active");
-
-  scenes[current].style.backgroundImage = `url(${skins[current]})`;
-  scenes[current].style.backgroundSize = "cover";
-
-  title.innerText = names[current];
-}
-
-document.getElementById("next").onclick=()=>{
-  current = (current+1)%4;
-  update();
-};
-
-document.getElementById("prev").onclick=()=>{
-  current = (current-1+4)%4;
-  update();
-};
-
-update();
+/* =========================
+   NEW NEON (NEON)
+========================= */
+window.SCENES.NEON = window.SCENES.NEON || {};
+window.SCENES.NEON.bg = "images/neon.jpg";
