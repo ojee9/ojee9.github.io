@@ -2,27 +2,27 @@ const canvas = document.getElementById("spaceCanvas");
 const ctx = canvas.getContext("2d");
 
 function resize(){
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+  canvas.width = innerWidth;
+  canvas.height = innerHeight;
 }
 resize();
 window.addEventListener("resize", resize);
 
 /* =========================
-   STARFIELD (SPACE BACKGROUND)
+   STARFIELD (SPACE DEPTH)
 ========================= */
 let stars = [];
 
-for(let i=0;i<140;i++){
+for(let i=0;i<160;i++){
   stars.push({
     x: Math.random()*innerWidth,
     y: Math.random()*innerHeight,
-    s: Math.random()*0.8
+    z: Math.random()*1
   });
 }
 
 /* =========================
-   ICON NODES
+   ICONS (TRANSPARENT PNG ONLY)
 ========================= */
 const nodes = [
   { name:"YouTube", icon:"icons/youtube.png", url:"https://youtube.com/@9ojeez9", x:0.2 },
@@ -44,32 +44,36 @@ function load(src){
 }
 
 /* =========================
-   HOVER TAG STATE
+   HOVER STATE
 ========================= */
-let hoverText = "";
-let hoverX = 0;
-let hoverY = 0;
+let hover = {
+  active:false,
+  text:"",
+  x:0,
+  y:0,
+  t:0
+};
 
 /* =========================
-   MOUSE INTERACTION
+   MOUSE EVENTS
 ========================= */
 canvas.addEventListener("mousemove",(e)=>{
 
   const mx = e.clientX;
   const my = e.clientY;
 
-  hoverText = "";
+  hover.active = false;
 
   nodes.forEach(n=>{
+
     const x = n.x * innerWidth;
-    const y = innerHeight/2;
 
-    const dist = Math.abs(mx - x);
+    if(Math.abs(mx - x) < 45){
 
-    if(dist < 40){
-      hoverText = n.name;
-      hoverX = x;
-      hoverY = y - 60;
+      hover.active = true;
+      hover.text = n.name;
+      hover.x = x;
+      hover.y = innerHeight/2 - 60;
     }
   });
 
@@ -82,7 +86,7 @@ canvas.addEventListener("click",(e)=>{
   nodes.forEach(n=>{
     const x = n.x * innerWidth;
 
-    if(Math.abs(mx - x) < 40){
+    if(Math.abs(mx - x) < 45){
       window.open(n.url,"_blank");
     }
   });
@@ -96,13 +100,16 @@ function draw(){
 
   ctx.clearRect(0,0,innerWidth,innerHeight);
 
-  /* ===== SPACE BACKGROUND ===== */
-  ctx.fillStyle="white";
+  /* ===== STARFIELD (DEPTH) ===== */
+  ctx.fillStyle="rgba(255,255,255,0.9)";
 
   stars.forEach(s=>{
-    ctx.fillRect(s.x,s.y,1.2,1.2);
+    const px = s.x;
+    const py = s.y;
 
-    s.y += s.s;
+    ctx.fillRect(px,py,1.2,1.2);
+
+    s.y += 0.6 + s.z;
 
     if(s.y > innerHeight){
       s.y = 0;
@@ -110,42 +117,50 @@ function draw(){
     }
   });
 
-  /* ===== ICONS (BLENDED FLOATING) ===== */
+  /* ===== ICONS (SPACE BLEND) ===== */
   nodes.forEach((n,i)=>{
 
     const img = load(n.icon);
 
     const x = n.x * innerWidth;
-    const y = innerHeight/2 + Math.sin(Date.now()*0.001 + i)*12;
+    const y = innerHeight/2 + Math.sin(Date.now()*0.001 + i)*10;
 
     ctx.save();
 
-    /* blend glow */
-    ctx.shadowColor = "rgba(255,255,255,0.25)";
-    ctx.shadowBlur = 20;
+    /* SPACE GLOW BLEND */
+    ctx.shadowColor = "rgba(255,255,255,0.28)";
+    ctx.shadowBlur = 25;
 
     ctx.globalAlpha = 0.95;
 
     if(img && img.complete){
-      ctx.drawImage(img, x-32, y-32, 64, 64);
+      ctx.drawImage(img, x-34, y-34, 68, 68);
     }
 
     ctx.restore();
 
   });
 
-  /* ===== HOVER TAG (SPACE STYLE TEXT) ===== */
-  if(hoverText){
+  /* ===== HOVER TAG (SPACE FLOAT TEXT + FADE) ===== */
+  if(hover.active){
+
+    hover.t += 0.08;
+    if(hover.t > 1) hover.t = 1;
 
     ctx.save();
 
-    ctx.font = "14px Arial";
-    ctx.fillStyle = "rgba(255,255,255,0.85)";
+    ctx.globalAlpha = hover.t;
+
+    ctx.font = "13px Arial";
+    ctx.fillStyle = "rgba(255,255,255,0.9)";
     ctx.textAlign = "center";
 
-    ctx.fillText(hoverText, hoverX, hoverY);
+    ctx.fillText(hover.text, hover.x, hover.y);
 
     ctx.restore();
+
+  } else {
+    hover.t *= 0.85;
   }
 
   requestAnimationFrame(draw);
@@ -154,7 +169,7 @@ function draw(){
 draw();
 
 /* =========================
-   MENU BACK BUTTON (OPTIONAL)
+   ESC -> MAIN MENU
 ========================= */
 document.addEventListener("keydown",(e)=>{
   if(e.key === "Escape"){
