@@ -2,175 +2,143 @@ const canvas = document.getElementById("spaceCanvas");
 const ctx = canvas.getContext("2d");
 
 function resize(){
-  canvas.width = innerWidth;
-  canvas.height = innerHeight;
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
 }
 resize();
 window.addEventListener("resize", resize);
 
 /* =========================
-   STARFIELD (SPACE DEPTH)
+   STARFIELD
 ========================= */
 let stars = [];
-
-for(let i=0;i<160;i++){
+for(let i=0;i<180;i++){
   stars.push({
     x: Math.random()*innerWidth,
     y: Math.random()*innerHeight,
-    z: Math.random()*1
+    speed: 0.2 + Math.random()*0.8
   });
 }
 
 /* =========================
-   ICONS (TRANSPARENT PNG ONLY)
+   ICONS
 ========================= */
+const size = 72;
+
 const nodes = [
-  { name:"YouTube", icon:"icons/youtube.png", url:"https://youtube.com/@9ojeez9", x:0.2 },
-  { name:"Twitter", icon:"icons/twitter.png", url:"https://twitter.com/9ojeez9", x:0.35 },
-  { name:"SoundCloud", icon:"icons/soundcloud.png", url:"https://soundcloud.com/9ojeez9", x:0.5 },
-  { name:"Spotify", icon:"icons/spotify.png", url:"https://open.spotify.com/artist/4XH3BH9SPGEaTzp1suzdCL", x:0.65 },
-  { name:"Apple Music", icon:"icons/applemusic.png", url:"https://music.apple.com", x:0.8 }
+  { name:"YouTube", icon:"icons/YouTube.png", url:"https://youtube.com/@9ojeez9", pos:0.2 },
+  { name:"Twitter", icon:"icons/Twitter.png", url:"https://twitter.com/9ojeez9", pos:0.35 },
+  { name:"SoundCloud", icon:"icons/SoundCloud.png", url:"https://soundcloud.com/9ojeez9", pos:0.5 },
+  { name:"Spotify", icon:"icons/Spotify.png", url:"https://open.spotify.com/artist/4XH3BH9SPGEaTzp1suzdCL", pos:0.65 },
+  { name:"Apple Music", icon:"icons/Apple Music.png", url:"https://music.apple.com", pos:0.8 }
 ];
 
-const cache = {};
-
-function load(src){
-  if(!cache[src]){
-    const img = new Image();
-    img.src = src;
-    cache[src] = img;
-  }
-  return cache[src];
-}
-
-/* =========================
-   HOVER STATE
-========================= */
-let hover = {
-  active:false,
-  text:"",
-  x:0,
-  y:0,
-  t:0
-};
-
-/* =========================
-   MOUSE EVENTS
-========================= */
-canvas.addEventListener("mousemove",(e)=>{
-
-  const mx = e.clientX;
-  const my = e.clientY;
-
-  hover.active = false;
-
-  nodes.forEach(n=>{
-
-    const x = n.x * innerWidth;
-
-    if(Math.abs(mx - x) < 45){
-
-      hover.active = true;
-      hover.text = n.name;
-      hover.x = x;
-      hover.y = innerHeight/2 - 60;
-    }
-  });
-
+const images = {};
+nodes.forEach(n=>{
+  const img = new Image();
+  img.src = n.icon;
+  images[n.icon] = img;
 });
 
-canvas.addEventListener("click",(e)=>{
+let hoverIndex = -1;
 
+/* =========================
+   MOUSE
+========================= */
+canvas.addEventListener("mousemove",(e)=>{
   const mx = e.clientX;
+  const my = e.clientY;
+  hoverIndex = -1;
 
-  nodes.forEach(n=>{
-    const x = n.x * innerWidth;
+  nodes.forEach((n,i)=>{
+    const x = n.pos * innerWidth;
+    const y = innerHeight/2;
+    const dx = mx - x;
+    const dy = my - y;
+    const dist = Math.sqrt(dx*dx + dy*dy);
 
-    if(Math.abs(mx - x) < 45){
-      window.open(n.url,"_blank");
+    if(dist < size/2){
+      hoverIndex = i;
     }
   });
 
+  canvas.style.cursor = hoverIndex !== -1 ? "pointer" : "default";
+});
+
+canvas.addEventListener("click",()=>{
+  if(hoverIndex !== -1){
+    window.open(nodes[hoverIndex].url,"_blank");
+  }
 });
 
 /* =========================
    DRAW LOOP
 ========================= */
 function draw(){
-
   ctx.clearRect(0,0,innerWidth,innerHeight);
 
-  /* ===== STARFIELD (DEPTH) ===== */
-  ctx.fillStyle="rgba(255,255,255,0.9)";
-
+  /* STARFIELD */
+  ctx.fillStyle = "white";
   stars.forEach(s=>{
-    const px = s.x;
-    const py = s.y;
-
-    ctx.fillRect(px,py,1.2,1.2);
-
-    s.y += 0.6 + s.z;
-
+    ctx.fillRect(s.x,s.y,1.5,1.5);
+    s.y += s.speed;
     if(s.y > innerHeight){
       s.y = 0;
       s.x = Math.random()*innerWidth;
     }
   });
 
-  /* ===== ICONS (SPACE BLEND) ===== */
+  /* ICONS */
   nodes.forEach((n,i)=>{
+    const x = n.pos * innerWidth;
+    const y = innerHeight/2 + Math.sin(Date.now()*0.001+i)*6;
 
-    const img = load(n.icon);
-
-    const x = n.x * innerWidth;
-    const y = innerHeight/2 + Math.sin(Date.now()*0.001 + i)*10;
+    const img = images[n.icon];
 
     ctx.save();
 
-    /* SPACE GLOW BLEND */
-    ctx.shadowColor = "rgba(255,255,255,0.28)";
-    ctx.shadowBlur = 25;
+    // Hover büyütme + glow
+    let scale = (hoverIndex === i) ? 1.15 : 1;
+    let drawSize = size * scale;
 
-    ctx.globalAlpha = 0.95;
+    if(hoverIndex === i){
+      ctx.shadowColor = "rgba(255,255,255,0.6)";
+      ctx.shadowBlur = 35;
+    } else {
+      ctx.shadowBlur = 0;
+    }
 
-    if(img && img.complete){
-      ctx.drawImage(img, x-34, y-34, 68, 68);
+    // Yuvarlak clip (kare hissini öldürür)
+    ctx.beginPath();
+    ctx.arc(x, y, drawSize/2, 0, Math.PI*2);
+    ctx.closePath();
+    ctx.clip();
+
+    if(img.complete){
+      ctx.drawImage(img, x-drawSize/2, y-drawSize/2, drawSize, drawSize);
     }
 
     ctx.restore();
 
+    /* HOVER TEXT */
+    if(hoverIndex === i){
+      ctx.save();
+      ctx.font = "bold 16px Arial";
+      ctx.textAlign = "center";
+      ctx.fillStyle = "white";
+      ctx.shadowColor = "rgba(255,255,255,0.8)";
+      ctx.shadowBlur = 20;
+      ctx.fillText(n.name, x, y - drawSize/2 - 20);
+      ctx.restore();
+    }
   });
-
-  /* ===== HOVER TAG (SPACE FLOAT TEXT + FADE) ===== */
-  if(hover.active){
-
-    hover.t += 0.08;
-    if(hover.t > 1) hover.t = 1;
-
-    ctx.save();
-
-    ctx.globalAlpha = hover.t;
-
-    ctx.font = "13px Arial";
-    ctx.fillStyle = "rgba(255,255,255,0.9)";
-    ctx.textAlign = "center";
-
-    ctx.fillText(hover.text, hover.x, hover.y);
-
-    ctx.restore();
-
-  } else {
-    hover.t *= 0.85;
-  }
 
   requestAnimationFrame(draw);
 }
 
 draw();
 
-/* =========================
-   ESC -> MAIN MENU
-========================= */
+/* ESC MAIN MENU */
 document.addEventListener("keydown",(e)=>{
   if(e.key === "Escape"){
     window.location.href = "index.html";
