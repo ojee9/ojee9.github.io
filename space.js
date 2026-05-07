@@ -1,25 +1,17 @@
 const canvas = document.getElementById("spaceCanvas");
 const ctx = canvas.getContext("2d");
 
-const DEBUG = false;
+const dpr = window.devicePixelRatio || 1;
 
-/* =========================
-   RESIZE FIX
-========================= */
 function resize(){
-  const dpr = window.devicePixelRatio || 1;
-
   canvas.width = window.innerWidth * dpr;
   canvas.height = window.innerHeight * dpr;
-
   ctx.setTransform(dpr,0,0,dpr,0,0);
 }
 resize();
 window.addEventListener("resize", resize);
 
-/* =========================
-   STARFIELD
-========================= */
+/* ===== STARFIELD ===== */
 let stars = [];
 
 for(let i=0;i<120;i++){
@@ -30,20 +22,15 @@ for(let i=0;i<120;i++){
   });
 }
 
-/* =========================
-   ICON NODES
-========================= */
+/* ===== ICONS ===== */
 const nodes = [
-  { name:"YouTube", icon:"icons/youtube.png", url:"https://www.youtube.com/@9ojeez9", x:window.innerWidth*0.2 },
-  { name:"Twitter", icon:"icons/twitter.png", url:"https://www.twitter.com/9ojeez9", x:window.innerWidth*0.35 },
-  { name:"SoundCloud", icon:"icons/soundcloud.png", url:"https://soundcloud.com/9ojeez9", x:window.innerWidth*0.5 },
-  { name:"Spotify", icon:"icons/spotify.png", url:"https://open.spotify.com/artist/4XH3BH9SPGEaTzp1suzdCL", x:window.innerWidth*0.65 },
-  { name:"Apple Music", icon:"icons/applemusic.png", url:"https://music.apple.com/tr/artist/9ojeez9/1702764220", x:window.innerWidth*0.8 }
+  { icon:"icons/youtube.png", url:"https://youtube.com/@9ojeez9", x:window.innerWidth*0.2 },
+  { icon:"icons/twitter.png", url:"https://twitter.com/9ojeez9", x:window.innerWidth*0.35 },
+  { icon:"icons/soundcloud.png", url:"https://soundcloud.com/9ojeez9", x:window.innerWidth*0.5 },
+  { icon:"icons/spotify.png", url:"https://open.spotify.com/artist/4XH3BH9SPGEaTzp1suzdCL", x:window.innerWidth*0.65 },
+  { icon:"icons/applemusic.png", url:"https://music.apple.com/tr/artist/9ojeez9/1702764220", x:window.innerWidth*0.8 }
 ];
 
-/* =========================
-   IMAGE CACHE
-========================= */
 const cache = {};
 
 function load(src){
@@ -55,48 +42,39 @@ function load(src){
   return cache[src];
 }
 
-/* =========================
-   CLICK
-========================= */
+/* ===== CLICK ===== */
 canvas.addEventListener("click",(e)=>{
   const mx = e.clientX;
-  const my = e.clientY;
 
   nodes.forEach(n=>{
+    const dy = window.innerHeight/2;
     const dx = mx - n.x;
-    const dy = my - window.innerHeight/2;
 
-    const dist = Math.sqrt(dx*dx + dy*dy);
-
-    if(dist < 30){
+    if(Math.abs(dx) < 30){
       window.open(n.url,"_blank");
     }
   });
 });
 
-/* =========================
-   DRAW LOOP
-========================= */
+/* ===== DRAW ===== */
 function draw(){
 
   ctx.clearRect(0,0,window.innerWidth,window.innerHeight);
 
-  /* ===== STARFIELD ===== */
+  /* STARFIELD */
   ctx.fillStyle="white";
 
   stars.forEach(s=>{
     ctx.fillRect(s.x,s.y,1.2,1.2);
-
     s.y += s.s;
+
     if(s.y>window.innerHeight){
       s.y=0;
       s.x=Math.random()*window.innerWidth;
     }
   });
 
-  /* =========================
-     ICON RENDER (CLEAN)
-  ========================= */
+  /* ICONS (SPACE BLEND) */
   nodes.forEach((n,i)=>{
 
     const img = load(n.icon);
@@ -104,21 +82,27 @@ function draw(){
     const x = n.x;
     const y = (window.innerHeight/2) + Math.sin(Date.now()*0.001 + i)*10;
 
-    /* ❌ NO BACKGROUND
-       ❌ NO CIRCLE
-       ❌ NO STROKE
-       ❌ NO GLOW
-    */
+    /* ===== SOFT SHADOW (space depth) ===== */
+    ctx.save();
+    ctx.shadowColor = "rgba(255,255,255,0.25)";
+    ctx.shadowBlur = 12;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
 
+    /* ===== ICON DRAW ===== */
     if(img && img.complete){
-      ctx.drawImage(img, x-28, y-28, 56, 56);
+      ctx.drawImage(img, x-26, y-26, 52, 52);
     }
 
-    /* LABEL (hover feel yerine always visible light) */
-    ctx.fillStyle="rgba(255,255,255,0.7)";
-    ctx.font="12px Arial";
-    ctx.textAlign="center";
-    ctx.fillText(n.name, x, y+55);
+    ctx.restore();
+
+    /* ===== SUBTLE SPACE GLOW (very minimal) ===== */
+    ctx.globalAlpha = 0.08;
+    ctx.beginPath();
+    ctx.arc(x,y,28,0,Math.PI*2);
+    ctx.fillStyle = "white";
+    ctx.fill();
+    ctx.globalAlpha = 1;
 
   });
 
