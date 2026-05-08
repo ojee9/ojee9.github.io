@@ -1,66 +1,59 @@
 const canvas = document.getElementById("spaceCanvas");
 const ctx = canvas.getContext("2d");
 
-canvas.width = innerWidth;
-canvas.height = innerHeight;
-
-window.addEventListener("resize",()=>{
-  canvas.width = innerWidth;
-  canvas.height = innerHeight;
-});
-
-/* =========================
-   STARFIELD
-========================= */
-let stars = [];
-
-function createStars(){
-  stars = [];
-  for(let i=0;i<250;i++){
-    stars.push({
-      x: Math.random()*innerWidth,
-      y: Math.random()*innerHeight,
-      s: 0.4 + Math.random()*1.4,
-      o: 0.2 + Math.random()*0.8
-    });
-  }
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
 }
-createStars();
+resize();
+window.addEventListener("resize", resize);
 
-/* =========================
-   ICONS (DAHA YAKIN)
-========================= */
+/* ================= STARFIELD ================= */
+
+let stars = [];
+for (let i = 0; i < 300; i++) {
+  stars.push({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    z: Math.random() * canvas.width
+  });
+}
+
+/* ================= ICONS ================= */
+
+const spacing = 110; // birbirine yakınlık
+const centerX = canvas.width / 2;
+const centerY = canvas.height / 2;
+
 const nodes = [
-  { name:"YouTube", icon:"icons/youtube.png", url:"https://youtube.com/@9ojeez9", x:0.38 },
-  { name:"Twitter", icon:"icons/twitter.png", url:"https://twitter.com/9ojeez9", x:0.46 },
-  { name:"SoundCloud", icon:"icons/soundcloud.png", url:"https://soundcloud.com/9ojeez9", x:0.54 },
-  { name:"Spotify", icon:"icons/spotify.png", url:"https://open.spotify.com/artist/4XH3BH9SPGEaTzp1suzdCL", x:0.62 },
-  { name:"Apple Music", icon:"icons/applemusic.png", url:"https://music.apple.com", x:0.70 }
+  { name: "YouTube", icon: "icons/youtube.png", url: "https://youtube.com/@9ojeez9" },
+  { name: "Twitter", icon: "icons/twitter.png", url: "https://twitter.com/9ojeez9" },
+  { name: "SoundCloud", icon: "icons/soundcloud.png", url: "https://soundcloud.com/9ojeez9" },
+  { name: "Spotify", icon: "icons/spotify.png", url: "https://open.spotify.com/artist/4XH3BH9SPGEaTzp1suzdCL" },
+  { name: "Apple Music", icon: "icons/applemusic.png", url: "https://music.apple.com" }
 ];
 
 const images = {};
-nodes.forEach(n=>{
+nodes.forEach(n => {
   const img = new Image();
   img.src = n.icon;
   images[n.icon] = img;
 });
 
-/* =========================
-   HOVER
-========================= */
 let hover = -1;
 
-canvas.addEventListener("mousemove",(e)=>{
-  hover = -1;
+/* ================= MOUSE ================= */
 
-  nodes.forEach((n,i)=>{
-    let x = n.x * innerWidth;
-    let y = innerHeight/2;
+canvas.addEventListener("mousemove", e => {
+  hover = -1;
+  nodes.forEach((n, i) => {
+    let x = centerX + (i - 2) * spacing;
+    let y = centerY;
 
     let dx = e.clientX - x;
     let dy = e.clientY - y;
 
-    if(Math.sqrt(dx*dx + dy*dy) < 45){
+    if (Math.sqrt(dx * dx + dy * dy) < 45) {
       hover = i;
     }
   });
@@ -68,86 +61,61 @@ canvas.addEventListener("mousemove",(e)=>{
   canvas.style.cursor = hover !== -1 ? "pointer" : "default";
 });
 
-canvas.addEventListener("click",()=>{
-  if(hover !== -1){
-    window.open(nodes[hover].url,"_blank");
+canvas.addEventListener("click", () => {
+  if (hover !== -1) {
+    window.open(nodes[hover].url, "_blank");
   }
 });
 
-/* =========================
-   DRAW LOOP
-========================= */
-function draw(){
+/* ================= DRAW ================= */
 
-  ctx.clearRect(0,0,innerWidth,innerHeight);
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  /* DEEP SPACE GRADIENT */
-  const gradient = ctx.createRadialGradient(
-    innerWidth/2,
-    innerHeight/2,
-    100,
-    innerWidth/2,
-    innerHeight/2,
-    innerWidth
-  );
+  // STARFIELD (derinlik hissi)
+  for (let s of stars) {
+    s.z -= 2;
+    if (s.z <= 0) s.z = canvas.width;
 
-  gradient.addColorStop(0,"#050510");
-  gradient.addColorStop(1,"#000000");
+    let k = 128 / s.z;
+    let px = s.x * k + canvas.width / 2;
+    let py = s.y * k + canvas.height / 2;
 
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0,0,innerWidth,innerHeight);
-
-  /* STARFIELD */
-  stars.forEach(s=>{
-    ctx.globalAlpha = s.o;
     ctx.fillStyle = "white";
-    ctx.fillRect(s.x,s.y,1.5,1.5);
+    ctx.fillRect(px, py, 1.5, 1.5);
+  }
 
-    s.y += s.s;
+  // ICONS
+  nodes.forEach((n, i) => {
+    let x = centerX + (i - 2) * spacing;
+    let y = centerY;
 
-    if(s.y > innerHeight){
-      s.y = 0;
-      s.x = Math.random()*innerWidth;
-    }
-  });
-
-  ctx.globalAlpha = 1;
-
-  /* ICONS */
-  nodes.forEach((n,i)=>{
-
-    let x = n.x * innerWidth;
-    let y = innerHeight/2 + Math.sin(Date.now()*0.001 + i)*6;
-
-    let img = images[n.icon];
+    let size = hover === i ? 85 : 70;
 
     ctx.save();
 
-    let size = hover === i ? 80 : 66;
-
-    if(hover === i){
-      ctx.shadowColor = "rgba(255,255,255,0.8)";
+    if (hover === i) {
+      ctx.shadowColor = "white";
       ctx.shadowBlur = 30;
     }
 
-    if(img && img.complete){
-      ctx.drawImage(img, x-size/2, y-size/2, size, size);
+    let img = images[n.icon];
+    if (img && img.complete) {
+      ctx.drawImage(img, x - size / 2, y - size / 2, size, size);
     }
 
     ctx.restore();
 
-    /* HOVER TEXT */
-    if(hover === i){
+    if (hover === i) {
       ctx.save();
       ctx.fillStyle = "white";
-      ctx.font = "15px Arial";
+      ctx.font = "13px Arial";
       ctx.textAlign = "center";
       ctx.shadowColor = "white";
-      ctx.shadowBlur = 20;
+      ctx.shadowBlur = 15;
       ctx.fillText(n.name, x, y - 55);
       ctx.restore();
     }
-
   });
 
   requestAnimationFrame(draw);
