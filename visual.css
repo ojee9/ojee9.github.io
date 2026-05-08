@@ -1,0 +1,64 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  overflow-x: hidden;
+  background: radial-gradient(circle at center, #1a0028 0%, #0a0015 60%, #000000 100%);
+  font-family: Arial, sans-serif;
+}
+
+/* Background vibe haze */
+.background {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(120deg, #2a003f, #0a0015);
+  filter: blur(80px);
+  z-index: -1;
+}
+
+/* Center vitrin */
+.gallery-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+}
+
+/* Neon ultra vibrant frame */
+.neon-frame {
+  width: 90%;
+  max-width: 1200px;
+  padding: 40px;
+  border-radius: 30px;
+  background: rgba(0,0,0,0.6);
+  box-shadow:
+    0 0 40px #ff00ff,
+    0 0 80px #8a2be2,
+    inset 0 0 60px rgba(255,0,255,0.3);
+  backdrop-filter: blur(20px);
+}
+
+/* Gallery grid */
+#gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 30px;
+}
+
+/* Images */
+#gallery img {
+  width: 100%;
+  border-radius: 20px;
+  transition: 0.4s ease;
+  box-shadow: 0 0 20px rgba(255,0,255,0.4);
+}
+
+#gallery img:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 40px #ff00ff;
+}
