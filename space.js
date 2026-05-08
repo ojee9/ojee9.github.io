@@ -1,30 +1,38 @@
 const canvas = document.getElementById("spaceCanvas");
 const ctx = canvas.getContext("2d");
 
+/* ================= FULL TRUE RESOLUTION ================= */
+
 function resize() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+  const dpr = window.devicePixelRatio || 1;
+
+  canvas.width = window.innerWidth * dpr;
+  canvas.height = window.innerHeight * dpr;
+
+  canvas.style.width = window.innerWidth + "px";
+  canvas.style.height = window.innerHeight + "px";
+
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
+
 resize();
 window.addEventListener("resize", resize);
 
 /* ================= STARFIELD ================= */
 
 let stars = [];
-for (let i = 0; i < 300; i++) {
+
+for (let i = 0; i < 400; i++) {
   stars.push({
-    x: Math.random() * canvas.width,
-    y: Math.random() * canvas.height,
-    z: Math.random() * canvas.width
+    x: (Math.random() - 0.5) * window.innerWidth,
+    y: (Math.random() - 0.5) * window.innerHeight,
+    z: Math.random() * window.innerWidth
   });
 }
 
 /* ================= ICONS ================= */
 
-const spacing = 110; // birbirine yakınlık
-const centerX = canvas.width / 2;
-const centerY = canvas.height / 2;
-
+const spacing = 85; // daha yakın
 const nodes = [
   { name: "YouTube", icon: "icons/youtube.png", url: "https://youtube.com/@9ojeez9" },
   { name: "Twitter", icon: "icons/twitter.png", url: "https://twitter.com/9ojeez9" },
@@ -46,14 +54,18 @@ let hover = -1;
 
 canvas.addEventListener("mousemove", e => {
   hover = -1;
+
+  const centerX = window.innerWidth / 2;
+  const centerY = window.innerHeight / 2;
+
   nodes.forEach((n, i) => {
-    let x = centerX + (i - 2) * spacing;
-    let y = centerY;
+    const x = centerX + (i - 2) * spacing;
+    const y = centerY;
 
-    let dx = e.clientX - x;
-    let dy = e.clientY - y;
+    const dx = e.clientX - x;
+    const dy = e.clientY - y;
 
-    if (Math.sqrt(dx * dx + dy * dy) < 45) {
+    if (Math.sqrt(dx * dx + dy * dy) < 40) {
       hover = i;
     }
   });
@@ -70,52 +82,81 @@ canvas.addEventListener("click", () => {
 /* ================= DRAW ================= */
 
 function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // STARFIELD (derinlik hissi)
+  ctx.fillStyle = "black";
+  ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+
+  /* STAR DEPTH EFFECT */
   for (let s of stars) {
-    s.z -= 2;
-    if (s.z <= 0) s.z = canvas.width;
+    s.z -= 3;
+    if (s.z <= 0) s.z = window.innerWidth;
 
-    let k = 128 / s.z;
-    let px = s.x * k + canvas.width / 2;
-    let py = s.y * k + canvas.height / 2;
+    const k = 200 / s.z;
+    const x = s.x * k + window.innerWidth / 2;
+    const y = s.y * k + window.innerHeight / 2;
 
     ctx.fillStyle = "white";
-    ctx.fillRect(px, py, 1.5, 1.5);
+    ctx.fillRect(x, y, 2 * k, 2 * k);
   }
 
-  // ICONS
-  nodes.forEach((n, i) => {
-    let x = centerX + (i - 2) * spacing;
-    let y = centerY;
+  /* ICONS */
+  const centerX = window.innerWidth / 2;
+  const centerY = window.innerHeight / 2;
 
-    let size = hover === i ? 85 : 70;
+  nodes.forEach((n, i) => {
+
+    const x = centerX + (i - 2) * spacing;
+    const y = centerY;
+
+    const size = hover === i ? 90 : 72;
+
+    const img = images[n.icon];
+    if (!img.complete) return;
 
     ctx.save();
 
+    /* SOFT SPACE BLEND */
+    ctx.globalCompositeOperation = "lighter";
+
+    /* RADIAL FADE MASK (kare hissi kırar) */
+    const gradient = ctx.createRadialGradient(
+      x, y, size * 0.2,
+      x, y, size / 2
+    );
+
+    gradient.addColorStop(0, "rgba(255,255,255,1)");
+    gradient.addColorStop(1, "rgba(255,255,255,0)");
+
+    ctx.beginPath();
+    ctx.arc(x, y, size / 2, 0, Math.PI * 2);
+    ctx.fillStyle = gradient;
+    ctx.fill();
+
+    /* GLOW */
     if (hover === i) {
       ctx.shadowColor = "white";
-      ctx.shadowBlur = 30;
+      ctx.shadowBlur = 35;
+    } else {
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = "rgba(255,255,255,0.4)";
     }
 
-    let img = images[n.icon];
-    if (img && img.complete) {
-      ctx.drawImage(img, x - size / 2, y - size / 2, size, size);
-    }
+    ctx.drawImage(img, x - size / 2, y - size / 2, size, size);
 
     ctx.restore();
 
+    /* HOVER TEXT */
     if (hover === i) {
       ctx.save();
       ctx.fillStyle = "white";
       ctx.font = "13px Arial";
       ctx.textAlign = "center";
       ctx.shadowColor = "white";
-      ctx.shadowBlur = 15;
-      ctx.fillText(n.name, x, y - 55);
+      ctx.shadowBlur = 20;
+      ctx.fillText(n.name, x, y - 60);
       ctx.restore();
     }
+
   });
 
   requestAnimationFrame(draw);
