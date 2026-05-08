@@ -8,43 +8,132 @@ function resize() {
 resize();
 window.addEventListener("resize", resize);
 
-/* STAR FIELD */
+/* ================= STARFIELD ================= */
 
 const stars = [];
 
-for (let i = 0; i < 400; i++) {
+for (let i = 0; i < 250; i++) {
   stars.push({
     x: Math.random() * canvas.width,
     y: Math.random() * canvas.height,
-    z: Math.random() * canvas.width
+    size: Math.random() * 1.5,
+    speed: 0.3 + Math.random() * 0.8
   });
 }
 
-function animate() {
-  ctx.fillStyle = "black";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+/* ================= ICONS ================= */
 
+const nodes = [
+  { name:"YouTube", icon:"icons/YouTube.png", url:"https://youtube.com/@9ojeez9" },
+  { name:"Twitter", icon:"icons/Twitter.png", url:"https://twitter.com/9ojeez9" },
+  { name:"SoundCloud", icon:"icons/SoundCloud.png", url:"https://soundcloud.com/9ojeez9" },
+  { name:"Spotify", icon:"icons/Spotify.png", url:"https://open.spotify.com" },
+  { name:"Apple Music", icon:"icons/Apple Music.png", url:"https://music.apple.com" }
+];
+
+const images = {};
+
+nodes.forEach(n => {
+  const img = new Image();
+  img.src = n.icon;
+  images[n.icon] = img;
+});
+
+let hoverIndex = -1;
+
+/* ================= MOUSE ================= */
+
+canvas.addEventListener("mousemove", e => {
+  hoverIndex = -1;
+
+  nodes.forEach((n, i) => {
+    const totalWidth = 400;
+    const startX = canvas.width / 2 - totalWidth / 2;
+    const gap = totalWidth / (nodes.length - 1);
+
+    const x = startX + gap * i;
+    const y = canvas.height / 2;
+
+    const dx = e.clientX - x;
+    const dy = e.clientY - y;
+
+    if (Math.sqrt(dx * dx + dy * dy) < 45) {
+      hoverIndex = i;
+    }
+  });
+
+  canvas.style.cursor = hoverIndex !== -1 ? "pointer" : "default";
+});
+
+canvas.addEventListener("click", () => {
+  if (hoverIndex !== -1) {
+    window.open(nodes[hoverIndex].url, "_blank");
+  }
+});
+
+/* ================= DRAW LOOP ================= */
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  /* Starfield */
   ctx.fillStyle = "white";
 
   stars.forEach(star => {
-    star.z -= 2;
-    if (star.z <= 0) {
+    ctx.globalAlpha = 0.8;
+    ctx.fillRect(star.x, star.y, star.size, star.size);
+
+    star.y += star.speed;
+
+    if (star.y > canvas.height) {
+      star.y = 0;
       star.x = Math.random() * canvas.width;
-      star.y = Math.random() * canvas.height;
-      star.z = canvas.width;
-    }
-
-    const k = 128 / star.z;
-    const px = star.x * k + canvas.width / 2;
-    const py = star.y * k + canvas.height / 2;
-
-    if (px >= 0 && px <= canvas.width && py >= 0 && py <= canvas.height) {
-      const size = (1 - star.z / canvas.width) * 3;
-      ctx.fillRect(px, py, size, size);
     }
   });
 
-  requestAnimationFrame(animate);
+  ctx.globalAlpha = 1;
+
+  /* Icons */
+  const totalWidth = 400;
+  const startX = canvas.width / 2 - totalWidth / 2;
+  const gap = totalWidth / (nodes.length - 1);
+
+  nodes.forEach((n, i) => {
+    const x = startX + gap * i;
+    const y = canvas.height / 2;
+
+    const img = images[n.icon];
+    const size = hoverIndex === i ? 85 : 70;
+
+    ctx.save();
+
+    if (hoverIndex === i) {
+      ctx.shadowColor = "white";
+      ctx.shadowBlur = 25;
+    }
+
+    if (img.complete) {
+      ctx.drawImage(img, x - size / 2, y - size / 2, size, size);
+    }
+
+    ctx.restore();
+
+    /* Hover Text */
+    if (hoverIndex === i) {
+      ctx.save();
+      ctx.font = "16px Arial";
+      ctx.fillStyle = "white";
+      ctx.textAlign = "center";
+      ctx.shadowColor = "white";
+      ctx.shadowBlur = 15;
+
+      ctx.fillText(n.name.toUpperCase(), x, y - 70);
+
+      ctx.restore();
+    }
+  });
+
+  requestAnimationFrame(draw);
 }
 
-animate();
+draw();
