@@ -32,10 +32,16 @@ const nodes = [
 ];
 
 const images = {};
+let loadedImages = 0;
 
 nodes.forEach(n => {
   const img = new Image();
   img.src = n.icon;
+
+  img.onload = () => {
+    loadedImages++;
+  };
+
   images[n.icon] = img;
 });
 
@@ -46,11 +52,11 @@ let hoverIndex = -1;
 canvas.addEventListener("mousemove", e => {
   hoverIndex = -1;
 
-  nodes.forEach((n, i) => {
-    const totalWidth = 400;
-    const startX = canvas.width / 2 - totalWidth / 2;
-    const gap = totalWidth / (nodes.length - 1);
+  const totalWidth = 400;
+  const startX = canvas.width / 2 - totalWidth / 2;
+  const gap = totalWidth / (nodes.length - 1);
 
+  nodes.forEach((n, i) => {
     const x = startX + gap * i;
     const y = canvas.height / 2;
 
@@ -93,45 +99,44 @@ function draw() {
 
   ctx.globalAlpha = 1;
 
-  /* Icons */
-  const totalWidth = 400;
-  const startX = canvas.width / 2 - totalWidth / 2;
-  const gap = totalWidth / (nodes.length - 1);
+  /* ICONS – ONLY DRAW IF ALL LOADED */
+  if (loadedImages === nodes.length) {
 
-  nodes.forEach((n, i) => {
-    const x = startX + gap * i;
-    const y = canvas.height / 2;
+    const totalWidth = 400;
+    const startX = canvas.width / 2 - totalWidth / 2;
+    const gap = totalWidth / (nodes.length - 1);
 
-    const img = images[n.icon];
-    const size = hoverIndex === i ? 85 : 70;
+    nodes.forEach((n, i) => {
+      const x = startX + gap * i;
+      const y = canvas.height / 2;
 
-    ctx.save();
+      const img = images[n.icon];
+      const size = hoverIndex === i ? 85 : 70;
 
-    if (hoverIndex === i) {
-      ctx.shadowColor = "white";
-      ctx.shadowBlur = 25;
-    }
-
-    if (img.complete) {
-      ctx.drawImage(img, x - size / 2, y - size / 2, size, size);
-    }
-
-    ctx.restore();
-
-    /* Hover Text */
-    if (hoverIndex === i) {
       ctx.save();
-      ctx.font = "16px Arial";
-      ctx.fillStyle = "white";
-      ctx.textAlign = "center";
-      ctx.shadowColor = "white";
-      ctx.shadowBlur = 15;
 
-      ctx.fillText(n.name.toUpperCase(), x, y - 70);
+      if (hoverIndex === i) {
+        ctx.shadowColor = "white";
+        ctx.shadowBlur = 25;
+      }
+
+      ctx.drawImage(img, x - size / 2, y - size / 2, size, size);
 
       ctx.restore();
-    }
-  });
+
+      /* Hover Text */
+      if (hoverIndex === i) {
+        ctx.save();
+        ctx.font = "16px Arial";
+        ctx.fillStyle = "white";
+        ctx.textAlign = "center";
+        ctx.shadowColor = "white";
+        ctx.shadowBlur = 15;
+        ctx.fillText(n.name.toUpperCase(), x, y - 70);
+        ctx.restore();
+      }
+    });
+  }
 
   requestAnimationFrame(draw);
 }
