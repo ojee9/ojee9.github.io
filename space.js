@@ -24,11 +24,11 @@ for (let i = 0; i < 250; i++) {
 /* ================= ICONS ================= */
 
 const nodes = [
-  { name:"YouTube", icon:"icons/YouTube.png", url:"https://youtube.com/@9ojeez9" },
-  { name:"Twitter", icon:"icons/Twitter.png", url:"https://twitter.com/9ojeez9" },
-  { name:"SoundCloud", icon:"icons/SoundCloud.png", url:"https://soundcloud.com/9ojeez9" },
-  { name:"Spotify", icon:"icons/Spotify.png", url:"https://open.spotify.com" },
-  { name:"Apple Music", icon:"icons/Apple Music.png", url:"https://music.apple.com" }
+  { name:"YouTube", icon:"icons/youTube.png", url:"https://youtube.com/@9ojeez9" },
+  { name:"Twitter", icon:"icons/twitter.png", url:"https://twitter.com/9ojeez9" },
+  { name:"SoundCloud", icon:"icons/soundcloud.png", url:"https://soundcloud.com/9ojeez9" },
+  { name:"Spotify", icon:"icons/spotify.png", url:"https://open.spotify.com" },
+  { name:"Apple Music", icon:"icons/applemusic.png", url:"https://music.apple.com" }
 ];
 
 const images = {};
