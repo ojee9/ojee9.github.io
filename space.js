@@ -27,8 +27,8 @@ const nodes = [
   { name:"YouTube", icon:"icons/youtube.png", url:"https://youtube.com/@9ojeez9" },
   { name:"Twitter", icon:"icons/twitter.png", url:"https://twitter.com/9ojeez9" },
   { name:"SoundCloud", icon:"icons/soundcloud.png", url:"https://soundcloud.com/9ojeez9" },
-  { name:"Spotify", icon:"icons/spotify.png", url:"https://open.spotify.com" },
-  { name:"Apple Music", icon:"icons/applemusic.png", url:"https://music.apple.com" }
+  { name:"Spotify", icon:"icons/spotify.png", url:"https://open.spotify.com/intl-tr/artist/4XH3BH9SPGEaTzp1suzdCL?si=bGKYTXi-QIeWzlMsLJqCOQ" },
+  { name:"Apple Music", icon:"icons/applemusic.png", url:"https://music.apple.com/us/artist/9ojeez9/1702764220" }
 ];
 
 const images = {};
