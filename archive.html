@@ -1,327 +1,120 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>ARCHIVE</title>
 
-<style>
+<link rel="stylesheet" href="archive.css">
 
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-}
-
-body{
-  width:100vw;
-  height:100vh;
-  overflow:hidden;
-
-  background:#e7c96a;
-
-  display:flex;
-  justify-content:center;
-  align-items:center;
-
-  font-family:Arial, Helvetica, sans-serif;
-}
-
-/* =========================
-   DESK
-========================= */
-
-.desk{
-
-  position:relative;
-
-  width:100%;
-  height:100%;
-
-  background:#e7c96a;
-
-  overflow:hidden;
-}
-
-/* =========================
-   PAPER
-========================= */
-
-.paper{
-
-  position:absolute;
-
-  top:50%;
-  left:50%;
-
-  transform:translate(-50%,-50%);
-
-  width:min(92vw,700px);
-  height:min(88vh,1100px);
-
-  background:#d9b742;
-
-  border-radius:8px;
-
-  box-shadow:
-  0 20px 60px rgba(0,0,0,0.18),
-  inset 0 0 1px rgba(255,255,255,0.2);
-
-  padding:60px 40px;
-
-  overflow:hidden;
-}
-
-/* subtle paper texture */
-
-.paper::before{
-
-  content:"";
-
-  position:absolute;
-  inset:0;
-
-  opacity:0.045;
-
-  background-image:
-  repeating-linear-gradient(
-    0deg,
-    rgba(255,255,255,0.2) 0px,
-    rgba(255,255,255,0.2) 1px,
-    transparent 1px,
-    transparent 4px
-  );
-
-  pointer-events:none;
-}
-
-/* =========================
-   TITLE
-========================= */
-
-.archive-title{
-
-  position:relative;
-
-  font-size:42px;
-  letter-spacing:8px;
-  font-weight:700;
-
-  color:#111;
-
-  margin-bottom:50px;
-
-  z-index:2;
-}
-
-/* =========================
-   LONG HEADERS
-========================= */
-
-.links{
-
-  position:relative;
-
-  display:flex;
-  flex-direction:column;
-  gap:24px;
-
-  z-index:2;
-}
-
-.link{
-
-  text-decoration:none;
-
-  width:100%;
-
-  padding:22px 26px;
-
-  border:2px solid rgba(0,0,0,0.15);
-
-  background:rgba(255,255,255,0.06);
-
-  color:#111;
-
-  font-size:20px;
-  letter-spacing:2px;
-
-  transition:0.18s ease;
-
-  backdrop-filter:blur(2px);
-}
-
-.link:hover{
-
-  transform:translateX(6px);
-
-  background:rgba(255,255,255,0.12);
-}
-
-/* =========================
-   BACK BUTTON
-========================= */
-
-.back{
-
-  position:absolute;
-
-  top:24px;
-  left:24px;
-
-  text-decoration:none;
-
-  color:#111;
-
-  font-size:18px;
-  letter-spacing:2px;
-
-  z-index:5;
-
-  opacity:0.75;
-
-  transition:0.15s;
-}
-
-.back:hover{
-  opacity:1;
-}
-
-/* =========================
-   DESK OBJECTS
-========================= */
-
-.tape{
-
-  position:absolute;
-
-  width:120px;
-  height:34px;
-
-  background:rgba(255,255,255,0.22);
-
-  top:70px;
-  right:90px;
-
-  transform:rotate(18deg);
-
-  border-radius:4px;
-
-  backdrop-filter:blur(2px);
-
-  opacity:0.7;
-}
-
-.clip{
-
-  position:absolute;
-
-  width:40px;
-  height:70px;
-
-  border:4px solid rgba(0,0,0,0.25);
-
-  border-radius:20px;
-
-  bottom:70px;
-  right:80px;
-
-  transform:rotate(-12deg);
-}
-
-/* =========================
-   SKETCH FIGURES
-========================= */
-
-.sketch{
-
-  position:absolute;
-
-  opacity:0.14;
-
-  pointer-events:none;
-}
-
-.sketch svg{
-  width:120px;
-}
-
-/* =========================
-   MOBILE
-========================= */
-
-@media(max-width:768px){
-
-  .paper{
-    width:94vw;
-    height:90vh;
-    padding:42px 22px;
-  }
-
-  .archive-title{
-    font-size:28px;
-    letter-spacing:4px;
-  }
-
-  .link{
-    font-size:16px;
-    padding:18px;
-  }
-
-}
-
-</style>
 </head>
+
 
 <body>
 
-<div class="desk">
 
-  <a href="index.html" class="back">← MENU</a>
+<a href="space.html" class="back-btn">
+← SPACE
+</a>
 
-  <div class="paper">
 
-    <div class="archive-title">
-      ARCHIVE
-    </div>
 
-    <div class="links">
+<div class="archive-container">
 
-      <a class="link" href="#">
-        ALL VIBES
-      </a>
 
-      <a class="link" href="#">
-        COLD TAKE
-      </a>
+<header>
 
-      <a class="link" href="#">
-        NEW NEON
-      </a>
+<h1>VN STUDIOS DATABASE</h1>
 
-      <a class="link" href="#">
-        HOT TAKE
-      </a>
+<p>
+ACCESSING ARCHIVE SYSTEM...
+</p>
 
-    </div>
+</header>
 
-  </div>
 
-  <div class="tape"></div>
 
-  <div class="clip"></div>
+<section class="timeline">
 
-  <div class="sketch" style="left:40px; bottom:60px;">
-    <svg viewBox="0 0 100 100">
-      <path d="M50 10 L50 50 M50 25 L30 40 M50 25 L70 40 M50 50 L35 80 M50 50 L65 80"
-      stroke="black"
-      stroke-width="3"
-      fill="none"/>
-    </svg>
-  </div>
+
+
+<div class="year">
+
+<h2>2026</h2>
+
+
+<div class="file">
+
+<span>FILE_001</span>
+
+<h3>IMSOVLONE</h3>
+
+<p>
+TYPE: MUSIC PROJECT
+</p>
+
+<p>
+STATUS: RELEASED
+</p>
 
 </div>
 
+
+
+<div class="file">
+
+<span>FILE_002</span>
+
+<h3>GLOCK 6.0</h3>
+
+<p>
+TYPE: SINGLE
+</p>
+
+<p>
+STATUS: RELEASED
+</p>
+
+</div>
+
+
+</div>
+
+
+
+
+<div class="year">
+
+<h2>2025</h2>
+
+
+<div class="file locked">
+
+<span>FILE_003</span>
+
+<h3>CLASSIFIED</h3>
+
+<p>
+ACCESS LOCKED
+</p>
+
+</div>
+
+
+</div>
+
+
+
+
+</section>
+
+
+</div>
+
+
+
 </body>
+
 </html>
