@@ -27,57 +27,66 @@ for (let i = 0; i < 250; i++) {
 /* ================= SPACE NODES ================= */
 
 const nodes = [
-  {
-    name: "MUSIC",
-    x: 0,
-    y: -170
-  },
-  {
-    name: "ARCHIVE",
-    x: 170,
-    y: -40
-  },
-  {
-    name: "VISUALS",
-    x: -170,
-    y: -40
-  },
-  {
-    name: "PROJECTS",
-    x: -170,
-    y: 130
-  },
-  {
-    name: "ABOUT",
-    x: 170,
-    y: 130
-  },
-  {
-    name: "SOCIAL",
-    x: 0,
-    y: 220
-  }
+  { name:"MUSIC", posX:0, posY:-0.28 },
+  { name:"ARCHIVE", posX:0.28, posY:-0.05 },
+  { name:"VISUALS", posX:-0.28, posY:-0.05 },
+  { name:"PROJECTS", posX:-0.28, posY:0.22 },
+  { name:"ABOUT", posX:0.28, posY:0.22 },
+  { name:"SOCIAL", posX:0, posY:0.38 }
 ];
 
 
 const core = {
-  name: "VN STUDIOS",
-  x: 0,
-  y: 0
+  name:"VN STUDIOS"
 };
 
 
 let hoverNode = -1;
+let time = 0;
+
 
 
 /* ================= POSITION ================= */
 
 function getCenter() {
+
   return {
     x: canvas.width / 2,
     y: canvas.height / 2
   };
+
 }
+
+
+function getNodePosition(node, index) {
+
+  const center = getCenter();
+
+  const scale = Math.min(
+    canvas.width,
+    canvas.height
+  );
+
+
+  const movement =
+    Math.sin(time * 0.001 + index) * 3;
+
+
+  return {
+
+    x:
+      center.x +
+      node.posX * scale,
+
+    y:
+      center.y +
+      node.posY * scale +
+      movement
+
+  };
+
+}
+
 
 
 /* ================= MOUSE ================= */
@@ -86,36 +95,42 @@ canvas.addEventListener("mousemove", e => {
 
   hoverNode = -1;
 
-  const center = getCenter();
+
+  nodes.forEach((node,index)=>{
+
+    const p = getNodePosition(
+      node,
+      index
+    );
 
 
-  nodes.forEach((node, index) => {
-
-    const x = center.x + node.x;
-    const y = center.y + node.y;
+    const dx = e.clientX - p.x;
+    const dy = e.clientY - p.y;
 
 
-    const dx = e.clientX - x;
-    const dy = e.clientY - y;
-
-
-    if (Math.sqrt(dx * dx + dy * dy) < 35) {
+    if (
+      Math.sqrt(dx*dx + dy*dy)
+      < 35
+    ) {
       hoverNode = index;
     }
+
 
   });
 
 
   canvas.style.cursor =
-    hoverNode !== -1 ? "pointer" : "default";
+    hoverNode !== -1
+    ? "pointer"
+    : "default";
 
 });
 
 
 
-canvas.addEventListener("click", () => {
+canvas.addEventListener("click",()=>{
 
-  if (hoverNode !== -1) {
+  if(hoverNode !== -1){
 
     console.log(
       "ENTER:",
@@ -130,7 +145,10 @@ canvas.addEventListener("click", () => {
 
 /* ================= DRAW ================= */
 
-function draw() {
+function draw(){
+
+  time++;
+
 
   ctx.clearRect(
     0,
@@ -140,14 +158,14 @@ function draw() {
   );
 
 
-  /* STARFIELD */
+/* STARFIELD */
 
-  ctx.fillStyle = "white";
+  ctx.fillStyle="white";
 
 
-  stars.forEach(star => {
+  stars.forEach(star=>{
 
-    ctx.globalAlpha = 0.8;
+    ctx.globalAlpha=.8;
 
     ctx.fillRect(
       star.x,
@@ -160,98 +178,195 @@ function draw() {
     star.y += star.speed;
 
 
-    if (star.y > canvas.height) {
+    if(star.y > canvas.height){
 
-      star.y = 0;
-      star.x = Math.random() * canvas.width;
+      star.y=0;
+      star.x=Math.random()*canvas.width;
 
     }
+
 
   });
 
 
-  ctx.globalAlpha = 1;
+  ctx.globalAlpha=1;
 
 
 
-  const center = getCenter();
+  const center=getCenter();
 
 
 
-  /* CORE */
+/* ================= CONNECTIONS ================= */
+
+
+  ctx.strokeStyle="rgba(255,255,255,0.12)";
+  ctx.lineWidth=1;
+
+
+  nodes.forEach((node,index)=>{
+
+    const p=getNodePosition(
+      node,
+      index
+    );
+
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+      center.x,
+      center.y
+    );
+
+    ctx.lineTo(
+      p.x,
+      p.y
+    );
+
+    ctx.stroke();
+
+
+  });
+
+
+
+/* ================= CORE ================= */
+
+
+  const pulse =
+    Math.sin(time*0.03)*3;
+
+
+  ctx.save();
+
+
+  ctx.shadowColor="white";
+  ctx.shadowBlur=25;
+
 
   ctx.beginPath();
 
   ctx.arc(
     center.x,
     center.y,
-    18,
+    18+pulse,
     0,
-    Math.PI * 2
+    Math.PI*2
   );
 
-  ctx.fillStyle = "white";
+
+  ctx.fillStyle="white";
 
   ctx.fill();
 
 
+  ctx.restore();
 
-  ctx.font = "14px Arial";
-  ctx.fillStyle = "white";
-  ctx.textAlign = "center";
+
+
+  ctx.beginPath();
+
+  ctx.arc(
+    center.x,
+    center.y,
+    35+pulse,
+    0,
+    Math.PI*2
+  );
+
+
+  ctx.strokeStyle=
+    "rgba(255,255,255,0.25)";
+
+
+  ctx.stroke();
+
+
+
+  ctx.font="14px Arial";
+  ctx.fillStyle="white";
+  ctx.textAlign="center";
+
 
   ctx.fillText(
     core.name,
     center.x,
-    center.y + 45
+    center.y+65
   );
 
 
 
-  /* NODES */
-
-  nodes.forEach((node, index) => {
+/* ================= NODES ================= */
 
 
-    const x = center.x + node.x;
-    const y = center.y + node.y;
+nodes.forEach((node,index)=>{
 
 
-    ctx.beginPath();
+  const p=getNodePosition(
+    node,
+    index
+  );
 
-    ctx.arc(
-      x,
-      y,
-      hoverNode === index ? 14 : 9,
-      0,
-      Math.PI * 2
+
+  const size =
+    hoverNode===index
+    ? 15
+    : 9;
+
+
+
+  ctx.save();
+
+
+  if(hoverNode===index){
+
+    ctx.shadowColor="white";
+    ctx.shadowBlur=25;
+
+  }
+
+
+  ctx.beginPath();
+
+  ctx.arc(
+    p.x,
+    p.y,
+    size,
+    0,
+    Math.PI*2
+  );
+
+
+  ctx.fillStyle="white";
+
+  ctx.fill();
+
+
+  ctx.restore();
+
+
+
+  if(hoverNode===index){
+
+    ctx.font="16px Arial";
+    ctx.fillStyle="white";
+    ctx.textAlign="center";
+
+
+    ctx.fillText(
+      node.name,
+      p.x,
+      p.y-30
     );
 
-
-    ctx.fillStyle = "white";
-
-    ctx.fill();
+  }
 
 
-
-    if (hoverNode === index) {
-
-      ctx.font = "16px Arial";
-
-      ctx.fillText(
-        node.name,
-        x,
-        y - 25
-      );
-
-    }
+});
 
 
-  });
-
-
-
-  requestAnimationFrame(draw);
+requestAnimationFrame(draw);
 
 }
 
