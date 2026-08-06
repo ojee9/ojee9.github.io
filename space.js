@@ -1,6 +1,7 @@
 const canvas = document.getElementById("spaceCanvas");
 const ctx = canvas.getContext("2d");
 
+
 function resize() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
@@ -58,9 +59,13 @@ function getCenter() {
 }
 
 
-function getNodePosition(node, index) {
+
+function getNodePosition(node,index){
 
   const center = getCenter();
+
+  const isMobile = canvas.width < 600;
+
 
   const scale = Math.min(
     canvas.width,
@@ -68,19 +73,28 @@ function getNodePosition(node, index) {
   );
 
 
+  const mobileScale = isMobile ? 0.62 : 1;
+
+
   const movement =
     Math.sin(time * 0.001 + index) * 3;
+
 
 
   return {
 
     x:
       center.x +
-      node.posX * scale,
+      node.posX *
+      scale *
+      mobileScale,
+
 
     y:
       center.y +
-      node.posY * scale +
+      node.posY *
+      scale *
+      mobileScale +
       movement
 
   };
@@ -89,40 +103,79 @@ function getNodePosition(node, index) {
 
 
 
+/* ================= TEXT SAFE AREA ================= */
+
+function drawSafeText(text,x,y,size){
+
+  let finalX = x;
+
+  const padding = 40;
+
+
+  if(finalX < padding){
+    finalX = padding;
+  }
+
+
+  if(finalX > canvas.width - padding){
+    finalX = canvas.width - padding;
+  }
+
+
+  ctx.font = size + "px Arial";
+  ctx.fillStyle="white";
+  ctx.textAlign="center";
+
+
+  ctx.fillText(
+    text,
+    finalX,
+    y
+  );
+
+}
+
+
+
 /* ================= MOUSE ================= */
 
-canvas.addEventListener("mousemove", e => {
+canvas.addEventListener("mousemove",e=>{
 
-  hoverNode = -1;
+
+  hoverNode=-1;
 
 
   nodes.forEach((node,index)=>{
 
-    const p = getNodePosition(
+
+    const p=getNodePosition(
       node,
       index
     );
 
 
-    const dx = e.clientX - p.x;
-    const dy = e.clientY - p.y;
+    const dx=e.clientX-p.x;
+    const dy=e.clientY-p.y;
 
 
-    if (
-      Math.sqrt(dx*dx + dy*dy)
-      < 35
-    ) {
-      hoverNode = index;
+    if(
+      Math.sqrt(dx*dx+dy*dy)<45
+    ){
+
+      hoverNode=index;
+
     }
 
 
   });
 
 
+
   canvas.style.cursor =
-    hoverNode !== -1
+    hoverNode!==-1
     ? "pointer"
     : "default";
+
 
 });
 
@@ -130,7 +183,8 @@ canvas.addEventListener("mousemove", e => {
 
 canvas.addEventListener("click",()=>{
 
-  if(hoverNode !== -1){
+
+  if(hoverNode!==-1){
 
     console.log(
       "ENTER:",
@@ -139,13 +193,16 @@ canvas.addEventListener("click",()=>{
 
   }
 
+
 });
+
 
 
 
 /* ================= DRAW ================= */
 
 function draw(){
+
 
   time++;
 
@@ -158,14 +215,17 @@ function draw(){
   );
 
 
-/* STARFIELD */
 
-  ctx.fillStyle="white";
+/* STARFIELD */
 
 
   stars.forEach(star=>{
 
-    ctx.globalAlpha=.8;
+
+    ctx.globalAlpha=.75;
+
+    ctx.fillStyle="white";
+
 
     ctx.fillRect(
       star.x,
@@ -175,10 +235,11 @@ function draw(){
     );
 
 
-    star.y += star.speed;
+    star.y+=star.speed;
 
 
-    if(star.y > canvas.height){
+
+    if(star.y>canvas.height){
 
       star.y=0;
       star.x=Math.random()*canvas.width;
@@ -197,14 +258,12 @@ function draw(){
 
 
 
+
 /* ================= CONNECTIONS ================= */
 
 
-  ctx.strokeStyle="rgba(255,255,255,0.12)";
-  ctx.lineWidth=1;
-
-
   nodes.forEach((node,index)=>{
+
 
     const p=getNodePosition(
       node,
@@ -214,15 +273,30 @@ function draw(){
 
     ctx.beginPath();
 
+
     ctx.moveTo(
       center.x,
       center.y
     );
 
+
     ctx.lineTo(
       p.x,
       p.y
     );
+
+
+    const pulse =
+      0.08 +
+      Math.sin(time*0.02)*0.03;
+
+
+    ctx.strokeStyle =
+      `rgba(255,255,255,${pulse})`;
+
+
+    ctx.lineWidth=1;
+
 
     ctx.stroke();
 
@@ -231,26 +305,30 @@ function draw(){
 
 
 
+
 /* ================= CORE ================= */
 
 
   const pulse =
-    Math.sin(time*0.03)*3;
+    Math.sin(time*0.04)*4;
+
 
 
   ctx.save();
 
 
   ctx.shadowColor="white";
-  ctx.shadowBlur=25;
+  ctx.shadowBlur=35;
+
 
 
   ctx.beginPath();
 
+
   ctx.arc(
     center.x,
     center.y,
-    18+pulse,
+    20+pulse,
     0,
     Math.PI*2
   );
@@ -265,110 +343,114 @@ function draw(){
 
 
 
+
   ctx.beginPath();
+
 
   ctx.arc(
     center.x,
     center.y,
-    35+pulse,
+    42+pulse,
     0,
     Math.PI*2
   );
 
 
   ctx.strokeStyle=
-    "rgba(255,255,255,0.25)";
+    "rgba(255,255,255,0.18)";
 
 
   ctx.stroke();
 
 
 
-  ctx.font="14px Arial";
-  ctx.fillStyle="white";
-  ctx.textAlign="center";
 
-
-  ctx.fillText(
+  drawSafeText(
     core.name,
     center.x,
-    center.y+65
+    center.y+70,
+    14
   );
+
 
 
 
 /* ================= NODES ================= */
 
 
-nodes.forEach((node,index)=>{
+  nodes.forEach((node,index)=>{
 
 
-  const p=getNodePosition(
-    node,
-    index
-  );
-
-
-  const size =
-    hoverNode===index
-    ? 15
-    : 9;
-
-
-
-  ctx.save();
-
-
-  if(hoverNode===index){
-
-    ctx.shadowColor="white";
-    ctx.shadowBlur=25;
-
-  }
-
-
-  ctx.beginPath();
-
-  ctx.arc(
-    p.x,
-    p.y,
-    size,
-    0,
-    Math.PI*2
-  );
-
-
-  ctx.fillStyle="white";
-
-  ctx.fill();
-
-
-  ctx.restore();
-
-
-
-  if(hoverNode===index){
-
-    ctx.font="16px Arial";
-    ctx.fillStyle="white";
-    ctx.textAlign="center";
-
-
-    ctx.fillText(
-      node.name,
-      p.x,
-      p.y-30
+    const p=getNodePosition(
+      node,
+      index
     );
 
-  }
+
+    const size =
+      hoverNode===index
+      ? 15
+      : 9;
 
 
-});
+
+    ctx.save();
 
 
-requestAnimationFrame(draw);
+
+    if(hoverNode===index){
+
+      ctx.shadowColor="white";
+      ctx.shadowBlur=30;
+
+    }
+
+
+
+    ctx.beginPath();
+
+
+    ctx.arc(
+      p.x,
+      p.y,
+      size,
+      0,
+      Math.PI*2
+    );
+
+
+    ctx.fillStyle="white";
+
+    ctx.fill();
+
+
+    ctx.restore();
+
+
+
+
+    if(hoverNode===index){
+
+
+      drawSafeText(
+        node.name,
+        p.x,
+        p.y-35,
+        canvas.width < 600 ? 12 : 16
+      );
+
+
+    }
+
+
+  });
+
+
+
+  requestAnimationFrame(draw);
 
 }
+
 
 
 draw();
