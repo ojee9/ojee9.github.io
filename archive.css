@@ -48,7 +48,24 @@ background-size:
 
 pointer-events:none;
 
+animation:gridMove 35s linear infinite;
+
 }
+
+
+
+@keyframes gridMove{
+
+from{
+background-position:0 0;
+}
+
+to{
+background-position:60px 60px;
+}
+
+}
+
 
 
 
@@ -85,6 +102,8 @@ opacity:1;
 
 
 
+
+
 /* CONTAINER */
 
 .archive-container{
@@ -94,6 +113,31 @@ width:min(900px,90%);
 margin:auto;
 
 padding-top:120px;
+
+animation:archiveFade 1.2s ease forwards;
+
+}
+
+
+
+
+@keyframes archiveFade{
+
+from{
+
+opacity:0;
+
+transform:translateY(20px);
+
+}
+
+to{
+
+opacity:1;
+
+transform:translateY(0);
+
+}
 
 }
 
@@ -139,6 +183,8 @@ opacity:.35;
 
 
 
+
+
 /* TIMELINE */
 
 
@@ -152,7 +198,72 @@ padding-left:45px;
 
 border-left:1px solid rgba(255,255,255,.18);
 
+opacity:0;
+
+animation:yearReveal .8s ease forwards;
+
 }
+
+
+
+.year:nth-child(1){
+
+animation-delay:.2s;
+
+}
+
+
+.year:nth-child(2){
+
+animation-delay:.35s;
+
+}
+
+
+.year:nth-child(3){
+
+animation-delay:.5s;
+
+}
+
+
+.year:nth-child(4){
+
+animation-delay:.65s;
+
+}
+
+
+.year:nth-child(5){
+
+animation-delay:.8s;
+
+}
+
+
+
+
+@keyframes yearReveal{
+
+from{
+
+opacity:0;
+
+transform:translateX(-20px);
+
+}
+
+to{
+
+opacity:1;
+
+transform:translateX(0);
+
+}
+
+}
+
+
 
 
 /* timeline node */
@@ -176,9 +287,12 @@ background:white;
 border-radius:50%;
 
 box-shadow:
+
 0 0 15px rgba(255,255,255,.8);
 
 }
+
+
 
 
 
@@ -193,6 +307,8 @@ letter-spacing:5px;
 margin-bottom:35px;
 
 }
+
+
 
 
 
@@ -225,7 +341,7 @@ overflow:hidden;
 
 
 
-/* small corner detail */
+/* corner detail */
 
 .file::after{
 
@@ -247,6 +363,8 @@ border-right:1px solid rgba(255,255,255,.3);
 
 opacity:.4;
 
+transition:.3s;
+
 }
 
 
@@ -262,6 +380,20 @@ transform:translateX(8px);
 box-shadow:
 
 0 0 25px rgba(255,255,255,.08);
+
+}
+
+
+
+
+
+.file:hover::after{
+
+opacity:1;
+
+box-shadow:
+
+0 0 15px white;
 
 }
 
@@ -293,7 +425,6 @@ font-weight:400;
 letter-spacing:3px;
 
 }
-
 
 
 
