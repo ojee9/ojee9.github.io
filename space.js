@@ -37,11 +37,6 @@ const nodes = [
 ];
 
 
-const core = {
-  name:"VN STUDIOS"
-};
-
-
 let hoverNode = -1;
 let time = 0;
 
@@ -77,7 +72,7 @@ function getNodePosition(node,index){
 
 
   const movement =
-    Math.sin(time * 0.001 + index) * 3;
+    Math.sin(time * 0.002 + index * 2) * 1.5;
 
 
 
@@ -103,34 +98,44 @@ function getNodePosition(node,index){
 
 
 
-/* ================= TEXT SAFE AREA ================= */
+/* ================= TEXT ================= */
 
-function drawSafeText(text,x,y,size){
-
-  let finalX = x;
-
-  const padding = 40;
-
-
-  if(finalX < padding){
-    finalX = padding;
-  }
-
-
-  if(finalX > canvas.width - padding){
-    finalX = canvas.width - padding;
-  }
-
+function drawSafeText(text,x,y,size,alpha=1){
 
   ctx.font = size + "px Arial";
-  ctx.fillStyle="white";
+  ctx.fillStyle = `rgba(255,255,255,${alpha})`;
   ctx.textAlign="center";
-
 
   ctx.fillText(
     text,
-    finalX,
+    x,
     y
+  );
+
+}
+
+
+
+function drawBrand(){
+
+  const y = canvas.height - 45;
+
+
+  drawSafeText(
+    "VN STUDIOS",
+    canvas.width / 2,
+    y,
+    canvas.width < 600 ? 11 : 13,
+    0.55
+  );
+
+
+  drawSafeText(
+    "© 2026",
+    canvas.width / 2,
+    y + 18,
+    canvas.width < 600 ? 9 : 10,
+    0.35
   );
 
 }
@@ -141,12 +146,10 @@ function drawSafeText(text,x,y,size){
 
 canvas.addEventListener("mousemove",e=>{
 
-
   hoverNode=-1;
 
 
   nodes.forEach((node,index)=>{
-
 
     const p=getNodePosition(
       node,
@@ -158,17 +161,13 @@ canvas.addEventListener("mousemove",e=>{
     const dy=e.clientY-p.y;
 
 
-    if(
-      Math.sqrt(dx*dx+dy*dy)<45
-    ){
+    if(Math.sqrt(dx*dx+dy*dy)<45){
 
       hoverNode=index;
 
     }
 
-
   });
-
 
 
   canvas.style.cursor =
@@ -176,13 +175,11 @@ canvas.addEventListener("mousemove",e=>{
     ? "pointer"
     : "default";
 
-
 });
 
 
 
 canvas.addEventListener("click",()=>{
-
 
   if(hoverNode!==-1){
 
@@ -193,8 +190,8 @@ canvas.addEventListener("click",()=>{
 
   }
 
-
 });
+
 
 
 
@@ -202,7 +199,6 @@ canvas.addEventListener("click",()=>{
 /* ================= DRAW ================= */
 
 function draw(){
-
 
   time++;
 
@@ -218,12 +214,9 @@ function draw(){
 
 /* STARFIELD */
 
-
   stars.forEach(star=>{
 
-
     ctx.globalAlpha=.75;
-
     ctx.fillStyle="white";
 
 
@@ -238,14 +231,12 @@ function draw(){
     star.y+=star.speed;
 
 
-
     if(star.y>canvas.height){
 
       star.y=0;
       star.x=Math.random()*canvas.width;
 
     }
-
 
   });
 
@@ -258,12 +249,9 @@ function draw(){
 
 
 
-
-/* ================= CONNECTIONS ================= */
-
+/* CONNECTIONS */
 
   nodes.forEach((node,index)=>{
-
 
     const p=getNodePosition(
       node,
@@ -286,31 +274,23 @@ function draw(){
     );
 
 
-    const pulse =
-      0.08 +
-      Math.sin(time*0.02)*0.03;
-
-
     ctx.strokeStyle =
-      `rgba(255,255,255,${pulse})`;
+      "rgba(255,255,255,0.10)";
 
 
     ctx.lineWidth=1;
 
-
     ctx.stroke();
-
 
   });
 
 
 
 
-/* ================= CORE ================= */
-
+/* CORE */
 
   const pulse =
-    Math.sin(time*0.04)*4;
+    Math.sin(time*0.04)*3;
 
 
 
@@ -319,7 +299,6 @@ function draw(){
 
   ctx.shadowColor="white";
   ctx.shadowBlur=35;
-
 
 
   ctx.beginPath();
@@ -343,7 +322,6 @@ function draw(){
 
 
 
-
   ctx.beginPath();
 
 
@@ -356,7 +334,7 @@ function draw(){
   );
 
 
-  ctx.strokeStyle=
+  ctx.strokeStyle =
     "rgba(255,255,255,0.18)";
 
 
@@ -364,19 +342,12 @@ function draw(){
 
 
 
-
-  drawSafeText(
-    core.name,
-    center.x,
-    center.y+70,
-    14
-  );
+  drawBrand();
 
 
 
 
-/* ================= NODES ================= */
-
+/* NODES */
 
   nodes.forEach((node,index)=>{
 
@@ -395,7 +366,6 @@ function draw(){
 
 
     ctx.save();
-
 
 
     if(hoverNode===index){
@@ -428,9 +398,7 @@ function draw(){
 
 
 
-
     if(hoverNode===index){
-
 
       drawSafeText(
         node.name,
@@ -438,7 +406,6 @@ function draw(){
         p.y-35,
         canvas.width < 600 ? 12 : 16
       );
-
 
     }
 
@@ -450,7 +417,6 @@ function draw(){
   requestAnimationFrame(draw);
 
 }
-
 
 
 draw();
