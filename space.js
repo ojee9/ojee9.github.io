@@ -75,7 +75,6 @@ function getNodePosition(node,index){
     Math.sin(time * 0.002 + index * 2) * 1.5;
 
 
-
   return {
 
     x:
@@ -204,6 +203,41 @@ function draw(){
 
 
   ctx.clearRect(
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
+
+
+/* ================= SPACE DEPTH ================= */
+
+  const gradient = ctx.createRadialGradient(
+    canvas.width / 2,
+    canvas.height / 2,
+    0,
+    canvas.width / 2,
+    canvas.height / 2,
+    canvas.width
+  );
+
+
+  gradient.addColorStop(
+    0,
+    "rgba(35,35,55,0.22)"
+  );
+
+
+  gradient.addColorStop(
+    1,
+    "rgba(0,0,0,0)"
+  );
+
+
+  ctx.fillStyle = gradient;
+
+
+  ctx.fillRect(
     0,
     0,
     canvas.width,
@@ -342,6 +376,28 @@ function draw(){
 
 
 
+/* EXTRA CORE RING */
+
+  ctx.beginPath();
+
+
+  ctx.arc(
+    center.x,
+    center.y,
+    55 + pulse * 2,
+    0,
+    Math.PI*2
+  );
+
+
+  ctx.strokeStyle =
+    "rgba(255,255,255,0.08)";
+
+
+  ctx.stroke();
+
+
+
   drawBrand();
 
 
@@ -371,7 +427,7 @@ function draw(){
     if(hoverNode===index){
 
       ctx.shadowColor="white";
-      ctx.shadowBlur=30;
+      ctx.shadowBlur=22;
 
     }
 
