@@ -1,33 +1,277 @@
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+
 body{
-  margin:0;
-  overflow:hidden;
-  font-family:Arial;
+
+background:#050505;
+
+color:white;
+
+font-family:Arial, sans-serif;
+
+min-height:100vh;
+
+overflow-x:hidden;
+
 }
 
-.top{
-  position:absolute;
-  top:20px;
-  width:100%;
-  display:flex;
-  justify-content:center;
-  gap:40px;
-  color:white;
-  z-index:10;
+
+
+body::before{
+
+content:"";
+
+position:fixed;
+
+inset:0;
+
+background:
+
+linear-gradient(
+90deg,
+rgba(255,255,255,0.03) 1px,
+transparent 1px
+),
+
+linear-gradient(
+rgba(255,255,255,0.03) 1px,
+transparent 1px
+);
+
+background-size:
+50px 50px;
+
+pointer-events:none;
+
 }
 
-.scene{
-  position:absolute;
-  width:100%;
-  height:100%;
-  opacity:0;
-  transition:0.6s;
+
+
+
+.back-btn{
+
+position:fixed;
+
+top:30px;
+
+left:40px;
+
+color:white;
+
+text-decoration:none;
+
+letter-spacing:3px;
+
+font-size:14px;
+
+opacity:.7;
+
 }
 
-.scene.active{
-  opacity:1;
+
+
+.archive-container{
+
+width:min(900px,90%);
+
+margin:auto;
+
+padding-top:120px;
+
 }
 
-.hot{background:#7a2d1d;}
-.neon{background:#1a0033;}
-.cold{background:#0e3555;}
-.all{background:#2f5d8a;}
+
+
+header{
+
+margin-bottom:80px;
+
+}
+
+
+header h1{
+
+font-size:32px;
+
+letter-spacing:8px;
+
+font-weight:400;
+
+}
+
+
+
+header p{
+
+margin-top:20px;
+
+font-size:12px;
+
+letter-spacing:5px;
+
+opacity:.5;
+
+}
+
+
+
+
+.year{
+
+margin-bottom:90px;
+
+border-left:1px solid rgba(255,255,255,.2);
+
+padding-left:40px;
+
+}
+
+
+
+.year h2{
+
+font-size:40px;
+
+font-weight:300;
+
+margin-bottom:40px;
+
+}
+
+
+
+
+.file{
+
+border:1px solid rgba(255,255,255,.15);
+
+padding:30px;
+
+margin-bottom:25px;
+
+background:
+rgba(255,255,255,.03);
+
+transition:.3s;
+
+}
+
+
+
+.file:hover{
+
+border-color:white;
+
+transform:translateX(8px);
+
+}
+
+
+
+.file span{
+
+font-size:11px;
+
+letter-spacing:4px;
+
+opacity:.5;
+
+}
+
+
+
+.file h3{
+
+margin:15px 0;
+
+font-size:24px;
+
+letter-spacing:3px;
+
+}
+
+
+
+.file p{
+
+font-size:12px;
+
+letter-spacing:3px;
+
+opacity:.6;
+
+margin-top:8px;
+
+}
+
+
+
+.locked{
+
+opacity:.35;
+
+}
+
+
+
+
+@media(max-width:600px){
+
+
+.back-btn{
+
+left:20px;
+
+top:20px;
+
+}
+
+
+
+.archive-container{
+
+padding-top:90px;
+
+}
+
+
+
+header h1{
+
+font-size:20px;
+
+letter-spacing:4px;
+
+}
+
+
+
+.year{
+
+padding-left:20px;
+
+}
+
+
+
+.year h2{
+
+font-size:32px;
+
+}
+
+
+
+.file{
+
+padding:20px;
+
+}
+
+
+
+}
