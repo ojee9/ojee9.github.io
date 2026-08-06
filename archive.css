@@ -20,7 +20,8 @@ overflow-x:hidden;
 }
 
 
-/* subtle grid */
+
+/* BACKGROUND GRID */
 
 body::before{
 
@@ -34,12 +35,12 @@ background:
 
 linear-gradient(
 90deg,
-rgba(255,255,255,0.025) 1px,
+rgba(255,255,255,.025) 1px,
 transparent 1px
 ),
 
 linear-gradient(
-rgba(255,255,255,0.025) 1px,
+rgba(255,255,255,.025) 1px,
 transparent 1px
 );
 
@@ -48,7 +49,28 @@ background-size:
 
 pointer-events:none;
 
-animation:gridMove 35s linear infinite;
+animation:gridMove 40s linear infinite;
+
+}
+
+
+
+body::after{
+
+content:"";
+
+position:fixed;
+
+inset:0;
+
+background:
+radial-gradient(
+circle at center,
+rgba(255,255,255,.04),
+transparent 45%
+);
+
+pointer-events:none;
 
 }
 
@@ -69,7 +91,9 @@ background-position:60px 60px;
 
 
 
-/* BACK */
+
+/* BACK BUTTON */
+
 
 .back-btn{
 
@@ -94,6 +118,7 @@ transition:.3s;
 }
 
 
+
 .back-btn:hover{
 
 opacity:1;
@@ -104,7 +129,8 @@ opacity:1;
 
 
 
-/* CONTAINER */
+/* MAIN */
+
 
 .archive-container{
 
@@ -114,14 +140,14 @@ margin:auto;
 
 padding-top:120px;
 
-animation:archiveFade 1.2s ease forwards;
+animation:
+archiveEnter 1.2s ease;
 
 }
 
 
 
-
-@keyframes archiveFade{
+@keyframes archiveEnter{
 
 from{
 
@@ -146,6 +172,7 @@ transform:translateY(0);
 
 
 /* HEADER */
+
 
 header{
 
@@ -196,11 +223,14 @@ margin-bottom:100px;
 
 padding-left:45px;
 
-border-left:1px solid rgba(255,255,255,.18);
+border-left:
+
+1px solid rgba(255,255,255,.18);
 
 opacity:0;
 
-animation:yearReveal .8s ease forwards;
+animation:
+yearFade .8s forwards;
 
 }
 
@@ -212,20 +242,17 @@ animation-delay:.2s;
 
 }
 
-
 .year:nth-child(2){
 
 animation-delay:.35s;
 
 }
 
-
 .year:nth-child(3){
 
 animation-delay:.5s;
 
 }
-
 
 .year:nth-child(4){
 
@@ -234,31 +261,15 @@ animation-delay:.65s;
 }
 
 
-.year:nth-child(5){
-
-animation-delay:.8s;
-
-}
 
 
 
-
-@keyframes yearReveal{
-
-from{
-
-opacity:0;
-
-transform:translateX(-20px);
-
-}
+@keyframes yearFade{
 
 to{
 
 opacity:1;
 
-transform:translateX(0);
-
 }
 
 }
@@ -266,7 +277,6 @@ transform:translateX(0);
 
 
 
-/* timeline node */
 
 .year::before{
 
@@ -288,10 +298,9 @@ border-radius:50%;
 
 box-shadow:
 
-0 0 15px rgba(255,255,255,.8);
+0 0 12px white;
 
 }
-
 
 
 
@@ -302,7 +311,7 @@ font-size:42px;
 
 font-weight:200;
 
-letter-spacing:5px;
+letter-spacing:6px;
 
 margin-bottom:35px;
 
@@ -314,7 +323,7 @@ margin-bottom:35px;
 
 
 
-/* CARDS */
+/* DATABASE CARDS */
 
 
 .file{
@@ -325,13 +334,19 @@ padding:30px;
 
 margin-bottom:25px;
 
-border:1px solid rgba(255,255,255,.12);
+border:
+
+1px solid rgba(255,255,255,.12);
 
 background:
 
-rgba(255,255,255,.025);
+linear-gradient(
+135deg,
+rgba(255,255,255,.035),
+rgba(255,255,255,.01)
+);
 
-transition:.35s ease;
+transition:.5s ease;
 
 overflow:hidden;
 
@@ -340,8 +355,44 @@ overflow:hidden;
 
 
 
+/* hologram line */
 
-/* corner detail */
+
+.file::before{
+
+content:"";
+
+position:absolute;
+
+top:0;
+
+left:-100%;
+
+width:100%;
+
+height:1px;
+
+background:
+
+rgba(255,255,255,.5);
+
+transition:.8s;
+
+}
+
+
+
+.file:hover::before{
+
+left:100%;
+
+}
+
+
+
+
+/* corner */
+
 
 .file::after{
 
@@ -353,36 +404,40 @@ right:0;
 
 top:0;
 
-width:35px;
+width:40px;
 
-height:35px;
+height:40px;
 
-border-top:1px solid rgba(255,255,255,.3);
+border-top:
 
-border-right:1px solid rgba(255,255,255,.3);
+1px solid rgba(255,255,255,.35);
 
-opacity:.4;
+border-right:
 
-transition:.3s;
+1px solid rgba(255,255,255,.35);
+
+opacity:.5;
+
+transition:.4s;
 
 }
-
 
 
 
 
 .file:hover{
 
-border-color:rgba(255,255,255,.6);
-
 transform:translateX(8px);
+
+border-color:
+
+rgba(255,255,255,.55);
 
 box-shadow:
 
-0 0 25px rgba(255,255,255,.08);
+0 0 35px rgba(255,255,255,.08);
 
 }
-
 
 
 
@@ -393,7 +448,7 @@ opacity:1;
 
 box-shadow:
 
-0 0 15px white;
+0 0 20px white;
 
 }
 
@@ -429,6 +484,7 @@ letter-spacing:3px;
 
 
 
+
 .file p{
 
 font-size:12px;
@@ -444,7 +500,6 @@ opacity:.65;
 
 
 
-
 .locked{
 
 opacity:.35;
@@ -456,6 +511,7 @@ opacity:.35;
 
 
 /* MOBILE */
+
 
 @media(max-width:600px){
 
