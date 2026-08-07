@@ -17,9 +17,9 @@ background:
 
 radial-gradient(
 ellipse at center,
-#111111 0%,
-#050505 50%,
-#000000 100%
+#111 0%,
+#050505 55%,
+#000 100%
 );
 
 
@@ -29,9 +29,8 @@ font-family:Arial,sans-serif;
 
 overflow:hidden;
 
-position:relative;
-
 }
+
 
 
 
@@ -44,7 +43,6 @@ position:fixed;
 
 inset:0;
 
-
 background:
 
 radial-gradient(
@@ -53,19 +51,13 @@ rgba(255,255,255,.08),
 transparent 55%
 );
 
-
 pointer-events:none;
-
-z-index:0;
 
 }
 
 
 
 
-
-
-/* BACK */
 
 
 .back-btn{
@@ -75,7 +67,6 @@ position:fixed;
 top:30px;
 
 left:40px;
-
 
 color:white;
 
@@ -88,8 +79,6 @@ letter-spacing:4px;
 opacity:.45;
 
 z-index:5;
-
-transition:.4s;
 
 }
 
@@ -107,28 +96,15 @@ opacity:1;
 
 
 
-
-
-/* ROOM */
-
-
 .social-room{
 
 height:100vh;
 
-width:100%;
-
-
 display:flex;
 
 justify-content:center;
 
 align-items:center;
-
-
-position:relative;
-
-z-index:1;
 
 }
 
@@ -136,75 +112,40 @@ z-index:1;
 
 
 
-
-
-/* GRID */
-
-
-.social-grid{
-
-
-width:70vw;
-
+.social-list{
 
 display:flex;
-
-
-justify-content:center;
-
-
-align-items:center;
-
-
-flex-wrap:wrap;
-
-
-gap:25px;
-
-
-}
-
-
-
-
-
-
-
-
-/* CARDS */
-
-
-.social-card{
-
-
-width:200px;
-
-height:200px;
-
-
-
-border:
-
-1px solid rgba(255,255,255,.08);
-
-
-
-background:
-
-rgba(255,255,255,.015);
-
-
-
-display:flex;
-
 
 flex-direction:column;
 
+align-items:center;
 
-justify-content:center;
+gap:22px;
+
+}
+
+
+
+
+
+
+
+.social-item{
+
+
+width:320px;
+
+
+display:flex;
 
 
 align-items:center;
+
+
+gap:30px;
+
+
+padding:15px 20px;
 
 
 
@@ -215,47 +156,13 @@ color:white;
 
 
 
-transition:.5s;
+border-bottom:
 
-
-position:relative;
-
-
-overflow:hidden;
-
-
-}
+1px solid rgba(255,255,255,.08);
 
 
 
-
-
-
-.social-card::before{
-
-
-content:"";
-
-
-position:absolute;
-
-
-inset:0;
-
-
-background:
-
-radial-gradient(
-circle,
-rgba(255,255,255,.08),
-transparent 70%
-);
-
-
-opacity:0;
-
-
-transition:.5s;
+transition:.4s;
 
 
 }
@@ -264,18 +171,17 @@ transition:.5s;
 
 
 
+.social-item:visited{
+
+color:white;
+
+}
 
 
-.social-card:hover{
 
+.social-item:hover{
 
-transform:translateY(-10px);
-
-
-border-color:
-
-rgba(255,255,255,.35);
-
+transform:translateX(12px);
 
 }
 
@@ -283,40 +189,26 @@ rgba(255,255,255,.35);
 
 
 
+.social-item img{
 
 
-.social-card:hover::before{
+width:42px;
 
 
-opacity:1;
-
-
-}
-
-
-
-
-
-
-
-
-/* ICONS */
-
-
-.social-card img{
-
-
-width:60px;
-
-
-height:60px;
+height:42px;
 
 
 object-fit:contain;
 
 
 
-margin-bottom:25px;
+background:transparent;
+
+
+filter:
+
+brightness(0)
+invert(1);
 
 
 
@@ -324,21 +216,11 @@ opacity:.75;
 
 
 
-filter:
-
-grayscale(1)
-brightness(3);
+flex-shrink:0;
 
 
 
-mix-blend-mode:screen;
-
-
-
-transition:.5s;
-
-
-z-index:1;
+transition:.4s;
 
 
 }
@@ -346,9 +228,7 @@ z-index:1;
 
 
 
-
-
-.social-card:hover img{
+.social-item:hover img{
 
 
 opacity:1;
@@ -364,13 +244,10 @@ transform:scale(1.15);
 
 
 
+.social-item h2{
 
 
-
-/* TEXT */
-
-
-.social-card h2{
+color:white;
 
 
 font-size:14px;
@@ -382,19 +259,19 @@ font-weight:300;
 letter-spacing:5px;
 
 
-z-index:1;
-
-
 }
 
 
 
 
 
-.social-card p{
+.social-item p{
 
 
-margin-top:12px;
+color:white;
+
+
+margin-top:8px;
 
 
 font-size:10px;
@@ -406,9 +283,6 @@ letter-spacing:3px;
 opacity:.45;
 
 
-z-index:1;
-
-
 }
 
 
@@ -416,10 +290,6 @@ z-index:1;
 
 
 
-
-
-
-/* MOBILE */
 
 
 @media(max-width:700px){
@@ -446,51 +316,35 @@ left:20px;
 
 
 
-
-
 .social-room{
-
 
 min-height:100vh;
 
-
 padding:80px 0;
 
+}
+
+
+
+
+.social-list{
+
+width:100%;
+
+gap:15px;
 
 }
 
 
 
 
-
-.social-grid{
-
-
-width:90vw;
+.social-item{
 
 
-flex-direction:column;
+width:85vw;
 
 
-gap:18px;
-
-
-}
-
-
-
-
-
-.social-card{
-
-
-width:270px;
-
-
-height:130px;
-
-
-flex-direction:row;
+padding:15px;
 
 
 gap:25px;
@@ -502,25 +356,20 @@ gap:25px;
 
 
 
-.social-card img{
+.social-item img{
 
 
-width:45px;
+width:35px;
 
 
-height:45px;
-
-
-margin-bottom:0;
+height:35px;
 
 
 }
 
 
 
-
-
-.social-card h2{
+.social-item h2{
 
 
 font-size:12px;
@@ -533,8 +382,7 @@ letter-spacing:3px;
 
 
 
-
-.social-card p{
+.social-item p{
 
 
 font-size:9px;
