@@ -1,30 +1,11 @@
-*{
 
-margin:0;
-padding:0;
-
-box-sizing:border-box;
-
-}
+/* ================= REAL ASSETS ================= */
 
 
+.image-box{
 
-body{
-
-background:
-
-radial-gradient(
-ellipse at center,
-#101010 0%,
-#050505 45%,
-#000000 100%
-);
-
-color:white;
-
-font-family:Arial, sans-serif;
-
-height:100vh;
+width:100%;
+height:100%;
 
 overflow:hidden;
 
@@ -34,35 +15,14 @@ position:relative;
 
 
 
+.image-box img{
 
+width:100%;
+height:100%;
 
-body::before{
+object-fit:cover;
 
-content:"";
-
-position:fixed;
-
-inset:0;
-
-background:
-
-radial-gradient(
-ellipse at 50% 35%,
-rgba(255,255,255,.08),
-transparent 55%
-),
-
-linear-gradient(
-90deg,
-rgba(0,0,0,.75),
-transparent 30%,
-transparent 70%,
-rgba(0,0,0,.75)
-);
-
-pointer-events:none;
-
-z-index:0;
+transition:.8s;
 
 }
 
@@ -70,28 +30,9 @@ z-index:0;
 
 
 
-body::after{
+.visual-card:hover img{
 
-content:"";
-
-position:fixed;
-
-left:0;
-right:0;
-bottom:0;
-
-height:35%;
-
-background:
-
-linear-gradient(
-transparent,
-rgba(0,0,0,.9)
-);
-
-pointer-events:none;
-
-z-index:0;
+transform:scale(1.08);
 
 }
 
@@ -99,220 +40,27 @@ z-index:0;
 
 
 
-/* BACK */
+/* ================= POCKET ================= */
 
 
-.back-btn{
+.pocket{
 
-position:fixed;
-
-top:30px;
-
-left:40px;
-
-color:white;
-
-text-decoration:none;
-
-font-size:13px;
-
-letter-spacing:4px;
-
-opacity:.45;
-
-transition:.4s;
-
-z-index:5;
-
-}
-
-
-.back-btn:hover{
-
-opacity:1;
+padding:10px;
 
 }
 
 
 
+.mini-grid{
 
-
-
-
-/* ROOM */
-
-
-.gallery-room{
-
-height:100vh;
-
-display:flex;
-
-justify-content:center;
-
-align-items:center;
-
-position:relative;
-
-z-index:1;
-
-}
-
-
-
-
-
-
-.gallery-space{
-
-width:80vw;
-
-height:80vh;
-
-position:relative;
-
-display:flex;
-
-justify-content:center;
-
-align-items:center;
-
-filter:
-
-drop-shadow(
-0 40px 80px rgba(0,0,0,.9)
-);
-
-}
-
-
-
-
-
-
-
-/* LIGHT */
-
-
-.wall-light{
-
-position:absolute;
-
-top:-50px;
-
-left:50%;
-
-transform:translateX(-50%);
-
-width:650px;
-
-height:400px;
-
-background:
-
-radial-gradient(
-ellipse,
-rgba(255,255,255,.12),
-transparent 70%
-);
-
-filter:blur(50px);
-
-opacity:.6;
-
-pointer-events:none;
-
-}
-
-
-
-
-
-
-
-/* FILTER */
-
-
-.visual-filter{
-
-position:absolute;
-
-top:10px;
-
-left:50%;
-
-transform:translateX(-50%);
-
-display:flex;
-
-align-items:center;
-
-justify-content:center;
-
-gap:45px;
-
-white-space:nowrap;
-
-font-size:10px;
-
-letter-spacing:5px;
-
-opacity:.45;
-
-}
-
-
-
-.visual-filter span{
-
-cursor:pointer;
-
-transition:.4s;
-
-padding:8px 0;
-
-}
-
-
-
-.visual-filter span:hover{
-
-opacity:1;
-
-}
-
-
-
-.visual-filter .active{
-
-opacity:1;
-
-}
-
-
-
-
-
-
-
-/* GRID */
-
-
-.visual-grid{
-
-width:80vw;
-
-height:58vh;
-
-margin-top:60px;
+width:100%;
+height:100%;
 
 display:grid;
 
-grid-template-columns:repeat(3,1fr);
+grid-template-columns:repeat(2,1fr);
 
-grid-auto-rows:180px;
-
-gap:15px;
+gap:6px;
 
 }
 
@@ -320,225 +68,66 @@ gap:15px;
 
 
 
-.visual-card{
+.mini-grid img{
 
-position:relative;
+width:100%;
+height:100%;
+
+object-fit:cover;
+
+}
+
+
+
+
+
+/* ================= VIDEO ================= */
+
+
+.motion video{
+
+width:100%;
+height:100%;
+
+object-fit:cover;
+
+display:block;
+
+}
+
+
+
+
+
+/* ================= TYPES ================= */
+
+
+.official{
+
+aspect-ratio:1/1;
+
+}
+
+
+
+
+.pocket{
+
+aspect-ratio:1/1;
+
+}
+
+
+
+
+.motion{
+
+aspect-ratio:1/1;
 
 overflow:hidden;
 
-background:
-
-rgba(255,255,255,.015);
-
-border:
-
-1px solid rgba(255,255,255,.08);
-
-transition:.5s;
-
 }
 
 
 
 
-
-.image-placeholder{
-
-width:100%;
-
-height:100%;
-
-background:
-
-linear-gradient(
-135deg,
-rgba(255,255,255,.04),
-rgba(255,255,255,.005)
-);
-
-position:relative;
-
-}
-
-
-
-
-
-.visual-card:hover{
-
-transform:scale(1.03);
-
-border-color:
-
-rgba(255,255,255,.3);
-
-z-index:2;
-
-}
-
-
-
-
-
-
-
-.card-info{
-
-position:absolute;
-
-left:20px;
-
-bottom:20px;
-
-opacity:0;
-
-transform:translateY(15px);
-
-transition:.5s;
-
-}
-
-
-
-
-
-.card-info h2{
-
-font-size:14px;
-
-font-weight:300;
-
-letter-spacing:4px;
-
-}
-
-
-
-
-
-.card-info p{
-
-margin-top:8px;
-
-font-size:9px;
-
-letter-spacing:3px;
-
-opacity:.5;
-
-}
-
-
-
-
-
-.visual-card:hover .card-info{
-
-opacity:1;
-
-transform:translateY(0);
-
-}
-
-
-
-
-
-
-.featured{
-
-grid-column:span 2;
-
-grid-row:span 2;
-
-}
-
-
-
-
-
-.tall{
-
-grid-row:span 2;
-
-}
-
-
-
-
-
-.wide{
-
-grid-column:span 2;
-
-}
-
-
-
-
-
-
-
-@media(max-width:600px){
-
-
-.back-btn{
-
-top:20px;
-
-left:20px;
-
-}
-
-
-
-.gallery-space{
-
-width:90vw;
-
-height:75vh;
-
-}
-
-
-
-.visual-filter{
-
-gap:18px;
-
-font-size:8px;
-
-letter-spacing:3px;
-
-}
-
-
-
-.visual-grid{
-
-width:90vw;
-
-height:58vh;
-
-margin-top:50px;
-
-grid-template-columns:repeat(2,1fr);
-
-grid-auto-rows:140px;
-
-gap:10px;
-
-}
-
-
-
-.featured{
-
-grid-column:span 2;
-
-grid-row:span 2;
-
-}
-
-
-}
