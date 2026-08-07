@@ -17,9 +17,9 @@ background:
 
 radial-gradient(
 ellipse at center,
-#111 0%,
+#111111 0%,
 #050505 55%,
-#000 100%
+#000000 100%
 );
 
 
@@ -43,6 +43,7 @@ position:fixed;
 
 inset:0;
 
+
 background:
 
 radial-gradient(
@@ -50,6 +51,7 @@ ellipse at 50% 35%,
 rgba(255,255,255,.08),
 transparent 55%
 );
+
 
 pointer-events:none;
 
@@ -80,6 +82,8 @@ opacity:.45;
 
 z-index:5;
 
+transition:.4s;
+
 }
 
 
@@ -96,15 +100,18 @@ opacity:1;
 
 
 
+
 .social-room{
 
 height:100vh;
 
+width:100%;
+
 display:flex;
 
-justify-content:center;
-
 align-items:center;
+
+justify-content:center;
 
 }
 
@@ -120,7 +127,7 @@ flex-direction:column;
 
 align-items:center;
 
-gap:22px;
+gap:25px;
 
 }
 
@@ -128,32 +135,23 @@ gap:22px;
 
 
 
-
-
 .social-item{
 
-
-width:320px;
-
+width:330px;
 
 display:flex;
 
-
 align-items:center;
-
 
 gap:30px;
 
 
-padding:15px 20px;
-
-
-
 text-decoration:none;
-
 
 color:white;
 
+
+padding:12px 15px;
 
 
 border-bottom:
@@ -161,9 +159,7 @@ border-bottom:
 1px solid rgba(255,255,255,.08);
 
 
-
 transition:.4s;
-
 
 }
 
@@ -191,54 +187,15 @@ transform:translateX(12px);
 
 .social-item img{
 
+width:45px;
 
-width:42px;
-
-
-height:42px;
-
+height:45px;
 
 object-fit:contain;
 
-
-
-background:transparent;
-
-
-filter:
-
-brightness(0)
-invert(1);
-
-
-
-opacity:.75;
-
-
-
 flex-shrink:0;
 
-
-
-transition:.4s;
-
-
 }
-
-
-
-
-.social-item:hover img{
-
-
-opacity:1;
-
-
-transform:scale(1.15);
-
-
-}
-
 
 
 
@@ -246,18 +203,13 @@ transform:scale(1.15);
 
 .social-item h2{
 
-
 color:white;
-
 
 font-size:14px;
 
-
 font-weight:300;
 
-
 letter-spacing:5px;
-
 
 }
 
@@ -267,21 +219,15 @@ letter-spacing:5px;
 
 .social-item p{
 
-
 color:white;
-
 
 margin-top:8px;
 
-
 font-size:10px;
-
 
 letter-spacing:3px;
 
-
 opacity:.45;
-
 
 }
 
@@ -304,7 +250,6 @@ overflow:auto;
 
 
 
-
 .back-btn{
 
 top:20px;
@@ -312,7 +257,6 @@ top:20px;
 left:20px;
 
 }
-
 
 
 
@@ -329,26 +273,19 @@ padding:80px 0;
 
 .social-list{
 
-width:100%;
-
-gap:15px;
+gap:18px;
 
 }
 
 
 
 
-.social-item{
 
+.social-item{
 
 width:85vw;
 
-
-padding:15px;
-
-
-gap:25px;
-
+gap:20px;
 
 }
 
@@ -358,35 +295,31 @@ gap:25px;
 
 .social-item img{
 
+width:40px;
 
-width:35px;
-
-
-height:35px;
-
+height:40px;
 
 }
+
+
 
 
 
 .social-item h2{
 
-
 font-size:12px;
 
-
 letter-spacing:3px;
-
 
 }
 
 
 
+
+
 .social-item p{
 
-
 font-size:9px;
-
 
 }
 
