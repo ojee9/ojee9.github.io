@@ -2,6 +2,7 @@
 
 margin:0;
 padding:0;
+
 box-sizing:border-box;
 
 }
@@ -43,7 +44,12 @@ rgba(255,255,255,.035),
 transparent 60%
 );
 
+pointer-events:none;
+
+z-index:0;
+
 }
+
 
 
 
@@ -67,6 +73,8 @@ rgba(0,0,0,.8)
 );
 
 pointer-events:none;
+
+z-index:0;
 
 }
 
@@ -101,6 +109,7 @@ z-index:5;
 }
 
 
+
 .back-btn:hover{
 
 opacity:1;
@@ -124,7 +133,13 @@ justify-content:center;
 
 align-items:center;
 
+position:relative;
+
+z-index:1;
+
 }
+
+
 
 
 
@@ -143,6 +158,8 @@ justify-content:center;
 align-items:center;
 
 }
+
+
 
 
 
@@ -175,7 +192,10 @@ transparent 70%
 
 filter:blur(30px);
 
+pointer-events:none;
+
 }
+
 
 
 
@@ -209,6 +229,8 @@ transition:.8s;
 
 
 
+
+
 .art-placeholder:hover{
 
 transform:scale(1.015);
@@ -218,6 +240,8 @@ border-color:
 rgba(255,255,255,.15);
 
 }
+
+
 
 
 
@@ -233,6 +257,8 @@ position:absolute;
 bottom:30px;
 
 text-align:center;
+
+width:100%;
 
 opacity:.65;
 
@@ -263,6 +289,7 @@ letter-spacing:6px;
 opacity:.4;
 
 }
+
 
 
 
