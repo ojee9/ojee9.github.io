@@ -25,6 +25,7 @@ for (let i = 0; i < 250; i++) {
 }
 
 
+
 /* ================= SPACE NODES ================= */
 
 const nodes = [
@@ -44,7 +45,7 @@ let time = 0;
 
 /* ================= POSITION ================= */
 
-function getCenter() {
+function getCenter(){
 
   return {
     x: canvas.width / 2,
@@ -97,13 +98,14 @@ function getNodePosition(node,index){
 
 
 
+
 /* ================= TEXT ================= */
 
 function drawSafeText(text,x,y,size,alpha=1){
 
   ctx.font = size + "px Arial";
   ctx.fillStyle = `rgba(255,255,255,${alpha})`;
-  ctx.textAlign="center";
+  ctx.textAlign = "center";
 
   ctx.fillText(
     text,
@@ -112,6 +114,7 @@ function drawSafeText(text,x,y,size,alpha=1){
   );
 
 }
+
 
 
 
@@ -141,55 +144,126 @@ function drawBrand(){
 
 
 
+
+
 /* ================= MOUSE ================= */
 
-canvas.addEventListener("mousemove",e=>{
+canvas.addEventListener("mousemove", e => {
 
-  hoverNode=-1;
+  hoverNode = -1;
 
 
   nodes.forEach((node,index)=>{
 
-    const p=getNodePosition(
+
+    const p = getNodePosition(
       node,
       index
     );
 
 
-    const dx=e.clientX-p.x;
-    const dy=e.clientY-p.y;
+    const dx = e.clientX - p.x;
+    const dy = e.clientY - p.y;
 
 
-    if(Math.sqrt(dx*dx+dy*dy)<45){
+    if(Math.sqrt(dx*dx + dy*dy) < 45){
 
-      hoverNode=index;
+      hoverNode = index;
 
     }
+
 
   });
 
 
+
   canvas.style.cursor =
-    hoverNode!==-1
+    hoverNode !== -1
     ? "pointer"
     : "default";
 
+
 });
 
 
+
+
+
+
+/* ================= NODE ROUTING ================= */
 
 canvas.addEventListener("click",()=>{
 
-  if(hoverNode!==-1){
 
-    console.log(
-      "ENTER:",
-      nodes[hoverNode].name
-    );
+  if(hoverNode !== -1){
+
+
+    const selected =
+      nodes[hoverNode].name;
+
+
+
+    switch(selected){
+
+
+      case "VISUALS":
+
+        window.location.href = "visuals.html";
+
+        break;
+
+
+
+      case "ARCHIVE":
+
+        window.location.href = "archive.html";
+
+        break;
+
+
+
+      case "MUSIC":
+
+        window.location.href = "music.html";
+
+        break;
+
+
+
+      case "ABOUT":
+
+        window.location.href = "about.html";
+
+        break;
+
+
+
+      case "SOCIAL":
+
+        window.location.href = "socials.html";
+
+        break;
+
+
+
+      case "PROJECTS":
+
+        console.log(
+          "PROJECTS MODULE COMING SOON"
+        );
+
+        break;
+
+
+    }
+
 
   }
 
+
 });
+
+
 
 
 
@@ -210,269 +284,313 @@ function draw(){
   );
 
 
+
 /* ================= SPACE DEPTH ================= */
 
-  const gradient = ctx.createRadialGradient(
-    canvas.width / 2,
-    canvas.height / 2,
-    0,
-    canvas.width / 2,
-    canvas.height / 2,
-    canvas.width
-  );
+
+const gradient = ctx.createRadialGradient(
+  canvas.width / 2,
+  canvas.height / 2,
+  0,
+  canvas.width / 2,
+  canvas.height / 2,
+  canvas.width
+);
 
 
-  gradient.addColorStop(
-    0,
-    "rgba(35,35,55,0.22)"
-  );
+gradient.addColorStop(
+  0,
+  "rgba(35,35,55,0.22)"
+);
 
 
-  gradient.addColorStop(
-    1,
-    "rgba(0,0,0,0)"
-  );
+gradient.addColorStop(
+  1,
+  "rgba(0,0,0,0)"
+);
 
 
-  ctx.fillStyle = gradient;
+ctx.fillStyle = gradient;
+
+
+ctx.fillRect(
+  0,
+  0,
+  canvas.width,
+  canvas.height
+);
+
+
+
+
+
+/* ================= STARS ================= */
+
+
+stars.forEach(star=>{
+
+
+  ctx.globalAlpha = .75;
+
+  ctx.fillStyle = "white";
 
 
   ctx.fillRect(
-    0,
-    0,
-    canvas.width,
-    canvas.height
+    star.x,
+    star.y,
+    star.size,
+    star.size
   );
 
 
+  star.y += star.speed;
 
-/* STARFIELD */
 
-  stars.forEach(star=>{
 
-    ctx.globalAlpha=.75;
-    ctx.fillStyle="white";
+  if(star.y > canvas.height){
 
+    star.y = 0;
+    star.x = Math.random()*canvas.width;
 
-    ctx.fillRect(
-      star.x,
-      star.y,
-      star.size,
-      star.size
-    );
+  }
 
 
-    star.y+=star.speed;
+});
 
 
-    if(star.y>canvas.height){
+ctx.globalAlpha = 1;
 
-      star.y=0;
-      star.x=Math.random()*canvas.width;
 
-    }
 
-  });
+const center = getCenter();
 
 
-  ctx.globalAlpha=1;
 
 
 
-  const center=getCenter();
+/* ================= CONNECTIONS ================= */
 
 
+nodes.forEach((node,index)=>{
 
-/* CONNECTIONS */
 
-  nodes.forEach((node,index)=>{
+const p = getNodePosition(
+  node,
+  index
+);
 
-    const p=getNodePosition(
-      node,
-      index
-    );
 
 
-    ctx.beginPath();
+ctx.beginPath();
 
 
-    ctx.moveTo(
-      center.x,
-      center.y
-    );
+ctx.moveTo(
+  center.x,
+  center.y
+);
 
 
-    ctx.lineTo(
-      p.x,
-      p.y
-    );
+ctx.lineTo(
+  p.x,
+  p.y
+);
 
 
-    ctx.strokeStyle =
-      "rgba(255,255,255,0.10)";
 
+ctx.strokeStyle =
+"rgba(255,255,255,0.10)";
 
-    ctx.lineWidth=1;
 
-    ctx.stroke();
+ctx.lineWidth = 1;
 
-  });
 
+ctx.stroke();
 
 
+});
 
-/* CORE */
 
-  const pulse =
-    Math.sin(time*0.04)*3;
 
 
 
-  ctx.save();
 
+/* ================= CORE ================= */
 
-  ctx.shadowColor="white";
-  ctx.shadowBlur=35;
 
+const pulse =
+Math.sin(time*0.04)*3;
 
-  ctx.beginPath();
 
 
-  ctx.arc(
-    center.x,
-    center.y,
-    20+pulse,
-    0,
-    Math.PI*2
-  );
+ctx.save();
 
 
-  ctx.fillStyle="white";
+ctx.shadowColor = "white";
 
-  ctx.fill();
+ctx.shadowBlur = 35;
 
 
-  ctx.restore();
+ctx.beginPath();
 
 
+ctx.arc(
+center.x,
+center.y,
+20+pulse,
+0,
+Math.PI*2
+);
 
-  ctx.beginPath();
 
+ctx.fillStyle="white";
 
-  ctx.arc(
-    center.x,
-    center.y,
-    42+pulse,
-    0,
-    Math.PI*2
-  );
+ctx.fill();
 
 
-  ctx.strokeStyle =
-    "rgba(255,255,255,0.18)";
+ctx.restore();
 
 
-  ctx.stroke();
 
 
+ctx.beginPath();
 
-/* EXTRA CORE RING */
 
-  ctx.beginPath();
+ctx.arc(
+center.x,
+center.y,
+42+pulse,
+0,
+Math.PI*2
+);
 
 
-  ctx.arc(
-    center.x,
-    center.y,
-    55 + pulse * 2,
-    0,
-    Math.PI*2
-  );
+ctx.strokeStyle =
+"rgba(255,255,255,0.18)";
 
 
-  ctx.strokeStyle =
-    "rgba(255,255,255,0.08)";
+ctx.stroke();
 
 
-  ctx.stroke();
 
 
 
-  drawBrand();
+ctx.beginPath();
 
 
+ctx.arc(
+center.x,
+center.y,
+55+pulse*2,
+0,
+Math.PI*2
+);
 
 
-/* NODES */
+ctx.strokeStyle =
+"rgba(255,255,255,0.08)";
 
-  nodes.forEach((node,index)=>{
 
+ctx.stroke();
 
-    const p=getNodePosition(
-      node,
-      index
-    );
 
 
-    const size =
-      hoverNode===index
-      ? 15
-      : 9;
 
 
+drawBrand();
 
-    ctx.save();
 
 
-    if(hoverNode===index){
 
-      ctx.shadowColor="white";
-      ctx.shadowBlur=22;
 
-    }
 
 
+/* ================= NODES ================= */
 
-    ctx.beginPath();
 
+nodes.forEach((node,index)=>{
 
-    ctx.arc(
-      p.x,
-      p.y,
-      size,
-      0,
-      Math.PI*2
-    );
 
+const p = getNodePosition(
+node,
+index
+);
 
-    ctx.fillStyle="white";
 
-    ctx.fill();
 
+const size =
+hoverNode === index
+? 15
+: 9;
 
-    ctx.restore();
 
 
 
-    if(hoverNode===index){
+ctx.save();
 
-      drawSafeText(
-        node.name,
-        p.x,
-        p.y-35,
-        canvas.width < 600 ? 12 : 16
-      );
 
-    }
 
+if(hoverNode===index){
 
-  });
+ctx.shadowColor="white";
 
-
-
-  requestAnimationFrame(draw);
+ctx.shadowBlur=22;
 
 }
+
+
+
+ctx.beginPath();
+
+
+ctx.arc(
+p.x,
+p.y,
+size,
+0,
+Math.PI*2
+);
+
+
+
+ctx.fillStyle="white";
+
+
+ctx.fill();
+
+
+
+ctx.restore();
+
+
+
+
+
+if(hoverNode===index){
+
+
+drawSafeText(
+node.name,
+p.x,
+p.y-35,
+canvas.width < 600 ? 12 : 16
+);
+
+
+}
+
+
+
+});
+
+
+
+
+requestAnimationFrame(draw);
+
+
+}
+
+
 
 
 draw();
