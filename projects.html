@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#080808">
+  <title>Projects — OJEE</title>
+  <link rel="stylesheet" href="projects.css">
+</head>
+<body>
+  <header class="projects-header">
+    <a class="projects-logo" href="index.html">OJEE<span>®</span></a>
+    <a class="back-link" href="index.html">← BACK</a>
+  </header>
+
+  <main class="projects-page">
+    <nav class="projects-nav" aria-label="Content categories">
+      <a href="#news" data-category="news">NEWS</a>
+      <a href="#events" data-category="events">EVENTS</a>
+      <a href="#projects" data-category="projects" class="active">PROJECTS</a>
+      <a href="#merch" data-category="merch">MERCH</a>
+    </nav>
+
+```
+<div class="projects-layout">
+  <section class="projects-content" aria-live="polite">
+    <div class="section-heading">
+      <span class="eyebrow">OJEE ARCHIVE / 001</span>
+      <h1 id="content-title">PROJECTS</h1>
+      <p id="content-description">Selected work, ongoing ideas and releases.</p>
+    </div>
+
+    <div class="content-status" id="content-status">
+      <span class="status-dot"></span>
+      <span id="result-count">0 ENTRIES</span>
+    </div>
+
+    <div class="projects-grid" id="projects-grid">
+      <div class="empty-state">
+        <span class="empty-mark">＋</span>
+        <p>NO ENTRIES YET</p>
+        <span>CONTENT WILL BE ARCHIVED HERE.</span>
+      </div>
+    </div>
+  </section>
+
+  <aside class="filter-panel" aria-label="Search and filters">
+    <div class="panel-heading">
+      <span class="eyebrow">INDEX / FILTERS</span>
+      <span class="panel-number">01—04</span>
+    </div>
+
+    <form id="search-form" class="search-form" role="search">
+      <label for="content-search">SEARCH ARCHIVE</label>
+      <div class="search-field">
+        <input
+          id="content-search"
+          type="search"
+          placeholder="Search entries..."
+          autocomplete="off"
+        >
+        <button type="submit" aria-label="Search">↗</button>
+      </div>
+    </form>
+
+    <div class="filter-group" id="event-filters" hidden>
+      <h2>EVENT STATUS</h2>
+      <label class="filter-option">
+        <input type="checkbox" name="event-status" value="past">
+        <span>Past Events</span>
+      </label>
+      <label class="filter-option">
+        <input type="checkbox" name="event-status" value="present">
+        <span>Present Events</span>
+      </label>
+    </div>
+
+    <div class="filter-group" id="merch-filters" hidden>
+      <h2>COLLECTION</h2>
+      <label class="filter-option">
+        <input type="checkbox" name="collection" value="vn-legacy">
+        <span>VN LEGACY COLLECTION</span>
+      </label>
+    </div>
+
+    <div class="filter-group" id="year-filters">
+      <h2>YEAR</h2>
+      <div class="filter-options" id="year-options">
+        <span class="filter-note">YEARS WILL APPEAR WITH ENTRIES.</span>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <h2>SORT BY</h2>
+      <label class="sort-option">
+        <input type="radio" name="sort" value="newest" checked>
+        <span>Newest</span>
+        <span class="sort-indicator"></span>
+      </label>
+      <label class="sort-option">
+        <input type="radio" name="sort" value="hottest">
+        <span>Hottest</span>
+        <span class="sort-indicator"></span>
+      </label>
+      <label class="sort-option">
+        <input type="radio" name="sort" value="all-time">
+        <span>Top All Time</span>
+        <span class="sort-indicator"></span>
+      </label>
+    </div>
+
+    <button type="button" id="reset-filters" class="reset-filters">
+      RESET FILTERS <span>↺</span>
+    </button>
+
+    <div class="panel-footer">
+      <span>INDEPENDENT ARCHIVE</span>
+      <span>© OJEE</span>
+    </div>
+  </aside>
+</div>
+```
+
+  </main>
+
+  <script>
+    (() => {
+      const categories = {
+        news: {
+          title: "NEWS",
+          description: "Updates, announcements and archive notes."
+        },
+        events: {
+          title: "EVENTS",
+          description: "Past appearances and upcoming events."
+        },
+        projects: {
+          title: "PROJECTS",
+          description: "Selected work, ongoing ideas and releases."
+        },
+        merch: {
+          title: "MERCH",
+          description: "Collections, objects and limited editions."
+        }
+      };
+
+      const navLinks = [...document.querySelectorAll("[data-category]")];
+      const title = document.getElementById("content-title");
+      const description = document.getElementById("content-description");
+      const eventFilters = document.getElementById("event-filters");
+      const merchFilters = document.getElementById("merch-filters");
+      const searchForm = document.getElementById("search-form");
+      const searchInput = document.getElementById("content-search");
+      const resetButton = document.getElementById("reset-filters");
+      const grid = document.getElementById("projects-grid");
+
+      let activeCategory = "projects";
+
+      function setCategory(category) {
+        if (!categories[category]) return;
+
+        activeCategory = category;
+        title.textContent = categories[category].title;
+        description.textContent = categories[category].description;
+
+        navLinks.forEach(link => {
+          const active = link.dataset.category === category;
+          link.classList.toggle("active", active);
+
+          if (active) {
+            link.setAttribute("aria-current", "page");
+          } else {
+            link.removeAttribute("aria-current");
+          }
+        });
+
+        eventFilters.hidden = category !== "events";
+        merchFilters.hidden = category !== "merch";
+
+        renderEmptyState();
+      }
+
+      function renderEmptyState() {
+        document.getElementById("result-count").textContent = "0 ENTRIES";
+
+        grid.innerHTML = `
+          <div class="empty-state">
+            <span class="empty-mark">＋</span>
+            <p>NO ENTRIES YET</p>
+            <span>CONTENT WILL BE ARCHIVED HERE.</span>
+          </div>
+        `;
+      }
+
+      navLinks.forEach(link => {
+        link.addEventListener("click", event => {
+          event.preventDefault();
+          const category = link.dataset.category;
+          setCategory(category);
+          history.replaceState(null, "", "#" + category);
+        });
+      });
+
+      searchForm.addEventListener("submit", event => {
+        event.preventDefault();
+      });
+
+      resetButton.addEventListener("click", () => {
+        searchInput.value = "";
+
+        document.querySelectorAll(
+          'input[name="event-status"], input[name="collection"], input[name="year"]'
+        ).forEach(input => {
+          input.checked = false;
+        });
+
+        document.querySelector('input[name="sort"][value="newest"]').checked = true;
+        renderEmptyState();
+      });
+
+      const initialCategory = location.hash.slice(1);
+      if (categories[initialCategory]) {
+        setCategory(initialCategory);
+      }
+    })();
+  </script>
+
+</body>
+</html>
