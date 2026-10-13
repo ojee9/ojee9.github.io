@@ -1,5 +1,5 @@
-<!DOCTYPE html>
 
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -18,110 +18,107 @@
     <nav class="projects-nav" aria-label="Content categories">
       <a href="#news" data-category="news">NEWS</a>
       <a href="#events" data-category="events">EVENTS</a>
-      <a href="#projects" data-category="projects" class="active">PROJECTS</a>
+      <a href="#projects" data-category="projects">PROJECTS</a>
       <a href="#merch" data-category="merch">MERCH</a>
     </nav>
 
-```
-<div class="projects-layout">
-  <section class="projects-content" aria-live="polite">
-    <div class="section-heading">
-      <span class="eyebrow">OJEE ARCHIVE / 001</span>
-      <h1 id="content-title">PROJECTS</h1>
-      <p id="content-description">Selected work, ongoing ideas and releases.</p>
+    <div class="projects-layout">
+      <section class="projects-content" aria-live="polite">
+        <div class="section-heading">
+          <span class="eyebrow">OJEE ARCHIVE / 001</span>
+          <h1 id="content-title">PROJECTS</h1>
+          <p id="content-description">Selected work, ongoing ideas and releases.</p>
+        </div>
+
+        <div class="content-status" id="content-status">
+          <span class="status-dot"></span>
+          <span id="result-count">0 ENTRIES</span>
+        </div>
+
+        <div class="projects-grid" id="projects-grid">
+          <div class="empty-state">
+            <span class="empty-mark">＋</span>
+            <p>NO ENTRIES YET</p>
+            <span>CONTENT WILL BE ARCHIVED HERE.</span>
+          </div>
+        </div>
+      </section>
+
+      <aside class="filter-panel" aria-label="Search and filters">
+        <div class="panel-heading">
+          <span class="eyebrow">INDEX / FILTERS</span>
+          <span class="panel-number">01—04</span>
+        </div>
+
+        <form id="search-form" class="search-form" role="search">
+          <label for="content-search">SEARCH ARCHIVE</label>
+          <div class="search-field">
+            <input
+              id="content-search"
+              type="search"
+              placeholder="Search entries..."
+              autocomplete="off"
+            >
+            <button type="submit" aria-label="Search">↗</button>
+          </div>
+        </form>
+
+        <div class="filter-group" id="event-filters" hidden>
+          <h2>EVENT STATUS</h2>
+          <label class="filter-option">
+            <input type="checkbox" name="event-status" value="past">
+            <span>Past Events</span>
+          </label>
+          <label class="filter-option">
+            <input type="checkbox" name="event-status" value="present">
+            <span>Upcoming Events</span>
+          </label>
+        </div>
+
+        <div class="filter-group" id="merch-filters" hidden>
+          <h2>COLLECTION</h2>
+          <label class="filter-option">
+            <input type="checkbox" name="collection" value="vn-legacy">
+            <span>VN LEGACY COLLECTION</span>
+          </label>
+        </div>
+
+        <div class="filter-group" id="year-filters">
+          <h2>YEAR</h2>
+          <div class="filter-options" id="year-options">
+            <span class="filter-note">YEARS WILL APPEAR WITH ENTRIES.</span>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <h2>SORT BY</h2>
+          <label class="sort-option">
+            <input type="radio" name="sort" value="newest" checked>
+            <span>Newest</span>
+            <span class="sort-indicator"></span>
+          </label>
+          <label class="sort-option">
+            <input type="radio" name="sort" value="hottest">
+            <span>Hottest</span>
+            <span class="sort-indicator"></span>
+          </label>
+          <label class="sort-option">
+            <input type="radio" name="sort" value="all-time">
+            <span>Top All Time</span>
+            <span class="sort-indicator"></span>
+          </label>
+        </div>
+
+        <button type="button" id="reset-filters" class="reset-filters">
+          RESET FILTERS <span>↺</span>
+        </button>
+
+        <div class="panel-footer">
+          <span>INDEPENDENT ARCHIVE</span>
+          <span>© OJEE</span>
+        </div>
+      </aside>
     </div>
-
-    <div class="content-status" id="content-status">
-      <span class="status-dot"></span>
-      <span id="result-count">0 ENTRIES</span>
-    </div>
-
-    <div class="projects-grid" id="projects-grid">
-      <div class="empty-state">
-        <span class="empty-mark">＋</span>
-        <p>NO ENTRIES YET</p>
-        <span>CONTENT WILL BE ARCHIVED HERE.</span>
-      </div>
-    </div>
-  </section>
-
-  <aside class="filter-panel" aria-label="Search and filters">
-    <div class="panel-heading">
-      <span class="eyebrow">INDEX / FILTERS</span>
-      <span class="panel-number">01—04</span>
-    </div>
-
-    <form id="search-form" class="search-form" role="search">
-      <label for="content-search">SEARCH ARCHIVE</label>
-      <div class="search-field">
-        <input
-          id="content-search"
-          type="search"
-          placeholder="Search entries..."
-          autocomplete="off"
-        >
-        <button type="submit" aria-label="Search">↗</button>
-      </div>
-    </form>
-
-    <div class="filter-group" id="event-filters" hidden>
-      <h2>EVENT STATUS</h2>
-      <label class="filter-option">
-        <input type="checkbox" name="event-status" value="past">
-        <span>Past Events</span>
-      </label>
-      <label class="filter-option">
-        <input type="checkbox" name="event-status" value="present">
-        <span>Present Events</span>
-      </label>
-    </div>
-
-    <div class="filter-group" id="merch-filters" hidden>
-      <h2>COLLECTION</h2>
-      <label class="filter-option">
-        <input type="checkbox" name="collection" value="vn-legacy">
-        <span>VN LEGACY COLLECTION</span>
-      </label>
-    </div>
-
-    <div class="filter-group" id="year-filters">
-      <h2>YEAR</h2>
-      <div class="filter-options" id="year-options">
-        <span class="filter-note">YEARS WILL APPEAR WITH ENTRIES.</span>
-      </div>
-    </div>
-
-    <div class="filter-group">
-      <h2>SORT BY</h2>
-      <label class="sort-option">
-        <input type="radio" name="sort" value="newest" checked>
-        <span>Newest</span>
-        <span class="sort-indicator"></span>
-      </label>
-      <label class="sort-option">
-        <input type="radio" name="sort" value="hottest">
-        <span>Hottest</span>
-        <span class="sort-indicator"></span>
-      </label>
-      <label class="sort-option">
-        <input type="radio" name="sort" value="all-time">
-        <span>Top All Time</span>
-        <span class="sort-indicator"></span>
-      </label>
-    </div>
-
-    <button type="button" id="reset-filters" class="reset-filters">
-      RESET FILTERS <span>↺</span>
-    </button>
-
-    <div class="panel-footer">
-      <span>INDEPENDENT ARCHIVE</span>
-      <span>© OJEE</span>
-    </div>
-  </aside>
-</div>
-```
-
   </main>
 
   <script>
@@ -145,6 +142,62 @@
         }
       };
 
+      const events = [
+        {
+          id: "flinta-halloween-2026",
+          title: "FLINTA HALLOWEEN PARTY NIGHT",
+          subtitle: "SHOW YOUR INNER MONSTER",
+          artist: "9ojeez9",
+          date: "2026-10-31",
+          dateLabel: "31 OCT 2026",
+          time: "19:00–00:00",
+          setTime: "21:00–23:00",
+          venue: "FLINTA Cocktail Bar & Rooftop",
+          address: "Şair Eşref Paşa Sokak No:4, Bereketzade, Beyoğlu, Istanbul",
+          image: "assets/visuals/FLINTA-9ojeez9-showyourmonster-YATAY.png",
+          ticketUrl: "https://biletino.com/en/e-1do8/flinta-halloween-party/#",
+          tags: "Halloween, 18+, Show Your Inner Monster",
+          status: "present",
+          descriptionEN: "Unleash your inner monster at FLINTA for a Halloween night of cocktails, music, immersive decorations and rooftop nightlife. Inspired by Show Your Inner Monster, the evening invites guests to embrace the darker side of Halloween through creative costumes, atmospheric visuals and a night made for dancing. 9ojeez9 joins the lineup for a dedicated two-hour set, from 21:00 to 23:00. The night also features a special pole dance performance.",
+          descriptionTR: "FLINTA’da kokteyller, müzik, etkileyici dekorasyonlar ve rooftop atmosferiyle bir Halloween gecesine hazır ol. Show Your Inner Monster temasından ilham alan etkinlik, yaratıcı kostümlerle Halloween’in karanlık tarafını keşfetmeye ve gece boyunca dans etmeye davet ediyor. 9ojeez9, gecenin müzik programında 21:00–23:00 saatleri arasında iki saatlik özel bir set ile yer alıyor. Etkinlikte ayrıca özel bir pole dance performansı bulunuyor."
+        },
+        {
+          id: "gta-love-launch-2026",
+          title: "GTA LOVE",
+          subtitle: "PRIVATE LAUNCH NIGHT",
+          artist: "Ojee Ka$h",
+          date: "2026-10-02",
+          dateLabel: "02 OCT 2026",
+          time: "18:00–00:00",
+          setTime: "Live set: 19:30",
+          venue: "Flinta Cocktail Bar & Rooftop — Walton Hotels Galata Roof",
+          address: "Bereketzade, Şair Eşref Paşa Sokak No:4, Beyoğlu, Istanbul",
+          image: "assets/visuals/past-event-ojee-kash-gta-love-launch.png",
+          ticketUrl: "https://biletino.com/en/e-1ddm/ojee-kah-gta-love-premium-launch-night/#",
+          tags: "18+, Limited Access, ₺2,500",
+          status: "present",
+          descriptionEN: "A private launch night celebrating Ojee Ka$h’s GTA LOVE at Flinta Cocktail Bar & Rooftop. Designed for a limited number of guests, this exclusive gathering offers a more intimate alternative to a traditional concert. Limited access. One night, one special release.",
+          descriptionTR: "Ojee Ka$h’ın GTA LOVE lansmanı için Flinta Cocktail Bar & Rooftop’ta özel bir gece. Geleneksel konser formatından farklı olarak sınırlı sayıda katılımcıyla gerçekleşen bu buluşma, daha samimi ve ayrıcalıklı bir deneyim sunuyor. Sınırlı erişim. Tek gece, özel bir lansman."
+        },
+        {
+          id: "cheater-launch-2023",
+          title: "CHEATER",
+          subtitle: "ALBUM LAUNCH",
+          artist: "9ojeez9",
+          date: "2023-09-16",
+          dateLabel: "16 SEP 2023",
+          time: "21:00–01:00",
+          venue: "Cute",
+          address: "Bestekar Sokak, Kavaklıdere, Çankaya, Ankara",
+          image: "assets/visuals/past-event-9ojeez9-chtr-launch.png",
+          ticketUrl: "https://biletino.com/tr/e-q8d/cheater-album-lunch/#",
+          tags: "Album Premiere, Electronic, Groove, Dark Melodic",
+          status: "past",
+          descriptionEN: "CHEATER is a genre-spanning album journey from Trap to PsyTrance. Celebrating its premiere at Cute, 9ojeez9 brings the project to Ankara for a night of music, followed by Electronic, Groove and Dark Melodic sounds until late. One rule: stay with the music.",
+          descriptionTR: "CHEATER, Trap’ten PsyTrance’a uzanan, farklı türleri bir araya getiren bir albüm yolculuğu. 9ojeez9, projenin prömiyerini Ankara’daki Cute’ta kutluyor. Albüm lansmanının ardından gece, Electronic, Groove ve Dark Melodic sesleriyle devam ediyor. Tek kural: müzikle kal."
+        }
+      ];
+
       const navLinks = [...document.querySelectorAll("[data-category]")];
       const title = document.getElementById("content-title");
       const description = document.getElementById("content-description");
@@ -154,8 +207,140 @@
       const searchInput = document.getElementById("content-search");
       const resetButton = document.getElementById("reset-filters");
       const grid = document.getElementById("projects-grid");
+      const resultCount = document.getElementById("result-count");
+      const yearOptions = document.getElementById("year-options");
 
       let activeCategory = "projects";
+
+      function populateYears() {
+        const years = [...new Set(events.map(event => event.date.slice(0, 4)))]
+          .sort((a, b) => b.localeCompare(a));
+
+        yearOptions.innerHTML = years.map(year => `
+          <label class="filter-option">
+            <input type="checkbox" name="year" value="${year}">
+            <span>${year}</span>
+          </label>
+        `).join("");
+      }
+
+      function getFilteredEvents() {
+        const query = searchInput.value.trim().toLowerCase();
+        const selectedStatuses = [
+          ...document.querySelectorAll('input[name="event-status"]:checked')
+        ].map(input => input.value);
+        const selectedYears = [
+          ...document.querySelectorAll('input[name="year"]:checked')
+        ].map(input => input.value);
+        const sort = document.querySelector('input[name="sort"]:checked')?.value || "newest";
+
+        let filtered = events.filter(event => {
+          const searchable = [
+            event.title,
+            event.subtitle,
+            event.artist,
+            event.venue,
+            event.address,
+            event.descriptionEN,
+            event.descriptionTR,
+            event.tags,
+            event.dateLabel
+          ].join(" ").toLowerCase();
+
+          const matchesQuery = !query || searchable.includes(query);
+          const matchesStatus = selectedStatuses.length === 0 ||
+            selectedStatuses.includes(event.status);
+          const matchesYear = selectedYears.length === 0 ||
+            selectedYears.includes(event.date.slice(0, 4));
+
+          return matchesQuery && matchesStatus && matchesYear;
+        });
+
+        if (sort === "all-time") {
+          filtered.sort((a, b) => a.date.localeCompare(b.date));
+        } else {
+          filtered.sort((a, b) => b.date.localeCompare(a.date));
+        }
+
+        return filtered;
+      }
+
+      function renderEvents() {
+        const filtered = getFilteredEvents();
+
+        resultCount.textContent =
+          `${filtered.length} ${filtered.length === 1 ? "ENTRY" : "ENTRIES"}`;
+
+        if (!filtered.length) {
+          grid.innerHTML = `
+            <div class="empty-state">
+              <span class="empty-mark">＋</span>
+              <p>NO MATCHING EVENTS</p>
+              <span>TRY ANOTHER SEARCH OR FILTER.</span>
+            </div>
+          `;
+          return;
+        }
+
+        grid.innerHTML = filtered.map(event => `
+          <article class="event-card">
+            <a class="event-image-link"
+               href="${event.ticketUrl}"
+               target="_blank"
+               rel="noopener noreferrer"
+               aria-label="Open ${event.title} event page">
+              <img
+                class="event-image"
+                src="${event.image}"
+                alt="${event.title}"
+                loading="lazy"
+              >
+            </a>
+
+            <div class="event-card-content">
+              <div class="event-meta">
+                <span>${event.dateLabel}</span>
+                <span>${event.status === "present" ? "UPCOMING" : "ARCHIVE"}</span>
+              </div>
+
+              <p class="event-artist">${event.artist}</p>
+              <h2 class="event-title">${event.title}</h2>
+              <p class="event-subtitle">${event.subtitle}</p>
+
+              <div class="event-description">
+                <p>${event.descriptionEN}</p>
+                <p>${event.descriptionTR}</p>
+              </div>
+
+              <div class="event-details">
+                <p><span>VENUE</span>${event.venue}</p>
+                <p><span>LOCATION</span>${event.address}</p>
+                <p><span>TIME</span>${event.time}</p>
+                ${event.setTime ? `<p><span>SET / PROGRAM</span>${event.setTime}</p>` : ""}
+                <p><span>INFO</span>${event.tags}</p>
+              </div>
+
+              <a class="event-ticket-link"
+                 href="${event.ticketUrl}"
+                 target="_blank"
+                 rel="noopener noreferrer">
+                EVENT DETAILS <span>↗</span>
+              </a>
+            </div>
+          </article>
+        `).join("");
+      }
+
+      function renderEmptyState() {
+        resultCount.textContent = "0 ENTRIES";
+        grid.innerHTML = `
+          <div class="empty-state">
+            <span class="empty-mark">＋</span>
+            <p>NO ENTRIES YET</p>
+            <span>CONTENT WILL BE ARCHIVED HERE.</span>
+          </div>
+        `;
+      }
 
       function setCategory(category) {
         if (!categories[category]) return;
@@ -177,20 +362,13 @@
 
         eventFilters.hidden = category !== "events";
         merchFilters.hidden = category !== "merch";
+        document.getElementById("year-filters").hidden = category !== "events";
 
-        renderEmptyState();
-      }
-
-      function renderEmptyState() {
-        document.getElementById("result-count").textContent = "0 ENTRIES";
-
-        grid.innerHTML = `
-          <div class="empty-state">
-            <span class="empty-mark">＋</span>
-            <p>NO ENTRIES YET</p>
-            <span>CONTENT WILL BE ARCHIVED HERE.</span>
-          </div>
-        `;
+        if (category === "events") {
+          renderEvents();
+        } else {
+          renderEmptyState();
+        }
       }
 
       navLinks.forEach(link => {
@@ -204,6 +382,22 @@
 
       searchForm.addEventListener("submit", event => {
         event.preventDefault();
+        if (activeCategory === "events") renderEvents();
+      });
+
+      searchInput.addEventListener("input", () => {
+        if (activeCategory === "events") renderEvents();
+      });
+
+      document.addEventListener("change", event => {
+        if (
+          event.target.matches(
+            'input[name="event-status"], input[name="year"], input[name="sort"]'
+          ) &&
+          activeCategory === "events"
+        ) {
+          renderEvents();
+        }
       });
 
       resetButton.addEventListener("click", () => {
@@ -216,15 +410,19 @@
         });
 
         document.querySelector('input[name="sort"][value="newest"]').checked = true;
-        renderEmptyState();
+
+        if (activeCategory === "events") {
+          renderEvents();
+        } else {
+          renderEmptyState();
+        }
       });
 
+      populateYears();
+
       const initialCategory = location.hash.slice(1);
-      if (categories[initialCategory]) {
-        setCategory(initialCategory);
-      }
+      setCategory(categories[initialCategory] ? initialCategory : "projects");
     })();
   </script>
-
 </body>
 </html>
