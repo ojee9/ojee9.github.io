@@ -127,6 +127,7 @@ grid-row: 1;
 .social-right {
 grid-column: 3;
 grid-row: 1;
+align-items: center;
 }
 
 /* CLICKABLE AD PANELS */
@@ -211,14 +212,6 @@ text-transform: uppercase;
 text-shadow: 2px 2px 0 #000;
 }
 
-.ad-tease {
-font-size: 11px;
-line-height: 1.5;
-font-weight: 700;
-letter-spacing: .3px;
-text-transform: uppercase;
-}
-
 .ad-cta {
 display: inline-block;
 align-self: flex-start;
@@ -235,14 +228,6 @@ transition: transform .2s ease;
 
 .ad-banner:hover .ad-cta {
 transform: scale(1.04) rotate(-1deg);
-}
-
-.ad-disclaimer {
-font-size: 8px;
-line-height: 1.5;
-font-weight: 700;
-letter-spacing: .7px;
-opacity: .8;
 }
 
 /* LEFT: MAILBOX */
@@ -310,26 +295,39 @@ opacity: .4;
 overflow-wrap: anywhere;
 }
 
-/* RIGHT: OJEE KA$H ARTIST AD */
+/* RIGHT: OJEE KA$H VERTICAL ARTIST AD */
 
 .ojee-ad {
-min-height: 420px;
+width: 100%;
+max-width: 250px;
+min-height: 480px;
+align-self: center;
 justify-content: flex-end;
 background-image: url("assets/visuals/ojee-kash-official-spotify-portrait.png");
 background-position: center 25%;
+background-size: cover;
+background-repeat: no-repeat;
 border: 1px solid rgba(255,255,255,.3);
 box-shadow: 0 0 35px rgba(255,255,255,.045);
 }
 
 .ojee-ad::before {
-background:
-linear-gradient(180deg, rgba(0,0,0,.05) 0%, rgba(0,0,0,.02) 30%, rgba(0,0,0,.62) 63%, rgba(0,0,0,.96) 100%);
+background: linear-gradient(
+180deg,
+rgba(0,0,0,.05) 0%,
+rgba(0,0,0,.02) 30%,
+rgba(0,0,0,.62) 63%,
+rgba(0,0,0,.96) 100%
+);
 }
 
 .official-label {
 position: absolute;
 top: 18px;
 left: 18px;
+right: 18px;
+width: fit-content;
+max-width: calc(100% - 36px);
 padding: 7px 9px;
 background: rgba(0,0,0,.65);
 border: 1px solid rgba(255,255,255,.45);
@@ -342,10 +340,11 @@ display: block;
 width: 100%;
 padding-bottom: 13px;
 border-bottom: 1px solid rgba(255,255,255,.45);
-font-size: clamp(30px, 3vw, 44px);
+font-size: clamp(27px, 2.4vw, 36px);
 line-height: 1;
 font-weight: 900;
 letter-spacing: -1.5px;
+overflow-wrap: anywhere;
 text-shadow: 2px 3px 12px #000;
 }
 
@@ -355,22 +354,6 @@ line-height: 1.2;
 font-weight: 900;
 letter-spacing: .5px;
 text-shadow: 1px 2px 8px #000;
-}
-
-.ojee-subcopy {
-font-size: 10px;
-letter-spacing: 2px;
-opacity: .7;
-}
-
-.ojee-cta {
-display: inline-block;
-padding: 11px 13px;
-color: #111;
-background: #fff;
-font-size: 10px;
-font-weight: 900;
-letter-spacing: 1.5px;
 }
 
 /* TABLET */
@@ -387,7 +370,8 @@ min-height: 310px;
 }
 
 .ojee-ad {
-min-height: 380px;
+max-width: 220px;
+min-height: 420px;
 }
 
 .social-item {
@@ -428,9 +412,14 @@ grid-column: 2;
 grid-row: 2;
 }
 
-.project-ad,
-.ojee-ad {
+.project-ad {
 min-height: 330px;
+}
+
+.ojee-ad {
+width: 100%;
+max-width: 250px;
+min-height: 420px;
 }
 }
 
@@ -495,13 +484,15 @@ font-size: clamp(28px, 8vw, 38px);
 }
 
 .ojee-ad {
-min-height: 420px;
+width: 100%;
+max-width: 260px;
+min-height: 440px;
 padding: 24px;
 background-position: center 25%;
 }
 
 .ojee-logo {
-font-size: 38px;
+font-size: 34px;
 }
 
 .ojee-copy {
