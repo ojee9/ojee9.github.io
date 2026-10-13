@@ -54,8 +54,8 @@ body::before {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(300px, 360px) 160px;
   align-items: start;
-  column-gap: clamp(22px, 3vw, 48px);
-  padding: 80px clamp(24px, 3.5vw, 56px);
+  column-gap: clamp(16px, 2vw, 28px);
+  padding: 80px 24px;
 }
 
 .social-list {
@@ -130,7 +130,8 @@ body::before {
 .social-right {
   grid-column: 3;
   grid-row: 1;
-  align-items: stretch;
+  width: 160px;
+  align-items: flex-start;
   justify-content: flex-start;
 }
 
@@ -311,9 +312,10 @@ body::before {
   justify-content: flex-end;
   padding: 18px;
   background-image: url("assets/visuals/ojee-kash-official-spotify-portrait.png");
-  background-position: center;
-  background-size: cover;
+  background-position: center top;
+  background-size: contain;
   background-repeat: no-repeat;
+  background-color: #080808;
   border: 1px solid rgba(255,255,255,.3);
   box-shadow: 0 0 35px rgba(255,255,255,.045);
 }
@@ -321,9 +323,9 @@ body::before {
 .ojee-ad::before {
   background: linear-gradient(
     180deg,
-    rgba(0,0,0,.05) 0%,
-    rgba(0,0,0,.02) 30%,
-    rgba(0,0,0,.62) 63%,
+    rgba(0,0,0,.02) 0%,
+    rgba(0,0,0,.04) 45%,
+    rgba(0,0,0,.65) 75%,
     rgba(0,0,0,.96) 100%
   );
 }
@@ -363,17 +365,26 @@ body::before {
   text-shadow: 1px 2px 8px #000;
 }
 
-/* TABLET */
+/* TABLET: KEEP ALL THREE COLUMNS ONLY WHEN THEY FIT */
 
 @media (max-width: 1050px) and (min-width: 801px) {
   .social-room {
-    grid-template-columns: minmax(0, 1fr) minmax(290px, 340px) 160px;
-    column-gap: 18px;
-    padding: 80px 22px 45px;
+    grid-template-columns: minmax(0, 1fr) minmax(270px, 320px) 160px;
+    column-gap: 16px;
+    padding: 80px 18px 45px;
+  }
+
+  .social-left {
+    min-width: 0;
   }
 
   .project-ad {
     min-height: 310px;
+    padding: 18px;
+  }
+
+  .project-headline {
+    font-size: clamp(19px, 2vw, 27px);
   }
 
   .social-item {
@@ -412,6 +423,7 @@ body::before {
   .social-right {
     grid-column: 2;
     grid-row: 2;
+    width: 100%;
     align-items: center;
   }
 
@@ -420,11 +432,11 @@ body::before {
   }
 
   .ojee-ad {
-    width: 100%;
-    max-width: 250px;
-    height: 420px;
-    min-height: 420px;
-    flex: 0 0 420px;
+    width: 160px;
+    max-width: 160px;
+    height: 600px;
+    min-height: 600px;
+    flex: 0 0 600px;
   }
 }
 
@@ -499,7 +511,8 @@ body::before {
     min-height: 600px;
     flex: 0 0 600px;
     padding: 18px;
-    background-position: center;
+    background-position: center top;
+    background-size: contain;
   }
 
   .ojee-logo {
