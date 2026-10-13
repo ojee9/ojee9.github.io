@@ -1,328 +1,522 @@
-*{
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  }
 
-margin:0;
-padding:0;
-
-box-sizing:border-box;
-
+:root {
+color-scheme: dark;
 }
 
+body {
+min-height: 100vh;
+background: radial-gradient(ellipse at center, #111 0%, #050505 55%, #000 100%);
+color: white;
+font-family: Arial, sans-serif;
+overflow-x: hidden;
+overflow-y: auto;
+}
 
+body::before {
+content: "";
+position: fixed;
+inset: 0;
+background: radial-gradient(ellipse at 50% 35%, rgba(255,255,255,.08), transparent 55%);
+pointer-events: none;
+z-index: 0;
+}
 
-body{
+.back-btn {
+position: fixed;
+top: 30px;
+left: 40px;
+color: white;
+text-decoration: none;
+font-size: 13px;
+letter-spacing: 4px;
+opacity: .55;
+z-index: 10;
+transition: opacity .3s ease;
+}
 
-height:100vh;
+.back-btn:hover {
+opacity: 1;
+}
 
-background:
+.social-room {
+position: relative;
+z-index: 1;
+width: 100%;
+min-height: 100vh;
+display: grid;
+grid-template-columns: minmax(0, 1fr) minmax(300px, 360px) minmax(0, 1fr);
+align-items: center;
+gap: clamp(22px, 3vw, 48px);
+padding: 80px clamp(24px, 3.5vw, 56px);
+}
 
-radial-gradient(
-ellipse at center,
-#111111 0%,
-#050505 55%,
-#000000 100%
+.social-list {
+grid-column: 2;
+grid-row: 1;
+width: 100%;
+min-width: 0;
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 25px;
+}
+
+.social-item {
+width: 100%;
+display: flex;
+align-items: center;
+gap: 30px;
+padding: 12px 15px;
+border-bottom: 1px solid rgba(255,255,255,.08);
+text-decoration: none;
+color: white;
+transition: transform .3s ease, border-color .3s ease;
+}
+
+.social-item:visited {
+color: white;
+}
+
+.social-item:hover {
+transform: translateX(8px);
+border-color: rgba(255,255,255,.35);
+}
+
+.social-item img {
+width: 45px;
+height: 45px;
+object-fit: contain;
+flex-shrink: 0;
+}
+
+.social-item h2 {
+color: white;
+font-size: 14px;
+font-weight: 300;
+letter-spacing: 5px;
+}
+
+.social-item p {
+color: white;
+margin-top: 8px;
+font-size: 10px;
+letter-spacing: 3px;
+opacity: .45;
+}
+
+/* SIDE AD LAYOUT */
+
+.social-side {
+width: 100%;
+min-width: 0;
+display: flex;
+flex-direction: column;
+gap: 22px;
+}
+
+.social-left {
+grid-column: 1;
+grid-row: 1;
+}
+
+.social-right {
+grid-column: 3;
+grid-row: 1;
+}
+
+/* CLICKABLE AD PANELS */
+
+.ad-banner {
+position: relative;
+isolation: isolate;
+width: 100%;
+min-width: 0;
+display: flex;
+flex-direction: column;
+justify-content: space-between;
+align-items: flex-start;
+gap: 20px;
+padding: clamp(20px, 2vw, 30px);
+overflow: hidden;
+text-decoration: none;
+color: white;
+background-color: #111;
+background-repeat: no-repeat;
+background-size: cover;
+background-position: center;
+border: 1px solid rgba(255,255,255,.2);
+transition: transform .25s ease, border-color .25s ease;
+}
+
+.ad-banner::before {
+content: "";
+position: absolute;
+inset: 0;
+z-index: -1;
+background: linear-gradient(
+180deg,
+rgba(0,0,0,.35) 0%,
+rgba(0,0,0,.2) 25%,
+rgba(0,0,0,.72) 68%,
+rgba(0,0,0,.92) 100%
 );
-
-
-color:white;
-
-font-family:Arial,sans-serif;
-
-overflow:hidden;
-
+pointer-events: none;
 }
 
+.ad-banner:hover {
+transform: translateY(-4px);
+border-color: rgba(255,255,255,.65);
+}
 
+/* LEFT: EVENTS / PROJECTS AD */
 
+.project-ad {
+min-height: 330px;
+background-image: url("assets/visuals/9ojeez9-events-concerts-background.png");
+background-position: center;
+border: 2px solid #eaff46;
+box-shadow: 5px 5px 0 rgba(234,255,70,.55);
+color: white;
+}
 
-
-body::before{
-
-content:"";
-
-position:fixed;
-
-inset:0;
-
-
+.project-ad::before {
 background:
-
-radial-gradient(
-ellipse at 50% 35%,
-rgba(255,255,255,.08),
-transparent 55%
-);
-
-
-pointer-events:none;
-
+linear-gradient(180deg, rgba(0,0,0,.12), rgba(0,0,0,.25) 25%, rgba(0,0,0,.9) 100%),
+linear-gradient(90deg, rgba(0,0,0,.28), transparent);
 }
 
-
-
-
-
-
-.back-btn{
-
-position:fixed;
-
-top:30px;
-
-left:40px;
-
-color:white;
-
-text-decoration:none;
-
-font-size:13px;
-
-letter-spacing:4px;
-
-opacity:.45;
-
-z-index:5;
-
-transition:.4s;
-
+.ad-label {
+display: inline-block;
+padding: 7px 9px;
+background: #eaff46;
+color: #101010;
+font-size: 9px;
+font-weight: 900;
+letter-spacing: 1.5px;
+transform: rotate(-2deg);
 }
 
-
-
-.back-btn:hover{
-
-opacity:1;
-
+.project-headline {
+display: block;
+font-size: clamp(22px, 2.1vw, 32px);
+font-weight: 1000;
+line-height: .98;
+letter-spacing: -1px;
+text-transform: uppercase;
+text-shadow: 2px 2px 0 #000;
 }
 
-
-
-
-
-
-
-
-.social-room{
-
-height:100vh;
-
-width:100%;
-
-display:flex;
-
-align-items:center;
-
-justify-content:center;
-
+.ad-tease {
+font-size: 11px;
+line-height: 1.5;
+font-weight: 700;
+letter-spacing: .3px;
+text-transform: uppercase;
 }
 
-
-
-
-
-.social-list{
-
-display:flex;
-
-flex-direction:column;
-
-align-items:center;
-
-gap:25px;
-
+.ad-cta {
+display: inline-block;
+align-self: flex-start;
+padding: 12px 15px;
+background: #eaff46;
+color: #101010;
+border: 2px solid #101010;
+box-shadow: 3px 3px 0 #fff;
+font-size: 15px;
+font-weight: 1000;
+letter-spacing: 1px;
+transition: transform .2s ease;
 }
 
-
-
-
-
-.social-item{
-
-width:330px;
-
-display:flex;
-
-align-items:center;
-
-gap:30px;
-
-
-text-decoration:none;
-
-color:white;
-
-
-padding:12px 15px;
-
-
-border-bottom:
-
-1px solid rgba(255,255,255,.08);
-
-
-transition:.4s;
-
+.ad-banner:hover .ad-cta {
+transform: scale(1.04) rotate(-1deg);
 }
 
-
-
-
-
-.social-item:visited{
-
-color:white;
-
+.ad-disclaimer {
+font-size: 8px;
+line-height: 1.5;
+font-weight: 700;
+letter-spacing: .7px;
+opacity: .8;
 }
 
+/* LEFT: MAILBOX */
 
-
-.social-item:hover{
-
-transform:translateX(12px);
-
+.contact-banner {
+position: relative;
+width: 100%;
+min-height: 145px;
+padding: 20px;
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+justify-content: space-between;
+gap: 15px;
+overflow: hidden;
+text-decoration: none;
+color: #f5f5f5;
+background:
+linear-gradient(135deg, rgba(255,255,255,.07), transparent 60%),
+#111;
+border: 1px solid rgba(255,255,255,.3);
+transition: background .25s ease, border-color .25s ease, transform .25s ease;
 }
 
-
-
-
-
-.social-item img{
-
-width:45px;
-
-height:45px;
-
-object-fit:contain;
-
-flex-shrink:0;
-
+.contact-banner::after {
+content: "✉";
+position: absolute;
+right: 12px;
+bottom: -20px;
+font-size: 90px;
+line-height: 1;
+opacity: .06;
+pointer-events: none;
 }
 
-
-
-
-
-.social-item h2{
-
-color:white;
-
-font-size:14px;
-
-font-weight:300;
-
-letter-spacing:5px;
-
+.contact-banner:hover {
+background-color: #191919;
+border-color: rgba(255,255,255,.75);
+transform: translateY(-3px);
 }
 
-
-
-
-
-.social-item p{
-
-color:white;
-
-margin-top:8px;
-
-font-size:10px;
-
-letter-spacing:3px;
-
-opacity:.45;
-
+.mail-stamp {
+font-size: 8px;
+letter-spacing: 3px;
+opacity: .55;
 }
 
-
-
-
-
-
-
-
-@media(max-width:700px){
-
-
-
-body{
-
-overflow:auto;
-
+.contact-banner strong {
+font-size: clamp(14px, 1.25vw, 18px);
+line-height: 1.2;
+letter-spacing: 1px;
 }
 
-
-
-.back-btn{
-
-top:20px;
-
-left:20px;
-
+.contact-action {
+font-size: 10px;
+letter-spacing: 2px;
+border-bottom: 1px solid rgba(255,255,255,.6);
+padding-bottom: 5px;
 }
 
-
-
-.social-room{
-
-min-height:100vh;
-
-padding:80px 0;
-
+.mail-address {
+font-size: 8px;
+letter-spacing: 1px;
+opacity: .4;
+overflow-wrap: anywhere;
 }
 
+/* RIGHT: OJEE KA$H ARTIST AD */
 
-
-
-.social-list{
-
-gap:18px;
-
+.ojee-ad {
+min-height: 420px;
+justify-content: flex-end;
+background-image: url("assets/visuals/ojee-kash-official-spotify-portrait.png");
+background-position: center 25%;
+border: 1px solid rgba(255,255,255,.3);
+box-shadow: 0 0 35px rgba(255,255,255,.045);
 }
 
-
-
-
-
-.social-item{
-
-width:85vw;
-
-gap:20px;
-
+.ojee-ad::before {
+background:
+linear-gradient(180deg, rgba(0,0,0,.05) 0%, rgba(0,0,0,.02) 30%, rgba(0,0,0,.62) 63%, rgba(0,0,0,.96) 100%);
 }
 
-
-
-
-
-.social-item img{
-
-width:40px;
-
-height:40px;
-
+.official-label {
+position: absolute;
+top: 18px;
+left: 18px;
+padding: 7px 9px;
+background: rgba(0,0,0,.65);
+border: 1px solid rgba(255,255,255,.45);
+font-size: 8px;
+letter-spacing: 2px;
 }
 
-
-
-
-
-.social-item h2{
-
-font-size:12px;
-
-letter-spacing:3px;
-
+.ojee-logo {
+display: block;
+width: 100%;
+padding-bottom: 13px;
+border-bottom: 1px solid rgba(255,255,255,.45);
+font-size: clamp(30px, 3vw, 44px);
+line-height: 1;
+font-weight: 900;
+letter-spacing: -1.5px;
+text-shadow: 2px 3px 12px #000;
 }
 
-
-
-
-
-.social-item p{
-
-font-size:9px;
-
+.ojee-copy {
+font-size: clamp(15px, 1.4vw, 20px);
+line-height: 1.2;
+font-weight: 900;
+letter-spacing: .5px;
+text-shadow: 1px 2px 8px #000;
 }
 
+.ojee-subcopy {
+font-size: 10px;
+letter-spacing: 2px;
+opacity: .7;
+}
 
+.ojee-cta {
+display: inline-block;
+padding: 11px 13px;
+color: #111;
+background: #fff;
+font-size: 10px;
+font-weight: 900;
+letter-spacing: 1.5px;
+}
 
+/* TABLET */
+
+@media (max-width: 1050px) {
+.social-room {
+grid-template-columns: minmax(0, 1fr) minmax(290px, 340px) minmax(0, 1fr);
+gap: 18px;
+padding: 80px 22px 45px;
+}
+
+.project-ad {
+min-height: 310px;
+}
+
+.ojee-ad {
+min-height: 380px;
+}
+
+.social-item {
+gap: 20px;
+}
+
+.social-item h2 {
+font-size: 12px;
+letter-spacing: 3px;
+}
+}
+
+/* SMALL TABLET: ADS BELOW SOCIALS */
+
+@media (max-width: 800px) {
+.social-room {
+grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+align-items: start;
+gap: 26px;
+padding: 85px 24px 45px;
+}
+
+.social-list {
+grid-column: 1 / -1;
+grid-row: 1;
+width: 100%;
+max-width: 420px;
+justify-self: center;
+}
+
+.social-left {
+grid-column: 1;
+grid-row: 2;
+}
+
+.social-right {
+grid-column: 2;
+grid-row: 2;
+}
+
+.project-ad,
+.ojee-ad {
+min-height: 330px;
+}
+}
+
+/* MOBILE */
+
+@media (max-width: 560px) {
+.back-btn {
+top: 20px;
+left: 20px;
+font-size: 11px;
+}
+
+.social-room {
+display: flex;
+flex-direction: column;
+align-items: stretch;
+gap: 28px;
+padding: 75px 20px 35px;
+}
+
+.social-list {
+width: 100%;
+max-width: 420px;
+align-self: center;
+gap: 18px;
+}
+
+.social-item {
+width: 100%;
+gap: 20px;
+padding: 11px 10px;
+}
+
+.social-item img {
+width: 40px;
+height: 40px;
+}
+
+.social-item h2 {
+font-size: 12px;
+letter-spacing: 3px;
+}
+
+.social-item p {
+font-size: 9px;
+}
+
+.social-side {
+width: 100%;
+max-width: 420px;
+align-self: center;
+gap: 20px;
+}
+
+.project-ad {
+min-height: 340px;
+padding: 23px;
+}
+
+.project-headline {
+font-size: clamp(28px, 8vw, 38px);
+}
+
+.ojee-ad {
+min-height: 420px;
+padding: 24px;
+background-position: center 25%;
+}
+
+.ojee-logo {
+font-size: 38px;
+}
+
+.ojee-copy {
+font-size: 19px;
+}
+
+.contact-banner {
+min-height: 145px;
+}
+}
+
+@media (prefers-reduced-motion: reduce) {
+*,
+*::before,
+*::after {
+transition: none !important;
+}
 }
