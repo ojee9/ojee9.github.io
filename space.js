@@ -248,9 +248,7 @@ canvas.addEventListener("click",()=>{
 
       case "PROJECTS":
 
-        console.log(
-          "PROJECTS MODULE COMING SOON"
-        );
+        window.location.href = "projects.html";
 
         break;
 
