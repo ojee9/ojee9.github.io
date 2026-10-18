@@ -142,6 +142,7 @@
         }
       };
 
+      // EXISTING EVENT RECORDS — PRESERVED
       const events = [
         {
           id: "flinta-halloween-2026",
@@ -198,11 +199,31 @@
         }
       ];
 
+      // ONE SHARED ANNOUNCEMENT RECORD FOR NEWS, PROJECTS AND MERCH
+      const archiveEntries = [
+        {
+          id: "vn-legacy-collection",
+          title: "VN: LEGACY COLLECTION — AVAILABLE SOON!",
+          subtitle: "VN LEGACY COLLECTION",
+          artist: "VN Studios",
+          image: "assets/visuals/vn-legacy-collection-poster.png",
+          tags: "VN Legacy Collection, Merch, Announcement",
+          collections: ["vn-legacy"],
+          categories: ["news", "projects", "merch"],
+          descriptionEN: [
+            "Otherly grey'd onto golden sunshine...",
+            "VN Studios just planning to drop a brand new merch line representing different phases. Nothing new, only the essentials left as a Legacy Collection. In due time...",
+            "Check out VN's freshest pics one by one, only on VN Legacy Collection. Stay tuned & wait for further announcements."
+          ]
+        }
+      ];
+
       const navLinks = [...document.querySelectorAll("[data-category]")];
       const title = document.getElementById("content-title");
       const description = document.getElementById("content-description");
       const eventFilters = document.getElementById("event-filters");
       const merchFilters = document.getElementById("merch-filters");
+      const yearFilters = document.getElementById("year-filters");
       const searchForm = document.getElementById("search-form");
       const searchInput = document.getElementById("content-search");
       const resetButton = document.getElementById("reset-filters");
@@ -213,8 +234,9 @@
       let activeCategory = "projects";
 
       function populateYears() {
-        const years = [...new Set(events.map(event => event.date.slice(0, 4)))]
-          .sort((a, b) => b.localeCompare(a));
+        const years = [...new Set(
+          events.map(event => event.date.slice(0, 4))
+        )].sort((a, b) => b.localeCompare(a));
 
         yearOptions.innerHTML = years.map(year => `
           <label class="filter-option">
@@ -224,15 +246,24 @@
         `).join("");
       }
 
+      function getSort() {
+        return document.querySelector(
+          'input[name="sort"]:checked'
+        )?.value || "newest";
+      }
+
       function getFilteredEvents() {
         const query = searchInput.value.trim().toLowerCase();
+
         const selectedStatuses = [
-          ...document.querySelectorAll('input[name="event-status"]:checked')
+          ...document.querySelectorAll(
+            'input[name="event-status"]:checked'
+          )
         ].map(input => input.value);
+
         const selectedYears = [
           ...document.querySelectorAll('input[name="year"]:checked')
         ].map(input => input.value);
-        const sort = document.querySelector('input[name="sort"]:checked')?.value || "newest";
 
         let filtered = events.filter(event => {
           const searchable = [
@@ -256,10 +287,53 @@
           return matchesQuery && matchesStatus && matchesYear;
         });
 
-        if (sort === "all-time") {
+        if (getSort() === "all-time") {
           filtered.sort((a, b) => a.date.localeCompare(b.date));
         } else {
           filtered.sort((a, b) => b.date.localeCompare(a.date));
+        }
+
+        return filtered;
+      }
+
+      function getFilteredArchiveEntries() {
+        const query = searchInput.value.trim().toLowerCase();
+
+        const selectedCollections = [
+          ...document.querySelectorAll(
+            'input[name="collection"]:checked'
+          )
+        ].map(input => input.value);
+
+        let filtered = archiveEntries.filter(entry => {
+          const belongsToCategory =
+            entry.categories.includes(activeCategory);
+
+          const searchable = [
+            entry.title,
+            entry.subtitle,
+            entry.artist,
+            entry.tags,
+            ...entry.descriptionEN,
+            ...entry.collections
+          ].join(" ").toLowerCase();
+
+          const matchesQuery = !query || searchable.includes(query);
+
+          const matchesCollection =
+            activeCategory !== "merch" ||
+            selectedCollections.length === 0 ||
+            selectedCollections.some(collection =>
+              entry.collections.includes(collection)
+            );
+
+          return belongsToCategory &&
+            matchesQuery &&
+            matchesCollection;
+        });
+
+        if (getSort() === "all-time") {
+          filtered = [...filtered].reverse();
         }
 
         return filtered;
@@ -272,13 +346,7 @@
           `${filtered.length} ${filtered.length === 1 ? "ENTRY" : "ENTRIES"}`;
 
         if (!filtered.length) {
-          grid.innerHTML = `
-            <div class="empty-state">
-              <span class="empty-mark">＋</span>
-              <p>NO MATCHING EVENTS</p>
-              <span>TRY ANOTHER SEARCH OR FILTER.</span>
-            </div>
-          `;
+          renderNoResults("NO MATCHING EVENTS");
           return;
         }
 
@@ -331,13 +399,61 @@
         `).join("");
       }
 
-      function renderEmptyState() {
+      function renderArchiveEntries() {
+        const filtered = getFilteredArchiveEntries();
+
+        resultCount.textContent =
+          `${filtered.length} ${filtered.length === 1 ? "ENTRY" : "ENTRIES"}`;
+
+        if (!filtered.length) {
+          renderNoResults("NO MATCHING ENTRIES");
+          return;
+        }
+
+        grid.innerHTML = filtered.map(entry => `
+          <article class="event-card" data-entry-id="${entry.id}">
+            <div class="event-image-link">
+              <img
+                class="event-image"
+                src="${entry.image}"
+                alt="${entry.title}"
+                loading="lazy"
+              >
+            </div>
+
+            <div class="event-card-content">
+              <div class="event-meta">
+                <span>VN STUDIOS</span>
+                <span>COMING SOON</span>
+              </div>
+
+              <p class="event-artist">${entry.artist}</p>
+              <h2 class="event-title">${entry.title}</h2>
+              <p class="event-subtitle">${entry.subtitle}</p>
+
+              <div class="event-description">
+                ${entry.descriptionEN.map(paragraph =>
+                  `<p>${paragraph}</p>`
+                ).join("")}
+              </div>
+
+              <div class="event-details">
+                <p><span>COLLECTION</span>VN LEGACY COLLECTION</p>
+                <p><span>STATUS</span>AVAILABLE SOON</p>
+              </div>
+            </div>
+          </article>
+        `).join("");
+      }
+
+      function renderNoResults(message = "NO ENTRIES YET") {
         resultCount.textContent = "0 ENTRIES";
+
         grid.innerHTML = `
           <div class="empty-state">
             <span class="empty-mark">＋</span>
-            <p>NO ENTRIES YET</p>
-            <span>CONTENT WILL BE ARCHIVED HERE.</span>
+            <p>${message}</p>
+            <span>TRY ANOTHER SEARCH OR FILTER.</span>
           </div>
         `;
       }
@@ -362,18 +478,19 @@
 
         eventFilters.hidden = category !== "events";
         merchFilters.hidden = category !== "merch";
-        document.getElementById("year-filters").hidden = category !== "events";
+        yearFilters.hidden = category !== "events";
 
         if (category === "events") {
           renderEvents();
         } else {
-          renderEmptyState();
+          renderArchiveEntries();
         }
       }
 
       navLinks.forEach(link => {
         link.addEventListener("click", event => {
           event.preventDefault();
+
           const category = link.dataset.category;
           setCategory(category);
           history.replaceState(null, "", "#" + category);
@@ -382,21 +499,41 @@
 
       searchForm.addEventListener("submit", event => {
         event.preventDefault();
-        if (activeCategory === "events") renderEvents();
+
+        if (activeCategory === "events") {
+          renderEvents();
+        } else {
+          renderArchiveEntries();
+        }
       });
 
       searchInput.addEventListener("input", () => {
-        if (activeCategory === "events") renderEvents();
+        if (activeCategory === "events") {
+          renderEvents();
+        } else {
+          renderArchiveEntries();
+        }
       });
 
       document.addEventListener("change", event => {
-        if (
-          event.target.matches(
-            'input[name="event-status"], input[name="year"], input[name="sort"]'
-          ) &&
-          activeCategory === "events"
-        ) {
+        if (activeCategory === "events" && event.target.matches(
+          'input[name="event-status"], input[name="year"], input[name="sort"]'
+        )) {
           renderEvents();
+        }
+
+        if (activeCategory === "merch" && event.target.matches(
+          'input[name="collection"], input[name="sort"]'
+        )) {
+          renderArchiveEntries();
+        }
+
+        if (
+          activeCategory !== "events" &&
+          activeCategory !== "merch" &&
+          event.target.matches('input[name="sort"]')
+        ) {
+          renderArchiveEntries();
         }
       });
 
@@ -409,19 +546,23 @@
           input.checked = false;
         });
 
-        document.querySelector('input[name="sort"][value="newest"]').checked = true;
+        document.querySelector(
+          'input[name="sort"][value="newest"]'
+        ).checked = true;
 
         if (activeCategory === "events") {
           renderEvents();
         } else {
-          renderEmptyState();
+          renderArchiveEntries();
         }
       });
 
       populateYears();
 
       const initialCategory = location.hash.slice(1);
-      setCategory(categories[initialCategory] ? initialCategory : "projects");
+      setCategory(
+        categories[initialCategory] ? initialCategory : "projects"
+      );
     })();
   </script>
 </body>
