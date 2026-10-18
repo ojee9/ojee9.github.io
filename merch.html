@@ -1,6 +1,6 @@
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>MERCH — 9O9</title>
@@ -13,83 +13,189 @@
 
 body{
   margin:0;
-  min-height:100vh;
-  background:#0b0c12;
+  background:#f7f6f2;
+  color:#171717;
   font-family:Arial, sans-serif;
-  color:white;
 }
 
-.back{
-  position:absolute;
-  top:30px;
-  left:30px;
-  color:#fff4c2;
+a{
+  color:inherit;
   text-decoration:none;
-  font-size:14px;
-  letter-spacing:2px;
-  transition:0.3s;
 }
 
-.back:hover{
-  color:#ffd54f;
-}
-
-.container{
-  min-height:100vh;
+.header{
   display:flex;
-  flex-direction:column;
   align-items:center;
-  justify-content:center;
-  padding:100px 20px 60px;
-  text-align:center;
+  justify-content:space-between;
+  padding:24px 5%;
+  border-bottom:1px solid #deddd7;
 }
 
-h1{
-  margin:0;
-  color:#fff4c2;
-  font-size:clamp(42px, 8vw, 76px);
-  letter-spacing:10px;
-}
-
-.subtitle{
-  margin-top:20px;
-  color:#858595;
+.back,
+.cart{
   font-size:12px;
-  letter-spacing:4px;
+  letter-spacing:1.5px;
 }
 
-.coming-soon{
-  margin-top:100px;
-  color:#fff4c2;
-  font-size:14px;
+.brand{
+  font-size:24px;
+  font-weight:bold;
   letter-spacing:5px;
 }
 
-.line{
-  width:60px;
-  height:2px;
-  background:#ffd54f;
-  margin:25px auto 0;
+.back:hover,
+.cart:hover{
+  opacity:.55;
 }
 
-@media(max-width:768px){
-  .back{
-    top:22px;
-    left:20px;
+.intro{
+  padding:65px 5% 40px;
+}
+
+.intro h1{
+  margin:0;
+  font-size:clamp(38px, 7vw, 72px);
+  letter-spacing:5px;
+}
+
+.intro p{
+  margin:14px 0 0;
+  color:#77756e;
+  font-size:11px;
+  letter-spacing:2px;
+}
+
+.products{
+  padding:0 5% 80px;
+}
+
+.product{
+  display:grid;
+  grid-template-columns:minmax(0, 1fr) minmax(0, 1fr);
+  gap:28px;
+  align-items:center;
+  padding:28px 0;
+  border-top:1px solid #deddd7;
+}
+
+.product-image{
+  min-height:220px;
+  aspect-ratio:4 / 3;
+  background:#eeede7;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:#aaa79d;
+  font-size:11px;
+  letter-spacing:2px;
+}
+
+.product-image img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.product-info{
+  padding:20px 0;
+}
+
+.tag{
+  display:inline-block;
+  margin-bottom:14px;
+  padding:6px 8px;
+  border:1px solid #171717;
+  font-size:10px;
+  letter-spacing:1px;
+}
+
+.product-name{
+  margin:0;
+  font-size:clamp(20px, 3vw, 34px);
+  font-weight:500;
+  letter-spacing:1px;
+}
+
+.product-type{
+  margin-top:10px;
+  color:#77756e;
+  font-size:12px;
+}
+
+.product-price{
+  margin-top:22px;
+  font-size:13px;
+}
+
+.product-button{
+  display:inline-block;
+  margin-top:24px;
+  padding:13px 20px;
+  border:1px solid #171717;
+  background:transparent;
+  color:#171717;
+  font:inherit;
+  font-size:11px;
+  letter-spacing:1.5px;
+  cursor:pointer;
+}
+
+.product-button:hover{
+  background:#171717;
+  color:#f7f6f2;
+}
+
+.empty{
+  padding:55px 0;
+  border-top:1px solid #deddd7;
+  color:#77756e;
+  font-size:12px;
+  letter-spacing:2px;
+  text-align:center;
+}
+
+.footer{
+  padding:24px 5%;
+  border-top:1px solid #deddd7;
+  color:#77756e;
+  font-size:10px;
+  letter-spacing:1.5px;
+}
+
+@media(max-width:600px){
+  .header{
+    padding:20px 5%;
   }
 
-  h1{
-    letter-spacing:6px;
+  .brand{
+    font-size:19px;
+    letter-spacing:3px;
   }
 
-  .subtitle{
+  .back,
+  .cart{
     font-size:10px;
-    letter-spacing:3px;
+    letter-spacing:1px;
   }
 
-  .coming-soon{
-    font-size:12px;
-    letter-spacing:3px;
+  .intro{
+    padding-top:48px;
+  }
+
+  .product{
+    grid-template-columns:1fr;
+    gap:0;
+    padding:20px 0 28px;
+  }
+
+  .product-image{
+    aspect-ratio:4 / 3;
+    min-height:180px;
+  }
+
+  .product-info{
+    padding:20px 0 0;
   }
 }
 </style>
@@ -97,15 +203,125 @@ h1{
 
 <body>
 
-<a class="back" href="index.html">← SPACE</a>
+<header class="header">
+  <a class="back" href="index.html">← SPACE</a>
+  <a class="brand" href="merch.html">9O9</a>
+  <a class="cart" href="#cart">CART (<span id="cart-count">0</span>)</a>
+</header>
 
-<main class="container">
-  <h1>MERCH</h1>
-  <p class="subtitle">9O9 / OFFICIAL STORE</p>
+<main>
+  <section class="intro">
+    <h1>MERCH</h1>
+    <p>9O9 / OFFICIAL STORE</p>
+  </section>
 
-  <div class="coming-soon">COMING SOON</div>
-  <div class="line"></div>
+  <section class="products" id="products">
+    <div class="empty" id="empty-message">
+      NO PRODUCTS AVAILABLE YET
+    </div>
+  </section>
+
+  <section class="products" id="cart">
+    <h2 style="font-size:16px;letter-spacing:2px">CART</h2>
+    <div id="cart-items" class="empty">YOUR CART IS EMPTY</div>
+  </section>
 </main>
+
+<footer class="footer">
+  9O9 MERCH
+</footer>
+
+<script>
+const products = [];
+const cart = [];
+
+function renderProducts(){
+  const container = document.getElementById("products");
+  container.innerHTML = "";
+
+  if(products.length === 0){
+    container.innerHTML =
+      '<div class="empty">NO PRODUCTS AVAILABLE YET</div>';
+    return;
+  }
+
+  products.forEach(product => {
+    const item = document.createElement("article");
+    item.className = "product";
+
+    const image = document.createElement("div");
+    image.className = "product-image";
+
+    if(product.image){
+      const img = document.createElement("img");
+      img.src = product.image;
+      img.alt = product.name;
+      image.appendChild(img);
+    }else{
+      image.textContent = "PRODUCT IMAGE";
+    }
+
+    const info = document.createElement("div");
+    info.className = "product-info";
+
+    if(product.tag){
+      const tag = document.createElement("span");
+      tag.className = "tag";
+      tag.textContent = product.tag;
+      info.appendChild(tag);
+    }
+
+    const name = document.createElement("h2");
+    name.className = "product-name";
+    name.textContent = product.name;
+
+    const type = document.createElement("div");
+    type.className = "product-type";
+    type.textContent = product.type;
+
+    const price = document.createElement("div");
+    price.className = "product-price";
+    price.textContent = product.price;
+
+    const button = document.createElement("button");
+    button.className = "product-button";
+    button.textContent = "ADD TO CART";
+    button.addEventListener("click", () => addToCart(product));
+
+    info.append(name, type, price, button);
+    item.append(image, info);
+    container.appendChild(item);
+  });
+}
+
+function addToCart(product){
+  cart.push(product);
+  document.getElementById("cart-count").textContent = cart.length;
+  renderCart();
+}
+
+function renderCart(){
+  const container = document.getElementById("cart-items");
+
+  if(cart.length === 0){
+    container.textContent = "YOUR CART IS EMPTY";
+    return;
+  }
+
+  container.innerHTML = "";
+
+  cart.forEach(product => {
+    const row = document.createElement("div");
+    row.style.padding = "12px 0";
+    row.style.borderBottom = "1px solid #deddd7";
+    row.textContent = product.name + " — " + product.price;
+    container.appendChild(row);
+  });
+}
+
+renderProducts();
+renderCart();
+</script>
 
 </body>
 </html>
