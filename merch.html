@@ -37,12 +37,6 @@ a{
   letter-spacing:1.5px;
 }
 
-.brand{
-  font-size:24px;
-  font-weight:bold;
-  letter-spacing:5px;
-}
-
 .back:hover,
 .cart:hover{
   opacity:.55;
@@ -56,13 +50,6 @@ a{
   margin:0;
   font-size:clamp(38px, 7vw, 72px);
   letter-spacing:5px;
-}
-
-.intro p{
-  margin:14px 0 0;
-  color:#77756e;
-  font-size:11px;
-  letter-spacing:2px;
 }
 
 .products{
@@ -161,16 +148,12 @@ a{
   color:#77756e;
   font-size:10px;
   letter-spacing:1.5px;
+  text-align:center;
 }
 
 @media(max-width:600px){
   .header{
     padding:20px 5%;
-  }
-
-  .brand{
-    font-size:19px;
-    letter-spacing:3px;
   }
 
   .back,
@@ -205,14 +188,12 @@ a{
 
 <header class="header">
   <a class="back" href="index.html">← SPACE</a>
-  <a class="brand" href="merch.html">9O9</a>
   <a class="cart" href="#cart">CART (<span id="cart-count">0</span>)</a>
 </header>
 
 <main>
   <section class="intro">
     <h1>MERCH</h1>
-    <p>9O9 / OFFICIAL STORE</p>
   </section>
 
   <section class="products" id="products">
@@ -220,15 +201,10 @@ a{
       NO PRODUCTS AVAILABLE YET
     </div>
   </section>
-
-  <section class="products" id="cart">
-    <h2 style="font-size:16px;letter-spacing:2px">CART</h2>
-    <div id="cart-items" class="empty">YOUR CART IS EMPTY</div>
-  </section>
 </main>
 
 <footer class="footer">
-  9O9 MERCH
+  © 2026 VN RECORDS. ALL RIGHTS RESERVED.
 </footer>
 
 <script>
@@ -297,30 +273,9 @@ function renderProducts(){
 function addToCart(product){
   cart.push(product);
   document.getElementById("cart-count").textContent = cart.length;
-  renderCart();
-}
-
-function renderCart(){
-  const container = document.getElementById("cart-items");
-
-  if(cart.length === 0){
-    container.textContent = "YOUR CART IS EMPTY";
-    return;
-  }
-
-  container.innerHTML = "";
-
-  cart.forEach(product => {
-    const row = document.createElement("div");
-    row.style.padding = "12px 0";
-    row.style.borderBottom = "1px solid #deddd7";
-    row.textContent = product.name + " — " + product.price;
-    container.appendChild(row);
-  });
 }
 
 renderProducts();
-renderCart();
 </script>
 
 </body>
