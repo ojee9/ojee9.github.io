@@ -175,7 +175,6 @@ body::before {
 }
 
 /* LEFT: EVENTS / PROJECTS AD */
-/* ORIGINAL DESIGN PRESERVED */
 
 .project-ad {
   min-height: 330px;
@@ -232,7 +231,6 @@ body::before {
 }
 
 /* LEFT: MAILBOX */
-/* ORIGINAL DESIGN PRESERVED */
 
 .contact-banner {
   position: relative;
@@ -297,12 +295,15 @@ body::before {
   overflow-wrap: anywhere;
 }
 
-/* RIGHT: OJEE KA$H — CLASSIC 2010s SKYCRAPER AD */
+/* RIGHT: OJEE KA$H SKYCRAPER AD
+   DESKTOP: 160 x 900 PX */
 
 .ojee-ad {
-  width: 100%;
-  max-width: 180px;
-  min-height: 600px;
+  width: 160px;
+  max-width: 160px;
+  height: 900px;
+  min-height: 900px;
+  flex-shrink: 0;
   align-self: flex-end;
   justify-content: flex-end;
   padding: 18px 15px;
@@ -376,8 +377,10 @@ body::before {
   }
 
   .ojee-ad {
+    width: 160px;
     max-width: 160px;
-    min-height: 500px;
+    height: 900px;
+    min-height: 900px;
     padding: 16px 12px;
   }
 
@@ -427,6 +430,7 @@ body::before {
   .ojee-ad {
     width: 100%;
     max-width: 250px;
+    height: auto;
     min-height: 420px;
     padding: 24px;
   }
@@ -495,6 +499,7 @@ body::before {
   .ojee-ad {
     width: 100%;
     max-width: 260px;
+    height: auto;
     min-height: 440px;
     padding: 24px;
     background-position: center 25%;
