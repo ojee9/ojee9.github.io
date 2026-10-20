@@ -1,3 +1,4 @@
+
 * {
   margin: 0;
   padding: 0;
@@ -230,69 +231,231 @@ body::before {
   transform: scale(1.04) rotate(-1deg);
 }
 
-/* LEFT: MAILBOX */
+/* LEFT: INTERACTIVE MAILBOX */
+
+.contact-wrap {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Closed mailbox */
 
 .contact-banner {
   position: relative;
+  isolation: isolate;
   width: 100%;
-  min-height: 145px;
-  padding: 20px;
+  min-height: 155px;
+  padding: 58px 18px 18px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  justify-content: space-between;
-  gap: 15px;
+  justify-content: flex-end;
+  gap: 9px;
   overflow: hidden;
-  text-decoration: none;
-  color: #f5f5f5;
+  text-align: left;
+  font-family: inherit;
+  color: #eaff46;
   background:
-    linear-gradient(135deg, rgba(255,255,255,.07), transparent 60%),
+    linear-gradient(135deg, rgba(234,255,70,.07), transparent 60%),
     #111;
-  border: 1px solid rgba(255,255,255,.3);
+  border: 1px solid #eaff46;
+  box-shadow: 5px 5px 0 rgba(234,255,70,.45);
+  cursor: pointer;
   transition: background .25s ease, border-color .25s ease, transform .25s ease;
 }
 
 .contact-banner::after {
-  content: "✉";
-  position: absolute;
-  right: 12px;
-  bottom: -20px;
-  font-size: 90px;
-  line-height: 1;
-  opacity: .06;
-  pointer-events: none;
+  content: none !important;
 }
 
 .contact-banner:hover {
   background-color: #191919;
-  border-color: rgba(255,255,255,.75);
-  transform: translateY(-3px);
+  border-color: #fff;
+  transform: translateY(-2px);
+}
+
+/* Mailbox lid */
+
+.mailbox-lid {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 53px;
+  background: #eaff46;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  transform-origin: top center;
+  transform: rotateX(0deg);
+  transition: transform .45s ease;
+  pointer-events: none;
+}
+
+.contact-banner.is-open .mailbox-lid {
+  transform: rotateX(155deg);
 }
 
 .mail-stamp {
+  position: relative;
+  z-index: 1;
   font-size: 8px;
   letter-spacing: 3px;
-  opacity: .55;
+  color: #eaff46;
+  opacity: .75;
 }
 
 .contact-banner strong {
+  position: relative;
+  z-index: 1;
   font-size: clamp(14px, 1.25vw, 18px);
   line-height: 1.2;
   letter-spacing: 1px;
 }
 
 .contact-action {
+  position: relative;
+  z-index: 1;
   font-size: 10px;
   letter-spacing: 2px;
-  border-bottom: 1px solid rgba(255,255,255,.6);
+  border-bottom: 1px solid rgba(234,255,70,.6);
   padding-bottom: 5px;
 }
 
 .mail-address {
+  position: relative;
+  z-index: 1;
   font-size: 8px;
   letter-spacing: 1px;
-  opacity: .4;
+  opacity: .55;
   overflow-wrap: anywhere;
+}
+
+/* Message form panel */
+
+.contact-form-panel {
+  width: 100%;
+  min-width: 0;
+  padding: 18px;
+  color: #eaff46;
+  background:
+    linear-gradient(135deg, rgba(234,255,70,.035), transparent 60%),
+    #101010;
+  border: 1px solid #eaff46;
+  box-shadow: 5px 5px 0 rgba(234,255,70,.45);
+  animation: mailboxReveal .3s ease both;
+}
+
+.contact-form-panel[hidden] {
+  display: none !important;
+}
+
+.contact-form-panel h3 {
+  margin: 0 0 18px;
+  color: #eaff46;
+  font-size: 15px;
+  line-height: 1.4;
+  letter-spacing: 1px;
+}
+
+.contact-form-panel form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.contact-form-panel label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: #eaff46;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+}
+
+.contact-form-panel input,
+.contact-form-panel textarea {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  padding: 11px;
+  color: #fff;
+  background: #191919;
+  border: 1px solid #444;
+  border-radius: 0;
+  outline: none;
+  font-family: Arial, sans-serif;
+  font-size: 13px;
+  letter-spacing: normal;
+  transition: border-color .2s ease, background .2s ease;
+}
+
+.contact-form-panel input {
+  min-height: 40px;
+}
+
+.contact-form-panel input::placeholder,
+.contact-form-panel textarea::placeholder {
+  color: rgba(255,255,255,.35);
+}
+
+.contact-form-panel input:focus,
+.contact-form-panel textarea:focus {
+  border-color: #eaff46;
+  background: #202020;
+}
+
+.contact-form-panel textarea {
+  min-height: 110px;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.contact-submit {
+  width: 100%;
+  min-height: 43px;
+  padding: 13px 10px;
+  color: #101010;
+  background: #eaff46;
+  border: 1px solid #eaff46;
+  border-radius: 0;
+  font-family: Arial, sans-serif;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: color .2s ease, background .2s ease;
+}
+
+.contact-submit:hover {
+  color: #eaff46;
+  background: #111;
+}
+
+.contact-submit:disabled {
+  opacity: .6;
+  cursor: wait;
+}
+
+.contact-status {
+  margin: 0;
+  color: #eaff46;
+  font-size: 11px;
+  line-height: 1.6;
+  letter-spacing: .3px;
+  overflow-wrap: anywhere;
+}
+
+@keyframes mailboxReveal {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* RIGHT: OJEE KA$H SKYCRAPER AD
@@ -401,7 +564,7 @@ body::before {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     align-items: start;
     gap: 26px;
-    padding: 85px 24px 45px;
+    padding: 80px 22px 45px;
   }
 
   .social-list {
@@ -514,7 +677,11 @@ body::before {
   }
 
   .contact-banner {
-    min-height: 145px;
+    min-height: 155px;
+  }
+
+  .contact-form-panel {
+    padding: 16px;
   }
 }
 
@@ -523,5 +690,6 @@ body::before {
   *::before,
   *::after {
     transition: none !important;
+    animation: none !important;
   }
 }
