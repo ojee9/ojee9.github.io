@@ -1,3 +1,4 @@
+
 * {
   margin: 0;
   padding: 0;
@@ -42,6 +43,8 @@ body::before {
 .back-btn:hover {
   opacity: 1;
 }
+
+/* MAIN LAYOUT */
 
 .social-room {
   position: relative;
@@ -127,7 +130,11 @@ body::before {
 .social-right {
   grid-column: 3;
   grid-row: 1;
-  align-items: flex-end;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 16px;
 }
 
 /* CLICKABLE AD PANELS */
@@ -147,9 +154,9 @@ body::before {
   text-decoration: none;
   color: white;
   background-color: #111;
+  background-repeat: no-repeat;
   background-size: cover;
   background-position: center;
-  background-repeat: no-repeat;
   border: 1px solid rgba(255,255,255,.2);
   transition: transform .25s ease, border-color .25s ease;
 }
@@ -327,7 +334,7 @@ body::before {
   overflow-wrap: anywhere;
 }
 
-/* Message form panel */
+/* MESSAGE FORM PANEL */
 
 .contact-form-panel {
   width: 100%;
@@ -447,21 +454,50 @@ body::before {
     opacity: 0;
     transform: translateY(-8px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
 
-/* RIGHT: OJEE KA$H SKYCRAPER AD */
+/* RIGHT: VN LEGACY COLLECTION AD */
 
-.ojee-ad {
+.legacy-ad {
+  flex: 0 0 160px;
   width: 160px;
   max-width: 160px;
   height: 900px;
   min-height: 900px;
-  flex-shrink: 0;
-  align-self: flex-end;
+  padding: 0;
+  background-image: url("assets/visuals/vn-legacy-collection%20ad-social.png");
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  border: 1px solid rgba(210,201,186,.4);
+  box-shadow: 0 0 28px rgba(210,201,186,.04);
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.legacy-ad::before {
+  background: none;
+}
+
+.legacy-ad:hover {
+  transform: translateY(-4px);
+  border-color: rgba(210,201,186,.65);
+}
+
+/* RIGHT: OJEE KA$H SKYSCRAPER AD */
+
+.ojee-ad {
+  flex: 0 0 160px;
+  width: 160px;
+  max-width: 160px;
+  height: 900px;
+  min-height: 900px;
+  align-self: flex-start;
   justify-content: flex-end;
   padding: 18px 15px;
   gap: 18px;
@@ -473,27 +509,6 @@ body::before {
   box-shadow: 0 0 35px rgba(255,255,255,.045);
 }
 
-/* RIGHT: VN LEGACY COLLECTION AD — DESKTOP */
-
-.legacy-ad {
-  width: 190px;
-  max-width: 190px;
-  height: 900px;
-  min-height: 900px;
-  flex-shrink: 0;
-  align-self: flex-end;
-  justify-content: flex-end;
-  padding: 18px 15px;
-  gap: 18px;
-  background-image: url("assets/visuals/vn-legacy-collection ad-social.png");
-  background-position: center;
-  background-size: cover;
-  background-repeat: no-repeat;
-  border: 1px solid rgba(255,255,255,.3);
-  box-shadow: 0 0 35px rgba(255,255,255,.045);
-}
-
-.legacy-ad::before,
 .ojee-ad::before {
   background: linear-gradient(
     180deg,
@@ -554,24 +569,6 @@ body::before {
     min-height: 310px;
   }
 
-  .ojee-ad {
-    width: 160px;
-    max-width: 160px;
-    height: 900px;
-    min-height: 900px;
-    padding: 16px 12px;
-  }
-
-  .legacy-ad {
-    width: 170px;
-    max-width: 170px;
-    height: 900px;
-    min-height: 900px;
-    padding: 16px 12px;
-    align-self: flex-end;
-    background-size: cover;
-  }
-
   .social-item {
     gap: 20px;
   }
@@ -579,6 +576,23 @@ body::before {
   .social-item h2 {
     font-size: 12px;
     letter-spacing: 3px;
+  }
+
+  .social-right {
+    gap: 10px;
+  }
+
+  .legacy-ad,
+  .ojee-ad {
+    flex-basis: 135px;
+    width: 135px;
+    max-width: 135px;
+    height: 760px;
+    min-height: 760px;
+  }
+
+  .ojee-ad {
+    padding: 16px 12px;
   }
 }
 
@@ -608,30 +622,31 @@ body::before {
   .social-right {
     grid-column: 2;
     grid-row: 2;
+    width: 100%;
+    flex-direction: column;
     align-items: center;
+    gap: 20px;
   }
 
   .project-ad {
     min-height: 330px;
   }
 
-  .ojee-ad {
+  .legacy-ad {
+    flex: none;
     width: 100%;
     max-width: 250px;
-    height: auto;
-    min-height: 420px;
-    padding: 24px;
+    height: 700px;
+    min-height: 700px;
   }
 
-  .legacy-ad {
+  .ojee-ad {
+    flex: none;
     width: 100%;
     max-width: 250px;
     height: auto;
     min-height: 420px;
     padding: 24px;
-    align-self: auto;
-    background-position: center;
-    background-size: cover;
   }
 }
 
@@ -695,7 +710,21 @@ body::before {
     font-size: clamp(28px, 8vw, 38px);
   }
 
+  .social-right {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .legacy-ad {
+    flex: none;
+    width: 100%;
+    max-width: 260px;
+    height: 700px;
+    min-height: 700px;
+  }
+
   .ojee-ad {
+    flex: none;
     width: 100%;
     max-width: 260px;
     height: auto;
@@ -712,17 +741,6 @@ body::before {
     font-size: 19px;
   }
 
-  .legacy-ad {
-    width: 100%;
-    max-width: 260px;
-    height: auto;
-    min-height: 440px;
-    padding: 24px;
-    align-self: auto;
-    background-position: center;
-    background-size: cover;
-  }
-
   .contact-banner {
     min-height: 155px;
   }
@@ -731,6 +749,8 @@ body::before {
     padding: 16px;
   }
 }
+
+/* REDUCED MOTION */
 
 @media (prefers-reduced-motion: reduce) {
   *,
