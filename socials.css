@@ -481,7 +481,7 @@ body::before {
   height: 900px;
   min-height: 900px;
   flex-shrink: 0;
-  align-self: flex-start;
+  align-self: flex-end;
   justify-content: flex-end;
   padding: 18px 15px;
   gap: 18px;
