@@ -464,9 +464,9 @@ body::before {
 /* RIGHT: VN LEGACY COLLECTION AD */
 
 .legacy-ad {
-  flex: 0 0 200px;
-  width: 200px;
-  max-width: 200px;
+  flex: 0 0 240px;
+  width: 240px;
+  max-width: 240px;
   height: 900px;
   min-height: 900px;
   padding: 0;
