@@ -1,223 +1,106 @@
+
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Visuals & Artwork — 9ojeez9</title>
-<meta name="description" content="Explore artwork, official covers, draft archives and motion visuals.">
-
-<link rel="stylesheet" href="visuals.css">
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Explore artwork, official covers, draft archives and motion visuals.">
+  <title>Visuals & Artwork — 9ojeez9</title>
+  <link rel="stylesheet" href="visuals.css">
+  <script src="visuals.js" defer></script>
 </head>
-
-
 <body>
-
-
-<a href="space.html" class="back-btn">
-← SPACE
-</a>
-
-
-
-<main class="gallery-room">
-
-
-<div class="wall-light"></div>
-
-
-
-<section class="gallery-space">
-
-
-
-<nav class="visual-filter">
-
-<span class="active">FEATURED</span>
-
-<span>HOT TAKE</span>
-
-<span>PLAY THIS</span>
-
-<span>NEWEST</span>
-
-</nav>
-
-
-
-
-
-<section class="visual-grid">
-
-
-
-
-
-<!-- DE FORMULA -->
-
-<div class="visual-card official">
-
-
-<div class="image-box">
-
-
-<img src="assets/officials/de-formula-humana-cover.JPG">
-
-
-
-<div class="card-info">
-
-<h2>
-DE FORMULĀ HŪMĀNĀ
-</h2>
-
-<p>
-OFFICIAL COVER
-</p>
-
-</div>
-
-
-</div>
-
-
-</div>
-
-
-
-
-
-
-<!-- SUBCITY POCKET -->
-
-<div class="visual-card pocket">
-
-
-<div class="mini-grid">
-
-
-<img src="assets/drafts/subcity-draft-1.png">
-
-<img src="assets/drafts/subcity-draft-2.png">
-
-<img src="assets/drafts/subcity-original-cover.png">
-
-<img src="assets/drafts/subcity-blurred-cover.png">
-
-
-</div>
-
-
-
-<div class="card-info">
-
-<h2>
-SUBCITY
-</h2>
-
-<p>
-DRAFT ARCHIVE
-</p>
-
-</div>
-
-
-</div>
-
-
-
-
-
-
-
-
-<!-- SUBCITY OFFICIAL -->
-
-
-<div class="visual-card official">
-
-
-<div class="image-box">
-
-
-<img src="assets/officials/subcity-cover.png">
-
-
-
-<div class="card-info">
-
-<h2>
-SUBCITY
-</h2>
-
-<p>
-OFFICIAL ARTWORK
-</p>
-
-</div>
-
-
-</div>
-
-
-</div>
-
-
-
-
-
-
-
-
-<!-- MOTION -->
-
-
-<div class="visual-card motion">
-
-
-<video autoplay muted loop>
-
-<source src="assets/motions/subcity-original-canvas.mp4">
-
-</video>
-
-
-
-<div class="card-info">
-
-<h2>
-SUBCITY MOTION
-</h2>
-
-<p>
-VIDEO PREVIEW
-</p>
-
-</div>
-
-
-</div>
-
-
-
-
-
-
-</section>
-
-
-
-</section>
-
-
-
-</main>
-
-
-
+  <a href="space.html" class="back-btn">← SPACE</a>
+
+  <main class="gallery-room">
+    <div class="wall-light" aria-hidden="true"></div>
+
+    <section class="gallery-space" aria-label="Visual archive">
+      <nav class="visual-filter" aria-label="Filter artwork">
+        <button class="active" type="button" data-filter="featured" aria-pressed="true">FEATURED</button>
+        <button type="button" data-filter="hot-take" aria-pressed="false">HOT TAKE</button>
+        <button type="button" data-filter="play-this" aria-pressed="false">PLAY THIS</button>
+        <button type="button" data-filter="newest" aria-pressed="false">NEWEST</button>
+      </nav>
+
+      <section class="visual-grid" aria-label="Artwork gallery">
+
+        <!-- DE FORMULA -->
+        <article class="visual-card official featured" data-title="DE FORMULĀ HŪMĀNĀ" data-kind="OFFICIAL COVER">
+          <button class="media-trigger image-box" type="button" aria-label="View DE FORMULĀ HŪMĀNĀ artwork">
+            <img src="assets/officials/de-formula-humana-cover.JPG" alt="DE FORMULĀ HŪMĀNĀ official cover">
+          </button>
+          <div class="card-info">
+            <h2>DE FORMULĀ HŪMĀNĀ</h2>
+            <p>OFFICIAL COVER</p>
+          </div>
+        </article>
+
+        <!-- SUBCITY DRAFT ARCHIVE -->
+        <article class="visual-card pocket experimental" data-title="SUBCITY" data-kind="DRAFT ARCHIVE">
+          <div class="mini-grid">
+            <button class="media-trigger" type="button" aria-label="View SUBCITY draft 1">
+              <img src="assets/drafts/subcity-draft-1.png" alt="SUBCITY draft 1">
+            </button>
+            <button class="media-trigger" type="button" aria-label="View SUBCITY draft 2">
+              <img src="assets/drafts/subcity-draft-2.png" alt="SUBCITY draft 2">
+            </button>
+            <button class="media-trigger" type="button" aria-label="View SUBCITY original cover draft">
+              <img src="assets/drafts/subcity-original-cover.png" alt="SUBCITY original cover draft">
+            </button>
+            <button class="media-trigger" type="button" aria-label="View SUBCITY blurred cover draft">
+              <img src="assets/drafts/subcity-blurred-cover.png" alt="SUBCITY blurred cover draft">
+            </button>
+          </div>
+          <div class="card-info">
+            <h2>SUBCITY</h2>
+            <p>DRAFT ARCHIVE · 4 VERSIONS</p>
+          </div>
+        </article>
+
+        <!-- SUBCITY OFFICIAL -->
+        <article class="visual-card official featured" data-title="SUBCITY" data-kind="OFFICIAL ARTWORK">
+          <button class="media-trigger image-box" type="button" aria-label="View SUBCITY official artwork">
+            <img src="assets/officials/subcity-cover.png" alt="SUBCITY official artwork">
+          </button>
+          <div class="card-info">
+            <h2>SUBCITY</h2>
+            <p>OFFICIAL ARTWORK</p>
+          </div>
+        </article>
+
+        <!-- SUBCITY MOTION -->
+        <article class="visual-card motion" data-title="SUBCITY MOTION" data-kind="VIDEO PREVIEW">
+          <button class="media-trigger video-trigger" type="button" aria-label="View SUBCITY motion preview">
+            <video autoplay muted loop playsinline preload="metadata">
+              <source src="assets/motions/subcity-original-canvas.mp4" type="video/mp4">
+            </video>
+            <span class="play-mark" aria-hidden="true">↗</span>
+          </button>
+          <div class="card-info">
+            <h2>SUBCITY MOTION</h2>
+            <p>VIDEO PREVIEW</p>
+          </div>
+        </article>
+
+      </section>
+    </section>
+  </main>
+
+  <!-- LIGHTBOX -->
+  <div class="lightbox" id="lightbox" aria-hidden="true">
+    <div class="lightbox-backdrop" data-close-lightbox></div>
+
+    <section class="lightbox-panel" role="dialog" aria-modal="true" aria-labelledby="lightbox-title">
+      <button class="lightbox-close" type="button" aria-label="Close artwork viewer" data-close-lightbox>×</button>
+
+      <div class="lightbox-media" id="lightbox-media"></div>
+
+      <div class="lightbox-caption">
+        <h2 id="lightbox-title"></h2>
+        <p id="lightbox-kind"></p>
+      </div>
+    </section>
+  </div>
 </body>
-
 </html>
