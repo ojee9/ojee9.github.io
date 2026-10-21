@@ -1,3 +1,4 @@
+
 * {     
   margin: 0;     
   padding: 0;     
@@ -473,7 +474,7 @@ body::before {
   background-color: #080808;     
   background-image: url("assets/visuals/vn-legacy-collection%20ad-social.png");     
   background-position: center top;     
-  background-size: 100% auto;     
+  background-size: 95% auto;     
   background-repeat: no-repeat;     
   border: 1px solid rgba(210,201,186,.4);     
   box-shadow: 0 0 28px rgba(210,201,186,.04);     
