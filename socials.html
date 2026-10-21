@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -159,6 +158,14 @@
 
   <aside class="social-side social-right">
 
+    <!-- VN LEGACY COLLECTION AD -->
+    <div
+      class="ad-banner legacy-ad"
+      role="img"
+      aria-label="VN Legacy Collection"
+    ></div>
+
+    <!-- OJEE KA$H SKYSCRAPER AD -->
     <a
       class="ad-banner ojee-ad"
       href="https://ojeexash.github.io/"
@@ -191,6 +198,7 @@
     panel.hidden = !opening;
 
     const action = toggle.querySelector(".contact-action");
+
     if (action) {
       action.textContent = opening
         ? "CLOSE MAILBOX ↗"
@@ -219,6 +227,7 @@
 
       if (!response.ok) {
         const result = await response.json().catch(() => null);
+
         throw new Error(
           result?.errors?.map(error => error.message).join(" ") ||
           "Submission failed"
