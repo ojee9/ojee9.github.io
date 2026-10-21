@@ -1,469 +1,490 @@
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+* { 
+  margin: 0; 
+  padding: 0; 
+  box-sizing: border-box; 
+} 
+ 
+:root { 
+  color-scheme: dark; 
+} 
+ 
+body { 
+  min-height: 100vh; 
+  background: radial-gradient(ellipse at center, #111 0%, #050505 55%, #000 100%); 
+  color: white; 
+  font-family: Arial, sans-serif; 
+  overflow-x: hidden; 
+  overflow-y: auto; 
+} 
+ 
+body::before { 
+  content: ""; 
+  position: fixed; 
+  inset: 0; 
+  background: radial-gradient(ellipse at 50% 35%, rgba(255,255,255,.08), transparent 55%); 
+  pointer-events: none; 
+  z-index: 0; 
+} 
+ 
+.back-btn { 
+  position: fixed; 
+  top: 30px; 
+  left: 40px; 
+  color: white; 
+  text-decoration: none; 
+  font-size: 13px; 
+  letter-spacing: 4px; 
+  opacity: .55; 
+  z-index: 10; 
+  transition: opacity .3s ease; 
+} 
+ 
+.back-btn:hover { 
+  opacity: 1; 
+} 
+ 
+.social-room { 
+  position: relative; 
+  z-index: 1; 
+  width: 100%; 
+  min-height: 100vh; 
+  display: grid; 
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 360px) minmax(0, 1fr); 
+  align-items: center; 
+  gap: clamp(22px, 3vw, 48px); 
+  padding: 80px clamp(24px, 3.5vw, 56px); 
+} 
+ 
+.social-list { 
+  grid-column: 2; 
+  grid-row: 1; 
+  width: 100%; 
+  min-width: 0; 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  gap: 25px; 
+} 
+ 
+.social-item { 
+  width: 100%; 
+  display: flex; 
+  align-items: center; 
+  gap: 30px; 
+  padding: 12px 15px; 
+  border-bottom: 1px solid rgba(255,255,255,.08); 
+  text-decoration: none; 
+  color: white; 
+  transition: transform .3s ease, border-color .3s ease; 
+} 
+ 
+.social-item:visited { 
+  color: white; 
+} 
+ 
+.social-item:hover { 
+  transform: translateX(8px); 
+  border-color: rgba(255,255,255,.35); 
+} 
+ 
+.social-item img { 
+  width: 45px; 
+  height: 45px; 
+  object-fit: contain; 
+  flex-shrink: 0; 
+} 
+ 
+.social-item h2 { 
+  color: white; 
+  font-size: 14px; 
+  font-weight: 300; 
+  letter-spacing: 5px; 
+} 
+ 
+.social-item p { 
+  color: white; 
+  margin-top: 8px; 
+  font-size: 10px; 
+  letter-spacing: 3px; 
+  opacity: .45; 
+} 
+ 
+/* SIDE AD LAYOUT */ 
+ 
+.social-side { 
+  width: 100%; 
+  min-width: 0; 
+  display: flex; 
+  flex-direction: column; 
+  gap: 22px; 
+} 
+ 
+.social-left { 
+  grid-column: 1; 
+  grid-row: 1; 
+} 
+ 
+.social-right { 
+  grid-column: 3; 
+  grid-row: 1; 
+  align-items: flex-end; 
+} 
+ 
+/* CLICKABLE AD PANELS */ 
+ 
+.ad-banner { 
+  position: relative; 
+  isolation: isolate; 
+  width: 100%; 
+  min-width: 0; 
+  display: flex; 
+  flex-direction: column; 
+  justify-content: space-between; 
+  align-items: flex-start; 
+  gap: 20px; 
+  padding: clamp(20px, 2vw, 30px); 
+  overflow: hidden; 
+  text-decoration: none; 
+  color: white; 
+  background-color: #111; 
+  background-repeat: no-repeat; 
+  background-size: cover; 
+  background-position: center; 
+  border: 1px solid rgba(255,255,255,.2); 
+  transition: transform .25s ease, border-color .25s ease; 
+} 
+ 
+.ad-banner::before { 
+  content: ""; 
+  position: absolute; 
+  inset: 0; 
+  z-index: -1; 
+  background: linear-gradient( 
+    180deg, 
+    rgba(0,0,0,.35) 0%, 
+    rgba(0,0,0,.2) 25%, 
+    rgba(0,0,0,.72) 68%, 
+    rgba(0,0,0,.92) 100% 
+  ); 
+  pointer-events: none; 
+} 
+ 
+.ad-banner:hover { 
+  transform: translateY(-4px); 
+  border-color: rgba(255,255,255,.65); 
+} 
+ 
+/* LEFT: EVENTS / PROJECTS AD */ 
+ 
+.project-ad { 
+  min-height: 330px; 
+  background-image: url("assets/visuals/9ojeez9-events-concerts-background.png"); 
+  background-position: center; 
+  border: 2px solid #eaff46; 
+  box-shadow: 5px 5px 0 rgba(234,255,70,.55); 
+  color: white; 
+} 
+ 
+.project-ad::before { 
+  background: 
+    linear-gradient(180deg, rgba(0,0,0,.12), rgba(0,0,0,.25) 25%, rgba(0,0,0,.9) 100%), 
+    linear-gradient(90deg, rgba(0,0,0,.28), transparent); 
+} 
+ 
+.ad-label { 
+  display: inline-block; 
+  padding: 7px 9px; 
+  background: #eaff46; 
+  color: #101010; 
+  font-size: 9px; 
+  font-weight: 900; 
+  letter-spacing: 1.5px; 
+  transform: rotate(-2deg); 
+} 
+ 
+.project-headline { 
+  display: block; 
+  font-size: clamp(22px, 2.1vw, 32px); 
+  font-weight: 1000; 
+  line-height: .98; 
+  letter-spacing: -1px; 
+  text-transform: uppercase; 
+  text-shadow: 2px 2px 0 #000; 
+} 
+ 
+.ad-cta { 
+  display: inline-block; 
+  align-self: flex-start; 
+  padding: 12px 15px; 
+  background: #eaff46; 
+  color: #101010; 
+  border: 2px solid #101010; 
+  box-shadow: 3px 3px 0 #fff; 
+  font-size: 15px; 
+  font-weight: 1000; 
+  letter-spacing: 1px; 
+  transition: transform .2s ease; 
+} 
+ 
+.ad-banner:hover .ad-cta { 
+  transform: scale(1.04) rotate(-1deg); 
+} 
+ 
+/* LEFT: INTERACTIVE MAILBOX */ 
+ 
+.contact-wrap { 
+  width: 100%; 
+  display: flex; 
+  flex-direction: column; 
+  gap: 12px; 
+} 
+ 
+/* Closed mailbox */ 
+ 
+.contact-banner { 
+  position: relative; 
+  isolation: isolate; 
+  width: 100%; 
+  min-height: 155px; 
+  padding: 58px 18px 18px; 
+  display: flex; 
+  flex-direction: column; 
+  align-items: flex-start; 
+  justify-content: flex-end; 
+  gap: 9px; 
+  overflow: hidden; 
+  text-align: left; 
+  font-family: inherit; 
+  color: #eaff46; 
+  background: 
+    linear-gradient(135deg, rgba(234,255,70,.07), transparent 60%), 
+    #111; 
+  border: 1px solid #eaff46; 
+  box-shadow: 5px 5px 0 rgba(234,255,70,.45); 
+  cursor: pointer; 
+  transition: background .25s ease, border-color .25s ease, transform .25s ease; 
+} 
+ 
+.contact-banner::after { 
+  content: none !important; 
+} 
+ 
+.contact-banner:hover { 
+  background-color: #191919; 
+  border-color: #fff; 
+  transform: translateY(-2px); 
+} 
+ 
+/* Mailbox lid */ 
+ 
+.mailbox-lid { 
+  position: absolute; 
+  z-index: 3; 
+  top: 0; 
+  left: 0; 
+  width: 100%; 
+  height: 53px; 
+  background: #eaff46; 
+  clip-path: polygon(0 0, 100% 0, 50% 100%); 
+  transform-origin: top center; 
+  transform: rotateX(0deg); 
+  transition: transform .45s ease; 
+  pointer-events: none; 
+} 
+ 
+.contact-banner.is-open .mailbox-lid { 
+  transform: rotateX(155deg); 
+} 
+ 
+.mail-stamp { 
+  position: relative; 
+  z-index: 1; 
+  font-size: 8px; 
+  letter-spacing: 3px; 
+  color: #eaff46; 
+  opacity: .75; 
+} 
+ 
+.contact-banner strong { 
+  position: relative; 
+  z-index: 1; 
+  font-size: clamp(14px, 1.25vw, 18px); 
+  line-height: 1.2; 
+  letter-spacing: 1px; 
+} 
+ 
+.contact-action { 
+  position: relative; 
+  z-index: 1; 
+  font-size: 10px; 
+  letter-spacing: 2px; 
+  border-bottom: 1px solid rgba(234,255,70,.6); 
+  padding-bottom: 5px; 
+} 
+ 
+.mail-address { 
+  position: relative; 
+  z-index: 1; 
+  font-size: 8px; 
+  letter-spacing: 1px; 
+  opacity: .55; 
+  overflow-wrap: anywhere; 
+} 
+ 
+/* Message form panel */ 
+ 
+.contact-form-panel { 
+  width: 100%; 
+  min-width: 0; 
+  padding: 18px; 
+  color: #eaff46; 
+  background: 
+    linear-gradient(135deg, rgba(234,255,70,.035), transparent 60%), 
+    #101010; 
+  border: 1px solid #eaff46; 
+  box-shadow: 5px 5px 0 rgba(234,255,70,.45); 
+  animation: mailboxReveal .3s ease both; 
+} 
+ 
+.contact-form-panel[hidden] { 
+  display: none !important; 
+} 
+ 
+.contact-form-panel h3 { 
+  margin: 0 0 18px; 
+  color: #eaff46; 
+  font-size: 15px; 
+  line-height: 1.4; 
+  letter-spacing: 1px; 
+} 
+ 
+.contact-form-panel form { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 14px; 
+} 
+ 
+.contact-form-panel label { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 7px; 
+  color: #eaff46; 
+  font-size: 10px; 
+  letter-spacing: 1.5px; 
+} 
+ 
+.contact-form-panel input, 
+.contact-form-panel textarea { 
+  display: block; 
+  width: 100%; 
+  min-width: 0; 
+  padding: 11px; 
+  color: #fff; 
+  background: #191919; 
+  border: 1px solid #444; 
+  border-radius: 0; 
+  outline: none; 
+  font-family: Arial, sans-serif; 
+  font-size: 13px; 
+  letter-spacing: normal; 
+  transition: border-color .2s ease, background .2s ease; 
+} 
+ 
+.contact-form-panel input { 
+  min-height: 40px; 
+} 
+ 
+.contact-form-panel input::placeholder, 
+.contact-form-panel textarea::placeholder { 
+  color: rgba(255,255,255,.35); 
+} 
+ 
+.contact-form-panel input:focus, 
+.contact-form-panel textarea:focus { 
+  border-color: #eaff46; 
+  background: #202020; 
+} 
+ 
+.contact-form-panel textarea { 
+  min-height: 110px; 
+  resize: vertical; 
+  line-height: 1.5; 
+} 
+ 
+.contact-submit { 
+  width: 100%; 
+  min-height: 43px; 
+  padding: 13px 10px; 
+  color: #101010; 
+  background: #eaff46; 
+  border: 1px solid #eaff46; 
+  border-radius: 0; 
+  font-family: Arial, sans-serif; 
+  font-size: 11px; 
+  font-weight: 900; 
+  letter-spacing: 1px; 
+  cursor: pointer; 
+  transition: color .2s ease, background .2s ease; 
+} 
+ 
+.contact-submit:hover { 
+  color: #eaff46; 
+  background: #111; 
+} 
+ 
+.contact-submit:disabled { 
+  opacity: .6; 
+  cursor: wait; 
+} 
+ 
+.contact-status { 
+  margin: 0; 
+  color: #eaff46; 
+  font-size: 11px; 
+  line-height: 1.6; 
+  letter-spacing: .3px; 
+  overflow-wrap: anywhere; 
+} 
+ 
+@keyframes mailboxReveal { 
+  from { 
+    opacity: 0; 
+    transform: translateY(-8px); 
+  } 
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  } 
+} 
+ 
+/* RIGHT: OJEE KA$H SKYCRAPER AD 
+   DESKTOP: 160 x 900 PX */ 
+ 
+.ojee-ad { 
+  width: 160px; 
+  max-width: 160px; 
+  height: 900px; 
+  min-height: 900px; 
+  flex-shrink: 0; 
+  align-self: flex-end; 
+  justify-content: flex-end; 
+  padding: 18px 15px; 
+  gap: 18px; 
+  background-image: url("assets/visuals/vertical-ojee-kash-portrait.png"); 
+  background-position: center 25%; 
+  background-size: cover; 
+  background-repeat: no-repeat; 
+  border: 1px solid rgba(255,255,255,.3); 
+  box-shadow: 0 0 35px rgba(255,255,255,.045); 
+} 
 
-:root {
-  color-scheme: dark;
-}
+/* RIGHT: VN LEGACY COLLECTION AD
+   PC: contain; pano sadece minimal genişletildi */
 
-body {
-  min-height: 100vh;
-  background: radial-gradient(ellipse at center, #111 0%, #050505 55%, #000 100%);
-  color: white;
-  font-family: Arial, sans-serif;
-  overflow-x: hidden;
-  overflow-y: auto;
-}
-
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background: radial-gradient(ellipse at 50% 35%, rgba(255,255,255,.08), transparent 55%);
-  pointer-events: none;
-  z-index: 0;
-}
-
-.back-btn {
-  position: fixed;
-  top: 30px;
-  left: 40px;
-  color: white;
-  text-decoration: none;
-  font-size: 13px;
-  letter-spacing: 4px;
-  opacity: .55;
-  z-index: 10;
-  transition: opacity .3s ease;
-}
-
-.back-btn:hover {
-  opacity: 1;
-}
-
-.social-room {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  min-height: 100vh;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(300px, 360px) minmax(0, 1fr);
-  align-items: center;
-  gap: clamp(22px, 3vw, 48px);
-  padding: 80px clamp(24px, 3.5vw, 56px);
-}
-
-.social-list {
-  grid-column: 2;
-  grid-row: 1;
-  width: 100%;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 25px;
-}
-
-.social-item {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 30px;
-  padding: 12px 15px;
-  border-bottom: 1px solid rgba(255,255,255,.08);
-  text-decoration: none;
-  color: white;
-  transition: transform .3s ease, border-color .3s ease;
-}
-
-.social-item:visited {
-  color: white;
-}
-
-.social-item:hover {
-  transform: translateX(8px);
-  border-color: rgba(255,255,255,.35);
-}
-
-.social-item img {
-  width: 45px;
-  height: 45px;
-  object-fit: contain;
-  flex-shrink: 0;
-}
-
-.social-item h2 {
-  color: white;
-  font-size: 14px;
-  font-weight: 300;
-  letter-spacing: 5px;
-}
-
-.social-item p {
-  color: white;
-  margin-top: 8px;
-  font-size: 10px;
-  letter-spacing: 3px;
-  opacity: .45;
-}
-
-/* SIDE AD LAYOUT */
-
-.social-side {
-  width: 100%;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
-}
-
-.social-left {
-  grid-column: 1;
-  grid-row: 1;
-}
-
-.social-right {
-  grid-column: 3;
-  grid-row: 1;
-  align-items: flex-end;
-}
-
-/* CLICKABLE AD PANELS */
-
-.ad-banner {
-  position: relative;
-  isolation: isolate;
-  width: 100%;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 20px;
-  padding: clamp(20px, 2vw, 30px);
-  overflow: hidden;
-  text-decoration: none;
-  color: white;
-  background-color: #111;
-  background-repeat: no-repeat;
-  background-size: cover;
-  background-position: center;
-  border: 1px solid rgba(255,255,255,.2);
-  transition: transform .25s ease, border-color .25s ease;
-}
-
-.ad-banner::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: linear-gradient(
-    180deg,
-    rgba(0,0,0,.35) 0%,
-    rgba(0,0,0,.2) 25%,
-    rgba(0,0,0,.72) 68%,
-    rgba(0,0,0,.92) 100%
-  );
-  pointer-events: none;
-}
-
-.ad-banner:hover {
-  transform: translateY(-4px);
-  border-color: rgba(255,255,255,.65);
-}
-
-/* LEFT: EVENTS / PROJECTS AD */
-
-.project-ad {
-  min-height: 330px;
-  background-image: url("assets/visuals/9ojeez9-events-concerts-background.png");
-  background-position: center;
-  border: 2px solid #eaff46;
-  box-shadow: 5px 5px 0 rgba(234,255,70,.55);
-  color: white;
-}
-
-.project-ad::before {
-  background:
-    linear-gradient(180deg, rgba(0,0,0,.12), rgba(0,0,0,.25) 25%, rgba(0,0,0,.9) 100%),
-    linear-gradient(90deg, rgba(0,0,0,.28), transparent);
-}
-
-.ad-label {
-  display: inline-block;
-  padding: 7px 9px;
-  background: #eaff46;
-  color: #101010;
-  font-size: 9px;
-  font-weight: 900;
-  letter-spacing: 1.5px;
-  transform: rotate(-2deg);
-}
-
-.project-headline {
-  display: block;
-  font-size: clamp(22px, 2.1vw, 32px);
-  font-weight: 1000;
-  line-height: .98;
-  letter-spacing: -1px;
-  text-transform: uppercase;
-  text-shadow: 2px 2px 0 #000;
-}
-
-.ad-cta {
-  display: inline-block;
-  align-self: flex-start;
-  padding: 12px 15px;
-  background: #eaff46;
-  color: #101010;
-  border: 2px solid #101010;
-  box-shadow: 3px 3px 0 #fff;
-  font-size: 15px;
-  font-weight: 1000;
-  letter-spacing: 1px;
-  transition: transform .2s ease;
-}
-
-.ad-banner:hover .ad-cta {
-  transform: scale(1.04) rotate(-1deg);
-}
-
-/* LEFT: INTERACTIVE MAILBOX */
-
-.contact-wrap {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-/* Closed mailbox */
-
-.contact-banner {
-  position: relative;
-  isolation: isolate;
-  width: 100%;
-  min-height: 155px;
-  padding: 58px 18px 18px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: flex-end;
-  gap: 9px;
-  overflow: hidden;
-  text-align: left;
-  font-family: inherit;
-  color: #eaff46;
-  background:
-    linear-gradient(135deg, rgba(234,255,70,.07), transparent 60%),
-    #111;
-  border: 1px solid #eaff46;
-  box-shadow: 5px 5px 0 rgba(234,255,70,.45);
-  cursor: pointer;
-  transition: background .25s ease, border-color .25s ease, transform .25s ease;
-}
-
-.contact-banner::after {
-  content: none !important;
-}
-
-.contact-banner:hover {
-  background-color: #191919;
-  border-color: #fff;
-  transform: translateY(-2px);
-}
-
-/* Mailbox lid */
-
-.mailbox-lid {
-  position: absolute;
-  z-index: 3;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 53px;
-  background: #eaff46;
-  clip-path: polygon(0 0, 100% 0, 50% 100%);
-  transform-origin: top center;
-  transform: rotateX(0deg);
-  transition: transform .45s ease;
-  pointer-events: none;
-}
-
-.contact-banner.is-open .mailbox-lid {
-  transform: rotateX(155deg);
-}
-
-.mail-stamp {
-  position: relative;
-  z-index: 1;
-  font-size: 8px;
-  letter-spacing: 3px;
-  color: #eaff46;
-  opacity: .75;
-}
-
-.contact-banner strong {
-  position: relative;
-  z-index: 1;
-  font-size: clamp(14px, 1.25vw, 18px);
-  line-height: 1.2;
-  letter-spacing: 1px;
-}
-
-.contact-action {
-  position: relative;
-  z-index: 1;
-  font-size: 10px;
-  letter-spacing: 2px;
-  border-bottom: 1px solid rgba(234,255,70,.6);
-  padding-bottom: 5px;
-}
-
-.mail-address {
-  position: relative;
-  z-index: 1;
-  font-size: 8px;
-  letter-spacing: 1px;
-  opacity: .55;
-  overflow-wrap: anywhere;
-}
-
-/* Message form panel */
-
-.contact-form-panel {
-  width: 100%;
-  min-width: 0;
-  padding: 18px;
-  color: #eaff46;
-  background:
-    linear-gradient(135deg, rgba(234,255,70,.035), transparent 60%),
-    #101010;
-  border: 1px solid #eaff46;
-  box-shadow: 5px 5px 0 rgba(234,255,70,.45);
-  animation: mailboxReveal .3s ease both;
-}
-
-.contact-form-panel[hidden] {
-  display: none !important;
-}
-
-.contact-form-panel h3 {
-  margin: 0 0 18px;
-  color: #eaff46;
-  font-size: 15px;
-  line-height: 1.4;
-  letter-spacing: 1px;
-}
-
-.contact-form-panel form {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.contact-form-panel label {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-  color: #eaff46;
-  font-size: 10px;
-  letter-spacing: 1.5px;
-}
-
-.contact-form-panel input,
-.contact-form-panel textarea {
-  display: block;
-  width: 100%;
-  min-width: 0;
-  padding: 11px;
-  color: #fff;
-  background: #191919;
-  border: 1px solid #444;
-  border-radius: 0;
-  outline: none;
-  font-family: Arial, sans-serif;
-  font-size: 13px;
-  letter-spacing: normal;
-  transition: border-color .2s ease, background .2s ease;
-}
-
-.contact-form-panel input {
-  min-height: 40px;
-}
-
-.contact-form-panel input::placeholder,
-.contact-form-panel textarea::placeholder {
-  color: rgba(255,255,255,.35);
-}
-
-.contact-form-panel input:focus,
-.contact-form-panel textarea:focus {
-  border-color: #eaff46;
-  background: #202020;
-}
-
-.contact-form-panel textarea {
-  min-height: 110px;
-  resize: vertical;
-  line-height: 1.5;
-}
-
-.contact-submit {
-  width: 100%;
-  min-height: 43px;
-  padding: 13px 10px;
-  color: #101010;
-  background: #eaff46;
-  border: 1px solid #eaff46;
-  border-radius: 0;
-  font-family: Arial, sans-serif;
-  font-size: 11px;
-  font-weight: 900;
-  letter-spacing: 1px;
-  cursor: pointer;
-  transition: color .2s ease, background .2s ease;
-}
-
-.contact-submit:hover {
-  color: #eaff46;
-  background: #111;
-}
-
-.contact-submit:disabled {
-  opacity: .6;
-  cursor: wait;
-}
-
-.contact-status {
-  margin: 0;
-  color: #eaff46;
-  font-size: 11px;
-  line-height: 1.6;
-  letter-spacing: .3px;
-  overflow-wrap: anywhere;
-}
-
-@keyframes mailboxReveal {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* RIGHT: OJEE KA$H SKYCRAPER AD
-   DESKTOP: 160 x 900 PX */
-
-.ojee-ad {
-  width: 160px;
-  max-width: 160px;
+.legacy-ad {
+  width: 170px;
+  max-width: 170px;
   height: 900px;
   min-height: 900px;
   flex-shrink: 0;
@@ -471,15 +492,15 @@ body::before {
   justify-content: flex-end;
   padding: 18px 15px;
   gap: 18px;
-  background-image: url("assets/visuals/vertical-ojee-kash-portrait.png");
-  background-position: center 25%;
-  background-size: cover;
+  background-image: url("assets/visuals/vn-legacy-collection%20ad-social.png");
+  background-position: center;
+  background-size: contain;
   background-repeat: no-repeat;
   border: 1px solid rgba(255,255,255,.3);
   box-shadow: 0 0 35px rgba(255,255,255,.045);
 }
 
-.ojee-ad::before {
+.legacy-ad::before {
   background: linear-gradient(
     180deg,
     rgba(0,0,0,.05) 0%,
@@ -488,208 +509,247 @@ body::before {
     rgba(0,0,0,.96) 100%
   );
 }
-
-.official-label {
-  position: absolute;
-  top: 14px;
-  left: 10px;
-  right: 10px;
-  width: fit-content;
-  max-width: calc(100% - 20px);
-  padding: 7px 8px;
-  background: rgba(0,0,0,.72);
-  border: 1px solid rgba(255,255,255,.45);
-  font-size: 7px;
-  line-height: 1.4;
-  letter-spacing: 1px;
-}
-
-.ojee-logo {
-  display: block;
-  width: 100%;
-  padding-bottom: 12px;
-  border-bottom: 1px solid rgba(255,255,255,.45);
-  font-size: clamp(23px, 1.8vw, 29px);
-  line-height: 1;
-  font-weight: 900;
-  letter-spacing: -1.2px;
-  overflow-wrap: anywhere;
-  text-shadow: 2px 3px 12px #000;
-}
-
-.ojee-copy {
-  font-size: clamp(14px, 1.1vw, 17px);
-  line-height: 1.2;
-  font-weight: 900;
-  letter-spacing: .3px;
-  overflow-wrap: anywhere;
-  text-shadow: 1px 2px 8px #000;
-}
-
-/* TABLET */
-
-@media (max-width: 1050px) {
-  .social-room {
-    grid-template-columns: minmax(0, 1fr) minmax(290px, 340px) minmax(0, 1fr);
-    gap: 18px;
-    padding: 80px 22px 45px;
+ 
+.ojee-ad::before { 
+  background: linear-gradient( 
+    180deg, 
+    rgba(0,0,0,.05) 0%, 
+    rgba(0,0,0,.02) 30%, 
+    rgba(0,0,0,.62) 63%, 
+    rgba(0,0,0,.96) 100% 
+  ); 
+} 
+ 
+.official-label { 
+  position: absolute; 
+  top: 14px; 
+  left: 10px; 
+  right: 10px; 
+  width: fit-content; 
+  max-width: calc(100% - 20px); 
+  padding: 7px 8px; 
+  background: rgba(0,0,0,.72); 
+  border: 1px solid rgba(255,255,255,.45); 
+  font-size: 7px; 
+  line-height: 1.4; 
+  letter-spacing: 1px; 
+} 
+ 
+.ojee-logo { 
+  display: block; 
+  width: 100%; 
+  padding-bottom: 12px; 
+  border-bottom: 1px solid rgba(255,255,255,.45); 
+  font-size: clamp(23px, 1.8vw, 29px); 
+  line-height: 1; 
+  font-weight: 900; 
+  letter-spacing: -1.2px; 
+  overflow-wrap: anywhere; 
+  text-shadow: 2px 3px 12px #000; 
+} 
+ 
+.ojee-copy { 
+  font-size: clamp(14px, 1.1vw, 17px); 
+  line-height: 1.2; 
+  font-weight: 900; 
+  letter-spacing: .3px; 
+  overflow-wrap: anywhere; 
+  text-shadow: 1px 2px 8px #000; 
+} 
+ 
+/* TABLET */ 
+ 
+@media (max-width: 1050px) { 
+  .social-room { 
+    grid-template-columns: minmax(0, 1fr) minmax(290px, 340px) minmax(0, 1fr); 
+    gap: 18px; 
+    padding: 80px 22px 45px; 
+  } 
+ 
+  .project-ad { 
+    min-height: 310px; 
+  } 
+ 
+  .ojee-ad { 
+    width: 160px; 
+    max-width: 160px; 
+    height: 900px; 
+    min-height: 900px; 
+    padding: 16px 12px; 
   }
 
-  .project-ad {
-    min-height: 310px;
-  }
-
-  .ojee-ad {
-    width: 160px;
-    max-width: 160px;
+  .legacy-ad {
+    width: 170px;
+    max-width: 170px;
     height: 900px;
     min-height: 900px;
     padding: 16px 12px;
+    background-size: contain;
+  }
+ 
+  .social-item { 
+    gap: 20px; 
+  } 
+ 
+  .social-item h2 { 
+    font-size: 12px; 
+    letter-spacing: 3px; 
+  } 
+} 
+ 
+/* SMALL TABLET: ADS BELOW SOCIALS */ 
+ 
+@media (max-width: 800px) { 
+  .social-room { 
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); 
+    align-items: start; 
+    gap: 26px; 
+    padding: 80px 22px 45px; 
+  } 
+ 
+  .social-list { 
+    grid-column: 1 / -1; 
+    grid-row: 1; 
+    width: 100%; 
+    max-width: 420px; 
+    justify-self: center; 
+  } 
+ 
+  .social-left { 
+    grid-column: 1; 
+    grid-row: 2; 
+  } 
+ 
+  .social-right { 
+    grid-column: 2; 
+    grid-row: 2; 
+    align-items: center; 
+  } 
+ 
+  .project-ad { 
+    min-height: 330px; 
+  } 
+ 
+  .ojee-ad { 
+    width: 100%; 
+    max-width: 250px; 
+    height: auto; 
+    min-height: 420px; 
+    padding: 24px; 
   }
 
-  .social-item {
-    gap: 20px;
-  }
-
-  .social-item h2 {
-    font-size: 12px;
-    letter-spacing: 3px;
-  }
-}
-
-/* SMALL TABLET: ADS BELOW SOCIALS */
-
-@media (max-width: 800px) {
-  .social-room {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    align-items: start;
-    gap: 26px;
-    padding: 80px 22px 45px;
-  }
-
-  .social-list {
-    grid-column: 1 / -1;
-    grid-row: 1;
-    width: 100%;
-    max-width: 420px;
-    justify-self: center;
-  }
-
-  .social-left {
-    grid-column: 1;
-    grid-row: 2;
-  }
-
-  .social-right {
-    grid-column: 2;
-    grid-row: 2;
-    align-items: center;
-  }
-
-  .project-ad {
-    min-height: 330px;
-  }
-
-  .ojee-ad {
+  .legacy-ad {
     width: 100%;
     max-width: 250px;
     height: auto;
     min-height: 420px;
     padding: 24px;
+    background-position: center;
+    background-size: contain;
   }
-}
-
-/* MOBILE */
-
-@media (max-width: 560px) {
-  .back-btn {
-    top: 20px;
-    left: 20px;
-    font-size: 11px;
+} 
+ 
+/* MOBILE */ 
+ 
+@media (max-width: 560px) { 
+  .back-btn { 
+    top: 20px; 
+    left: 20px; 
+    font-size: 11px; 
+  } 
+ 
+  .social-room { 
+    display: flex; 
+    flex-direction: column; 
+    align-items: stretch; 
+    gap: 28px; 
+    padding: 75px 20px 35px; 
+  } 
+ 
+  .social-list { 
+    width: 100%; 
+    max-width: 420px; 
+    align-self: center; 
+    gap: 18px; 
+  } 
+ 
+  .social-item { 
+    width: 100%; 
+    gap: 20px; 
+    padding: 11px 10px; 
+  } 
+ 
+  .social-item img { 
+    width: 40px; 
+    height: 40px; 
+  } 
+ 
+  .social-item h2 { 
+    font-size: 12px; 
+    letter-spacing: 3px; 
+  } 
+ 
+  .social-item p { 
+    font-size: 9px; 
+  } 
+ 
+  .social-side { 
+    width: 100%; 
+    max-width: 420px; 
+    align-self: center; 
+    gap: 20px; 
+  } 
+ 
+  .project-ad { 
+    min-height: 340px; 
+    padding: 23px; 
+  } 
+ 
+  .project-headline { 
+    font-size: clamp(28px, 8vw, 38px); 
+  } 
+ 
+  .ojee-ad { 
+    width: 100%; 
+    max-width: 260px; 
+    height: auto; 
+    min-height: 440px; 
+    padding: 24px; 
+    background-position: center 25%; 
+  } 
+ 
+  .ojee-logo { 
+    font-size: 34px; 
+  } 
+ 
+  .ojee-copy { 
+    font-size: 19px; 
   }
 
-  .social-room {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 28px;
-    padding: 75px 20px 35px;
-  }
-
-  .social-list {
-    width: 100%;
-    max-width: 420px;
-    align-self: center;
-    gap: 18px;
-  }
-
-  .social-item {
-    width: 100%;
-    gap: 20px;
-    padding: 11px 10px;
-  }
-
-  .social-item img {
-    width: 40px;
-    height: 40px;
-  }
-
-  .social-item h2 {
-    font-size: 12px;
-    letter-spacing: 3px;
-  }
-
-  .social-item p {
-    font-size: 9px;
-  }
-
-  .social-side {
-    width: 100%;
-    max-width: 420px;
-    align-self: center;
-    gap: 20px;
-  }
-
-  .project-ad {
-    min-height: 340px;
-    padding: 23px;
-  }
-
-  .project-headline {
-    font-size: clamp(28px, 8vw, 38px);
-  }
-
-  .ojee-ad {
+  .legacy-ad {
     width: 100%;
     max-width: 260px;
     height: auto;
     min-height: 440px;
     padding: 24px;
     background-position: center 25%;
+    background-size: contain;
   }
-
-  .ojee-logo {
-    font-size: 34px;
-  }
-
-  .ojee-copy {
-    font-size: 19px;
-  }
-
-  .contact-banner {
-    min-height: 155px;
-  }
-
-  .contact-form-panel {
-    padding: 16px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    transition: none !important;
-    animation: none !important;
-  }
+ 
+  .contact-banner { 
+    min-height: 155px; 
+  } 
+ 
+  .contact-form-panel { 
+    padding: 16px; 
+  } 
+} 
+ 
+@media (prefers-reduced-motion: reduce) { 
+  *, 
+  *::before, 
+  *::after { 
+    transition: none !important; 
+    animation: none !important; 
+  } 
 }
