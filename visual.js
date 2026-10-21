@@ -5,38 +5,52 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (!grid || !filterNav) return;
 
-  // Prevent duplicate initialization
-  if (grid.dataset.visualsInitialized === "true") return;
-  grid.dataset.visualsInitialized = "true";
+  const lightbox = document.getElementById("lightbox");
+  const lightboxMedia = document.getElementById("lightbox-media");
+  const lightboxTitle = document.getElementById("lightbox-title");
+  const lightboxKind = document.getElementById("lightbox-kind");
 
-  // Add the new motion card immediately before the existing motion card
-  if (!grid.querySelector('[data-added-motion="subcity-track-canvas-social-addon"]')) {
+  if (!lightbox || !lightboxMedia || !lightboxTitle || !lightboxKind) {
+    console.error("Visuals: Lightbox HTML elements are missing.");
+    return;
+  }
+
+  // Add the extra motion card immediately to the LEFT of the existing motion.
+  const extraMotionPath =
+    "assets/motions/subcity-track-canvas-social-addon.mp4";
+
+  if (!grid.querySelector('[data-added-motion="true"]')) {
     const existingMotion = grid.querySelector(".visual-card.motion");
 
     if (existingMotion) {
-      const newCard = document.createElement("div");
-      newCard.className = "visual-card motion";
-      newCard.dataset.addedMotion = "subcity-track-canvas-social-addon";
+      const card = document.createElement("article");
+      card.className = "visual-card motion";
+      card.dataset.addedMotion = "true";
+      card.dataset.title = "SUBCITY TRACK CANVAS";
+      card.dataset.kind = "VIDEO PREVIEW";
+      card.dataset.category = "play-this";
 
-      newCard.innerHTML = `
-        <div class="image-box">
+      card.innerHTML = `
+        <button class="media-trigger video-trigger" type="button"
+          aria-label="View SUBCITY TRACK CANVAS">
           <video autoplay muted loop playsinline preload="metadata">
-            <source src="assets/motions/subcity-track-canvas-social-addon.mp4" type="video/mp4">
+            <source src="${extraMotionPath}" type="video/mp4">
           </video>
-        </div>
+          <span class="play-mark" aria-hidden="true">↗</span>
+        </button>
         <div class="card-info">
           <h2>SUBCITY TRACK CANVAS</h2>
           <p>VIDEO PREVIEW</p>
         </div>
       `;
 
-      existingMotion.before(newCard);
+      existingMotion.before(card);
     }
   }
 
   let cards = Array.from(grid.querySelectorAll(".visual-card"));
 
-  // Assign categories to the existing cards
+  // Save original order and assign filter categories.
   cards.forEach((card, index) => {
     card.dataset.originalOrder = String(index);
 
@@ -44,7 +58,9 @@ document.addEventListener("DOMContentLoaded", () => {
       card.dataset.category = "hot-take";
     } else if (card.classList.contains("motion")) {
       card.dataset.category = "play-this";
-    } else if (card.classList.contains("official")) {
+    } else if (card.classList.contains("featured")) {
+      card.dataset.category = "featured";
+    } else {
       card.dataset.category = "featured";
     }
 
@@ -56,221 +72,75 @@ document.addEventListener("DOMContentLoaded", () => {
       video.playsInline = true;
       video.play().catch(() => {});
     }
-
-    card.querySelectorAll("img, video").forEach(media => {
-      media.style.cursor = "pointer";
-      media.tabIndex = 0;
-    });
-
-    card.style.animation = "visualCardIn .35s ease both";
   });
 
-  // Lightbox
-  let lightbox = document.querySelector("#visual-lightbox");
+  const filterButtons = Array.from(
+    filterNav.querySelectorAll("[data-filter]")
+  );
 
-  if (!lightbox) {
-    lightbox = document.createElement("div");
-    lightbox.id = "visual-lightbox";
-    lightbox.innerHTML = `
-      <button class="vl-close" type="button" aria-label="Close">×</button>
-      <div class="vl-content">
-        <div class="vl-media"></div>
-        <div class="vl-caption">
-          <h2 class="vl-title"></h2>
-          <p class="vl-kind"></p>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(lightbox);
+  function closeLightbox() {
+    lightbox.classList.remove("is-open");
+    lightbox.setAttribute("aria-hidden", "true");
+    lightboxMedia.replaceChildren();
+    document.body.style.overflow = "";
   }
 
-  const mediaContainer = lightbox.querySelector(".vl-media");
-  const titleElement = lightbox.querySelector(".vl-title");
-  const kindElement = lightbox.querySelector(".vl-kind");
-  const closeButton = lightbox.querySelector(".vl-close");
-
-  const lightboxStyle = document.createElement("style");
-  lightboxStyle.textContent = `
-    #visual-lightbox {
-      position: fixed;
-      inset: 0;
-      z-index: 99999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 28px;
-      background: rgba(0, 0, 0, .94);
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-      transition: opacity .2s ease, visibility .2s ease;
-    }
-
-    #visual-lightbox.is-open {
-      opacity: 1;
-      visibility: visible;
-      pointer-events: auto;
-    }
-
-    #visual-lightbox .vl-content {
-      width: min(86vw, 1000px);
-      max-height: 90vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 16px;
-    }
-
-    #visual-lightbox .vl-media {
-      width: 100%;
-      height: min(72vh, 760px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    #visual-lightbox .vl-media img,
-    #visual-lightbox .vl-media video {
-      display: block;
-      max-width: 100%;
-      max-height: 100%;
-      width: auto;
-      height: auto;
-      object-fit: contain;
-    }
-
-    #visual-lightbox .vl-media video {
-      width: 100%;
-      height: 100%;
-    }
-
-    #visual-lightbox .vl-caption {
-      text-align: center;
-      color: #fff;
-    }
-
-    #visual-lightbox .vl-title {
-      margin: 0 0 5px;
-      font-size: 15px;
-      letter-spacing: .12em;
-    }
-
-    #visual-lightbox .vl-kind {
-      margin: 0;
-      font-size: 10px;
-      letter-spacing: .16em;
-      opacity: .55;
-    }
-
-    #visual-lightbox .vl-close {
-      position: absolute;
-      top: 18px;
-      right: 25px;
-      border: 0;
-      background: none;
-      color: #fff;
-      font-size: 36px;
-      cursor: pointer;
-    }
-
-    .visual-filter span,
-    .visual-filter button {
-      cursor: pointer;
-    }
-
-    .visual-filter .active {
-      opacity: 1;
-      text-decoration: underline;
-      text-underline-offset: 5px;
-    }
-
-    .visual-card img,
-    .visual-card video {
-      cursor: pointer;
-    }
-
-    @keyframes visualCardIn {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    @media (max-width: 600px) {
-      #visual-lightbox { padding: 16px; }
-      #visual-lightbox .vl-content { width: 94vw; }
-      #visual-lightbox .vl-media { height: 65vh; }
-      #visual-lightbox .vl-title { font-size: 12px; }
-      #visual-lightbox .vl-close { top: 8px; right: 14px; }
-    }
-  `;
-  document.head.appendChild(lightboxStyle);
-
-  function openLightbox(card, selectedMedia) {
-    const media = selectedMedia || card.querySelector("img, video");
+  function openLightbox(card, trigger) {
+    const media = trigger.querySelector("img, video");
     if (!media) return;
 
-    mediaContainer.replaceChildren();
+    lightboxMedia.replaceChildren();
 
-    if (media.tagName.toLowerCase() === "video") {
+    if (media.tagName === "VIDEO") {
       const video = document.createElement("video");
+      const source = media.querySelector("source");
+
       video.controls = true;
       video.autoplay = true;
       video.playsInline = true;
       video.muted = true;
 
-      const source = media.currentSrc ||
-        media.querySelector("source")?.src ||
-        media.getAttribute("src");
+      if (source) {
+        video.src = source.src;
+      } else {
+        video.src = media.currentSrc || media.src;
+      }
 
-      if (source) video.src = source;
-      mediaContainer.appendChild(video);
+      lightboxMedia.appendChild(video);
       video.play().catch(() => {});
     } else {
       const image = document.createElement("img");
       image.src = media.currentSrc || media.src;
       image.alt = media.alt || "";
-      mediaContainer.appendChild(image);
+      lightboxMedia.appendChild(image);
     }
 
-    titleElement.textContent =
-      card.querySelector(".card-info h2")?.textContent.trim() || "UNTITLED";
+    lightboxTitle.textContent =
+      card.dataset.title ||
+      card.querySelector(".card-info h2")?.textContent.trim() ||
+      "UNTITLED";
 
-    kindElement.textContent =
-      card.querySelector(".card-info p")?.textContent.trim() || "VISUAL";
+    lightboxKind.textContent =
+      card.dataset.kind ||
+      card.querySelector(".card-info p")?.textContent.trim() ||
+      "VISUAL";
 
     lightbox.classList.add("is-open");
+    lightbox.setAttribute("aria-hidden", "false");
     document.body.style.overflow = "hidden";
   }
 
-  function closeLightbox() {
-    lightbox.classList.remove("is-open");
-    mediaContainer.replaceChildren();
-    document.body.style.overflow = "";
-  }
-
-  // Clicking any card opens it. Draft thumbnails open individually.
+  // Handle image and video buttons, including all four draft thumbnails.
   grid.addEventListener("click", event => {
-    const card = event.target.closest(".visual-card");
-    if (!card) return;
+    const trigger = event.target.closest(".media-trigger");
+    if (!trigger || !grid.contains(trigger)) return;
 
-    const selectedMedia = event.target.closest("img, video");
-    openLightbox(card, selectedMedia);
+    const card = trigger.closest(".visual-card");
+    if (card) openLightbox(card, trigger);
   });
 
-  grid.addEventListener("keydown", event => {
-    if (event.key !== "Enter" && event.key !== " ") return;
-
-    const media = event.target.closest("img, video");
-    if (!media) return;
-
-    event.preventDefault();
-    const card = media.closest(".visual-card");
-    if (card) openLightbox(card, media);
-  });
-
-  closeButton.addEventListener("click", closeLightbox);
-
-  lightbox.addEventListener("click", event => {
-    if (event.target === lightbox) closeLightbox();
+  lightbox.querySelectorAll("[data-close-lightbox]").forEach(button => {
+    button.addEventListener("click", closeLightbox);
   });
 
   document.addEventListener("keydown", event => {
@@ -279,67 +149,57 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Functional filters
-  const filterItems = Array.from(
-    filterNav.querySelectorAll("span, button")
-  );
-
-  function getFilterName(item) {
-    const explicit = (item.dataset.filter || "").toLowerCase();
-    const label = item.textContent.trim().toLowerCase();
-
-    if (explicit.includes("featured") || label.includes("featured")) return "featured";
-    if (explicit.includes("hot") || label.includes("hot take")) return "hot-take";
-    if (explicit.includes("play") || label.includes("play this")) return "play-this";
-    if (explicit.includes("new") || label.includes("newest")) return "newest";
-
-    return "";
-  }
-
+  // Functional category filters.
   function applyFilter(filter) {
     cards = Array.from(grid.querySelectorAll(".visual-card"));
 
-    cards.forEach(card => {
-      card.hidden = false;
-    });
-
     if (filter === "newest") {
-      cards
-        .slice()
-        .sort((a, b) =>
-          Number(b.dataset.originalOrder) - Number(a.dataset.originalOrder)
-        )
-        .forEach(card => grid.appendChild(card));
-    } else {
-      cards
-        .slice()
-        .sort((a, b) =>
-          Number(a.dataset.originalOrder) - Number(b.dataset.originalOrder)
-        )
-        .forEach(card => grid.appendChild(card));
-
+      cards.sort((a, b) =>
+        Number(b.dataset.originalOrder) - Number(a.dataset.originalOrder)
+      );
       cards.forEach(card => {
+        card.hidden = false;
+        grid.appendChild(card);
+      });
+    } else {
+      cards.sort((a, b) =>
+        Number(a.dataset.originalOrder) - Number(b.dataset.originalOrder)
+      );
+      cards.forEach(card => {
+        grid.appendChild(card);
         card.hidden = card.dataset.category !== filter;
       });
     }
 
-    filterItems.forEach(item => {
-      item.classList.toggle("active", getFilterName(item) === filter);
+    filterButtons.forEach(button => {
+      const active = button.dataset.filter === filter;
+      button.classList.toggle("active", active);
+      button.setAttribute("aria-pressed", String(active));
     });
   }
 
-  filterItems.forEach(item => {
-    item.addEventListener("click", () => {
-      const filter = getFilterName(item);
-      if (filter) applyFilter(filter);
+  filterButtons.forEach(button => {
+    button.addEventListener("click", () => {
+      applyFilter(button.dataset.filter);
     });
   });
 
-  // Ensure hidden cards are removed from layout
-  const hiddenStyle = document.createElement("style");
-  hiddenStyle.textContent = ".visual-card[hidden] { display: none !important; }";
-  document.head.appendChild(hiddenStyle);
+  // Make sure the HTML's existing lightbox is visible when opened.
+  if (!document.getElementById("visuals-js-style")) {
+    const style = document.createElement("style");
+    style.id = "visuals-js-style";
+    style.textContent = `
+      .visual-card[hidden] { display: none !important; }
+      .lightbox.is-open {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+      }
+      .visual-card .media-trigger { cursor: zoom-in; }
+      .visual-card.motion .media-trigger { cursor: pointer; }
+    `;
+    document.head.appendChild(style);
+  }
 
-  // Start on FEATURED
   applyFilter("featured");
 });
