@@ -109,7 +109,7 @@ body::after {
   flex-wrap: wrap;
   gap: 45px;
   width: 100%;
-  margin-bottom: 60px;
+  margin-bottom: 34px;
   opacity: .65;
   z-index: 3;
 }
@@ -135,6 +135,78 @@ body::after {
 
 .visual-filter button.active {
   border-bottom-color: rgba(255,255,255,.65);
+}
+
+/* SEARCH AND ARCHIVE CONTROLS */
+.visual-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  width: 100%;
+  margin: 0 0 32px;
+  padding: 14px 0;
+  border-top: 1px solid rgba(255,255,255,.12);
+  border-bottom: 1px solid rgba(255,255,255,.12);
+  position: relative;
+  z-index: 3;
+}
+
+.visual-search {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: min(420px, 75%);
+  min-width: 0;
+  color: #888;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+}
+
+.visual-search > span:first-child {
+  flex-shrink: 0;
+}
+
+.visual-search input {
+  width: 100%;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 0;
+  outline: none;
+  background: rgba(0,0,0,.35);
+  color: #fff;
+  font-family: inherit;
+  font-size: 11px;
+  letter-spacing: .3px;
+  appearance: none;
+}
+
+.visual-search input:focus {
+  border-color: rgba(255,255,255,.55);
+}
+
+.visual-search input::placeholder {
+  color: #666;
+}
+
+.visual-search input::-webkit-search-cancel-button {
+  cursor: pointer;
+  filter: grayscale(1);
+}
+
+.search-mark {
+  flex-shrink: 0;
+  color: #aaa;
+  font-size: 16px;
+}
+
+.visual-count {
+  flex-shrink: 0;
+  color: #777;
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  white-space: nowrap;
 }
 
 /* GRID — AUTO-EXPANDING ARCHIVE */
@@ -456,12 +528,41 @@ body::after {
 
   .visual-filter {
     gap: 12px 18px;
-    margin-bottom: 42px;
+    margin-bottom: 24px;
   }
 
   .visual-filter button {
     font-size: 8px;
     letter-spacing: 2px;
+  }
+
+  .visual-controls {
+    gap: 10px;
+    margin-bottom: 24px;
+    padding: 10px 0;
+  }
+
+  .visual-search {
+    gap: 8px;
+    width: 100%;
+  }
+
+  .visual-search > span:first-child {
+    display: none;
+  }
+
+  .visual-search input {
+    padding: 10px 8px;
+    font-size: 10px;
+  }
+
+  .search-mark {
+    font-size: 14px;
+  }
+
+  .visual-count {
+    font-size: 8px;
+    letter-spacing: 1px;
   }
 
   .visual-grid {
