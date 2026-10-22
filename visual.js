@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const cards = Array.from(grid.querySelectorAll(".visual-card"));
   const buttons = Array.from(nav.querySelectorAll("[data-filter]"));
 
-  // Save the HTML order and assign categories.
+  // Save the original HTML order and assign categories.
   cards.forEach((card, index) => {
     card.dataset.originalOrder = index;
 
@@ -26,19 +26,22 @@ document.addEventListener("DOMContentLoaded", function () {
       card.dataset.category = "featured";
     }
 
-    // Add a VIEW label to image/video triggers.
+    // Add VIEW labels to image and video triggers.
     card.querySelectorAll(".media-trigger").forEach(trigger => {
-      if (trigger.querySelector("img, video")) {
-        if (!trigger.querySelector(".view-label")) {
-          const label = document.createElement("span");
-          label.className = "view-label";
-          label.textContent = "VIEW";
-          trigger.appendChild(label);
-        }
+      if (
+        trigger.querySelector("img, video") &&
+        !trigger.querySelector(".view-label")
+      ) {
+        const label = document.createElement("span");
+        label.className = "view-label";
+        label.textContent = "VIEW";
+        label.setAttribute("aria-hidden", "true");
+        trigger.appendChild(label);
       }
     });
   });
 
+  // Restore the original HTML order.
   function restoreOriginalOrder() {
     cards
       .slice()
@@ -50,14 +53,10 @@ document.addEventListener("DOMContentLoaded", function () {
       .forEach(card => grid.appendChild(card));
   }
 
+  // Filter and order the archive.
   function filterCards(filter) {
-    // Reset to the HTML order before applying a filter.
+    // HTML order already places the newest cards first.
     restoreOriginalOrder();
-
-    if (filter === "newest") {
-      // Reverse the full archive order.
-      cards.slice().reverse().forEach(card => grid.appendChild(card));
-    }
 
     cards.forEach(card => {
       if (filter === "all" || filter === "newest") {
@@ -80,13 +79,14 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // Open image or video in the lightbox.
+  // Open artwork or video in the lightbox.
   grid.addEventListener("click", function (event) {
     const trigger = event.target.closest(".media-trigger");
-    if (!trigger) return;
+    if (!trigger || !grid.contains(trigger)) return;
 
     const card = trigger.closest(".visual-card");
     const media = trigger.querySelector("img, video");
+
     if (!card || !media) return;
 
     mediaBox.replaceChildren();
@@ -107,6 +107,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const image = document.createElement("img");
       image.src = media.src;
       image.alt = media.alt || card.dataset.title || "Artwork";
+
       mediaBox.appendChild(image);
     }
 
@@ -118,6 +119,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.body.style.overflow = "hidden";
   });
 
+  // Close the lightbox.
   function closeLightbox() {
     lightbox.classList.remove("is-open");
     lightbox.setAttribute("aria-hidden", "true");
@@ -135,6 +137,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   });
 
-  // Default view.
+  // Initial view.
   filterCards("featured");
 });
