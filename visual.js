@@ -1,4 +1,3 @@
-
 document.addEventListener("DOMContentLoaded", function () {
   const grid = document.querySelector(".visual-grid");
   const nav = document.querySelector(".visual-filter");
@@ -14,19 +13,32 @@ document.addEventListener("DOMContentLoaded", function () {
   const cards = Array.from(grid.querySelectorAll(".visual-card"));
   const buttons = Array.from(nav.querySelectorAll("[data-filter]"));
 
-  // Save the original HTML order and assign categories.
+  // Preserve the HTML order and assign categories.
   cards.forEach((card, index) => {
-    card.dataset.originalOrder = index;
+    card.dataset.originalOrder = String(index);
 
-    if (card.classList.contains("pocket")) {
+    const title = (
+      card.dataset.title ||
+      card.querySelector(".card-info h2")?.textContent ||
+      ""
+    ).trim().toUpperCase();
+
+    const isSketchyArt = title.includes("9OJEEZ9 SKETCHY ART");
+    const isSubcityOfficial = title.includes("SUBCITY OFFICIAL");
+    const isDraftArchive = title.includes("DRAFT ARCHIVE");
+    const isMotion = card.classList.contains("motion");
+
+    if (isSketchyArt || isSubcityOfficial) {
       card.dataset.category = "hot-take";
-    } else if (card.classList.contains("motion")) {
+    } else if (isDraftArchive) {
+      card.dataset.category = "draft";
+    } else if (isMotion) {
       card.dataset.category = "play-this";
     } else {
       card.dataset.category = "featured";
     }
 
-    // Add VIEW labels to image and video triggers.
+    // Add VIEW labels without duplicating existing labels.
     card.querySelectorAll(".media-trigger").forEach(trigger => {
       if (
         trigger.querySelector("img, video") &&
@@ -41,7 +53,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // Restore the original HTML order.
   function restoreOriginalOrder() {
     cards
       .slice()
@@ -53,9 +64,7 @@ document.addEventListener("DOMContentLoaded", function () {
       .forEach(card => grid.appendChild(card));
   }
 
-  // Filter and order the archive.
   function filterCards(filter) {
-    // HTML order already places the newest cards first.
     restoreOriginalOrder();
 
     cards.forEach(card => {
@@ -82,6 +91,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // Open artwork or video in the lightbox.
   grid.addEventListener("click", function (event) {
     const trigger = event.target.closest(".media-trigger");
+
     if (!trigger || !grid.contains(trigger)) return;
 
     const card = trigger.closest(".visual-card");
@@ -119,7 +129,6 @@ document.addEventListener("DOMContentLoaded", function () {
     document.body.style.overflow = "hidden";
   });
 
-  // Close the lightbox.
   function closeLightbox() {
     lightbox.classList.remove("is-open");
     lightbox.setAttribute("aria-hidden", "true");
