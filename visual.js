@@ -136,12 +136,9 @@ document.addEventListener("DOMContentLoaded", function () {
     document.body.style.overflow = "";
   }
 
-  // Close immediately on pointer press instead of waiting for click.
+  // Close immediately when pressing anywhere outside the artwork/video.
   lightbox.addEventListener("pointerdown", function (event) {
-    if (
-      event.target.matches("[data-close-lightbox]") ||
-      event.target === lightbox
-    ) {
+    if (!event.target.closest("#lightbox-media")) {
       closeLightbox();
     }
   });
