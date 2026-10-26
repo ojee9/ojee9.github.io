@@ -136,8 +136,14 @@ document.addEventListener("DOMContentLoaded", function () {
     document.body.style.overflow = "";
   }
 
-  lightbox.querySelectorAll("[data-close-lightbox]").forEach(element => {
-    element.addEventListener("click", closeLightbox);
+  // Close immediately on pointer press instead of waiting for click.
+  lightbox.addEventListener("pointerdown", function (event) {
+    if (
+      event.target.matches("[data-close-lightbox]") ||
+      event.target === lightbox
+    ) {
+      closeLightbox();
+    }
   });
 
   document.addEventListener("keydown", function (event) {
