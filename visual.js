@@ -136,9 +136,13 @@ document.addEventListener("DOMContentLoaded", function () {
     document.body.style.overflow = "";
   }
 
-  // Close immediately when pressing anywhere outside the artwork/video.
+  // Close when pressing outside the actual image or video.
   lightbox.addEventListener("pointerdown", function (event) {
-    if (!event.target.closest("#lightbox-media")) {
+    const clickedMedia = event.target.closest(
+      "#lightbox-media img, #lightbox-media video"
+    );
+
+    if (!clickedMedia) {
       closeLightbox();
     }
   });
