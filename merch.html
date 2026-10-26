@@ -8,14 +8,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 :root {
-  --camel: #E4CEA5;
+  --camel: #C6BBA7;
   --ink: #171717;
-  --line: rgba(23, 23, 23, 0.25);
+  --line: rgba(23, 23, 23, .25);
   --muted: #625744;
 }
 
@@ -26,20 +24,9 @@ body {
   font-family: Arial, sans-serif;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-button,
-input,
-select {
-  font: inherit;
-}
-
-button {
-  cursor: pointer;
-}
+a { color: inherit; text-decoration: none; }
+button, input, select { font: inherit; }
+button { cursor: pointer; }
 
 .header {
   display: flex;
@@ -69,8 +56,7 @@ button {
   gap: 19px;
 }
 
-.icon-link,
-.icon-button {
+.icon-link, .icon-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -81,13 +67,9 @@ button {
   color: var(--ink);
 }
 
-.icon-link:hover,
-.icon-button:hover {
-  opacity: .55;
-}
+.icon-link:hover, .icon-button:hover { opacity: .55; }
 
-.icon-link svg,
-.icon-button svg {
+.icon-link svg, .icon-button svg {
   display: block;
   width: 21px;
   height: 21px;
@@ -98,9 +80,7 @@ button {
   stroke-linejoin: round;
 }
 
-#cart-count {
-  font-size: 11px;
-}
+#cart-count { font-size: 11px; }
 
 .catalog-bar {
   display: flex;
@@ -121,25 +101,11 @@ button {
   font-size: 12px;
 }
 
-.search-toggle {
-  flex: 0 0 auto;
-  width: 34px;
-  height: 34px;
-}
+.search-toggle { flex: 0 0 auto; width: 34px; height: 34px; }
+.search-toggle svg { width: 20px; height: 20px; }
 
-.search-toggle svg {
-  width: 20px;
-  height: 20px;
-}
-
-.search-panel {
-  display: none;
-  padding: 0 5% 15px;
-}
-
-.search-panel.is-open {
-  display: block;
-}
+.search-panel { display: none; padding: 0 5% 15px; }
+.search-panel.is-open { display: block; }
 
 .search-form {
   display: flex;
@@ -159,9 +125,7 @@ button {
   font-size: 14px;
 }
 
-.search-input::placeholder {
-  color: var(--muted);
-}
+.search-input::placeholder { color: var(--muted); }
 
 .search-close {
   padding: 8px;
@@ -170,9 +134,7 @@ button {
   font-size: 19px;
 }
 
-.products {
-  padding: 22px 5% 80px;
-}
+.products { padding: 22px 5% 80px; }
 
 .product-grid {
   display: grid;
@@ -180,15 +142,15 @@ button {
   gap: 36px 24px;
 }
 
-.product {
-  min-width: 0;
-}
+.product { min-width: 0; }
 
 .product-gallery {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
 }
+
+.product-image-wrap { min-width: 0; }
 
 .product-image {
   display: block;
@@ -197,6 +159,16 @@ button {
   object-fit: cover;
   background: rgba(255,255,255,.22);
 }
+
+.product-caption {
+  padding-top: 10px;
+  font-size: 10px;
+  line-height: 1.5;
+  letter-spacing: .35px;
+}
+
+.product-name { font-weight: 600; }
+.product-price { margin-top: 2px; }
 
 .empty {
   padding: 55px 0;
@@ -222,8 +194,7 @@ button {
   letter-spacing: .3px;
 }
 
-.footer-links a,
-.footer-links button {
+.footer-links a, .footer-links button {
   color: inherit;
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -237,10 +208,7 @@ button {
   letter-spacing: inherit;
 }
 
-.footer-links a:hover,
-.footer-links button:hover {
-  opacity: .55;
-}
+.footer-links a:hover, .footer-links button:hover { opacity: .55; }
 
 .copyright {
   color: var(--muted);
@@ -249,16 +217,16 @@ button {
   text-align: center;
 }
 
-/* BOTTOM COOKIE PREFERENCES PANEL */
+/* COOKIE PANEL — compact content; bottom bar styles preserved */
 
 .cookie-panel {
   position: fixed;
   z-index: 1000;
   left: 50%;
   bottom: 12px;
-  width: min(900px, calc(100% - 24px));
-  height: min(360px, 43vh);
-  min-height: 260px;
+  width: min(760px, calc(100% - 24px));
+  height: min(360px, 48vh);
+  min-height: 250px;
   transform: translate(-50%, calc(100% + 30px));
   visibility: hidden;
   opacity: 0;
@@ -281,16 +249,16 @@ button {
 .cookie-content {
   min-height: 0;
   flex: 1;
-  overflow-y: auto;
-  padding: 19px 24px 12px;
+  overflow: hidden;
+  padding: 11px 17px 8px;
 }
 
 .cookie-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
-  margin-bottom: 15px;
+  gap: 12px;
+  margin-bottom: 7px;
 }
 
 .cookie-logo-wrap {
@@ -301,28 +269,33 @@ button {
 
 .cookie-logo {
   display: block;
-  width: 112px;
-  height: 43px;
+  width: 82px;
+  height: 29px;
   object-fit: contain;
   object-position: left center;
 }
 
-.cookie-section {
-  margin-bottom: 15px;
+.cookie-logo-fallback {
+  display: none;
+  font-size: 21px;
+  font-weight: 900;
+  letter-spacing: -1.5px;
 }
 
+.cookie-section { margin-bottom: 8px; }
+
 .cookie-section h2 {
-  margin: 0 0 7px;
-  font-size: 15px;
+  margin: 0 0 3px;
+  font-size: 12px;
   font-weight: 600;
-  line-height: 1.3;
+  line-height: 1.25;
 }
 
 .cookie-section p {
   margin: 0;
   color: #454545;
-  font-size: 11px;
-  line-height: 1.55;
+  font-size: 9px;
+  line-height: 1.35;
 }
 
 .cookie-section p a {
@@ -335,28 +308,27 @@ button {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   border-top: 1px solid #dedede;
   border-bottom: 1px solid #dedede;
-  margin-top: 12px;
+  margin-top: 7px;
 }
 
 .cookie-category {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   min-width: 0;
-  padding: 12px 5px;
-  font-size: 11px;
+  padding: 8px 4px;
+  font-size: 10px;
   font-weight: 600;
   text-align: center;
 }
 
-.cookie-category + .cookie-category {
-  border-left: 1px solid #e5e5e5;
-}
+.cookie-category + .cookie-category { border-left: 1px solid #e5e5e5; }
 
 .cookie-category input {
-  width: 16px;
-  height: 16px;
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
   margin: 0;
   accent-color: #171717;
   cursor: pointer;
@@ -367,10 +339,9 @@ button {
   outline-offset: 3px;
 }
 
-/* Essential: checked, grey and locked */
-
 .cookie-category.essential {
   color: #777;
+  cursor: not-allowed;
 }
 
 .cookie-category.essential input {
@@ -419,13 +390,9 @@ button {
   text-transform: uppercase;
 }
 
-.cookie-confirm:hover {
-  background: #383838;
-}
+.cookie-confirm:hover { background: #383838; }
 
-.cookie-language {
-  position: relative;
-}
+.cookie-language { position: relative; }
 
 .cookie-language-toggle {
   display: inline-flex;
@@ -454,7 +421,8 @@ button {
   position: absolute;
   right: 0;
   bottom: 37px;
-  width: 115px;
+  width: 145px;
+  max-height: 240px;
   padding: 7px;
   border: 1px solid #bcbcbc;
   border-radius: 0;
@@ -463,51 +431,32 @@ button {
   font-size: 12px;
 }
 
-.cookie-language.is-open .cookie-language-select {
-  display: block;
-}
+.cookie-language.is-open .cookie-language-select { display: block; }
 
 @media (max-width: 600px) {
-  .header {
-    padding: 20px 5%;
-  }
+  .header { padding: 20px 5%; }
+  .projects-logo { font-size: 23px; }
+  .header-actions { gap: 15px; }
 
-  .projects-logo {
-    font-size: 23px;
-  }
-
-  .header-actions {
-    gap: 15px;
-  }
-
-  .icon-link svg,
-  .icon-button svg {
+  .icon-link svg, .icon-button svg {
     width: 20px;
     height: 20px;
   }
 
-  .catalog-bar {
-    padding-top: 12px;
-    padding-bottom: 12px;
-  }
+  .catalog-bar { padding-top: 12px; padding-bottom: 12px; }
 
-  .category-select {
-    width: min(230px, calc(100% - 46px));
-  }
+  .category-select { width: min(230px, calc(100% - 46px)); }
 
-  .products {
-    padding-top: 18px;
-    padding-bottom: 55px;
-  }
+  .products { padding-top: 18px; padding-bottom: 55px; }
 
   .product-grid {
     grid-template-columns: 1fr;
     gap: 30px;
   }
 
-  .product-gallery {
-    gap: 6px;
-  }
+  .product-gallery { gap: 6px; }
+
+  .product-caption { font-size: 10px; }
 
   .footer-links {
     gap: 14px 18px;
@@ -517,30 +466,24 @@ button {
   .cookie-panel {
     bottom: 6px;
     width: calc(100% - 12px);
-    height: min(440px, 65vh);
-    min-height: 320px;
+    height: min(440px, 70vh);
+    min-height: 300px;
   }
 
-  .cookie-content {
-    padding: 15px 15px 10px;
-  }
+  .cookie-content { padding: 10px 12px 7px; }
 
   .cookie-logo {
-    width: 90px;
-    height: 35px;
+    width: 72px;
+    height: 25px;
   }
 
-  .cookie-section h2 {
-    font-size: 13px;
-  }
+  .cookie-section { margin-bottom: 7px; }
+
+  .cookie-section h2 { font-size: 11px; }
 
   .cookie-section p {
-    font-size: 10px;
-    line-height: 1.45;
-  }
-
-  .cookie-section {
-    margin-bottom: 12px;
+    font-size: 8.5px;
+    line-height: 1.3;
   }
 
   .cookie-categories {
@@ -549,34 +492,24 @@ button {
 
   .cookie-category {
     justify-content: flex-start;
-    padding: 10px 7px;
-    font-size: 10px;
+    padding: 7px 6px;
+    font-size: 9px;
   }
 
-  .cookie-category + .cookie-category {
-    border-left: 0;
-  }
+  .cookie-category + .cookie-category { border-left: 0; }
 
-  .cookie-category:nth-child(even) {
-    border-left: 1px solid #e5e5e5;
-  }
+  .cookie-category:nth-child(even) { border-left: 1px solid #e5e5e5; }
 
-  .cookie-category:nth-child(n+3) {
-    border-top: 1px solid #e5e5e5;
-  }
+  .cookie-category:nth-child(n+3) { border-top: 1px solid #e5e5e5; }
 
+  /* Bottom bar intentionally unchanged */
   .cookie-bottom {
     padding: 10px 14px;
     gap: 8px;
   }
 
-  .cookie-right {
-    gap: 8px;
-  }
-
-  .cookie-privacy {
-    font-size: 10px;
-  }
+  .cookie-right { gap: 8px; }
+  .cookie-privacy { font-size: 10px; }
 
   .cookie-confirm {
     min-width: 82px;
@@ -652,9 +585,7 @@ button {
 <main>
   <section class="products" id="products" aria-live="polite">
     <div class="product-grid" id="product-grid"></div>
-    <div class="empty" id="empty-message" hidden>
-      NO PRODUCTS AVAILABLE
-    </div>
+    <div class="empty" id="empty-message" hidden>NO PRODUCTS AVAILABLE</div>
   </section>
 </main>
 
@@ -667,12 +598,9 @@ button {
     <button type="button" id="cookie-choices">Cookie Choices</button>
   </nav>
 
-  <div class="copyright">
-    © 2026 VN RECORDS. ALL RIGHTS RESERVED.
-  </div>
+  <div class="copyright">© 2026 VN RECORDS. ALL RIGHTS RESERVED.</div>
 </footer>
 
-<!-- COMPACT COOKIE PREFERENCES PANEL -->
 <section class="cookie-panel" id="cookie-panel"
   aria-label="Cookie preferences" aria-hidden="true">
 
@@ -680,12 +608,12 @@ button {
     <div class="cookie-top">
       <div class="cookie-logo-wrap">
         <img
-          src="images/vn-logo-official.png"
+          src="/images/vn-logo-official.png"
           alt="VN"
           class="cookie-logo"
           onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"
         >
-        <span style="display:none;font-size:23px;font-weight:900;letter-spacing:-1.5px;">VN</span>
+        <span class="cookie-logo-fallback">VN</span>
       </div>
     </div>
 
@@ -706,23 +634,23 @@ button {
     </div>
 
     <div class="cookie-categories">
-      <label class="cookie-category essential">
+      <label class="cookie-category essential" title="Essential cookies cannot be disabled">
         <input type="checkbox" checked disabled aria-label="Essential cookies always enabled">
         <span data-i18n="essential">Essential</span>
       </label>
 
       <label class="cookie-category">
-        <input type="checkbox" id="cookie-functional">
+        <input type="checkbox" id="cookie-functional" checked>
         <span data-i18n="functional">Functional</span>
       </label>
 
       <label class="cookie-category">
-        <input type="checkbox" id="cookie-analytics">
+        <input type="checkbox" id="cookie-analytics" checked>
         <span data-i18n="analytics">Analytics</span>
       </label>
 
       <label class="cookie-category">
-        <input type="checkbox" id="cookie-advertising">
+        <input type="checkbox" id="cookie-advertising" checked>
         <span data-i18n="advertising">Advertising</span>
       </label>
     </div>
@@ -754,8 +682,20 @@ button {
         </button>
 
         <select class="cookie-language-select" id="cookie-language-select" aria-label="Language">
-          <option value="en">English (en)</option>
-          <option value="tr">Türkçe (tr)</option>
+          <option value="en">English</option>
+          <option value="tr">Türkçe</option>
+          <option value="es">Español</option>
+          <option value="fr">Français</option>
+          <option value="de">Deutsch</option>
+          <option value="it">Italiano</option>
+          <option value="pt">Português</option>
+          <option value="ru">Русский</option>
+          <option value="ar">العربية</option>
+          <option value="zh">中文</option>
+          <option value="ja">日本語</option>
+          <option value="ko">한국어</option>
+          <option value="hi">हिन्दी</option>
+          <option value="nl">Nederlands</option>
         </select>
       </div>
     </div>
@@ -765,16 +705,22 @@ button {
 <script>
 const products = [
   {
-    id: "gta-love-poster",
-    name: "GTA LOVE POSTER",
+    id: "gta-love-poster-1",
+    name: "GTA LOVE POSTER 1",
+    price: "$20.00 USD",
     type: "POSTER",
-    price: "",
     category: "XTRAS",
     material: "NON-TEXTILE",
-    images: [
-      "images/9o9-shop-product-gta-love-poster.png",
-      "images/9o9-shop-product-gta-love-poster-2.png"
-    ]
+    image: "images/9o9-shop-product-gta-love-poster.png"
+  },
+  {
+    id: "gta-love-poster-2",
+    name: "GTA LOVE POSTER 2",
+    price: "$20.00 USD",
+    type: "POSTER",
+    category: "XTRAS",
+    material: "NON-TEXTILE",
+    image: "images/9o9-shop-product-gta-love-poster-2.png"
   }
 ];
 
@@ -828,21 +774,29 @@ function renderProducts() {
     const item = document.createElement("article");
     item.className = "product";
 
-    const gallery = document.createElement("div");
-    gallery.className = "product-gallery";
+    const imageWrap = document.createElement("div");
+    imageWrap.className = "product-image-wrap";
 
-    product.images.forEach((src, index) => {
-      const img = document.createElement("img");
-      img.className = "product-image";
-      img.src = src;
-      img.alt = `${product.name} — image ${index + 1}`;
-      img.loading = "lazy";
-      gallery.appendChild(img);
-    });
+    const img = document.createElement("img");
+    img.className = "product-image";
+    img.src = product.image;
+    img.alt = product.name;
+    img.loading = "lazy";
 
-    // The product title, category, type and ADD TO CART button
-    // are intentionally hidden/removed. Only the images are displayed.
-    item.appendChild(gallery);
+    const caption = document.createElement("div");
+    caption.className = "product-caption";
+
+    const name = document.createElement("div");
+    name.className = "product-name";
+    name.textContent = product.name;
+
+    const price = document.createElement("div");
+    price.className = "product-price";
+    price.textContent = product.price;
+
+    caption.append(name, price);
+    imageWrap.append(img, caption);
+    item.appendChild(imageWrap);
     productGrid.appendChild(item);
   });
 }
@@ -916,10 +870,10 @@ const translations = {
   },
   tr: {
     collectHeading: "Hakkınızda Topladığımız Bilgiler",
-    collectText: "Bizim ve iş ortaklarımızın topladığı veriler ve bunları nasıl kullandığımız konusunda şeffaf olmak istiyoruz. Böylece kişisel verileriniz üzerinde kontrol sahibi olabilirsiniz. Daha fazla bilgi için",
+    collectText: "Bizim ve iş ortaklarımızın topladığı veriler ve bunları nasıl kullandığımız konusunda şeffaf olmak istiyoruz. Daha fazla bilgi için",
     privacyInline: "Gizlilik Politikamızı",
     partnersHeading: "İş Ortaklarımızın Topladığı Bilgiler",
-    partnersText: "Deneyiminizi kişiselleştirmek, sosyal ağlarla bağlantı kurmak ve reklamları ilgi alanlarınıza daha uygun hâle getirmek için çerezler veya diğer izleme teknolojilerini kullanabiliriz. Bu, sitelerimizde, üçüncü taraf sitelerinde ve birden fazla cihazda izlemeyi içerebilir.",
+    partnersText: "Deneyiminizi kişiselleştirmek ve reklamları ilgi alanlarınıza uyarlamak için çerezler veya diğer izleme teknolojileri kullanılabilir. Bu, üçüncü taraf sitelerinde ve farklı cihazlarda izlemeyi içerebilir.",
     trackingLink: "İzleme teknolojileri",
     essential: "Zorunlu",
     functional: "İşlevsel",
@@ -927,6 +881,174 @@ const translations = {
     advertising: "Reklam",
     privacyLink: "Gizlilik Politikası",
     confirm: "Onayla"
+  },
+  es: {
+    collectHeading: "Información que recopilamos sobre usted",
+    collectText: "Queremos ser transparentes sobre los datos que recopilamos nosotros y nuestros socios y cómo los utilizamos. Para más información, consulte nuestra",
+    privacyInline: "Política de privacidad",
+    partnersHeading: "Información que recopilan nuestros socios",
+    partnersText: "Podemos utilizar cookies y tecnologías de seguimiento para personalizar su experiencia y adaptar la publicidad. Esto puede incluir el seguimiento entre sitios y dispositivos.",
+    trackingLink: "Ver tecnologías de seguimiento",
+    essential: "Esenciales",
+    functional: "Funcionales",
+    analytics: "Analíticas",
+    advertising: "Publicidad",
+    privacyLink: "Política de privacidad",
+    confirm: "Confirmar"
+  },
+  fr: {
+    collectHeading: "Informations que nous collectons à votre sujet",
+    collectText: "Nous souhaitons être transparents sur les données collectées par nous et nos partenaires et leur utilisation. Pour en savoir plus, consultez notre",
+    privacyInline: "politique de confidentialité",
+    partnersHeading: "Informations collectées par nos partenaires",
+    partnersText: "Nous pouvons utiliser des cookies et des technologies de suivi pour personnaliser votre expérience et adapter les publicités. Le suivi peut concerner plusieurs sites et appareils.",
+    trackingLink: "Voir les technologies de suivi",
+    essential: "Essentiels",
+    functional: "Fonctionnels",
+    analytics: "Analytiques",
+    advertising: "Publicité",
+    privacyLink: "Politique de confidentialité",
+    confirm: "Confirmer"
+  },
+  de: {
+    collectHeading: "Informationen, die wir über Sie sammeln",
+    collectText: "Wir möchten transparent darlegen, welche Daten wir und unsere Partner erheben und wie wir sie verwenden. Weitere Informationen finden Sie in unserer",
+    privacyInline: "Datenschutzerklärung",
+    partnersHeading: "Informationen, die unsere Partner sammeln",
+    partnersText: "Wir können Cookies und Tracking-Technologien verwenden, um Ihr Erlebnis zu personalisieren und Werbung anzupassen. Dies kann das Tracking über mehrere Websites und Geräte hinweg umfassen.",
+    trackingLink: "Tracking-Technologien ansehen",
+    essential: "Unbedingt erforderlich",
+    functional: "Funktional",
+    analytics: "Analyse",
+    advertising: "Werbung",
+    privacyLink: "Datenschutzerklärung",
+    confirm: "Bestätigen"
+  },
+  it: {
+    collectHeading: "Informazioni che raccogliamo su di te",
+    collectText: "Vogliamo essere trasparenti sui dati raccolti da noi e dai nostri partner e sul loro utilizzo. Per maggiori informazioni, consulta la nostra",
+    privacyInline: "Informativa sulla privacy",
+    partnersHeading: "Informazioni raccolte dai nostri partner",
+    partnersText: "Possiamo utilizzare cookie e tecnologie di tracciamento per personalizzare la tua esperienza e gli annunci. Il tracciamento può avvenire su più siti e dispositivi.",
+    trackingLink: "Consulta le tecnologie di tracciamento",
+    essential: "Essenziali",
+    functional: "Funzionali",
+    analytics: "Analitici",
+    advertising: "Pubblicità",
+    privacyLink: "Informativa sulla privacy",
+    confirm: "Conferma"
+  },
+  pt: {
+    collectHeading: "Informações que recolhemos sobre si",
+    collectText: "Queremos ser transparentes sobre os dados recolhidos por nós e pelos nossos parceiros e como os utilizamos. Para mais informações, consulte a nossa",
+    privacyInline: "Política de privacidade",
+    partnersHeading: "Informações recolhidas pelos nossos parceiros",
+    partnersText: "Podemos utilizar cookies e tecnologias de rastreamento para personalizar a sua experiência e os anúncios. O rastreamento pode abranger vários sites e dispositivos.",
+    trackingLink: "Ver tecnologias de rastreamento",
+    essential: "Essenciais",
+    functional: "Funcionais",
+    analytics: "Analítica",
+    advertising: "Publicidade",
+    privacyLink: "Política de privacidade",
+    confirm: "Confirmar"
+  },
+  ru: {
+    collectHeading: "Какие данные мы собираем",
+    collectText: "Мы открыто рассказываем о данных, которые собираем мы и наши партнёры, и об их использовании. Подробнее читайте в нашей",
+    privacyInline: "Политике конфиденциальности",
+    partnersHeading: "Данные, собираемые партнёрами",
+    partnersText: "Мы можем использовать файлы cookie и технологии отслеживания для персонализации и подбора рекламы. Отслеживание может охватывать разные сайты и устройства.",
+    trackingLink: "Технологии отслеживания",
+    essential: "Обязательные",
+    functional: "Функциональные",
+    analytics: "Аналитика",
+    advertising: "Реклама",
+    privacyLink: "Политика конфиденциальности",
+    confirm: "Подтвердить"
+  },
+  ar: {
+    collectHeading: "المعلومات التي نجمعها عنك",
+    collectText: "نوضح بشفافية البيانات التي نجمعها نحن وشركاؤنا وكيفية استخدامها. لمزيد من المعلومات، يرجى مراجعة",
+    privacyInline: "سياسة الخصوصية",
+    partnersHeading: "المعلومات التي يجمعها شركاؤنا",
+    partnersText: "قد نستخدم ملفات تعريف الارتباط وتقنيات التتبع لتخصيص تجربتك والإعلانات. وقد يشمل التتبع مواقع وأجهزة متعددة.",
+    trackingLink: "عرض تقنيات التتبع",
+    essential: "ضرورية",
+    functional: "وظيفية",
+    analytics: "تحليلات",
+    advertising: "إعلانات",
+    privacyLink: "سياسة الخصوصية",
+    confirm: "تأكيد"
+  },
+  zh: {
+    collectHeading: "我们收集的关于您的信息",
+    collectText: "我们希望透明地说明我们和合作伙伴收集哪些数据以及如何使用这些数据。详情请参阅我们的",
+    privacyInline: "隐私政策",
+    partnersHeading: "合作伙伴收集的信息",
+    partnersText: "我们可能使用 Cookie 或其他跟踪技术来个性化体验和广告。跟踪范围可能涉及多个网站和设备。",
+    trackingLink: "查看跟踪技术",
+    essential: "必要",
+    functional: "功能",
+    analytics: "分析",
+    advertising: "广告",
+    privacyLink: "隐私政策",
+    confirm: "确认"
+  },
+  ja: {
+    collectHeading: "お客様について収集する情報",
+    collectText: "当社とパートナーが収集するデータとその使用方法について透明性を保つことを目指しています。詳しくは",
+    privacyInline: "プライバシーポリシー",
+    partnersHeading: "パートナーが収集する情報",
+    partnersText: "体験のパーソナライズや広告の調整に Cookie などの追跡技術を使用する場合があります。複数のサイトや端末にまたがる追跡を含むことがあります。",
+    trackingLink: "追跡技術を見る",
+    essential: "必須",
+    functional: "機能",
+    analytics: "分析",
+    advertising: "広告",
+    privacyLink: "プライバシーポリシー",
+    confirm: "確認"
+  },
+  ko: {
+    collectHeading: "수집하는 개인정보",
+    collectText: "당사와 파트너가 수집하는 데이터와 사용 방식을 투명하게 안내합니다. 자세한 내용은",
+    privacyInline: "개인정보 처리방침",
+    partnersHeading: "파트너가 수집하는 정보",
+    partnersText: "서비스를 개인화하고 광고를 맞춤 설정하기 위해 쿠키 및 추적 기술을 사용할 수 있습니다. 여러 사이트와 기기에 걸친 추적이 포함될 수 있습니다.",
+    trackingLink: "추적 기술 보기",
+    essential: "필수",
+    functional: "기능",
+    analytics: "분석",
+    advertising: "광고",
+    privacyLink: "개인정보 처리방침",
+    confirm: "확인"
+  },
+  hi: {
+    collectHeading: "आपके बारे में एकत्र की जाने वाली जानकारी",
+    collectText: "हम अपने और अपने साझेदारों द्वारा एकत्र किए जाने वाले डेटा और उसके उपयोग के बारे में पारदर्शिता रखना चाहते हैं। अधिक जानकारी के लिए हमारी",
+    privacyInline: "गोपनीयता नीति",
+    partnersHeading: "हमारे साझेदारों द्वारा एकत्र जानकारी",
+    partnersText: "हम आपके अनुभव और विज्ञापनों को अनुकूलित करने के लिए कुकीज़ और ट्रैकिंग तकनीकों का उपयोग कर सकते हैं। इसमें कई वेबसाइटों और उपकरणों पर ट्रैकिंग शामिल हो सकती है।",
+    trackingLink: "ट्रैकिंग तकनीकें देखें",
+    essential: "आवश्यक",
+    functional: "कार्यात्मक",
+    analytics: "विश्लेषण",
+    advertising: "विज्ञापन",
+    privacyLink: "गोपनीयता नीति",
+    confirm: "पुष्टि करें"
+  },
+  nl: {
+    collectHeading: "Informatie die we over u verzamelen",
+    collectText: "We willen transparant zijn over de gegevens die wij en onze partners verzamelen en hoe we deze gebruiken. Lees voor meer informatie ons",
+    privacyInline: "privacybeleid",
+    partnersHeading: "Informatie die onze partners verzamelen",
+    partnersText: "We kunnen cookies en trackingtechnologieën gebruiken om uw ervaring te personaliseren en advertenties aan te passen. Dit kan tracking op meerdere websites en apparaten omvatten.",
+    trackingLink: "Trackingtechnologieën bekijken",
+    essential: "Noodzakelijk",
+    functional: "Functioneel",
+    analytics: "Analytisch",
+    advertising: "Advertenties",
+    privacyLink: "Privacybeleid",
+    confirm: "Bevestigen"
   }
 };
 
@@ -940,9 +1062,15 @@ function openCookiePanel() {
       cookieControls.functional.checked = Boolean(saved.functional);
       cookieControls.analytics.checked = Boolean(saved.analytics);
       cookieControls.advertising.checked = Boolean(saved.advertising);
+    } else {
+      cookieControls.functional.checked = true;
+      cookieControls.analytics.checked = true;
+      cookieControls.advertising.checked = true;
     }
   } catch (error) {
-    // The panel remains usable if browser storage is unavailable.
+    cookieControls.functional.checked = true;
+    cookieControls.analytics.checked = true;
+    cookieControls.advertising.checked = true;
   }
 
   cookiePanel.classList.add("is-open");
@@ -966,12 +1094,9 @@ function saveCookiePreferences() {
   };
 
   try {
-    localStorage.setItem(
-      "vn-cookie-preferences",
-      JSON.stringify(preferences)
-    );
+    localStorage.setItem("vn-cookie-preferences", JSON.stringify(preferences));
   } catch (error) {
-    // Preferences remain selected for the current page session.
+    // The current selections remain active for this page session.
   }
 
   closeCookiePanel();
@@ -982,12 +1107,11 @@ function setCookieLanguage(language) {
 
   document.querySelectorAll("[data-i18n]").forEach(element => {
     const key = element.dataset.i18n;
-    if (dictionary[key]) {
-      element.textContent = dictionary[key];
-    }
+    if (dictionary[key]) element.textContent = dictionary[key];
   });
 
   document.documentElement.lang = language;
+  document.body.dir = language === "ar" ? "rtl" : "ltr";
   languageSelect.value = language;
 }
 
@@ -1005,9 +1129,7 @@ languageToggle.addEventListener("click", () => {
   const isOpen = languageWrapper.classList.toggle("is-open");
   languageToggle.setAttribute("aria-expanded", String(isOpen));
 
-  if (isOpen) {
-    languageSelect.focus();
-  }
+  if (isOpen) languageSelect.focus();
 });
 
 languageSelect.addEventListener("change", () => {
