@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -24,6 +25,8 @@ body {
   color: var(--ink);
   font-family: Arial, sans-serif;
 }
+
+body.modal-open { overflow: hidden; }
 
 a { color: inherit; text-decoration: none; }
 button, input, select { font: inherit; }
@@ -184,6 +187,8 @@ button { cursor: pointer; }
   text-align: center;
 }
 
+/* FOOTER */
+
 .footer {
   padding: 24px 5% 18px;
   border-top: 1px solid var(--line);
@@ -222,9 +227,10 @@ button { cursor: pointer; }
   text-align: center;
 }
 
-/* ACCOUNT PANEL */
+/* SHARED MODAL BEHAVIOUR */
 
-.account-overlay {
+.account-overlay,
+.policy-overlay {
   position: fixed;
   inset: 0;
   z-index: 2000;
@@ -232,31 +238,44 @@ button { cursor: pointer; }
   align-items: center;
   justify-content: center;
   padding: 18px;
-  background: rgba(0,0,0,.42);
+  background: rgba(0,0,0,.48);
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transition: opacity .2s ease, visibility .2s ease;
+  transition: opacity .24s ease, visibility .24s ease;
 }
 
-.account-overlay.is-open {
+.account-overlay.is-open,
+.policy-overlay.is-open {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
 }
 
-.account-panel {
+.account-panel,
+.policy-panel {
   position: relative;
   width: min(100%, 410px);
-  max-height: calc(100vh - 36px);
+  max-height: calc(100dvh - 36px);
   overflow-y: auto;
-  padding: 46px 30px 25px;
+  overscroll-behavior: contain;
+  padding: 46px 30px 27px;
   background: #171717;
   color: #f5f5f5;
   text-align: center;
+  transform: translateY(12px) scale(.985);
+  opacity: 0;
+  transition: transform .24s ease, opacity .24s ease;
 }
 
-.account-close {
+.account-overlay.is-open .account-panel,
+.policy-overlay.is-open .policy-panel {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+}
+
+.account-close,
+.policy-close {
   position: absolute;
   top: 12px;
   right: 15px;
@@ -269,7 +288,11 @@ button { cursor: pointer; }
   line-height: 1;
 }
 
-.account-panel h2 {
+.account-close:hover,
+.policy-close:hover { opacity: .65; }
+
+.account-panel h2,
+.policy-panel h2 {
   margin: 0 0 12px;
   font-size: 23px;
   font-weight: 600;
@@ -279,6 +302,7 @@ button { cursor: pointer; }
   margin: 0 0 29px;
   color: #bdbdbd;
   font-size: 13px;
+  line-height: 1.6;
 }
 
 .account-email-wrap {
@@ -287,6 +311,7 @@ button { cursor: pointer; }
   width: 100%;
   min-height: 48px;
   border: 1px solid #555;
+  transition: border-color .18s ease;
 }
 
 .account-email-wrap input {
@@ -331,10 +356,10 @@ button { cursor: pointer; }
   stroke-linejoin: round;
 }
 
-.account-submit:hover,
-.account-close:hover { opacity: .65; }
+.account-submit:hover { opacity: .65; }
 
-.account-submit:disabled {
+.account-submit:disabled,
+.account-action:disabled {
   opacity: .4;
   cursor: wait;
 }
@@ -363,7 +388,7 @@ button { cursor: pointer; }
   margin: 17px 0 0;
   color: #999;
   font-size: 10px;
-  line-height: 1.6;
+  line-height: 1.7;
 }
 
 .account-inline-link {
@@ -379,52 +404,157 @@ button { cursor: pointer; }
 
 .account-inline-link:hover { color: #fff; }
 
-.account-terms-content {
-  margin-top: 16px;
-  padding-top: 14px;
-  border-top: 1px solid #383838;
-  color: #bdbdbd;
-  font-size: 11px;
-  line-height: 1.7;
-  text-align: left;
-}
-
-.account-terms-content[hidden] { display: none; }
-
-.account-terms-content h3 {
-  margin: 0 0 9px;
-  color: #f5f5f5;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.account-terms-content p { margin: 0 0 10px; }
-
 .account-privacy {
-  margin: 34px 0 0;
+  margin: 15px 0 0;
   font-size: 10px;
 }
-
-.account-privacy a {
-  color: #555;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
-.account-privacy a:hover { color: #aaa; }
 
 .account-status {
   display: none;
   margin: 16px 0 0;
   color: #d0d0d0;
   font-size: 11px;
-  line-height: 1.5;
+  line-height: 1.6;
   overflow-wrap: anywhere;
 }
 
 .account-status.is-visible { display: block; }
+.account-status.is-error { color: #ffb4b4; }
+.account-status.is-success { color: #c7e7c7; }
 
-/* COOKIE PANEL */
+/* SIX-DIGIT OTP */
+
+.otp-step[hidden],
+.email-step[hidden] { display: none !important; }
+
+.otp-description {
+  margin: 0 0 23px;
+  color: #bdbdbd;
+  font-size: 12px;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+.otp-email {
+  color: #f5f5f5;
+  overflow-wrap: anywhere;
+}
+
+.otp-inputs {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 7px;
+  margin: 0 0 22px;
+}
+
+.otp-input {
+  width: 100%;
+  min-width: 0;
+  height: 52px;
+  padding: 0;
+  border: 1px solid #555;
+  border-radius: 0;
+  outline: 0;
+  background: #202020;
+  color: #fff;
+  font-size: 21px;
+  font-weight: 600;
+  text-align: center;
+  caret-color: #fff;
+  transition: border-color .16s ease, background .16s ease;
+}
+
+.otp-input:focus {
+  border-color: #f5f5f5;
+  background: #292929;
+}
+
+.otp-input[aria-invalid="true"] { border-color: #ff8f8f; }
+
+.account-action {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 45px;
+  padding: 12px 16px;
+  border: 1px solid #f5f5f5;
+  background: #f5f5f5;
+  color: #171717;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: background .18s ease, color .18s ease, opacity .18s ease;
+}
+
+.account-action:hover:not(:disabled) {
+  background: transparent;
+  color: #f5f5f5;
+}
+
+.otp-secondary-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 19px;
+}
+
+.otp-text-button {
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: #bdbdbd;
+  font-size: 11px;
+  line-height: 1.5;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.otp-text-button:hover { color: #fff; }
+.otp-text-button:disabled { opacity: .4; cursor: wait; }
+
+/* TERMS OF USE + PRIVACY POLICY MODALS */
+
+.policy-panel { text-align: left; }
+
+.policy-panel h2 {
+  padding-right: 20px;
+  text-align: left;
+}
+
+.policy-kicker {
+  margin: 0 0 12px;
+  color: #aaa;
+  font-size: 9px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.policy-body {
+  color: #c3c3c3;
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.policy-body h3 {
+  margin: 22px 0 7px;
+  color: #f5f5f5;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.policy-body h3:first-child { margin-top: 20px; }
+.policy-body p { margin: 0 0 13px; }
+
+.policy-body a {
+  color: #f5f5f5;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* COOKIE PANEL — PRESERVED */
 
 .cookie-panel {
   position: fixed;
@@ -750,7 +880,21 @@ button { cursor: pointer; }
     font-size: 9px;
   }
 
-  .account-panel { padding: 42px 23px 23px; }
+  .account-panel,
+  .policy-panel { padding: 42px 23px 23px; }
+
+  .otp-inputs { gap: 5px; }
+  .otp-input { height: 47px; font-size: 19px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .account-overlay,
+  .policy-overlay,
+  .account-panel,
+  .policy-panel,
+  .cookie-panel {
+    transition-duration: .01ms !important;
+  }
 }
 </style>
 </head>
@@ -782,7 +926,7 @@ button { cursor: pointer; }
   </div>
 </header>
 
-<!-- ACCOUNT SIGN-IN PANEL -->
+<!-- ACCOUNT / EMAIL OTP MODAL -->
 <section class="account-overlay" id="account-overlay"
   aria-hidden="true" aria-label="Sign in">
 
@@ -792,69 +936,223 @@ button { cursor: pointer; }
     <button class="account-close" id="account-close"
       type="button" aria-label="Close">×</button>
 
-    <h2 id="account-title">Sign in</h2>
-    <p class="account-subtitle">Sign in or create an account</p>
+    <div class="email-step" id="email-step">
+      <h2 id="account-title">Sign in</h2>
+      <p class="account-subtitle">Sign in or create an account</p>
 
-    <form id="account-form">
-      <div class="account-email-wrap">
-        <input id="account-email" type="email" name="email"
-          placeholder="Email" aria-label="Email"
-          autocomplete="email" required>
+      <form id="account-form">
+        <div class="account-email-wrap">
+          <input id="account-email" type="email" name="email"
+            placeholder="Email" aria-label="Email"
+            autocomplete="email" required>
 
-        <button class="account-submit" type="submit"
-          aria-label="Continue">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M5 12h14M12 5l7 7-7 7"/>
-          </svg>
+          <button class="account-submit" type="submit"
+            aria-label="Continue">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </button>
+        </div>
+
+        <label class="account-updates">
+          <input id="account-updates" type="checkbox">
+          <span>Sign up to receive updates from 9ojeez9</span>
+        </label>
+
+        <p class="account-terms">
+          By continuing, you agree to our
+          <button type="button" class="account-inline-link"
+            data-policy-open="terms">Terms of Use</button>.
+        </p>
+
+        <p class="account-privacy">
+          <button type="button" class="account-inline-link"
+            data-policy-open="privacy">Privacy Policy</button>
+        </p>
+
+        <p class="account-status" id="account-status"
+          role="status" aria-live="polite"></p>
+      </form>
+    </div>
+
+    <div class="otp-step" id="otp-step" hidden>
+      <h2>Check your email</h2>
+      <p class="otp-description">
+        Enter the 6-digit sign-in code sent to
+        <strong class="otp-email" id="otp-email"></strong>.
+      </p>
+
+      <form id="otp-form">
+        <div class="otp-inputs" id="otp-inputs"
+          role="group" aria-label="Six-digit verification code">
+          <input class="otp-input" type="text" inputmode="numeric"
+            autocomplete="one-time-code" maxlength="1" aria-label="Digit 1" required>
+          <input class="otp-input" type="text" inputmode="numeric"
+            maxlength="1" aria-label="Digit 2" required>
+          <input class="otp-input" type="text" inputmode="numeric"
+            maxlength="1" aria-label="Digit 3" required>
+          <input class="otp-input" type="text" inputmode="numeric"
+            maxlength="1" aria-label="Digit 4" required>
+          <input class="otp-input" type="text" inputmode="numeric"
+            maxlength="1" aria-label="Digit 5" required>
+          <input class="otp-input" type="text" inputmode="numeric"
+            maxlength="1" aria-label="Digit 6" required>
+        </div>
+
+        <button class="account-action" id="otp-verify" type="submit">
+          Verify code
         </button>
-      </div>
 
-      <label class="account-updates">
-        <input id="account-updates" type="checkbox">
-        <span>Sign up to receive updates from 9ojeez9</span>
-      </label>
+        <p class="account-status" id="otp-status"
+          role="status" aria-live="polite"></p>
 
-      <p class="account-terms">
-        By continuing, you agree to our
-        <button type="button" id="terms-open" class="account-inline-link">
-          Terms of Use
-        </button>.
+        <div class="otp-secondary-actions">
+          <button type="button" class="otp-text-button"
+            id="otp-back">Change email</button>
+          <button type="button" class="otp-text-button"
+            id="otp-resend">Resend code</button>
+        </div>
+      </form>
+    </div>
+
+  </div>
+</section>
+
+<!-- INDEPENDENT TERMS OF USE MODAL -->
+<section class="policy-overlay" id="terms-overlay"
+  aria-hidden="true" aria-label="Terms of Use">
+
+  <div class="policy-panel" role="dialog" aria-modal="true"
+    aria-labelledby="terms-title">
+
+    <button class="policy-close" type="button"
+      data-policy-close aria-label="Close">×</button>
+
+    <p class="policy-kicker">VN SHOP · LEGAL</p>
+    <h2 id="terms-title">Terms of Use</h2>
+
+    <div class="policy-body">
+      <p>
+        By accessing or using VN SHOP, you agree to these Terms of Use.
+        If you do not agree, please discontinue use of the website.
       </p>
 
-      <div class="account-terms-content" id="terms-content" hidden>
-        <h3>Terms of Use</h3>
-        <p>
-          By using this website, you agree to use it lawfully and not to
-          interfere with its operation, security, or content.
-        </p>
-        <p>
-          Product information, prices, availability, and website content
-          may change without notice. All website content and brand assets
-          remain the property of their respective owners.
-        </p>
-        <p>
-          You are responsible for providing accurate information when
-          using account features. You must not misuse this website or
-          attempt to gain unauthorized access to its systems.
-        </p>
-        <p>
-          These terms may be updated when necessary. Continued use of
-          the website after an update constitutes acceptance of the
-          revised terms.
-        </p>
-        <p>
-          For questions about these terms, use the Help &amp; Support
-          link on this website.
-        </p>
-      </div>
-
-      <p class="account-privacy">
-        <a href="policies/privacy-policy.html">Privacy Policy</a>
+      <h3>Website use</h3>
+      <p>
+        You agree to use this website lawfully and not to interfere with
+        its operation, security, availability, or content. You must not
+        attempt to gain unauthorized access to accounts or systems.
       </p>
 
-      <p class="account-status" id="account-status"
-        role="status" aria-live="polite"></p>
-    </form>
+      <h3>Products and availability</h3>
+      <p>
+        Product descriptions, images, prices, and availability may change
+        without notice. A product displayed on the website is not a
+        guarantee that it is currently available for purchase.
+      </p>
+
+      <h3>Accounts and security</h3>
+      <p>
+        You are responsible for providing accurate information and keeping
+        access to your email account secure. Verification codes are intended
+        for your use only and should not be shared with others.
+      </p>
+
+      <h3>Intellectual property</h3>
+      <p>
+        Website content, brand assets, logos, and original materials remain
+        the property of their respective owners. They may not be copied,
+        redistributed, or used commercially without permission.
+      </p>
+
+      <h3>Changes to these terms</h3>
+      <p>
+        These terms may be updated when necessary. The current version
+        published on this website applies to your use of the service.
+      </p>
+
+      <h3>Contact</h3>
+      <p>
+        For questions about these terms, visit
+        <a href="help.html">Help &amp; Support</a>.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- INDEPENDENT PRIVACY POLICY MODAL -->
+<section class="policy-overlay" id="privacy-overlay"
+  aria-hidden="true" aria-label="Privacy Policy">
+
+  <div class="policy-panel" role="dialog" aria-modal="true"
+    aria-labelledby="privacy-title">
+
+    <button class="policy-close" type="button"
+      data-policy-close aria-label="Close">×</button>
+
+    <p class="policy-kicker">VN SHOP · LEGAL</p>
+    <h2 id="privacy-title">Privacy Policy</h2>
+
+    <div class="policy-body">
+      <p>
+        VN SHOP respects your privacy. This notice explains the main types
+        of information that may be processed when you use the website.
+      </p>
+
+      <h3>Information you provide</h3>
+      <p>
+        If you use account sign-in, your email address is processed to send
+        a verification code and establish your account session. If you
+        choose to receive updates from 9ojeez9, that preference may also
+        be associated with the account sign-up request.
+      </p>
+
+      <h3>Authentication</h3>
+      <p>
+        Account authentication is provided by Supabase. Your email address,
+        verification requests, and authentication session are processed as
+        needed to provide sign-in functionality. Never share a verification
+        code with anyone.
+      </p>
+
+      <h3>Cookies and preferences</h3>
+      <p>
+        The website stores your cookie preferences in your browser so that
+        your selections can be remembered. You can review those choices
+        using the Cookie Choices control in the website footer.
+      </p>
+
+      <h3>How information is used</h3>
+      <p>
+        Information may be used to operate account features, maintain
+        website security, remember your preferences, and provide features
+        you request. Do not enter information that is unnecessary to use
+        the website.
+      </p>
+
+      <h3>Third-party services</h3>
+      <p>
+        The website relies on third-party services for functionality such
+        as authentication and loading external resources. Those services
+        may process technical data under their own terms and privacy
+        notices.
+      </p>
+
+      <h3>Your choices</h3>
+      <p>
+        You can choose whether to request account sign-in and whether to
+        opt in to updates. You can also adjust your cookie preferences
+        using Cookie Choices.
+      </p>
+
+      <h3>Contact</h3>
+      <p>
+        For privacy questions, visit
+        <a href="help.html">Help &amp; Support</a>.
+        The full published policy is also available at
+        <a href="policies/privacy-policy.html">Privacy Policy</a>.
+      </p>
+    </div>
   </div>
 </section>
 
@@ -913,6 +1211,7 @@ button { cursor: pointer; }
   <div class="copyright">© 2026 VN RECORDS. ALL RIGHTS RESERVED.</div>
 </footer>
 
+<!-- COOKIE PREFERENCES -->
 <section class="cookie-panel" id="cookie-panel"
   aria-label="Cookie preferences" aria-hidden="true">
 
@@ -1015,7 +1314,7 @@ button { cursor: pointer; }
 </section>
 
 <script>
-/* SUPABASE EMAIL SIGN-IN / SIGN-UP */
+/* SUPABASE EMAIL OTP AUTHENTICATION */
 
 const SUPABASE_URL = "https://lzihjhmccdvniditnubf.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_D438U6YN0w0gZ3yrg4SPBQ_RBMJ_ymO";
@@ -1029,67 +1328,299 @@ const accountOverlay = document.getElementById("account-overlay");
 const accountPanel = accountOverlay.querySelector(".account-panel");
 const accountOpen = document.getElementById("profile-open");
 const accountClose = document.getElementById("account-close");
+
+const emailStep = document.getElementById("email-step");
 const accountForm = document.getElementById("account-form");
 const accountEmail = document.getElementById("account-email");
 const accountUpdates = document.getElementById("account-updates");
 const accountSubmit = accountForm.querySelector(".account-submit");
 const accountStatus = document.getElementById("account-status");
-const termsOpen = document.getElementById("terms-open");
-const termsContent = document.getElementById("terms-content");
+
+const otpStep = document.getElementById("otp-step");
+const otpForm = document.getElementById("otp-form");
+const otpEmail = document.getElementById("otp-email");
+const otpInputs = [...document.querySelectorAll(".otp-input")];
+const otpVerify = document.getElementById("otp-verify");
+const otpStatus = document.getElementById("otp-status");
+const otpBack = document.getElementById("otp-back");
+const otpResend = document.getElementById("otp-resend");
+
+const policyOverlays = {
+  terms: document.getElementById("terms-overlay"),
+  privacy: document.getElementById("privacy-overlay")
+};
+
+let pendingEmail = "";
+let rememberedEmail = "";
+let lastAccountTrigger = null;
+let lastPolicyTrigger = null;
+let authRequestInProgress = false;
+
+function setModalBodyLock() {
+  const hasOpenModal =
+    accountOverlay.classList.contains("is-open") ||
+    Object.values(policyOverlays).some(overlay =>
+      overlay.classList.contains("is-open")
+    );
+
+  document.body.classList.toggle("modal-open", hasOpenModal);
+}
+
+function showStatus(element, message, type = "") {
+  element.textContent = message;
+  element.classList.toggle("is-visible", Boolean(message));
+  element.classList.toggle("is-error", type === "error");
+  element.classList.toggle("is-success", type === "success");
+}
+
+function clearStatus(element) {
+  showStatus(element, "");
+}
 
 function openAccountPanel() {
+  lastAccountTrigger = document.activeElement;
   accountOverlay.classList.add("is-open");
   accountOverlay.setAttribute("aria-hidden", "false");
-  accountStatus.textContent = "";
-  accountStatus.classList.remove("is-visible");
-  accountEmail.focus();
+  setModalBodyLock();
+
+  if (otpStep.hidden) {
+    window.setTimeout(() => accountEmail.focus(), 80);
+  } else {
+    window.setTimeout(() => otpInputs.find(input => !input.value)?.focus() || otpInputs[0].focus(), 80);
+  }
 }
 
 function closeAccountPanel() {
   accountOverlay.classList.remove("is-open");
   accountOverlay.setAttribute("aria-hidden", "true");
-  termsContent.hidden = true;
+  clearStatus(accountStatus);
+  clearStatus(otpStatus);
+  setModalBodyLock();
+
+  if (lastAccountTrigger && typeof lastAccountTrigger.focus === "function") {
+    lastAccountTrigger.focus();
+  }
 }
 
-function showAccountStatus(message) {
-  accountStatus.textContent = message;
-  accountStatus.classList.add("is-visible");
+function openPolicy(type, trigger) {
+  const overlay = policyOverlays[type];
+  if (!overlay) return;
+
+  lastPolicyTrigger = trigger || document.activeElement;
+
+  overlay.classList.add("is-open");
+  overlay.setAttribute("aria-hidden", "false");
+  setModalBodyLock();
+
+  window.setTimeout(() => {
+    overlay.querySelector(".policy-close")?.focus();
+  }, 80);
+}
+
+function closePolicy(overlay) {
+  if (!overlay) return;
+
+  overlay.classList.remove("is-open");
+  overlay.setAttribute("aria-hidden", "true");
+  setModalBodyLock();
+
+  if (lastPolicyTrigger && typeof lastPolicyTrigger.focus === "function") {
+    lastPolicyTrigger.focus();
+  }
 }
 
 accountOpen.addEventListener("click", openAccountPanel);
 accountClose.addEventListener("click", closeAccountPanel);
 
-/* Panelin dışındaki herhangi bir yere tıklayınca kapat. */
 accountOverlay.addEventListener("click", event => {
-  if (!accountPanel.contains(event.target)) {
-    closeAccountPanel();
-  }
+  if (event.target === accountOverlay) closeAccountPanel();
 });
 
-/* Panel dışına tıklama ve Escape ile kapatma. */
-document.addEventListener("click", event => {
-  if (
-    accountOverlay.classList.contains("is-open") &&
-    !accountOverlay.contains(event.target) &&
-    !accountOpen.contains(event.target)
-  ) {
-    closeAccountPanel();
-  }
+document.querySelectorAll("[data-policy-open]").forEach(button => {
+  button.addEventListener("click", () => {
+    openPolicy(button.dataset.policyOpen, button);
+  });
+});
+
+Object.values(policyOverlays).forEach(overlay => {
+  overlay.addEventListener("click", event => {
+    if (event.target === overlay) closePolicy(overlay);
+  });
+
+  overlay.querySelector("[data-policy-close]").addEventListener("click", () => {
+    closePolicy(overlay);
+  });
 });
 
 document.addEventListener("keydown", event => {
-  if (
-    event.key === "Escape" &&
-    accountOverlay.classList.contains("is-open")
-  ) {
+  if (event.key !== "Escape") return;
+
+  const openPolicyOverlay = Object.values(policyOverlays).find(overlay =>
+    overlay.classList.contains("is-open")
+  );
+
+  if (openPolicyOverlay) {
+    closePolicy(openPolicyOverlay);
+  } else if (accountOverlay.classList.contains("is-open")) {
     closeAccountPanel();
+  } else if (cookiePanel.classList.contains("is-open")) {
+    closeCookiePanel();
   }
 });
 
-/* Terms of Use metnini panelin içinde açıp kapat. */
-termsOpen.addEventListener("click", () => {
-  termsContent.hidden = !termsContent.hidden;
+function showEmailStep() {
+  emailStep.hidden = false;
+  otpStep.hidden = true;
+  clearStatus(accountStatus);
+  clearStatus(otpStatus);
+  window.setTimeout(() => accountEmail.focus(), 50);
+}
+
+function showOtpStep(email) {
+  pendingEmail = email;
+  otpEmail.textContent = email;
+  emailStep.hidden = true;
+  otpStep.hidden = false;
+  clearStatus(accountStatus);
+  clearStatus(otpStatus);
+  otpInputs.forEach(input => {
+    input.value = "";
+    input.removeAttribute("aria-invalid");
+  });
+  window.setTimeout(() => otpInputs[0].focus(), 50);
+}
+
+function setOtpBusy(isBusy) {
+  otpVerify.disabled = isBusy;
+  otpResend.disabled = isBusy;
+  otpBack.disabled = isBusy;
+  otpInputs.forEach(input => {
+    input.disabled = isBusy;
+  });
+}
+
+function getOtpToken() {
+  return otpInputs.map(input => input.value).join("");
+}
+
+function distributeOtp(value, startIndex = 0) {
+  const digits = String(value).replace(/\D/g, "").slice(0, 6);
+
+  otpInputs.forEach((input, index) => {
+    input.value = digits[index] || "";
+    input.removeAttribute("aria-invalid");
+  });
+
+  const nextInput = otpInputs.find(input => !input.value);
+  (nextInput || otpInputs[5]).focus();
+
+  if (digits.length === 6) {
+    otpInputs[5].focus();
+  }
+}
+
+otpInputs.forEach((input, index) => {
+  input.addEventListener("input", () => {
+    const digits = input.value.replace(/\D/g, "");
+
+    if (digits.length > 1) {
+      distributeOtp(digits, index);
+      return;
+    }
+
+    input.value = digits.slice(0, 1);
+    input.removeAttribute("aria-invalid");
+
+    if (input.value && index < otpInputs.length - 1) {
+      otpInputs[index + 1].focus();
+    }
+
+    clearStatus(otpStatus);
+  });
+
+  input.addEventListener("keydown", event => {
+    if (event.key === "Backspace" && !input.value && index > 0) {
+      otpInputs[index - 1].focus();
+      otpInputs[index - 1].value = "";
+      event.preventDefault();
+    }
+
+    if (event.key === "ArrowLeft" && index > 0) {
+      otpInputs[index - 1].focus();
+      event.preventDefault();
+    }
+
+    if (event.key === "ArrowRight" && index < otpInputs.length - 1) {
+      otpInputs[index + 1].focus();
+      event.preventDefault();
+    }
+  });
+
+  input.addEventListener("paste", event => {
+    const pasted = event.clipboardData?.getData("text") || "";
+    const digits = pasted.replace(/\D/g, "");
+
+    if (!digits) return;
+
+    event.preventDefault();
+    distributeOtp(digits, index);
+    clearStatus(otpStatus);
+  });
 });
+
+async function requestOtp(email, isResend = false) {
+  if (authRequestInProgress) return;
+
+  authRequestInProgress = true;
+  accountSubmit.disabled = true;
+  otpResend.disabled = true;
+
+  if (isResend) {
+    showStatus(otpStatus, "Sending a new code...");
+  } else {
+    showStatus(accountStatus, "Sending your verification code...");
+  }
+
+  try {
+    const { error } = await accountClient.auth.signInWithOtp({
+      email,
+      options: {
+        shouldCreateUser: true,
+        data: {
+          marketing_updates: accountUpdates.checked
+        }
+      }
+    });
+
+    if (error) throw error;
+
+    rememberedEmail = email;
+
+    if (isResend) {
+      otpInputs.forEach(input => {
+        input.value = "";
+        input.removeAttribute("aria-invalid");
+      });
+      showStatus(otpStatus, "A new code has been sent. Check your inbox.", "success");
+      otpInputs[0].focus();
+    } else {
+      showOtpStep(email);
+      showStatus(otpStatus, "Your code has been sent. Check your inbox.", "success");
+    }
+  } catch (error) {
+    console.error("Account OTP request error:", error);
+
+    const message = isResend
+      ? "We couldn't resend the code. Please wait a moment and try again."
+      : "We couldn't send your code. Please check your email address and try again.";
+
+    showStatus(isResend ? otpStatus : accountStatus, message, "error");
+  } finally {
+    authRequestInProgress = false;
+    accountSubmit.disabled = false;
+    otpResend.disabled = false;
+  }
+}
 
 accountForm.addEventListener("submit", async event => {
   event.preventDefault();
@@ -1101,47 +1632,98 @@ accountForm.addEventListener("submit", async event => {
     return;
   }
 
-  accountSubmit.disabled = true;
-  showAccountStatus("Sending your sign-in link...");
+  await requestOtp(email);
+});
+
+otpForm.addEventListener("submit", async event => {
+  event.preventDefault();
+
+  if (authRequestInProgress) return;
+
+  const token = getOtpToken();
+
+  if (!/^\d{6}$/.test(token)) {
+    showStatus(otpStatus, "Enter all 6 digits of your verification code.", "error");
+
+    const firstEmpty = otpInputs.find(input => !input.value);
+    if (firstEmpty) firstEmpty.focus();
+
+    otpInputs.forEach(input => {
+      input.setAttribute("aria-invalid", String(!input.value));
+    });
+
+    return;
+  }
+
+  authRequestInProgress = true;
+  setOtpBusy(true);
+  showStatus(otpStatus, "Verifying your code...");
 
   try {
-    const { error } = await accountClient.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: window.location.origin + window.location.pathname,
-        shouldCreateUser: true,
-        data: {
-          marketing_updates: accountUpdates.checked
-        }
-      }
+    const { data, error } = await accountClient.auth.verifyOtp({
+      email: pendingEmail,
+      token,
+      type: "email"
     });
 
     if (error) throw error;
 
-    showAccountStatus(
-      "If this email can sign in, a sign-in link will be sent. Check your inbox."
-    );
+    if (!data.session || !data.user) {
+      throw new Error("Verification completed without an active session.");
+    }
+
+    showStatus(otpStatus, "You're signed in.", "success");
+    accountOpen.setAttribute("aria-label", "Account");
+    accountOpen.setAttribute("title", "Account");
+
+    window.setTimeout(() => {
+      closeAccountPanel();
+    }, 900);
   } catch (error) {
-    showAccountStatus(
-      "We couldn't send the sign-in link. Please try again."
+    console.error("Account OTP verification error:", error);
+
+    showStatus(
+      otpStatus,
+      "That code is invalid or expired. Check the code or request a new one.",
+      "error"
     );
-    console.error("Account sign-in error:", error);
+
+    otpInputs.forEach(input => {
+      input.setAttribute("aria-invalid", "true");
+    });
+
+    otpInputs[0].focus();
   } finally {
-    accountSubmit.disabled = false;
+    authRequestInProgress = false;
+    setOtpBusy(false);
   }
+});
+
+otpBack.addEventListener("click", () => {
+  if (authRequestInProgress) return;
+
+  accountEmail.value = pendingEmail || rememberedEmail || accountEmail.value;
+  showEmailStep();
+});
+
+otpResend.addEventListener("click", async () => {
+  if (!pendingEmail || authRequestInProgress) return;
+  await requestOtp(pendingEmail, true);
 });
 
 accountClient.auth.onAuthStateChange((event, session) => {
   if (event === "SIGNED_IN" && session) {
-    accountOverlay.classList.add("is-open");
-    accountOverlay.setAttribute("aria-hidden", "false");
-    accountStatus.textContent = "You're signed in.";
-    accountStatus.classList.add("is-visible");
-    accountEmail.value = session.user.email || "";
+    accountOpen.setAttribute("aria-label", "Account");
+    accountOpen.setAttribute("title", "Account");
+  }
+
+  if (event === "SIGNED_OUT") {
+    accountOpen.setAttribute("aria-label", "Sign in");
+    accountOpen.setAttribute("title", "Sign in");
   }
 });
 
-/* PRODUCT CATALOG */
+/* PRODUCT CATALOG — PRESERVED */
 
 const products = [
   {
@@ -1278,7 +1860,7 @@ searchInput.addEventListener("input", () => {
   renderProducts();
 });
 
-/* COOKIE PREFERENCES */
+/* COOKIE PREFERENCES — PRESERVED */
 
 const cookiePanel = document.getElementById("cookie-panel");
 const cookieChoicesButton = document.getElementById("cookie-choices");
@@ -1386,7 +1968,7 @@ const translations = {
     partnersText: "Podemos utilizar cookies e tecnologias de rastreamento para personalizar a sua experiência e os anúncios. O rastreamento pode abranger vários sites e dispositivos.",
     trackingLink: "Ver tecnologias de rastreamento",
     essential: "Essenciais",
-    functional: "Funcionais",
+    functional: "Funcional",
     analytics: "Analítica",
     advertising: "Publicidade",
     privacyLink: "Política de privacidade",
@@ -1576,12 +2158,6 @@ languageSelect.addEventListener("change", () => {
   setCookieLanguage(languageSelect.value);
   languageWrapper.classList.remove("is-open");
   languageToggle.setAttribute("aria-expanded", "false");
-});
-
-document.addEventListener("keydown", event => {
-  if (event.key === "Escape" && cookiePanel.classList.contains("is-open")) {
-    closeCookiePanel();
-  }
 });
 
 setCookieLanguage("en");
