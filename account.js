@@ -375,21 +375,69 @@
     root.hidden = true;
 
     root.innerHTML = `
-      <div class="vn-ac-shell">
+      <div class="vn-ac-shell vn-ac-auth-shell">
         <header class="vn-ac-header">
           <div class="vn-ac-brand" aria-label="VN"><img src="images/vn-logo-black-transparent.png" alt="VN"></div>
           <button type="button" class="vn-ac-close" data-ac-action="close" aria-label="Close account">×</button>
         </header>
         <div id="vnAcContent"></div>
+        <button type="button" class="vn-ac-policy-link" data-ac-action="policy-open" data-ac-policy="privacy">Privacy Policy</button>
       </div>
-      <button type="button" class="vn-ac-policy-link" data-ac-action="privacy-open">Privacy Policy</button>
-      <div class="vn-ac-policy-overlay" hidden role="dialog" aria-modal="true" aria-label="Privacy Policy">
+
+      <div class="vn-ac-policy-overlay" data-policy-overlay="terms" hidden role="dialog" aria-modal="true" aria-label="Terms of Use">
         <section class="vn-ac-policy-panel">
-          <button type="button" class="vn-ac-policy-close" data-ac-action="privacy-close" aria-label="Close privacy policy">×</button>
-          <iframe title="Privacy Policy" src="policies/privacy-policy.html"></iframe>
+          <button type="button" class="vn-ac-policy-close" data-ac-action="policy-close" aria-label="Close Terms of Use">×</button>
+          <p class="vn-ac-policy-kicker">VN SHOP · LEGAL</p>
+          <h2>Terms of Use</h2>
+          <div class="vn-ac-policy-body">
+            <p>By accessing or using VN SHOP, you agree to these Terms of Use. If you do not agree, please discontinue use of the website.</p>
+            <h3>Website use</h3>
+            <p>You agree to use this website lawfully and not to interfere with its operation, security, availability, or content. You must not attempt to gain unauthorized access to accounts or systems.</p>
+            <h3>Products and availability</h3>
+            <p>Product descriptions, images, prices, and availability may change without notice. A product displayed on the website is not a guarantee that it is currently available for purchase.</p>
+            <h3>Accounts and security</h3>
+            <p>You are responsible for providing accurate information and keeping access to your email account secure. Verification codes are intended for your use only and should not be shared with others.</p>
+            <h3>Intellectual property</h3>
+            <p>Website content, brand assets, logos, and original materials remain the property of their respective owners. They may not be copied, redistributed, or used commercially without permission.</p>
+            <h3>Changes to these terms</h3>
+            <p>These terms may be updated when necessary. The current version published on this website applies to your use of the service.</p>
+            <h3>Contact</h3>
+            <p>For questions about these terms, visit <a href="help.html">Help &amp; Support</a>.</p>
+          </div>
+        </section>
+      </div>
+
+      <div class="vn-ac-policy-overlay" data-policy-overlay="privacy" hidden role="dialog" aria-modal="true" aria-label="Privacy Policy">
+        <section class="vn-ac-policy-panel">
+          <button type="button" class="vn-ac-policy-close" data-ac-action="policy-close" aria-label="Close privacy policy">×</button>
+          <p class="vn-ac-policy-kicker">VN SHOP · LEGAL</p>
+          <h2>Privacy Policy</h2>
+          <div class="vn-ac-policy-body">
+            <p>VN SHOP respects your privacy. This notice explains the main types of information that may be processed when you use the website.</p>
+            <h3>Information you provide</h3>
+            <p>If you use account sign-in, your email address is processed to send a verification code and establish your account session. If you choose to receive updates from 9ojeez9, that preference may also be associated with the account sign-up request.</p>
+            <h3>Authentication</h3>
+            <p>Account authentication is provided by Supabase. Your email address, verification requests, and authentication session are processed as needed to provide sign-in functionality. Never share a verification code with anyone.</p>
+            <h3>Cookies and preferences</h3>
+            <p>The website stores your cookie preferences in your browser so that your selections can be remembered. You can review those choices using the Cookie Choices control in the website footer.</p>
+            <h3>How information is used</h3>
+            <p>Information may be used to operate account features, maintain website security, remember your preferences, and provide features you request. Do not enter information that is unnecessary to use the website.</p>
+            <h3>Third-party services</h3>
+            <p>The website relies on third-party services for functionality such as authentication and loading external resources. Those services may process technical data under their own terms and privacy notices.</p>
+            <h3>Your choices</h3>
+            <p>You can choose whether to request account sign-in and whether to opt in to updates. You can also adjust your cookie preferences using Cookie Choices.</p>
+            <h3>Contact</h3>
+            <p>For privacy questions, visit <a href="help.html">Help &amp; Support</a>. The full published policy is also available at <a href="policies/privacy-policy.html">Privacy Policy</a>.</p>
+          </div>
         </section>
       </div>
     `;
+
+    root.addEventListener("click", event => {
+      if (event.target.matches(".vn-ac-policy-overlay")) {
+        event.target.hidden = true;
+      }
+    });
 
     document.body.appendChild(root);
     return root;
@@ -433,9 +481,7 @@
 
         <p class="vn-ac-muted vn-ac-email-terms">
           By continuing, you agree to our
-          <a href="${escapeHTML(state.config?.paths?.termsOfUse || "policies/terms-of-use.html")}" target="_blank" rel="noopener">Terms of Use</a>
-          and
-          <a href="${escapeHTML(state.config?.paths?.privacyPage || "policies/privacy-policy.html")}" target="_blank" rel="noopener">Privacy Policy</a>.
+          <button type="button" data-ac-action="policy-open" data-ac-policy="terms">Terms of Use</button>.
         </p>
       </main>
     `;
@@ -1286,16 +1332,17 @@
             closePanel();
             break;
 
-          case "privacy-open": {
-            const policy = $(".vn-ac-policy-overlay", root);
-            const frame = $(".vn-ac-policy-panel iframe", root);
-            if (frame) frame.src = state.config?.paths?.privacyPage || "privacy-policy.html";
+          case "privacy-open":
+          case "policy-open": {
+            const policyType = action.dataset.acPolicy || "privacy";
+            const policy = $(`.vn-ac-policy-overlay[data-policy-overlay="${policyType}"]`, root);
             if (policy) policy.hidden = false;
             break;
           }
 
-          case "privacy-close": {
-            const policy = $(".vn-ac-policy-overlay", root);
+          case "privacy-close":
+          case "policy-close": {
+            const policy = action.closest(".vn-ac-policy-overlay");
             if (policy) policy.hidden = true;
             break;
           }
