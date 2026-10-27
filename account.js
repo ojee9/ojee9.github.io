@@ -609,12 +609,12 @@
   function accountFooter() { return ""; }
 
   function renderDashboard() {
-    const name = [state.profile.first_name, state.profile.last_name].filter(Boolean).join(" ").trim() || state.user?.email || "there";
+    const name = [state.profile.first_name, state.profile.last_name].filter(Boolean).join(" ").trim();
     return `
       <div class="vn-ac-layout">
         ${sidebar()}
         <main class="vn-ac-main">
-          <h1>Welcome, ${escapeHTML(name)}!</h1>
+          <h1>${name ? `Welcome, ${escapeHTML(name)}!` : "Welcome"}</h1>
           <p class="vn-ac-subtitle">Here's everything you can manage in your account.</p>
           ${messageHTML()}
           <div class="vn-ac-card-grid">
@@ -787,24 +787,28 @@
         <main class="vn-ac-main">
           <h1>My Orders</h1><p class="vn-ac-subtitle">View your order history and track shipments.</p>
           ${messageHTML()}
-          <div class="vn-ac-stats">
-            <div class="vn-ac-stat"><strong>${orders.length}</strong><span>TOTAL ORDERS</span></div>
-            <div class="vn-ac-stat"><strong>${delivered}</strong><span>DELIVERED ORDERS</span></div>
-            <div class="vn-ac-stat"><strong>${returned}</strong><span>RETURNED ORDERS</span></div>
-            <div class="vn-ac-stat"><strong>${waiting}</strong><span>WAITING ORDERS</span></div>
-          </div>
-          ${orders.length ? orders.map(order => `
-            <article class="vn-ac-record">
-              <div class="vn-ac-record-head"><strong>Order ${escapeHTML(order.order_number || order.id)}</strong><span class="vn-ac-badge">${escapeHTML(order.status || "Status unavailable")}</span></div>
-              <p>Placed: ${escapeHTML(order.created_at || "—")}</p>
-              <p>Total: ${escapeHTML(order.currency || "USD")} ${escapeHTML(order.grand_total ?? order.total ?? "—")}</p>
-              <p>Tracking: ${escapeHTML(order.tracking_number || "Not available yet")}</p>
-              <button class="vn-ac-button secondary" data-ac-order="${escapeHTML(order.id)}">View order</button>
-              <button class="vn-ac-button secondary" data-ac-return-order="${escapeHTML(order.id)}">Start a return</button>
-            </article>
-          `).join("") : `<div class="vn-ac-empty vn-ac-orders-empty"><h2>Welcome, ${escapeHTML(([state.profile.first_name, state.profile.last_name].filter(Boolean).join(" ").trim()) || state.user?.email || "there")}</h2><div class="vn-ac-ready-row"><h3>Ready to shop?</h3><button class="vn-ac-button" data-ac-section="shop">Shop now</button></div></div>`}
-          <p class="vn-ac-muted">Need help with an order? Visit the Help Center.</p>
-          <button class="vn-ac-button secondary" data-ac-section="help">Help Center</button>
+          ${orders.length ? `
+            <div class="vn-ac-stats">
+              <div class="vn-ac-stat"><strong>${orders.length}</strong><span>TOTAL ORDERS</span></div>
+              <div class="vn-ac-stat"><strong>${delivered}</strong><span>DELIVERED ORDERS</span></div>
+              <div class="vn-ac-stat"><strong>${returned}</strong><span>RETURNED ORDERS</span></div>
+              <div class="vn-ac-stat"><strong>${waiting}</strong><span>WAITING ORDERS</span></div>
+            </div>
+            ${orders.map(order => `
+              <article class="vn-ac-record">
+                <div class="vn-ac-record-head"><strong>Order ${escapeHTML(order.order_number || order.id)}</strong><span class="vn-ac-badge">${escapeHTML(order.status || "Status unavailable")}</span></div>
+                <p>Placed: ${escapeHTML(order.created_at || "—")}</p>
+                <p>Total: ${escapeHTML(order.currency || "USD")} ${escapeHTML(order.grand_total ?? order.total ?? "—")}</p>
+                <p>Tracking: ${escapeHTML(order.tracking_number || "Not available yet")}</p>
+                <button class="vn-ac-button secondary" data-ac-order="${escapeHTML(order.id)}">View order</button>
+                <button class="vn-ac-button secondary" data-ac-return-order="${escapeHTML(order.id)}">Start a return</button>
+              </article>
+            `).join("")}
+          ` : `
+            <div class="vn-ac-empty vn-ac-orders-empty">
+              <div class="vn-ac-ready-row"><h3>Ready to shop?</h3><button class="vn-ac-button" data-ac-section="shop">Shop now</button></div>
+            </div>
+          `}
         </main>
       </div>
     `;
