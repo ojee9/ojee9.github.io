@@ -258,7 +258,7 @@
       #vnAccountOverlay[hidden]{display:none!important}
       #vnAccountOverlay *{box-sizing:border-box}
       .vn-ac-shell{width:min(100%,980px);max-height:calc(100dvh - 48px);overflow:auto;margin:auto;padding:28px;background:#fff;border:1px solid #d8d8d8;box-shadow:0 24px 80px rgba(0,0,0,.25)}
-      .vn-ac-shell.vn-ac-auth-shell{width:min(100%,410px);max-height:calc(100dvh - 36px);padding:28px 30px 27px;background:#171717;color:#f5f5f5;border:0;box-shadow:0 24px 80px rgba(0,0,0,.3)}
+      .vn-ac-shell.vn-ac-auth-shell{display:flex;flex-direction:column;width:min(100%,520px);max-height:calc(100dvh - 36px);padding:30px 38px 25px;background:#171717;color:#f5f5f5;border:0;box-shadow:0 28px 90px rgba(0,0,0,.42)}
       .vn-ac-header{position:relative;display:flex;justify-content:center;align-items:center;padding-bottom:24px;border-bottom:1px solid #e5e5e5}
       .vn-ac-auth-shell .vn-ac-header{padding:0 32px 22px;border:0}
       .vn-ac-brand{display:flex;align-items:center;justify-content:center;width:112px;height:54px;color:inherit;text-decoration:none}
@@ -266,8 +266,8 @@
       .vn-ac-close{position:absolute;right:0;top:50%;transform:translateY(-50%);border:0;background:none;font-size:23px;cursor:pointer;color:inherit}
       .vn-ac-auth-shell .vn-ac-close{right:-18px;color:#f5f5f5}
       .vn-ac-auth-shell .vn-ac-main{width:100%;max-width:100%;margin:10px auto 0!important}
-      .vn-ac-auth-shell .vn-ac-header{padding-bottom:18px}
-      .vn-ac-auth-shell .vn-ac-brand{width:132px;height:62px;pointer-events:none;user-select:none}
+      .vn-ac-auth-shell .vn-ac-header{padding:0 32px 18px}
+      .vn-ac-auth-shell .vn-ac-brand{width:176px;height:82px;pointer-events:none;user-select:none}
       .vn-ac-auth-shell .vn-ac-email-main h1,.vn-ac-auth-shell .vn-ac-email-main .vn-ac-subtitle{display:none}
       .vn-ac-email-bar{display:flex;align-items:stretch;width:100%;min-height:48px;border:1px solid #555;border-radius:3px;overflow:hidden;background:#171717}
       .vn-ac-email-bar input{flex:1;min-width:0;padding:0 13px;border:0;outline:0;background:transparent;color:#f5f5f5;font:14px/1.4 Arial,sans-serif}
@@ -277,9 +277,9 @@
       .vn-ac-updates{display:flex;align-items:center;justify-content:flex-start;gap:8px;margin:12px 0 0;color:#bdbdbd;font-size:11px;line-height:1.35}
       .vn-ac-updates input{width:13px;height:13px;flex:none;margin:0;accent-color:#f5f5f5;cursor:pointer}
       .vn-ac-email-terms{margin-top:18px!important;color:#8d8d8d;font-size:11px;line-height:1.5}
-      .vn-ac-email-terms a{color:#bdbdbd}
+      .vn-ac-email-terms a,.vn-ac-email-terms button{padding:0;border:0;background:transparent;color:#bdbdbd;font:inherit;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
       .vn-ac-auth-shell .vn-ac-message{margin:0 0 12px}
-      @media(max-width:600px){.vn-ac-shell.vn-ac-auth-shell{padding:24px 22px}.vn-ac-auth-shell .vn-ac-close{right:-10px}.vn-ac-auth-shell .vn-ac-brand{width:132px;height:62px}}
+      @media(max-width:600px){.vn-ac-shell.vn-ac-auth-shell{width:min(100%,480px);padding:26px 24px 22px}.vn-ac-auth-shell .vn-ac-close{right:-10px}.vn-ac-auth-shell .vn-ac-brand{width:164px;height:76px}}
       .vn-ac-layout{display:grid;grid-template-columns:200px minmax(0,1fr);gap:48px;padding-top:32px}
       .vn-ac-sidebar{display:flex;flex-direction:column;gap:8px}
       .vn-ac-nav{border:0;background:none;color:#666;text-align:left;padding:12px 10px;font:inherit;cursor:pointer;border-radius:4px}
@@ -336,13 +336,13 @@
       .vn-ac-inline-change{padding:0 0 0 3px;border:0;background:none;color:#f5f5f5;font:inherit;text-decoration:underline;cursor:pointer}
       .vn-ac-auth-shell:has(.vn-ac-verify-main){width:min(100%,440px)}
       #vnAccountOverlay{flex-direction:column;gap:13px}
-      .vn-ac-policy-link{padding:2px 8px;border:0;background:transparent;color:#bdbdbd;font:11px/1.4 Arial,sans-serif;text-decoration:underline;cursor:pointer}
+      .vn-ac-policy-link{display:block;align-self:center;margin:18px auto 0;padding:11px 8px 0;border:0;background:transparent;color:#a8a8a8;font:10px/1.4 Arial,sans-serif;text-align:center;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
       .vn-ac-policy-overlay{position:fixed;inset:0;z-index:10003;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.72)}
       .vn-ac-policy-overlay[hidden]{display:none!important}
-      .vn-ac-policy-panel{position:relative;width:min(100%,680px);height:min(78dvh,720px);background:#fff;box-shadow:0 24px 80px rgba(0,0,0,.4)}
-      .vn-ac-policy-panel iframe{display:block;width:100%;height:100%;border:0;background:#fff}
-      .vn-ac-policy-close{position:absolute;top:8px;right:8px;z-index:1;width:32px;height:32px;border:0;border-radius:50%;background:#171717;color:#fff;font-size:22px;line-height:1;cursor:pointer}
-      @media(max-width:420px){.vn-ac-otp{gap:6px}.vn-ac-otp input{height:47px}.vn-ac-auth-shell:has(.vn-ac-verify-main){width:min(100%,410px)}}
+      .vn-ac-policy-panel{position:relative;width:min(100%,680px);height:min(78dvh,720px);overflow:auto;padding:34px 38px 38px;background:#fff;color:#171717;box-shadow:0 24px 80px rgba(0,0,0,.4);text-align:left}
+      .vn-ac-policy-panel iframe{display:block;width:100%;height:100%;border:0;background:#fff}.vn-ac-policy-panel h2{margin:0 0 20px;padding-right:28px;font-size:25px;font-weight:600;letter-spacing:-.4px}.vn-ac-policy-kicker{margin:0 0 10px;color:#777;font-size:10px;letter-spacing:1.8px;text-transform:uppercase}.vn-ac-policy-body{color:#444;font-size:13px;line-height:1.8}.vn-ac-policy-body h3{margin:23px 0 7px;color:#171717;font-size:13px;font-weight:600}.vn-ac-policy-body p{margin:0 0 13px}.vn-ac-policy-body a{color:#171717;text-decoration:underline;text-underline-offset:3px}
+      .vn-ac-policy-close{position:absolute;top:12px;right:14px;z-index:1;width:32px;height:32px;border:0;border-radius:50%;background:#171717;color:#fff;font-size:22px;line-height:1;cursor:pointer}
+      @media(max-width:420px){.vn-ac-otp{gap:6px}.vn-ac-otp input{height:47px}.vn-ac-auth-shell:has(.vn-ac-verify-main){width:min(100%,410px)}.vn-ac-policy-panel{padding:30px 22px 24px}.vn-ac-policy-panel h2{font-size:22px}}
       .vn-ac-divider{height:1px;background:#e5e5e5;margin:24px 0}
       .vn-ac-muted{font-size:12px;color:#777}
       .vn-ac-muted a{color:inherit;text-decoration:underline}
