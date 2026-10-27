@@ -252,9 +252,10 @@
     style.id = "vnAccountStyles";
 
     style.textContent = `
-      #vnAccountOverlay{position:fixed;inset:0;z-index:10001;overflow:auto;background:#fff;color:#151515;font:14px/1.55 Arial,sans-serif}
+      #vnAccountOverlay{position:fixed;inset:0;z-index:10001;display:flex;align-items:center;justify-content:center;overflow:auto;padding:24px;background:rgba(0,0,0,.48);color:#151515;font:14px/1.55 Arial,sans-serif}
+      #vnAccountOverlay[hidden]{display:none!important}
       #vnAccountOverlay *{box-sizing:border-box}
-      .vn-ac-shell{max-width:1200px;margin:auto;padding:28px}
+      .vn-ac-shell{width:min(100%,980px);max-height:calc(100dvh - 48px);overflow:auto;margin:auto;padding:28px;background:#fff;border:1px solid #d8d8d8;box-shadow:0 24px 80px rgba(0,0,0,.25)}
       .vn-ac-header{display:flex;justify-content:space-between;align-items:center;padding-bottom:24px;border-bottom:1px solid #e5e5e5}
       .vn-ac-brand{color:inherit;text-decoration:none;font-size:21px;letter-spacing:.15em;font-weight:800}
       .vn-ac-close{border:0;background:none;font-size:23px;cursor:pointer;color:inherit}
