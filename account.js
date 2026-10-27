@@ -405,6 +405,43 @@
       .vn-ac-profile-signout{display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;gap:9px;margin-top:22px;padding-top:0;border-top:0}
       .vn-ac-profile-signout .vn-ac-button{font-size:10px;letter-spacing:.7px}
       .vn-ac-empty{padding:24px;border:1px solid #e5e5e5;color:#777;font-size:13px}
+      /* One fixed-size dashboard shell for every signed-in section, including views without .vn-ac-layout. */
+      .vn-ac-shell.vn-ac-dashboard-open{
+        box-sizing:border-box;
+        width:min(1280px,calc(100vw - 40px)) !important;
+        height:min(860px,calc(100dvh - 40px)) !important;
+        min-height:min(860px,calc(100dvh - 40px)) !important;
+        max-height:min(860px,calc(100dvh - 40px)) !important;
+        padding:36px 48px 28px !important;
+        overflow:hidden !important;
+        display:flex !important;
+        flex-direction:column !important;
+        flex:0 0 auto;
+      }
+      .vn-ac-shell.vn-ac-dashboard-open #vnAcContent{
+        flex:1 1 auto;
+        min-width:0;
+        min-height:0;
+        overflow:auto;
+        scrollbar-gutter:stable;
+      }
+      .vn-ac-shell.vn-ac-dashboard-open .vn-ac-header,
+      .vn-ac-shell.vn-ac-dashboard-open .vn-ac-policy-footer-row{
+        flex:0 0 auto;
+      }
+      .vn-ac-shell.vn-ac-dashboard-open .vn-ac-layout{
+        width:100%;
+        min-height:100%;
+      }
+      @media(max-width:700px){
+        .vn-ac-shell.vn-ac-dashboard-open{
+          width:calc(100vw - 24px) !important;
+          height:calc(100dvh - 24px) !important;
+          min-height:calc(100dvh - 24px) !important;
+          max-height:calc(100dvh - 24px) !important;
+          padding:20px 17px 18px !important;
+        }
+      }
       /* Shared dashboard canvas: identical dimensions across all account sections. Footer sizing and placement stay unchanged. */
       .vn-ac-shell.vn-ac-auth-shell:has(.vn-ac-layout){
         box-sizing:border-box;
@@ -1002,6 +1039,7 @@
     const content = $("#vnAcContent", root);
     const shell = $(".vn-ac-shell", root);
     shell?.classList.toggle("vn-ac-auth-shell", !state.user);
+    shell?.classList.toggle("vn-ac-dashboard-open", Boolean(state.user));
 
     if (!state.user) {
       content.innerHTML = state.screen === "verify" ? renderVerify() : renderEmail();
