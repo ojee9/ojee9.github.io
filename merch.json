@@ -1,5 +1,3 @@
-
-
 {
   "supabase": {
     "url": "https://lzihjhmccdvniditnubf.supabase.co",
@@ -7,7 +5,23 @@
   },
   "account": {
     "otpType": "email",
-    "otpLength": 6
+    "otpLength": 6,
+    "labels": {
+      "title": "Sign in",
+      "subtitle": "Sign in or create an account",
+      "emailPlaceholder": "Email",
+      "continue": "Continue",
+      "updatesOptIn": "Sign up to receive updates from 9ojeez9",
+      "termsPrefix": "By continuing, you agree to our",
+      "termsLink": "Terms of Use",
+      "privacyLink": "Privacy Policy",
+      "otpTitle": "Check your email",
+      "otpDescription": "Enter the 6-digit sign-in code sent to",
+      "verifyCode": "Verify code",
+      "changeEmail": "Change email",
+      "resendCode": "Resend code",
+      "signOut": "Sign out"
+    }
   },
   "cookies": {
     "defaultLanguage": "en",
@@ -16,11 +30,33 @@
       "functional": false,
       "analytics": false,
       "advertising": false
-    }
+    },
+    "labels": {
+      "collectHeading": "Information We Collect About You",
+      "collectText": "We want to be transparent about the data we and our partners collect and how we use it, so you can best exercise control over your personal data. For more information, please see our",
+      "privacyInline": "Privacy Policy",
+      "partnersHeading": "Information Our Partners Collect",
+      "partnersText": "We use cookies or other tracking technologies from the following partners. These are used to personalize your experience, connect with social networks, and tailor advertising to better match your interests. This may include tracking across our sites, sites operated by third parties, and multiple devices.",
+      "trackingLink": "Visit tracking technologies",
+      "essential": "Essential",
+      "functional": "Functional",
+      "analytics": "Analytics",
+      "advertising": "Advertising",
+      "privacyLink": "Privacy Policy",
+      "confirm": "Confirm",
+      "languageLabel": "Switch language",
+      "essentialTitle": "Essential cookies cannot be disabled"
+    },
+    "languages": {
+      "en": "English",
+      "tr": "Türkçe"
+    },
+    "logo": "/images/vn-logo-black-transparent.png"
   },
   "policies": {
     "terms": {
       "title": "Terms of Use",
+      "kicker": "VN SHOP · LEGAL",
       "sections": [
         {
           "heading": "Introduction",
@@ -48,12 +84,17 @@
         },
         {
           "heading": "Contact",
-          "text": "For questions about these terms, visit Help & Support."
+          "text": "For questions about these terms, visit Help & Support.",
+          "link": {
+            "text": "Help & Support",
+            "href": "help.html"
+          }
         }
       ]
     },
     "privacy": {
       "title": "Privacy Policy",
+      "kicker": "VN SHOP · LEGAL",
       "sections": [
         {
           "heading": "Introduction",
@@ -85,7 +126,17 @@
         },
         {
           "heading": "Contact",
-          "text": "For privacy questions, visit Help & Support. The full published policy is also available at Privacy Policy."
+          "text": "For privacy questions, visit Help & Support. The full published policy is also available at Privacy Policy.",
+          "links": [
+            {
+              "text": "Help & Support",
+              "href": "help.html"
+            },
+            {
+              "text": "Privacy Policy",
+              "href": "policies/privacy-policy.html"
+            }
+          ]
         }
       ]
     },
@@ -93,7 +144,8 @@
       "help": "help.html",
       "terms": "policies/terms-of-sale.html",
       "privacy": "policies/privacy-policy.html",
-      "legalNotice": "policies/legal-notice.html"
+      "legalNotice": "policies/legal-notice.html",
+      "trackingTechnologies": "policies/privacy-policy.html#tracking-technologies"
     }
   }
 }
