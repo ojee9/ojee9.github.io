@@ -258,9 +258,16 @@
       #vnAccountOverlay[hidden]{display:none!important}
       #vnAccountOverlay *{box-sizing:border-box}
       .vn-ac-shell{width:min(100%,980px);max-height:calc(100dvh - 48px);overflow:auto;margin:auto;padding:28px;background:#fff;border:1px solid #d8d8d8;box-shadow:0 24px 80px rgba(0,0,0,.25)}
-      .vn-ac-header{display:flex;justify-content:space-between;align-items:center;padding-bottom:24px;border-bottom:1px solid #e5e5e5}
-      .vn-ac-brand{color:inherit;text-decoration:none;font-size:21px;letter-spacing:.15em;font-weight:800}
-      .vn-ac-close{border:0;background:none;font-size:23px;cursor:pointer;color:inherit}
+      .vn-ac-shell.vn-ac-auth-shell{width:min(100%,410px);max-height:calc(100dvh - 36px);padding:28px 30px 27px;background:#171717;color:#f5f5f5;border:0;box-shadow:0 24px 80px rgba(0,0,0,.3)}
+      .vn-ac-header{position:relative;display:flex;justify-content:center;align-items:center;padding-bottom:24px;border-bottom:1px solid #e5e5e5}
+      .vn-ac-auth-shell .vn-ac-header{padding:0 32px 22px;border:0}
+      .vn-ac-brand{display:flex;align-items:center;justify-content:center;width:112px;height:54px;color:inherit;text-decoration:none}
+      .vn-ac-brand img{display:block;width:100%;height:100%;object-fit:contain;filter:invert(1)}
+      .vn-ac-close{position:absolute;right:0;top:50%;transform:translateY(-50%);border:0;background:none;font-size:23px;cursor:pointer;color:inherit}
+      .vn-ac-auth-shell .vn-ac-close{right:-18px;color:#f5f5f5}
+      .vn-ac-auth-shell .vn-ac-main{width:100%;max-width:100%;margin:22px auto 0!important}
+      .vn-ac-auth-shell .vn-ac-subtitle{color:#bdbdbd}
+      @media(max-width:600px){.vn-ac-shell.vn-ac-auth-shell{padding:24px 22px}.vn-ac-auth-shell .vn-ac-close{right:-10px}}
       .vn-ac-layout{display:grid;grid-template-columns:200px minmax(0,1fr);gap:48px;padding-top:32px}
       .vn-ac-sidebar{display:flex;flex-direction:column;gap:8px}
       .vn-ac-nav{border:0;background:none;color:#666;text-align:left;padding:12px 10px;font:inherit;cursor:pointer;border-radius:4px}
@@ -345,7 +352,7 @@
     root.innerHTML = `
       <div class="vn-ac-shell">
         <header class="vn-ac-header">
-          <a class="vn-ac-brand" href="#" data-ac-action="close">VN SHOP</a>
+          <a class="vn-ac-brand" href="#" data-ac-action="close" aria-label="VN home"><img src="images/vn-logo-black-transparent.png" alt="VN"></a>
           <button type="button" class="vn-ac-close" data-ac-action="close" aria-label="Close account">×</button>
         </header>
         <div id="vnAcContent"></div>
@@ -776,6 +783,8 @@
     if (root.hidden) return;
 
     const content = $("#vnAcContent", root);
+    const shell = $(".vn-ac-shell", root);
+    shell?.classList.toggle("vn-ac-auth-shell", !state.user);
 
     if (!state.user) {
       content.innerHTML = state.screen === "verify" ? renderVerify() : renderEmail();
