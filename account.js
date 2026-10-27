@@ -271,22 +271,22 @@
       .vn-ac-signin-heading{margin:2px 0 0;text-align:center}
       .vn-ac-signin-heading h1{margin:0;font-size:30px;font-weight:700;line-height:1.2;letter-spacing:-.65px;color:#f5f5f5}
       .vn-ac-signin-heading p{margin:9px 0 0;font-size:14px;line-height:1.5;color:#a9a5ad}
-      .vn-ac-email-form-wrap{width:min(100%,360px);margin:0 auto}
+      .vn-ac-email-form-wrap{width:min(100%,420px);margin:0 auto}
       .vn-ac-shop-space{height:42px;flex:none}
-      .vn-ac-or-divider{display:flex;align-items:center;gap:13px;width:min(100%,360px);margin:0 auto 18px;color:#8d8794;font-size:11px;line-height:1;letter-spacing:1.5px}
+      .vn-ac-or-divider{display:flex;align-items:center;gap:13px;width:min(100%,420px);margin:0 auto 18px;color:#8d8794;font-size:11px;line-height:1;letter-spacing:1.5px}
       .vn-ac-or-divider:before,.vn-ac-or-divider:after{content:"";height:1px;flex:1;background:#39343e}
-      .vn-ac-email-bar{display:flex;align-items:center;gap:8px;width:100%;min-height:52px;padding:5px 6px 5px 15px;border:1px solid #4a4a4a;border-radius:6px;overflow:hidden;background:#101010;transition:border-color .18s ease,background .18s ease}
-      .vn-ac-email-bar input{flex:1;min-width:0;height:40px;padding:0;border:0;outline:0;background:transparent;color:#f5f5f5;font:15px/1.45 Arial,sans-serif}
-      .vn-ac-email-bar input::placeholder{color:#88838b;opacity:1}
-      .vn-ac-email-bar:focus-within{border-color:#929292;background:#121212}
-      .vn-ac-email-submit{display:flex;align-items:center;justify-content:center;width:38px;height:38px;flex:none;padding:0;border:0;border-radius:4px;background:#f5f5f5;color:#111;font:400 22px/1 Arial,sans-serif;cursor:pointer;transition:background .16s ease}
-      .vn-ac-email-submit:hover{background:#fff}
+      .vn-ac-email-bar{display:flex;align-items:center;gap:4px;width:100%;min-height:58px;padding:6px 7px 6px 17px;border:1px solid #555;border-radius:2px;overflow:hidden;background:#101010;transition:border-color .18s ease,background .18s ease}
+      .vn-ac-email-bar input{flex:1;min-width:0;height:44px;padding:0;border:0;outline:0;background:transparent;color:#f5f5f5;font:16px/1.45 Arial,sans-serif}
+      .vn-ac-email-bar input::placeholder{color:#a4a4a4;opacity:1}
+      .vn-ac-email-bar:focus-within{border-color:#bdbdbd;background:#111}
+      .vn-ac-email-submit{display:flex;align-items:center;justify-content:center;width:44px;height:44px;flex:none;padding:0;border:0;border-radius:0;background:transparent;color:#f5f5f5;cursor:pointer;transition:color .16s ease,background .16s ease}
+      .vn-ac-email-submit:hover{background:#242424;color:#fff}.vn-ac-email-submit svg{display:block;width:20px;height:20px}
       .vn-ac-updates{display:flex;align-items:center;justify-content:flex-start;gap:8px;margin:13px 0 0;padding-left:15px;color:#c5c1ca;font-size:13px;line-height:1.45}
       .vn-ac-updates input{width:15px;height:15px;flex:none;margin:0;accent-color:#f5f5f5;cursor:pointer}
       .vn-ac-email-terms{margin:22px auto 0!important;max-width:420px;text-align:center;color:#8d8d8d;font-size:12px;line-height:1.6}
       .vn-ac-email-terms a,.vn-ac-email-terms button{padding:0;border:0;background:transparent;color:#bdbdbd;font:inherit;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
       .vn-ac-auth-shell .vn-ac-message{margin:0 0 12px}
-      @media(max-width:600px){.vn-ac-shell.vn-ac-auth-shell{width:min(100%,540px);min-height:420px;padding:30px 24px 26px}.vn-ac-auth-shell .vn-ac-close{right:-10px}.vn-ac-auth-shell .vn-ac-brand{width:158px;height:74px}.vn-ac-signin-heading h1{font-size:27px}.vn-ac-signin-heading p{font-size:13px}.vn-ac-email-form-wrap,.vn-ac-or-divider{width:min(100%,360px)}.vn-ac-shop-space{height:32px}.vn-ac-updates{font-size:12px}}
+      @media(max-width:600px){.vn-ac-shell.vn-ac-auth-shell{width:min(100%,540px);min-height:420px;padding:30px 24px 26px}.vn-ac-auth-shell .vn-ac-close{right:-10px}.vn-ac-auth-shell .vn-ac-brand{width:158px;height:74px}.vn-ac-signin-heading h1{font-size:27px}.vn-ac-signin-heading p{font-size:13px}.vn-ac-email-form-wrap,.vn-ac-or-divider{width:100%;max-width:420px}.vn-ac-email-bar{min-height:56px;padding-left:14px}.vn-ac-email-bar input{height:42px;font-size:16px}.vn-ac-email-submit{width:42px;height:42px}.vn-ac-email-submit svg{display:block;width:20px;height:20px}.vn-ac-shop-space{height:32px}.vn-ac-updates{font-size:12px}}
       .vn-ac-layout{display:grid;grid-template-columns:200px minmax(0,1fr);gap:48px;padding-top:32px}
       .vn-ac-sidebar{display:flex;flex-direction:column;gap:8px}
       .vn-ac-nav{border:0;background:none;color:#666;text-align:left;padding:12px 10px;font:inherit;cursor:pointer;border-radius:4px}
@@ -488,7 +488,7 @@
               required
               autofocus
             >
-            <button type="submit" class="vn-ac-email-submit" aria-label="Continue" title="Continue"><span aria-hidden="true">→</span></button>
+            <button type="submit" class="vn-ac-email-submit" aria-label="Continue" title="Continue"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12h14M12 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
           </div>
 
           <label class="vn-ac-updates">
