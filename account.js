@@ -33,6 +33,7 @@
     messageType: "info",
     country: CONFIG.defaultCountry,
     marketingUpdates: false,
+    signupMarketing: false,
     editing: "",
     loadingData: false
   };
@@ -122,7 +123,10 @@
 
       state.supabase.auth.onAuthStateChange((event, session) => {
         if (session?.user) {
+          const sameUser = state.user?.id === session.user.id;
           state.user = session.user;
+          if (sameUser) return;
+
           state.email = session.user.email || state.email;
           state.screen = "account";
 
@@ -294,6 +298,7 @@
       .vn-ac-otp input{width:43px;height:50px;text-align:center;font-size:20px;border:1px solid #bbb;border-radius:4px}
       .vn-ac-divider{height:1px;background:#e5e5e5;margin:24px 0}
       .vn-ac-muted{font-size:12px;color:#777}
+      .vn-ac-muted a{color:inherit;text-decoration:underline}
       .vn-ac-legal-copy{white-space:pre-line;line-height:1.8;color:#555;font-size:13px}
       .vn-ac-empty{padding:24px;border:1px solid #e5e5e5;color:#777;font-size:13px}
       @media(max-width:700px){
@@ -366,13 +371,22 @@
             >
           </label>
 
+          <label class="vn-ac-preference" style="margin:12px 0">
+            <span><strong>Sign up to receive updates from 9ojeez9</strong></span>
+            <input type="checkbox" name="updates" class="vn-ac-toggle"
+              ${state.signupMarketing ? "checked" : ""}>
+          </label>
+
           <button class="vn-ac-button" type="submit" style="width:100%">
             Continue with email
           </button>
         </form>
 
         <p class="vn-ac-muted" style="margin-top:16px">
-          We'll send you a one-time verification code.
+          By continuing, you agree to our
+          <a href="${escapeHTML(state.config?.paths?.termsOfUse || "policies/terms-of-use.html")}" target="_blank" rel="noopener">Terms of Use</a>
+          and
+          <a href="${escapeHTML(state.config?.paths?.privacyPage || "policies/privacy-policy.html")}" target="_blank" rel="noopener">Privacy Policy</a>.
         </p>
       </main>
     `;
@@ -501,6 +515,25 @@
         `).join("")}
       </div>
     `;
+  }
+
+  function countryOptions(selected) {
+    const list = state.config?.account?.profile?.country?.options || [
+      { code: "TR", name: "Türkiye" },
+      { code: "US", name: "United States" },
+      { code: "GB", name: "United Kingdom" },
+      { code: "DE", name: "Germany" },
+      { code: "FR", name: "France" },
+      { code: "NL", name: "Netherlands" },
+      { code: "CA", name: "Canada" },
+      { code: "AU", name: "Australia" }
+    ];
+
+    return list.map(item => `
+      <option value="${escapeHTML(item.code)}" ${item.code === selected ? "selected" : ""}>
+        ${escapeHTML(item.name)}
+      </option>
+    `).join("");
   }
 
   function renderProfile() {
@@ -669,8 +702,10 @@
     const delivered = orders.filter(order =>
       String(order.status || "").toLowerCase() === "delivered"
     ).length;
-    const returned = orders.filter(order =>
-      String(order.status || "").toLowerCase().includes("return")
+    const returned = state.returns.filter(item =>
+      ["approved", "received", "refunded", "completed"].includes(
+        String(item.status || "").toLowerCase()
+      )
     ).length;
     const waiting = orders.filter(order =>
       ["pending", "processing", "paid", "shipped"].includes(
@@ -700,7 +735,7 @@
                 <span class="vn-ac-badge">${escapeHTML(order.status || "Status unavailable")}</span>
               </div>
               <p>Placed: ${escapeHTML(order.created_at || "—")}</p>
-              <p>Total: ${escapeHTML(order.currency || "USD")} ${escapeHTML(order.total ?? "—")}</p>
+              <p>Total: ${escapeHTML(order.currency || "USD")} ${escapeHTML(order.grand_total ?? order.total ?? "—")}</p>
               <p>Tracking: ${escapeHTML(order.tracking_number || "Not available yet")}</p>
               <button class="vn-ac-button secondary" data-ac-order="${escapeHTML(order.id)}">View order</button>
               <button class="vn-ac-button secondary" data-ac-return-order="${escapeHTML(order.id)}">Start a return</button>
@@ -738,7 +773,7 @@
               </div>
               <p>Order: ${escapeHTML(item.order_id || "—")}</p>
               <p>Reason: ${escapeHTML(item.reason || "—")}</p>
-              <p>Created: ${escapeHTML(item.created_at || "—")}</p>
+              <p>Created: ${escapeHTML(item.requested_at || item.created_at || "—")}</p>
               <p>${escapeHTML(item.customer_note || "")}</p>
             </article>
           `).join("") : `
@@ -835,7 +870,7 @@
       const sections = Array.isArray(policy.sections)
         ? policy.sections.map(section => {
             if (typeof section === "string") return section;
-            return [section.title, section.content || section.text]
+            return [section.title || section.heading, section.content || section.text]
               .filter(Boolean).join("\n\n");
           }).join("\n\n")
         : "";
@@ -868,9 +903,10 @@
     `;
   }
 
+  // Only draws while the panel is open, so background updates never pop it up.
   function render() {
     const root = createRoot();
-    root.hidden = false;
+    if (root.hidden) return;
 
     const content = $("#vnAcContent", root);
 
@@ -892,11 +928,11 @@
   }
 
   /*
-   * IMPORTANT OTP FLOW:
-   * 1. Switch to the verification screen immediately.
-   * 2. Start the network request without holding the user on the email form.
-   * 3. If the request fails, show the error on the verification screen.
-   * 4. Allow resend from that screen.
+   * OTP FLOW:
+   * 1. Switch to the code screen immediately (no status text).
+   * 2. Send the request in the background.
+   * 3. On success nothing is redrawn, so digits already typed are kept.
+   * 4. On failure show the error on the code screen and allow resend at once.
    */
   async function sendCode(email) {
     if (!state.supabase) {
@@ -909,27 +945,27 @@
     state.email = email.trim();
     state.screen = "verify";
     state.messageType = "info";
-    state.message = "Requesting verification code…";
+    state.message = "";
     state.resendAt = Date.now() + CONFIG.resendDelay * 1000;
     render();
+    startResendTimer();
+    window.setTimeout(focusEntry, 30);
 
-    // Keep the verification screen visible while the request runs.
     try {
       const { error } = await state.supabase.auth.signInWithOtp({
         email: state.email,
         options: {
-          shouldCreateUser: true
+          shouldCreateUser: true,
+          data: { marketing_updates: state.signupMarketing }
         }
       });
 
       if (error) throw error;
 
-      state.messageType = "success";
-      state.message = "Verification request sent. Check your inbox and spam folder.";
-      render();
-      startResendTimer();
+      // Success: no status text and no redraw.
     } catch (error) {
       console.error("[VN ACCOUNT] OTP send failed:", error);
+      state.resendAt = 0;
 
       state.messageType = "error";
       state.message = explainAuthError(error);
@@ -1003,9 +1039,9 @@
       return;
     }
 
-    state.messageType = "info";
-    state.message = "Verifying code…";
-    render();
+    if (state.busy) return;
+    state.busy = true;
+    state.message = "";
 
     try {
       const { data, error } = await state.supabase.auth.verifyOtp({
@@ -1024,8 +1060,7 @@
 
       state.screen = "account";
       state.section = "dashboard";
-      state.message = "Email verified.";
-      state.messageType = "success";
+      state.message = "";
 
       await loadAccountData();
       render();
@@ -1035,7 +1070,20 @@
       state.message = explainAuthError(error);
       render();
       focusOtp();
+    } finally {
+      state.busy = false;
     }
+  }
+
+  function focusEntry() {
+    const root = $("#vnAccountOverlay");
+    if (!root || root.hidden || state.user) return;
+
+    const target = state.screen === "verify"
+      ? $("[data-otp-digit]", root)
+      : $('input[name="email"]', root);
+
+    target?.focus();
   }
 
   function focusOtp() {
@@ -1248,8 +1296,10 @@
       state.section = state.section === "dashboard" ? "profile" : "dashboard";
     }
 
+    createRoot().hidden = false;
     render();
     document.body.style.overflow = "hidden";
+    window.setTimeout(focusEntry, 30);
   }
 
   function goShop() {
@@ -1315,6 +1365,7 @@
             state.screen = "email";
             state.message = "";
             render();
+            window.setTimeout(focusEntry, 30);
             break;
 
           case "resend":
@@ -1383,11 +1434,17 @@
     }
 
     // Try to detect the existing storefront's account/profile button.
+    // #profile-open is wired directly in merch.html, so it is skipped here
+    // to avoid opening the panel twice.
     const profileButton = event.target.closest(
       '[data-account-toggle], [data-profile-toggle], #accountButton, #profileButton, .account-button, .profile-button, a[href="#account"], button[aria-label*="account" i], button[aria-label*="profile" i]'
     );
 
-    if (profileButton && !profileButton.closest("#vnAccountOverlay")) {
+    if (
+      profileButton &&
+      profileButton.id !== "profile-open" &&
+      !profileButton.closest("#vnAccountOverlay")
+    ) {
       event.preventDefault();
       openPanel();
     }
@@ -1408,14 +1465,10 @@
         return;
       }
 
-      // Switch screens immediately; sendCode handles the network request afterwards.
-      state.email = email;
-      state.screen = "verify";
-      state.message = "Requesting verification code…";
-      state.messageType = "info";
-      render();
+      state.signupMarketing = new FormData(form).get("updates") === "on";
 
-      await sendCode(email);
+      // sendCode shows the code screen immediately, then sends in the background.
+      sendCode(email);
       return;
     }
 
@@ -1466,6 +1519,32 @@
 
     const index = Number(input.dataset.otpDigit);
     $(`[data-otp-digit="${index - 1}"]`, $("#vnAccountOverlay"))?.focus();
+  });
+
+  // Pasting a full code fills all boxes.
+  document.addEventListener("paste", event => {
+    const input = event.target.closest?.("[data-otp-digit]");
+    if (!input) return;
+
+    const digits = (event.clipboardData?.getData("text") || "")
+      .replace(/\D/g, "")
+      .slice(0, CONFIG.otpLength);
+
+    if (!digits) return;
+
+    event.preventDefault();
+
+    const inputs = [...$("#vnAccountOverlay").querySelectorAll("[data-otp-digit]")];
+    inputs.forEach((element, index) => {
+      element.value = digits[index] || "";
+    });
+
+    inputs[Math.min(digits.length, inputs.length) - 1]?.focus();
+  });
+
+  document.addEventListener("keydown", event => {
+    const root = $("#vnAccountOverlay");
+    if (event.key === "Escape" && root && !root.hidden) closePanel();
   });
 
   document.addEventListener("change", async event => {
