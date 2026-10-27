@@ -272,9 +272,9 @@
       .vn-ac-signin-heading{margin:2px 0 0;text-align:center}
       .vn-ac-signin-heading h1{margin:0;font-size:28px;font-weight:700;line-height:1.2;letter-spacing:-.65px;color:#f5f5f5}
       .vn-ac-signin-heading p{margin:8px 0 0;font-size:12px;line-height:1.45;color:#a9a5ad}
-      .vn-ac-email-form-wrap{width:min(100%,420px);margin:0 auto}
+      .vn-ac-email-form-wrap{width:min(100%,350px);margin:0 auto}
       .vn-ac-shop-space{height:48px;flex:none}
-      .vn-ac-or-divider{display:flex;align-items:center;gap:13px;width:min(100%,420px);margin:0 auto 17px;color:#8d8794;font-size:10px;line-height:1;letter-spacing:1.5px}
+      .vn-ac-or-divider{display:flex;align-items:center;gap:13px;width:min(100%,350px);margin:0 auto 17px;color:#8d8794;font-size:10px;line-height:1;letter-spacing:1.5px}
       .vn-ac-or-divider:before,.vn-ac-or-divider:after{content:"";height:1px;flex:1;background:#39343e}
       .vn-ac-email-bar{display:flex;align-items:center;width:100%;min-height:46px;padding:0 5px 0 0;border:1px solid #39333f;border-radius:4px;overflow:hidden;background:#080808;transition:border-color .25s ease,box-shadow .25s ease}
       .vn-ac-email-bar input{flex:1;min-width:0;height:44px;padding:0 15px;border:0;outline:0;background:transparent;color:#f5f5f5;font:13px/1.4 Arial,sans-serif}
@@ -282,11 +282,11 @@
       .vn-ac-email-bar:focus-within{border-color:#51415f;box-shadow:0 0 0 2px rgba(171,125,229,.07)}
       .vn-ac-email-bar:focus-within input{background:transparent}
       .vn-ac-email-submit{display:flex;align-items:center;justify-content:center;width:35px;height:35px;flex:none;border:0;border-radius:2px;background:transparent;color:#77727d;font:300 20px/1 Arial,sans-serif;cursor:pointer;transition:color .25s ease,transform .25s ease}
-      .vn-ac-email-bar.has-email .vn-ac-email-submit{color:#b78aff;transform:translateX(1px)}
+      .vn-ac-email-bar.has-email .vn-ac-email-submit{color:#c18cff;transform:translateX(2px)}
       .vn-ac-email-submit:hover{color:#d1b3ff}
-      .vn-ac-updates{display:flex;align-items:center;justify-content:flex-start;gap:8px;margin:12px 0 0;color:#bdbdbd;font-size:11px;line-height:1.35}
+      .vn-ac-updates{display:flex;align-items:center;justify-content:flex-start;gap:8px;margin:12px 0 0;color:#c5c1ca;font-size:12px;line-height:1.4}
       .vn-ac-updates input{width:13px;height:13px;flex:none;margin:0;accent-color:#f5f5f5;cursor:pointer}
-      .vn-ac-email-terms{margin-top:18px!important;color:#8d8d8d;font-size:11px;line-height:1.5}
+      .vn-ac-email-terms{margin:18px auto 0!important;max-width:350px;text-align:center;color:#8d8d8d;font-size:10px;line-height:1.5}
       .vn-ac-email-terms a,.vn-ac-email-terms button{padding:0;border:0;background:transparent;color:#bdbdbd;font:inherit;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
       .vn-ac-auth-shell .vn-ac-message{margin:0 0 12px}
       @media(max-width:600px){.vn-ac-shell.vn-ac-auth-shell{width:min(100%,540px);min-height:440px;padding:32px 27px 28px}.vn-ac-auth-shell .vn-ac-close{right:-10px}.vn-ac-auth-shell .vn-ac-brand{width:164px;height:76px}}
@@ -1531,7 +1531,7 @@
         bar?.classList.remove("has-email");
         emailArrowTimer = setTimeout(() => {
           if (emailInput.isConnected && emailInput.value.trim()) bar?.classList.add("has-email");
-        }, 500);
+        }, 250);
       }
       return;
     }
