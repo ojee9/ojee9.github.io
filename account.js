@@ -374,9 +374,9 @@
       .vn-ac-footer-policies .vn-ac-legal-list{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 14px;margin:0;border:0}
       .vn-ac-footer-policies .vn-ac-legal-item{display:inline-flex;gap:3px;padding:0;border:0;color:#a8a8a8;font:10px/1.4 Arial,sans-serif;text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
       .vn-ac-footer-policies .vn-ac-legal-item:hover{color:#fff}
-      .vn-ac-footer-country{display:inline-flex;align-items:center;gap:2px;color:#a8a8a8;font:10px/1.4 Arial,sans-serif;white-space:nowrap}
-      .vn-ac-footer-country select{width:auto;max-width:150px;padding:0;border:0;outline:0;background:transparent;color:inherit;font:inherit;cursor:pointer;appearance:none;-webkit-appearance:none}
-      .vn-ac-footer-country::after{content:"⌄";display:inline-block;margin:0;font-size:10px;line-height:1;pointer-events:none;flex:0 0 auto}
+      .vn-ac-footer-country{display:inline-flex;align-items:center;gap:0;margin:0;padding:0;color:#a8a8a8;font:10px/1.4 Arial,sans-serif;white-space:nowrap;vertical-align:middle}
+      .vn-ac-footer-country select{display:inline-block;width:auto;max-width:150px;min-width:0;margin:0;padding:0;border:0;outline:0;background:transparent;color:inherit;font:inherit;line-height:inherit;cursor:pointer;appearance:none;-webkit-appearance:none;vertical-align:middle}
+      .vn-ac-footer-country::after{content:"⌄";display:inline-block;margin-left:-1px;padding:0;font-size:10px;line-height:1;pointer-events:none;flex:0 0 auto;vertical-align:middle}
       .vn-ac-profile-action{min-height:30px;padding:6px 12px;font-size:11px;letter-spacing:.3px;text-decoration:none}
       .vn-ac-footer-country select option{color:#111;background:#fff}
       .vn-ac-profile-detail-row{display:flex;align-items:center;justify-content:space-between;gap:18px}
