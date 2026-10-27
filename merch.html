@@ -4,9 +4,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Explore official VN RECORDS merchandise, clothing and products.">
+<meta name="description" content="Explore official VN SHOP merchandise from VN RECORDS. Browse product images, details, and current prices.">
+<meta name="robots" content="index,follow,max-image-preview:large">
 <meta name="theme-color" content="#C6BBA7">
-<title>VN SHOP® — 9ojeez9</title>
+<title>VN SHOP® — Official Merchandise by 9ojeez9</title>
+<link rel="canonical" href="https://ojee9.github.io/merch.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="VN SHOP">
+<meta property="og:title" content="VN SHOP® — Official Merchandise by 9ojeez9">
+<meta property="og:description" content="Explore official VN SHOP merchandise from VN RECORDS.">
+<meta property="og:url" content="https://ojee9.github.io/merch.html">
+<meta property="og:image" content="https://ojee9.github.io/images/9o9-shop-product-gta-love-poster.png">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="merch.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -226,6 +235,45 @@
     key;
 
   const products = Array.isArray(config.products) ? config.products : [];
+
+  // Product structured data is generated from the same catalog data as the visible cards.
+  // This adds search metadata only; it does not alter product presentation.
+  const activeProducts = products.filter(product => product.active !== false);
+  const productStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": "VN SHOP Products",
+    "url": "https://ojee9.github.io/merch.html",
+    "itemListElement": activeProducts.map((product, index) => {
+      const productUrl = "https://ojee9.github.io/merch.html#" + encodeURIComponent(product.id);
+      const imageUrl = new URL(product.image, "https://ojee9.github.io/").href;
+      const item = {
+        "@type": "Product",
+        "name": product.name,
+        "url": productUrl,
+        "image": imageUrl,
+        "sku": product.id,
+        "category": product.category || product.type || "Merchandise",
+        "brand": { "@type": "Brand", "name": "VN SHOP" },
+        "offers": {
+          "@type": "Offer",
+          "url": productUrl,
+          "price": String(product.price),
+          "priceCurrency": product.currency || "USD"
+        }
+      };
+      if (product.description) item.description = product.description;
+      return { "@type": "ListItem", "position": index + 1, "item": item };
+    })
+  };
+  let productSchema = document.getElementById("vn-product-structured-data");
+  if (!productSchema) {
+    productSchema = document.createElement("script");
+    productSchema.id = "vn-product-structured-data";
+    productSchema.type = "application/ld+json";
+    document.head.appendChild(productSchema);
+  }
+  productSchema.textContent = JSON.stringify(productStructuredData);
 
   const categories = config.categories || [
     "ALL",
