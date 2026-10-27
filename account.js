@@ -893,6 +893,7 @@
     }
   }
   function render() {
+    updateAccountAvatar();
     const root = createRoot();
     if (root.hidden) return;
 
