@@ -394,12 +394,12 @@
       .vn-ac-address-control>select{padding-right:28px}
       .vn-ac-address-city-row{grid-template-columns:1fr 1fr 1fr;gap:10px}
       .vn-ac-phone-row{display:flex;align-items:stretch}
-      .vn-ac-phone-row{position:relative;display:flex;align-items:stretch}
-      .vn-ac-phone-row select{flex:0 0 42px;width:42px;min-width:0;padding:0 2px;border:1px solid #d7d7d7;border-right:0;border-radius:5px 0 0 5px;background:#fff;color:transparent;font-size:0;cursor:pointer}
+      .vn-ac-phone-row{position:relative;display:flex;align-items:stretch;width:100%;min-width:0}
+      .vn-ac-phone-dial{display:flex;align-items:center;flex:0 0 auto;padding:0 10px;border:1px solid #d7d7d7;border-right:0;border-radius:5px 0 0 5px;background:#fff;color:#222;font:13px Arial,sans-serif;white-space:nowrap}
+      .vn-ac-phone-row input{flex:1;min-width:0;width:100%;padding:14px 12px;border:1px solid #d7d7d7;border-left:0;border-right:0;border-radius:0;color:#111;font:13px Arial,sans-serif}
+      .vn-ac-phone-row select{position:relative;z-index:1;flex:0 0 42px;width:42px;min-width:0;padding:0;border:1px solid #d7d7d7;border-left:0;border-radius:0 5px 5px 0;background:transparent;color:transparent;font-size:0;cursor:pointer;appearance:none;-webkit-appearance:none}
       .vn-ac-phone-row select option{color:#111;font-size:13px}
-      .vn-ac-phone-flag{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:17px;line-height:1;pointer-events:none}
-      .vn-ac-phone-dial{display:flex;align-items:center;padding:0 9px;border:1px solid #d7d7d7;border-left:0;border-right:0;background:#fff;color:#222;font:13px Arial,sans-serif;white-space:nowrap}
-      .vn-ac-phone-row input{flex:1;min-width:0;width:100%;padding:14px 12px;border:1px solid #d7d7d7;border-left:0;border-radius:0 5px 5px 0;color:#111;font:13px Arial,sans-serif}
+      .vn-ac-phone-flag{position:absolute;z-index:2;right:12px;top:50%;transform:translateY(-50%);font-size:17px;line-height:1;pointer-events:none}
       .vn-ac-default-address{display:flex;align-items:center;gap:9px;font-size:13px;cursor:pointer}
       .vn-ac-default-address input{width:15px;height:15px;margin:0;accent-color:#17110b}
       @media(max-width:700px){.vn-ac-address-city-row{grid-template-columns:1fr}.vn-ac-phone-row select{flex-basis:42px;width:42px}}
@@ -900,7 +900,7 @@
               <label class="vn-ac-address-control"><span>State</span><select name="state" autocomplete="address-level1"><option value="">State / Province</option>${(state.country === "TR" ? "Adana Adıyaman Afyonkarahisar Ağrı Amasya Ankara Antalya Artvin Aydın Balıkesir Bilecik Bingöl Bitlis Bolu Burdur Bursa Çanakkale Çankırı Çorum Denizli Diyarbakır Edirne Elazığ Erzincan Erzurum Eskişehir Gaziantep Giresun Gümüşhane Hakkari Hatay Isparta Mersin İstanbul İzmir Kars Kastamonu Kayseri Kırklareli Kırşehir Kocaeli Konya Kütahya Malatya Manisa Kahramanmaraş Mardin Muğla Muş Nevşehir Niğde Ordu Rize Sakarya Samsun Siirt Sinop Sivas Tekirdağ Tokat Trabzon Tunceli Şanlıurfa Uşak Van Yozgat Zonguldak Aksaray Bayburt Karaman Kırıkkale Batman Şırnak Bartın Ardahan Iğdır Yalova Karabük Kilis Osmaniye Düzce" : "Alabama Alaska Arizona Arkansas California Colorado Connecticut Delaware Florida Georgia Hawaii Idaho Illinois Indiana Iowa Kansas Kentucky Louisiana Maine Maryland Massachusetts Michigan Minnesota Mississippi Missouri Montana Nebraska Nevada New Hampshire New Jersey New Mexico New York North Carolina North Dakota Ohio Oklahoma Oregon Pennsylvania Rhode Island South Carolina South Dakota Tennessee Texas Utah Vermont Virginia Washington West Virginia Wisconsin Wyoming").split(" ").map(item => `<option value="${escapeHTML(item)}">${escapeHTML(item)}</option>`).join("")}</select></label>
               <label class="vn-ac-address-control"><span>ZIP Code</span><input name="postal_code" placeholder="ZIP Code" autocomplete="postal-code" required></label>
             </div>
-            <label class="vn-ac-address-control"><span>Phone</span><div class="vn-ac-phone-row"><select name="phone_country" aria-label="Phone country" title="Select phone country">${dialSelect}</select><span class="vn-ac-phone-flag" aria-hidden="true">${flags[state.country || "TR"] || "🌐"}</span><span class="vn-ac-phone-dial" data-ac-phone-dial>${selectedDial}</span><input name="phone" type="tel" placeholder="Phone" autocomplete="tel-national"></div></label>
+            <label class="vn-ac-address-control"><span>Phone</span><div class="vn-ac-phone-row"><span class="vn-ac-phone-dial" data-ac-phone-dial>${selectedDial}</span><input name="phone" type="tel" placeholder="Phone" autocomplete="tel-national"><select name="phone_country" aria-label="Phone country" title="Select phone country">${dialSelect}</select><span class="vn-ac-phone-flag" aria-hidden="true">${flags[state.country || "TR"] || "🌐"}</span></div></label>
             <label class="vn-ac-default-address"><input type="checkbox" name="is_default"><span>This is my default address</span></label>
             <button class="vn-ac-button" type="submit">Save address</button>
           </form>
