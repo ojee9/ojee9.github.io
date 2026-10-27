@@ -438,23 +438,25 @@
 
       <div class="detail-layout">
         <div class="detail-gallery${posterClass}${isPoster ? " is-poster" : ""}">
-          <div class="detail-thumbnails" ${galleryImages.length ? "" : "hidden"}>
-            ${galleryImages.map((src, index) => `
-              <button
-                type="button"
-                class="detail-thumb${index === 0 ? " is-active" : ""}"
-                data-image="${index}"
-                aria-label="View image ${index + 1}"
-                aria-pressed="${index === 0 ? "true" : "false"}"
-              >
-                <img src="${esc(src)}" alt="">
-              </button>
-            `).join("")}
-          </div>
+          ${galleryImages.length ? `
+            <div class="detail-thumbnails">
+              ${galleryImages.map((src, index) => `
+                <button
+                  type="button"
+                  class="detail-thumb${index === 0 ? " is-active" : ""}"
+                  data-image="${index}"
+                  aria-label="View image ${index + 1}"
+                  aria-pressed="${index === 0 ? "true" : "false"}"
+                >
+                  <img src="${esc(src)}" alt="">
+                </button>
+              `).join("")}
+            </div>
+          ` : ""}
 
           <div class="detail-image-stage">
             <div class="detail-main-image">
-              <img data-main-image src="${esc(images[0] || "")}" alt="${esc(product.name)}">
+              <img data-main-image src="${esc(images[0] || "")}" alt="${esc(product.name)}" loading="eager" decoding="async" style="display:block;width:100%;height:auto;max-width:100%;object-fit:contain">
             </div>
             ${galleryImages.length > 1 ? `
               <div class="detail-image-dots" role="group" aria-label="Choose product image">
