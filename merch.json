@@ -1,11 +1,214 @@
+
 {
+  "version": 2,
   "supabase": {
     "url": "https://lzihjhmccdvniditnubf.supabase.co",
     "publishableKey": "sb_publishable_D438U6YN0w0gZ3yrg4SPBQ_RBMJ_ymO"
   },
+  "site": {
+    "brand": "VN SHOP",
+    "updatesBrand": "9ojeez9",
+    "copyright": "© 2026 VN RECORDS. ALL RIGHTS RESERVED.",
+    "policyKicker": "VN SHOP · LEGAL",
+    "defaultLanguage": "en",
+    "helpPath": "help.html",
+    "homePath": "index.html"
+  },
   "account": {
+    "shouldCreateUser": true,
     "otpType": "email",
     "otpLength": 6,
+    "marketingUpdatesField": "marketing_updates",
+    "otp": {
+      "navigateBeforeSending": true,
+      "sendInBackground": true,
+      "allowResend": true,
+      "resendCooldownSeconds": 30,
+      "verifyOnServer": true
+    },
+    "navigation": {
+      "defaultView": "dashboard",
+      "items": [
+        {
+          "id": "dashboard",
+          "label": "DASHBOARD",
+          "view": "dashboard"
+        },
+        {
+          "id": "shop",
+          "label": "SHOP",
+          "view": "shop"
+        }
+      ],
+      "profileIconBehavior": {
+        "signedOut": "sign-in",
+        "signedInOnDashboard": "profile",
+        "signedInElsewhere": "dashboard"
+      }
+    },
+    "dashboard": {
+      "title": "MY ACCOUNT",
+      "cards": [
+        {
+          "id": "orders",
+          "title": "MY ORDERS",
+          "description": "View your order history and track shipments.",
+          "view": "orders",
+          "requiresAuthentication": true
+        },
+        {
+          "id": "returns",
+          "title": "MY RETURNS",
+          "description": "Start or track a return.",
+          "view": "returns",
+          "requiresAuthentication": true
+        },
+        {
+          "id": "profile",
+          "title": "MY PROFILE",
+          "description": "Update your details and saved addresses.",
+          "view": "profile",
+          "requiresAuthentication": true
+        },
+        {
+          "id": "help",
+          "title": "HELP CENTER",
+          "description": "Find answers to common questions.",
+          "path": "help.html"
+        }
+      ]
+    },
+    "profile": {
+      "title": "MY PROFILE",
+      "sections": [
+        {
+          "id": "contact",
+          "title": "CONTACT",
+          "editable": true,
+          "fields": [
+            "email",
+            "first_name",
+            "last_name",
+            "phone"
+          ]
+        },
+        {
+          "id": "addresses",
+          "title": "ADDRESSES",
+          "editable": true,
+          "supportsMultiple": true,
+          "fields": [
+            "full_name",
+            "address_line_1",
+            "address_line_2",
+            "city",
+            "region",
+            "postal_code",
+            "country",
+            "phone"
+          ]
+        },
+        {
+          "id": "marketing",
+          "title": "MARKETING PREFERENCES",
+          "field": "marketing_updates",
+          "control": "toggle",
+          "editableInline": true,
+          "description": "Receive email updates from 9ojeez9."
+        }
+      ],
+      "country": {
+        "default": "TR",
+        "preselectFromBrowserLocale": true,
+        "fallback": "TR",
+        "options": [
+          {
+            "code": "TR",
+            "name": "Türkiye"
+          },
+          {
+            "code": "US",
+            "name": "United States"
+          },
+          {
+            "code": "GB",
+            "name": "United Kingdom"
+          },
+          {
+            "code": "DE",
+            "name": "Germany"
+          },
+          {
+            "code": "FR",
+            "name": "France"
+          },
+          {
+            "code": "NL",
+            "name": "Netherlands"
+          },
+          {
+            "code": "CA",
+            "name": "Canada"
+          },
+          {
+            "code": "AU",
+            "name": "Australia"
+          }
+        ]
+      },
+      "actions": [
+        {
+          "id": "sign-out",
+          "label": "SIGN OUT",
+          "operation": "supabase.auth.signOut",
+          "scope": "local"
+        },
+        {
+          "id": "sign-out-all",
+          "label": "SIGN OUT FROM ALL DEVICES",
+          "operation": "supabase.auth.signOut",
+          "scope": "global"
+        }
+      ],
+      "legalPanels": [
+        {
+          "id": "refund-policy",
+          "title": "REFUND POLICY",
+          "description": "Review eligibility, refund conditions, and the refund process.",
+          "path": "policies/refund-policy.html"
+        },
+        {
+          "id": "shipping",
+          "title": "SHIPPING",
+          "description": "Review shipping methods, delivery estimates, and tracking information.",
+          "path": "policies/shipping.html"
+        },
+        {
+          "id": "privacy",
+          "title": "PRIVACY POLICY",
+          "description": "Learn how personal information is collected and processed.",
+          "path": "policies/privacy-policy.html"
+        },
+        {
+          "id": "terms",
+          "title": "TERMS OF USE",
+          "description": "Read the rules for using VN SHOP.",
+          "path": "policies/terms-of-use.html"
+        },
+        {
+          "id": "terms-sale",
+          "title": "TERMS AND CONDITIONS OF SALE",
+          "description": "Review the conditions that apply to purchases.",
+          "path": "policies/terms-of-sale.html"
+        },
+        {
+          "id": "do-not-sell",
+          "title": "DO NOT SELL OR SHARE MY PERSONAL INFORMATION",
+          "description": "Review available privacy choices and submit a request where applicable.",
+          "path": "policies/privacy-policy.html#do-not-sell"
+        }
+      ]
+    },
     "labels": {
       "title": "Sign in",
       "subtitle": "Sign in or create an account",
@@ -20,17 +223,382 @@
       "verifyCode": "Verify code",
       "changeEmail": "Change email",
       "resendCode": "Resend code",
-      "signOut": "Sign out"
+      "signOut": "Sign out",
+      "dashboard": "DASHBOARD",
+      "shop": "SHOP",
+      "myOrders": "MY ORDERS",
+      "myReturns": "MY RETURNS",
+      "myProfile": "MY PROFILE",
+      "helpCenter": "HELP CENTER",
+      "edit": "EDIT",
+      "save": "SAVE",
+      "cancel": "CANCEL",
+      "contact": "CONTACT",
+      "addresses": "ADDRESSES",
+      "marketingPreferences": "MARKETING PREFERENCES",
+      "email": "EMAIL",
+      "signOutAllDevices": "SIGN OUT FROM ALL DEVICES",
+      "loading": "Loading…",
+      "retry": "Retry",
+      "emptyOrders": "You have no orders yet.",
+      "emptyReturns": "You have no return requests yet.",
+      "orderDetails": "ORDER DETAILS",
+      "trackShipment": "TRACK SHIPMENT",
+      "requestReturn": "REQUEST A RETURN",
+      "returnDetails": "RETURN DETAILS",
+      "returnReason": "Return reason",
+      "submitReturn": "SUBMIT RETURN REQUEST",
+      "saveChanges": "SAVE CHANGES",
+      "genericError": "Something went wrong. Please try again.",
+      "sessionExpired": "Your session has expired. Please sign in again."
     }
   },
+  "checkout": {
+    "enabled": false,
+    "implementationStatus": "requires-payment-provider-and-server-functions",
+    "currency": "USD",
+    "currencyDisplay": "symbol",
+    "locale": "en-US",
+    "requireAuthentication": true,
+    "requireShippingAddress": true,
+    "requireExplicitOrderConfirmation": true,
+    "allowGuestCheckout": false,
+    "allowQuantityChanges": true,
+    "maxItemQuantity": 99,
+    "calculatePricesOnServer": true,
+    "calculateShippingOnServer": true,
+    "calculateTaxesOnServer": true,
+    "trustClientPrices": false,
+    "trustClientPaymentStatus": false,
+    "trustClientOrderStatus": false,
+    "payment": {
+      "provider": null,
+      "createPaymentOnServer": true,
+      "verifyPaymentWithWebhook": true,
+      "markPaidFromBrowser": false,
+      "storeCardDetails": false,
+      "requireVerifiedPaymentBeforeFulfillment": true
+    },
+    "shipping": {
+      "enabled": true,
+      "requireRecipientName": true,
+      "requireAddressLine1": true,
+      "requireCity": true,
+      "requirePostalCode": true,
+      "requireCountry": true,
+      "requirePhone": true,
+      "trackingEnabled": true,
+      "methods": []
+    },
+    "taxes": {
+      "enabled": true,
+      "calculatedOnServer": true
+    },
+    "discounts": {
+      "enabled": false,
+      "validateOnServer": true
+    },
+    "confirmation": {
+      "createOrderAfterVerifiedPayment": true,
+      "sendOrderConfirmationEmail": true,
+      "includeOrderNumber": true,
+      "includeItems": true,
+      "includeShippingAddress": true
+    },
+    "messages": {
+      "checkoutUnavailable": "Checkout is not available yet.",
+      "emptyCart": "Your cart is empty.",
+      "paymentPending": "Your payment is being verified.",
+      "paymentFailed": "Your payment could not be completed. No paid order has been confirmed.",
+      "orderCreated": "Your order has been confirmed.",
+      "addressRequired": "Please complete your shipping address.",
+      "signInRequired": "Please sign in before checking out."
+    }
+  },
+  "orders": {
+    "enabled": true,
+    "requiresAuthenticatedUser": true,
+    "persistence": {
+      "provider": "supabase",
+      "table": "orders",
+      "itemsTable": "order_items",
+      "createOnlyOnServer": true,
+      "updatePaymentStatusOnlyOnServer": true,
+      "updateFulfillmentStatusOnlyOnServer": true,
+      "immutablePriceSnapshot": true,
+      "persistOrderNumber": true,
+      "persistCurrency": true,
+      "persistItems": true,
+      "persistShippingAddressSnapshot": true,
+      "persistPaymentReference": true,
+      "persistTrackingNumber": true,
+      "persistCreatedAt": true,
+      "persistUpdatedAt": true
+    },
+    "fields": [
+      "id",
+      "order_number",
+      "user_id",
+      "status",
+      "payment_status",
+      "fulfillment_status",
+      "currency",
+      "subtotal",
+      "shipping_total",
+      "tax_total",
+      "discount_total",
+      "grand_total",
+      "shipping_address",
+      "tracking_number",
+      "tracking_url",
+      "payment_provider",
+      "payment_reference",
+      "created_at",
+      "updated_at"
+    ],
+    "itemFields": [
+      "id",
+      "order_id",
+      "product_id",
+      "product_name",
+      "product_image",
+      "variant",
+      "sku",
+      "quantity",
+      "unit_price",
+      "line_total"
+    ],
+    "statuses": [
+      "pending",
+      "confirmed",
+      "processing",
+      "shipped",
+      "delivered",
+      "cancelled"
+    ],
+    "paymentStatuses": [
+      "pending",
+      "authorized",
+      "paid",
+      "failed",
+      "refunded",
+      "partially_refunded"
+    ],
+    "fulfillmentStatuses": [
+      "unfulfilled",
+      "processing",
+      "shipped",
+      "delivered",
+      "cancelled"
+    ],
+    "dashboard": {
+      "title": "MY ORDERS",
+      "stats": [
+        {
+          "id": "total",
+          "label": "TOTAL ORDERS",
+          "countStatuses": "*"
+        },
+        {
+          "id": "delivered",
+          "label": "DELIVERED ORDERS",
+          "countStatuses": [
+            "delivered"
+          ]
+        },
+        {
+          "id": "returned",
+          "label": "RETURNED ORDERS",
+          "countReturnsWithStatuses": [
+            "approved",
+            "received",
+            "refunded",
+            "completed"
+          ]
+        },
+        {
+          "id": "waiting",
+          "label": "WAITING ORDERS",
+          "countStatuses": [
+            "pending",
+            "confirmed",
+            "processing"
+          ]
+        }
+      ],
+      "sort": {
+        "field": "created_at",
+        "direction": "desc"
+      },
+      "pagination": {
+        "enabled": true,
+        "pageSize": 10
+      },
+      "emptyState": {
+        "title": "NO ORDERS YET",
+        "description": "Your orders will appear here after a confirmed purchase."
+      },
+      "show": [
+        "order_number",
+        "created_at",
+        "items",
+        "grand_total",
+        "currency",
+        "payment_status",
+        "fulfillment_status",
+        "tracking_number",
+        "tracking_url"
+      ]
+    }
+  },
+  "returns": {
+    "enabled": true,
+    "requiresAuthenticatedUser": true,
+    "persistence": {
+      "provider": "supabase",
+      "table": "returns",
+      "itemsTable": "return_items",
+      "createOnlyForOwnedOrders": true,
+      "validateEligibilityOnServer": true,
+      "approveOnlyOnServer": true,
+      "refundOnlyThroughPaymentProvider": true,
+      "persistStatusHistory": true
+    },
+    "fields": [
+      "id",
+      "return_number",
+      "order_id",
+      "user_id",
+      "status",
+      "reason",
+      "customer_note",
+      "requested_at",
+      "updated_at",
+      "decision_at",
+      "received_at",
+      "refund_amount",
+      "refund_reference",
+      "resolution_note"
+    ],
+    "itemFields": [
+      "id",
+      "return_id",
+      "order_item_id",
+      "quantity",
+      "condition_note"
+    ],
+    "statuses": [
+      "requested",
+      "under_review",
+      "approved",
+      "rejected",
+      "in_transit",
+      "received",
+      "refunding",
+      "refunded",
+      "completed",
+      "cancelled"
+    ],
+    "reasons": [
+      "damaged",
+      "wrong_item",
+      "size_or_fit",
+      "not_as_described",
+      "changed_mind",
+      "other"
+    ],
+    "dashboard": {
+      "title": "MY RETURNS",
+      "sort": {
+        "field": "requested_at",
+        "direction": "desc"
+      },
+      "pagination": {
+        "enabled": true,
+        "pageSize": 10
+      },
+      "show": [
+        "return_number",
+        "order_id",
+        "status",
+        "reason",
+        "requested_at",
+        "updated_at",
+        "refund_amount",
+        "resolution_note"
+      ],
+      "allowCustomerCancellationStatuses": [
+        "requested",
+        "under_review"
+      ],
+      "emptyState": {
+        "title": "NO RETURNS YET",
+        "description": "Eligible items from your orders can be returned here."
+      },
+      "messages": {
+        "submitted": "Your return request has been submitted and saved.",
+        "pending": "Your request is awaiting review.",
+        "approved": "Your return request has been approved. Follow the instructions provided.",
+        "rejected": "Your return request was not approved. Review the reason shown in the request details.",
+        "refunded": "The refund has been confirmed by the payment provider.",
+        "error": "Your return request could not be saved. Please try again."
+      }
+    }
+  },
+  "database": {
+    "provider": "supabase",
+    "requiredTables": [
+      "profiles",
+      "addresses",
+      "orders",
+      "order_items",
+      "returns",
+      "return_items",
+      "return_status_history"
+    ],
+    "requiredFunctions": [
+      "create-checkout-session",
+      "verify-payment-webhook",
+      "create-order",
+      "request-return",
+      "cancel-return",
+      "process-refund"
+    ],
+    "security": {
+      "enableRowLevelSecurity": true,
+      "usersCanReadOwnProfile": true,
+      "usersCanUpdateOwnProfile": true,
+      "usersCanReadOwnAddresses": true,
+      "usersCanManageOwnAddresses": true,
+      "usersCanReadOwnOrders": true,
+      "usersCanReadOwnOrderItems": true,
+      "usersCanReadOwnReturns": true,
+      "usersCanReadOwnReturnItems": true,
+      "usersCanCreateReturnRequestsForOwnEligibleOrders": true,
+      "usersCanSetPaymentStatus": false,
+      "usersCanSetRefundStatus": false,
+      "usersCanSetOrderTotal": false,
+      "usersCanSetFulfillmentStatus": false,
+      "serviceRoleKeyInBrowser": false
+    },
+    "note": "This JSON declares the required schema and security behavior. It does not create database tables, policies, triggers, or Edge Functions automatically."
+  },
   "cookies": {
+    "storageKey": "vn-cookie-preferences",
     "defaultLanguage": "en",
+    "essentialAlwaysEnabled": true,
     "defaultPreferences": {
       "essential": true,
       "functional": false,
       "analytics": false,
       "advertising": false
     },
+    "categories": [
+      "essential",
+      "functional",
+      "analytics",
+      "advertising"
+    ],
     "labels": {
       "collectHeading": "Information We Collect About You",
       "collectText": "We want to be transparent about the data we and our partners collect and how we use it, so you can best exercise control over your personal data. For more information, please see our",
@@ -145,7 +713,54 @@
       "terms": "policies/terms-of-sale.html",
       "privacy": "policies/privacy-policy.html",
       "legalNotice": "policies/legal-notice.html",
-      "trackingTechnologies": "policies/privacy-policy.html#tracking-technologies"
+      "trackingTechnologies": "policies/privacy-policy.html#tracking-technologies",
+      "refundPolicy": "policies/refund-policy.html",
+      "shipping": "policies/shipping.html",
+      "termsOfUse": "policies/terms-of-use.html"
     }
-  }
+  },
+  "paths": {
+    "help": "help.html",
+    "termsPage": "policies/terms-of-sale.html",
+    "privacyPage": "policies/privacy-policy.html",
+    "legalNoticePage": "policies/legal-notice.html",
+    "trackingTechnologies": "policies/privacy-policy.html#tracking-technologies",
+    "refundPolicy": "policies/refund-policy.html",
+    "shippingPolicy": "policies/shipping.html",
+    "termsOfUse": "policies/terms-of-use.html",
+    "cookieLogo": "/images/vn-logo-black-transparent.png"
+  },
+  "cart": {
+    "maxItemQuantity": 99,
+    "currency": "USD",
+    "checkoutImplemented": false,
+    "checkoutUnavailableMessage": "Checkout is not available yet.",
+    "emptyHeading": "Your cart is empty",
+    "emptyText": "Time to fill up",
+    "shippingDisclaimer": "Shipping, taxes, and any applicable fees are calculated at checkout."
+  },
+  "products": [
+    {
+      "id": "gta-love-poster-1",
+      "name": "GTA LOVE POSTER 1",
+      "price": "20.00",
+      "currency": "USD",
+      "type": "POSTER",
+      "category": "XTRAS",
+      "material": "NON-TEXTILE",
+      "image": "images/9o9-shop-product-gta-love-poster.png",
+      "active": true
+    },
+    {
+      "id": "gta-love-poster-2",
+      "name": "GTA LOVE POSTER 2",
+      "price": "20.00",
+      "currency": "USD",
+      "type": "POSTER",
+      "category": "XTRAS",
+      "material": "NON-TEXTILE",
+      "image": "images/9o9-shop-product-gta-love-poster-2.png",
+      "active": true
+    }
+  ]
 }
