@@ -186,16 +186,20 @@
         .eq("id", userId)
         .maybeSingle();
 
+      const metadata = state.user.user_metadata || {};
       if (!profileResult.error && profileResult.data) {
         state.profile = profileResult.data;
-        state.marketingUpdates = profileResult.data.marketing_updates !== false;
-        state.country = profileResult.data.country || userCountry();
-      } else if (profileResult.error) {
-        console.warn(
-          "[VN ACCOUNT] Profile could not be loaded:",
-          profileResult.error.message
-        );
+      } else {
+        state.profile = {
+          first_name: metadata.first_name || "",
+          last_name: metadata.last_name || "",
+          marketing_updates: metadata.marketing_updates,
+          country: metadata.country
+        };
+        if (profileResult.error) console.warn("[VN ACCOUNT] profiles table unavailable; using account metadata:", profileResult.error.message);
       }
+      state.marketingUpdates = state.profile.marketing_updates !== false;
+      state.country = state.profile.country || userCountry();
 
       const addressResult = await state.supabase
         .from("customer_addresses")
@@ -369,6 +373,13 @@
       .vn-ac-footer-policies .vn-ac-legal-list{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 14px;margin:0;border:0}
       .vn-ac-footer-policies .vn-ac-legal-item{display:inline-flex;gap:3px;padding:0;border:0;color:#a8a8a8;font:10px/1.4 Arial,sans-serif;text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
       .vn-ac-footer-policies .vn-ac-legal-item:hover{color:#fff}
+      .vn-ac-footer-country{color:#a8a8a8;font:10px/1.4 Arial,sans-serif;white-space:nowrap}
+      .vn-ac-profile-detail-row{display:flex;align-items:center;justify-content:space-between;gap:18px}
+      .vn-ac-profile-detail-label{display:flex;align-items:center;min-width:0}
+      .vn-ac-profile-detail-value{display:flex;align-items:center;justify-content:flex-end;gap:18px;min-width:0}
+      .vn-ac-profile-detail-value small{text-align:right;overflow-wrap:anywhere}
+      .vn-ac-profile-detail-row>.vn-ac-text-action{flex:none}
+      @media(max-width:520px){.vn-ac-profile-detail-row{gap:10px}.vn-ac-profile-detail-value{gap:10px}}
       .vn-ac-profile-section{margin-top:20px}
       .vn-ac-profile-section-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:7px;font-size:13px}
       .vn-ac-text-action{padding:0;border:0;background:none;color:#777;font:12px Arial,sans-serif;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
@@ -423,7 +434,7 @@
         </header>
         <div id="vnAcContent"></div>
         <div class="vn-ac-policy-footer-row">
-          <button type="button" class="vn-ac-policy-link" data-ac-action="policy-open" data-ac-policy="privacy">Privacy Policy</button>
+          <span class="vn-ac-footer-country">${escapeHTML(countryName(state.country))}</span>
           <div class="vn-ac-footer-policies">${legalLinks()}</div>
         </div>
       </div>
@@ -631,7 +642,7 @@
       <div class="vn-ac-legal-list">
         ${links.map(([key, label]) => `
           <a href="#" class="vn-ac-legal-item" data-ac-legal="${key}">
-            <span>${label}</span><span>→</span>
+            <span>${label}</span>
           </a>
         `).join("")}
       </div>
@@ -657,6 +668,16 @@
     `).join("");
   }
 
+  function countryName(code) {
+    const list = state.config?.account?.profile?.country?.options || [
+      { code: "TR", name: "Türkiye" }, { code: "US", name: "United States" },
+      { code: "GB", name: "United Kingdom" }, { code: "DE", name: "Germany" },
+      { code: "FR", name: "France" }, { code: "NL", name: "Netherlands" },
+      { code: "CA", name: "Canada" }, { code: "AU", name: "Australia" }
+    ];
+    return list.find(item => item.code === code)?.name || code || "Türkiye";
+  }
+
   function renderProfile() {
     const email = state.user?.email || state.email;
     const fullName = [state.profile.first_name, state.profile.last_name].filter(Boolean).join(" ").trim();
@@ -670,10 +691,10 @@
             <div class="vn-ac-row"><div><strong>${escapeHTML(fullName || "Enter name")}</strong></div><button class="vn-ac-button secondary" data-ac-action="edit-contact">Edit</button></div>
           </div>
           <section class="vn-ac-profile-section"><div class="vn-ac-profile-section-head"><strong>Email</strong><button class="vn-ac-text-action" data-ac-action="edit-contact">Edit</button></div>
-            <div class="vn-ac-row"><div><span class="vn-ac-profile-icon" aria-hidden="true">✉</span><strong>Email</strong></div><small>${escapeHTML(email)}</small></div>
+            <div class="vn-ac-row vn-ac-profile-detail-row"><div class="vn-ac-profile-detail-label"><span class="vn-ac-profile-icon" aria-hidden="true">✉</span><strong>Email</strong></div><div class="vn-ac-profile-detail-value"><small>${escapeHTML(email)}</small><button class="vn-ac-text-action" data-ac-action="edit-contact">Edit</button></div></div>
           </section>
           <section class="vn-ac-profile-section"><div class="vn-ac-profile-section-head"><strong>Addresses</strong><button class="vn-ac-text-action" data-ac-action="edit-addresses">Add</button></div>
-            <div class="vn-ac-row"><div><span class="vn-ac-profile-icon" aria-hidden="true">⌖</span><strong>${state.addresses.length ? escapeHTML(state.addresses.length + " saved address(es)") : "No addresses added"}</strong></div></div>
+            <div class="vn-ac-row vn-ac-profile-detail-row"><div class="vn-ac-profile-detail-label"><span class="vn-ac-profile-icon" aria-hidden="true">⌖</span><strong>${state.addresses.length ? escapeHTML(state.addresses.length + " saved address(es)") : "No addresses added"}</strong></div><button class="vn-ac-text-action" data-ac-action="edit-addresses">Add</button></div>
           </section>
           <section class="vn-ac-profile-section"><div class="vn-ac-profile-section-head"><strong>Marketing preferences</strong></div>
             <div class="vn-ac-preference"><div><span class="vn-ac-profile-icon" aria-hidden="true">✉</span><strong>Email</strong></div><input type="checkbox" class="vn-ac-toggle" data-ac-toggle="marketing" aria-label="Email marketing preferences" ${state.marketingUpdates ? "checked" : ""}></div>
@@ -1160,15 +1181,15 @@
     };
 
     const { error } = await state.supabase.from("profiles").upsert(profile, { onConflict: "id" });
-
-    if (error) {
-      console.error("[VN ACCOUNT] Profile save failed:", error);
+    const metadataResult = await state.supabase.auth.updateUser({ data: {
+      first_name: profile.first_name, last_name: profile.last_name
+    }});
+    if (error && metadataResult.error) {
       state.messageType = "error";
-      state.message = `Could not save your profile: ${error.message}`;
+      state.message = `Could not save your profile: ${metadataResult.error.message}`;
       render();
       return;
     }
-
     state.profile = { ...state.profile, ...profile };
     state.section = "profile";
     state.messageType = "success";
@@ -1252,15 +1273,13 @@
     state.marketingUpdates = enabled;
 
     const { error } = await state.supabase.from("profiles").upsert({
-      id: state.user.id,
-      marketing_updates: enabled,
-      updated_at: new Date().toISOString()
+      id: state.user.id, marketing_updates: enabled, updated_at: new Date().toISOString()
     }, { onConflict: "id" });
-
-    if (error) {
-      console.error("[VN ACCOUNT] Marketing preference save failed:", error);
+    const metadataResult = await state.supabase.auth.updateUser({ data: { marketing_updates: enabled } });
+    state.profile = { ...state.profile, marketing_updates: enabled };
+    if (error && metadataResult.error) {
       state.messageType = "error";
-      state.message = `Could not save this preference: ${error.message}`;
+      state.message = `Could not save this preference: ${metadataResult.error.message}`;
       await loadAccountData();
     } else {
       state.messageType = "success";
@@ -1655,16 +1674,14 @@
       if (!state.supabase || !state.user) return;
 
       const { error } = await state.supabase.from("profiles").upsert({
-        id: state.user.id,
-        country: state.country,
-        updated_at: new Date().toISOString()
+        id: state.user.id, country: state.country, updated_at: new Date().toISOString()
       }, { onConflict: "id" });
-
-      state.messageType = error ? "error" : "success";
-      state.message = error
-        ? `Could not save country: ${error.message}`
+      const metadataResult = await state.supabase.auth.updateUser({ data: { country: state.country } });
+      state.profile = { ...state.profile, country: state.country };
+      state.messageType = error && metadataResult.error ? "error" : "success";
+      state.message = error && metadataResult.error
+        ? `Could not save country: ${metadataResult.error.message}`
         : "Country preference saved.";
-
       render();
     }
   });
