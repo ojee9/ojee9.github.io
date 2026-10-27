@@ -423,7 +423,7 @@
       ? " is-poster-1"
       : productId === "gta-love-poster-2" ? " is-poster-2" : "";
     const isPoster = productType === "POSTER" || posterClass !== "";
-    const galleryImages = images.length > 1 ? images : [];
+    const galleryImages = images;
 
     detailContent.innerHTML = `
       <nav class="detail-breadcrumb" aria-label="Breadcrumb">
