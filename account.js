@@ -854,19 +854,30 @@
   }
 
   function renderReturns() {
+    if (!state.returns.length) {
+      return `
+        <div class="vn-ac-layout">
+          ${sidebar()}
+          <main class="vn-ac-main">
+            <p>No return requests are available for this account.</p>
+          </main>
+        </div>
+      `;
+    }
+
     return `
       <div class="vn-ac-layout">
         ${sidebar()}
         <main class="vn-ac-main">
           <h1>My Returns</h1><p class="vn-ac-subtitle">Start or track a return.</p>
           ${messageHTML()}
-          ${state.returns.length ? state.returns.map(item => `
+          ${state.returns.map(item => `
             <article class="vn-ac-record">
               <div class="vn-ac-record-head"><strong>Return ${escapeHTML(item.return_number || item.id)}</strong><span class="vn-ac-badge">${escapeHTML(item.status || "Status unavailable")}</span></div>
               <p>Order: ${escapeHTML(item.order_id || "—")}</p><p>Reason: ${escapeHTML(item.reason || "—")}</p>
               <p>Created: ${escapeHTML(item.requested_at || item.created_at || "—")}</p><p>${escapeHTML(item.customer_note || "")}</p>
             </article>
-          `).join("") : `<div class="vn-ac-empty">No return requests are available for this account. Return requests must be saved to the store database to appear here.</div>`}
+          `).join("")}
           <h2 style="margin-top:28px">Start a return</h2>
           <form id="vnAcReturnForm">
             <label class="vn-ac-field"><span>Order</span><select name="order_id" required><option value="">Select an order</option>
@@ -878,12 +889,11 @@
             <label class="vn-ac-field"><span>Additional details</span><textarea name="customer_note" placeholder="Tell us more (optional)"></textarea></label>
             <button class="vn-ac-button" type="submit">Submit return request</button>
           </form>
-          <p class="vn-ac-muted">Submitting a request does not guarantee approval or automatically issue a refund. Eligibility and return instructions must be confirmed by the store.</p>
+          <p class="vn-ac-muted">Submitting a request does not guarantee approval or automatically issue a refund.</p>
         </main>
       </div>
     `;
   }
-
   function renderHelp() {
     const helpPath = state.config?.paths?.help || "help.html";
 
