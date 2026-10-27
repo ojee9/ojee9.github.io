@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="merch.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body>
+<body class="shop-loading">
 
 <header class="header">
   <a class="projects-logo" href="index.html" aria-label="OJEE home">
@@ -858,8 +858,10 @@
 
   renderProducts();
   renderCart();
+  document.body.classList.remove("shop-loading");
 
 })().catch(error => {
+  document.body.classList.remove("shop-loading");
   console.error("VN SHOP initialization failed:", error);
 
   const empty = document.getElementById("empty-message");
