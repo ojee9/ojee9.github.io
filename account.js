@@ -351,7 +351,7 @@
       .vn-ac-policy-overlay.is-open .vn-ac-policy-panel{opacity:1;transform:scale(1)}
       .vn-ac-policy-panel iframe{display:block;width:100%;height:100%;border:0;background:#171717}.vn-ac-policy-panel h2{margin:0 0 20px;padding-right:28px;font-size:25px;font-weight:600;letter-spacing:-.4px;color:#f5f5f5}.vn-ac-policy-kicker{margin:0 0 10px;color:#999;font-size:10px;letter-spacing:1.8px;text-transform:uppercase}.vn-ac-policy-body{color:#c8c8c8;font-size:13px;line-height:1.8}.vn-ac-policy-body h3{margin:23px 0 7px;color:#f0f0f0;font-size:13px;font-weight:600}.vn-ac-policy-body p{margin:0 0 13px}.vn-ac-policy-body a{color:#f5f5f5;text-decoration:underline;text-underline-offset:3px}
       .vn-ac-policy-close{position:absolute;top:12px;right:14px;z-index:1;width:32px;height:32px;border:0;border-radius:50%;background:#303030;color:#fff;font-size:22px;line-height:1;cursor:pointer}
-      @media(max-width:420px){.vn-ac-otp{gap:6px}.vn-ac-otp input{height:47px}.vn-ac-auth-shell:has(.vn-ac-verify-main){width:min(100%,410px)}.vn-ac-policy-panel{padding:30px 22px 24px}.vn-ac-policy-panel h2{font-size:22px}}
+      @media(max-width:420px){.vn-ac-otp{gap:6px}.vn-ac-otp input{height:47px}.vn-ac-policy-panel{padding:30px 22px 24px}.vn-ac-policy-panel h2{font-size:22px}}
       .vn-ac-divider{height:1px;background:#e5e5e5;margin:24px 0}
       .vn-ac-muted{font-size:12px;color:#777}
       .vn-ac-muted a{color:inherit;text-decoration:underline}
