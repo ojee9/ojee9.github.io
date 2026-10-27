@@ -42,6 +42,7 @@
   };
 
   let configPromise = null;
+  let emailArrowTimer = null;
 
   const $ = (selector, root = document) => root.querySelector(selector);
 
@@ -258,7 +259,7 @@
       #vnAccountOverlay[hidden]{display:none!important}
       #vnAccountOverlay *{box-sizing:border-box}
       .vn-ac-shell{width:min(100%,980px);max-height:calc(100dvh - 48px);overflow:auto;margin:auto;padding:28px;background:#fff;border:1px solid #d8d8d8;box-shadow:0 24px 80px rgba(0,0,0,.25)}
-      .vn-ac-shell.vn-ac-auth-shell{display:flex;flex-direction:column;width:min(100%,580px);max-height:calc(100dvh - 36px);padding:38px 46px 32px;background:#171717;color:#f5f5f5;border:0;box-shadow:0 28px 90px rgba(0,0,0,.42)}
+      .vn-ac-shell.vn-ac-auth-shell{display:flex;flex-direction:column;width:min(100%,660px);min-height:390px;max-height:calc(100dvh - 28px);padding:46px 58px 42px;background:#171717;color:#f5f5f5;border:0;box-shadow:0 28px 90px rgba(0,0,0,.42)}
       .vn-ac-header{position:relative;display:flex;justify-content:center;align-items:center;padding-bottom:24px;border-bottom:1px solid #e5e5e5}
       .vn-ac-auth-shell .vn-ac-header{padding:0 32px 22px;border:0}
       .vn-ac-brand{display:flex;align-items:center;justify-content:center;width:112px;height:54px;color:inherit;text-decoration:none}
@@ -269,20 +270,20 @@
       .vn-ac-auth-shell .vn-ac-header{padding:0 32px 18px}
       .vn-ac-auth-shell .vn-ac-brand{width:176px;height:82px;pointer-events:none;user-select:none}
       .vn-ac-auth-shell .vn-ac-email-main h1,.vn-ac-auth-shell .vn-ac-email-main .vn-ac-subtitle{display:none}
-      .vn-ac-email-bar{display:flex;align-items:center;width:100%;min-height:54px;padding:0 5px 0 0;border:1px solid #ded7e8;border-radius:5px;overflow:hidden;background:#fff;transition:border-color .22s ease,background .3s ease,box-shadow .22s ease}
-      .vn-ac-email-bar input{flex:1;min-width:0;height:52px;padding:0 16px;border:0;outline:0;background:transparent;color:#17131d;font:14px/1.4 Arial,sans-serif}
-      .vn-ac-email-bar input::placeholder{color:#8c8792;opacity:1}
-      .vn-ac-email-bar:focus-within{border-color:#b99be9;background:linear-gradient(105deg,#fff 0%,#fbf8ff 58%,#f0e6ff 100%);box-shadow:0 0 0 3px rgba(171,125,229,.13)}
+      .vn-ac-email-bar{display:flex;align-items:center;width:100%;min-height:46px;padding:0 5px 0 0;border:1px solid #39333f;border-radius:4px;overflow:hidden;background:#080808;transition:border-color .25s ease,box-shadow .25s ease}
+      .vn-ac-email-bar input{flex:1;min-width:0;height:44px;padding:0 15px;border:0;outline:0;background:transparent;color:#f5f5f5;font:13px/1.4 Arial,sans-serif}
+      .vn-ac-email-bar input::placeholder{color:#77727d;opacity:1}
+      .vn-ac-email-bar:focus-within{border-color:#51415f;box-shadow:0 0 0 2px rgba(171,125,229,.07)}
       .vn-ac-email-bar:focus-within input{background:transparent}
-      .vn-ac-email-submit{display:flex;align-items:center;justify-content:center;width:43px;height:43px;flex:none;border:0;border-radius:3px;background:transparent;color:#21192b;font:25px/1 Arial,sans-serif;cursor:pointer;transition:background .18s ease,color .18s ease}
-      .vn-ac-email-bar:focus-within .vn-ac-email-submit{background:#eee3ff;color:#6d36a8}
-      .vn-ac-email-submit:hover{background:#f0e7fb}
+      .vn-ac-email-submit{display:flex;align-items:center;justify-content:center;width:35px;height:35px;flex:none;border:0;border-radius:2px;background:transparent;color:#77727d;font:300 20px/1 Arial,sans-serif;cursor:pointer;transition:color .25s ease,transform .25s ease}
+      .vn-ac-email-bar.has-email .vn-ac-email-submit{color:#b78aff;transform:translateX(1px)}
+      .vn-ac-email-submit:hover{color:#d1b3ff}
       .vn-ac-updates{display:flex;align-items:center;justify-content:flex-start;gap:8px;margin:12px 0 0;color:#bdbdbd;font-size:11px;line-height:1.35}
       .vn-ac-updates input{width:13px;height:13px;flex:none;margin:0;accent-color:#f5f5f5;cursor:pointer}
       .vn-ac-email-terms{margin-top:18px!important;color:#8d8d8d;font-size:11px;line-height:1.5}
       .vn-ac-email-terms a,.vn-ac-email-terms button{padding:0;border:0;background:transparent;color:#bdbdbd;font:inherit;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
       .vn-ac-auth-shell .vn-ac-message{margin:0 0 12px}
-      @media(max-width:600px){.vn-ac-shell.vn-ac-auth-shell{width:min(100%,520px);padding:30px 25px 25px}.vn-ac-auth-shell .vn-ac-close{right:-10px}.vn-ac-auth-shell .vn-ac-brand{width:164px;height:76px}}
+      @media(max-width:600px){.vn-ac-shell.vn-ac-auth-shell{width:min(100%,540px);min-height:360px;padding:36px 27px 30px}.vn-ac-auth-shell .vn-ac-close{right:-10px}.vn-ac-auth-shell .vn-ac-brand{width:164px;height:76px}}
       .vn-ac-layout{display:grid;grid-template-columns:200px minmax(0,1fr);gap:48px;padding-top:32px}
       .vn-ac-sidebar{display:flex;flex-direction:column;gap:8px}
       .vn-ac-nav{border:0;background:none;color:#666;text-align:left;padding:12px 10px;font:inherit;cursor:pointer;border-radius:4px}
@@ -1504,6 +1505,21 @@
   });
 
   document.addEventListener("input", event => {
+    const emailInput = event.target.closest('#vnAcEmailForm input[name="email"]');
+    if (emailInput) {
+      const bar = emailInput.closest(".vn-ac-email-bar");
+      clearTimeout(emailArrowTimer);
+      if (!emailInput.value.trim()) {
+        bar?.classList.remove("has-email");
+      } else {
+        bar?.classList.remove("has-email");
+        emailArrowTimer = setTimeout(() => {
+          if (emailInput.isConnected && emailInput.value.trim()) bar?.classList.add("has-email");
+        }, 500);
+      }
+      return;
+    }
+
     const input = event.target.closest("[data-otp-digit]");
     if (!input) return;
 
