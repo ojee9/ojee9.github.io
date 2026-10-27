@@ -210,15 +210,15 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 .cookie-category input:focus-visible{outline:2px solid #777;outline-offset:3px}
 .cookie-category.essential{color:#777;cursor:not-allowed}
 .cookie-category.essential input,.cookie-category.essential input:disabled{accent-color:#929292;cursor:not-allowed;opacity:1}
-.cookie-bottom{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:15px;padding:12px 24px 15px;border-top:1px solid #e6e6e6;background:#fff}
-.cookie-privacy{font-size:11px;font-weight:600;text-decoration:underline;text-underline-offset:3px}
+.cookie-bottom{position:relative;flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:15px;padding:12px 24px 15px;border-top:1px solid #e6e6e6;background:#fff}
+.cookie-privacy{position:absolute;left:50%;transform:translateX(-50%);font-size:11px;font-weight:600;text-decoration:none;text-underline-offset:3px;white-space:nowrap}.cookie-privacy:hover,.cookie-privacy:focus-visible{text-decoration:underline}
 .cookie-right{display:flex;align-items:center;gap:15px}
 .cookie-confirm{min-width:112px;padding:10px 19px;border:1px solid #171717;background:#171717;color:#fff;font-size:10px;font-weight:600;letter-spacing:.8px;text-transform:uppercase}
 .cookie-confirm:hover{background:#383838}
 .cookie-language{position:relative}
 .cookie-language-toggle{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;padding:0;border:0;background:transparent;color:#171717}
 .cookie-language-toggle svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-.cookie-language-select{display:none;position:absolute;right:0;bottom:37px;width:145px;max-height:240px;padding:7px;border:1px solid #bcbcbc;background:#fff;color:#171717;font-size:12px}
+.cookie-language-select{display:none;position:absolute;right:0;top:37px;bottom:auto;width:145px;max-height:240px;padding:7px;border:1px solid #bcbcbc;background:#fff;color:#171717;font-size:12px}
 .cookie-language.is-open .cookie-language-select{display:block}
 
 @media(max-width:900px){.product-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:28px 16px}}
