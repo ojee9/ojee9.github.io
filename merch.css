@@ -52,6 +52,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 
 /* FOOTER */
 .footer{padding:24px 5% 18px;border-top:1px solid var(--line)}
+.shop-loading .footer{visibility:hidden}
 .footer-links{display:flex;flex-wrap:wrap;justify-content:center;gap:12px 22px;margin-bottom:24px;font-size:10px;letter-spacing:.3px}
 .footer-links a,.footer-links button{color:inherit;text-decoration:underline;text-underline-offset:3px}
 .footer-links button{padding:0;border:0;background:transparent;font-size:inherit;letter-spacing:inherit}
