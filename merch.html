@@ -215,25 +215,17 @@
   let variant = "";
 
   const footerLabels = {
-    help: "help",
-    terms: "terms",
-    privacy: "privacy",
-    legalNotice: "legalNotice",
-    trackingTechnologies: "trackingTechnologies",
-    refundPolicy: "refundPolicy",
-    shipping: "shipping",
-    termsOfUse: "termsOfUse"
+    help: "Help & Support",
+    terms: "Terms",
+    privacy: "Privacy",
+    doNotSell: "Do Not Sell My Personal Information"
   };
 
   const footerPaths = {
     help: config.paths?.help || config.policies?.links?.help || "help.html",
-    terms: config.paths?.termsPage || config.policies?.links?.terms || "policies/terms-of-sale.html",
+    terms: config.paths?.termsOfUse || config.policies?.links?.termsOfUse || "policies/terms-of-use.html",
     privacy: config.paths?.privacyPage || config.policies?.links?.privacy || "policies/privacy-policy.html",
-    legalNotice: config.paths?.legalNoticePage || config.policies?.links?.legalNotice || "policies/legal-notice.html",
-    trackingTechnologies: config.paths?.trackingTechnologies || config.policies?.links?.trackingTechnologies || "policies/privacy-policy.html#tracking-technologies",
-    refundPolicy: config.paths?.refundPolicy || config.policies?.links?.refundPolicy || "policies/refund-policy.html",
-    shipping: config.paths?.shippingPolicy || config.policies?.links?.shipping || "policies/shipping.html",
-    termsOfUse: config.paths?.termsOfUse || config.policies?.links?.termsOfUse || "policies/terms-of-use.html"
+    doNotSell: config.paths?.privacyPage || config.policies?.links?.privacy || "policies/privacy-policy.html"
   };
 
   category.innerHTML = categories.map(item => {
@@ -252,7 +244,7 @@
 
   $("footer-links").innerHTML =
     Object.entries(footerPaths).map(([key, path]) =>
-      `<a href="${esc(path)}">${esc(t(footerLabels[key]))}</a>`
+      `<a href="${esc(path)}">${esc(footerLabels[key])}</a>`
     ).join("") +
     `<button type="button" id="cookie-choices">${esc(t("cookieChoices"))}</button>`;
 
