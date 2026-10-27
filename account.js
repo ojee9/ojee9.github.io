@@ -41,6 +41,8 @@
     loadingData: false
   };
 
+  let configPromise = null;
+
   const $ = (selector, root = document) => root.querySelector(selector);
 
   const escapeHTML = value =>
@@ -433,7 +435,7 @@
           </div>
 
           <button class="vn-ac-button" type="submit" style="width:100%" ${state.busy ? "disabled" : ""}>
-            ${state.busy ? "Verifying..." : "Verify email"}
+            Verify email
           </button>
         </form>
 
@@ -809,16 +811,6 @@
       return;
     }
 
-    if (!state.supabase) {
-      state.email = normalizedEmail;
-      state.screen = "verify";
-      state.messageType = "error";
-      state.message = "Sign-in is unavailable because the Supabase client is not configured.";
-      render();
-      focusOtp();
-      return;
-    }
-
     // Invalidate any earlier send response so it cannot overwrite the current screen.
     const requestId = ++state.sendRequestId;
 
@@ -837,6 +829,13 @@
     // The network request starts after the verification screen is already visible.
     Promise.resolve().then(async () => {
       try {
+        // Configuration may still be loading; keep the verification screen visible meanwhile.
+        if (configPromise) await configPromise;
+
+        if (!state.supabase) {
+          throw new Error("Sign-in is unavailable because the Supabase client is not configured.");
+        }
+
         const { error } = await state.supabase.auth.signInWithOtp({
           email: normalizedEmail,
           options: {
@@ -902,7 +901,7 @@
     const remaining = Math.ceil((state.resendAt - Date.now()) / 1000);
 
     if (state.sendingCode) {
-      button.textContent = "Sending...";
+      button.textContent = "Resend code";
       button.disabled = true;
     } else if (remaining > 0) {
       button.textContent = `Resend code (${remaining}s)`;
@@ -1495,7 +1494,8 @@
     getUser: () => state.user
   };
 
-  loadConfig().then(() => {
+  configPromise = loadConfig();
+  configPromise.then(() => {
     if (state.user) render();
   });
 })();
