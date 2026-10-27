@@ -1288,6 +1288,8 @@
 
           case "privacy-open": {
             const policy = $(".vn-ac-policy-overlay", root);
+            const frame = $(".vn-ac-policy-panel iframe", root);
+            if (frame) frame.src = state.config?.paths?.privacyPage || "privacy-policy.html";
             if (policy) policy.hidden = false;
             break;
           }
