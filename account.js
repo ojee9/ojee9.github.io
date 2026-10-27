@@ -1,3 +1,4 @@
+
 /* VN SHOP — ACCOUNT
    Email OTP, dashboard, profile, addresses, orders, returns, legal panels.
    Requires Supabase JS v2 and merch.json.
@@ -22,6 +23,8 @@
     screen: "email",
     section: "dashboard",
     busy: false,
+    sendingCode: false,
+    sendRequestId: 0,
     resendAt: 0,
     resendTimer: null,
     profile: {},
@@ -115,7 +118,11 @@
           state.user = data.session.user;
           state.email = data.session.user.email || "";
           state.screen = "account";
-          await loadAccountData();
+
+          // Do not delay initialization of the auth listener on account queries.
+          loadAccountData().catch(error => {
+            console.error("[VN ACCOUNT] Initial account data error:", error);
+          });
         }
       } catch (error) {
         console.error("[VN ACCOUNT] Session error:", error);
@@ -125,12 +132,12 @@
         if (session?.user) {
           const sameUser = state.user?.id === session.user.id;
           state.user = session.user;
+
           if (sameUser) return;
 
           state.email = session.user.email || state.email;
           state.screen = "account";
 
-          // Avoid calling Supabase auth methods from inside this callback.
           setTimeout(() => {
             loadAccountData().finally(render);
           }, 0);
@@ -168,11 +175,6 @@
     state.loadingData = true;
 
     try {
-      /*
-       * These queries expect tables protected by Supabase RLS:
-       * profiles, customer_addresses, orders, returns.
-       * Missing tables are reported in the console, not replaced with fake data.
-       */
       const userId = state.user.id;
 
       const profileResult = await state.supabase
@@ -183,13 +185,13 @@
 
       if (!profileResult.error && profileResult.data) {
         state.profile = profileResult.data;
-        state.marketingUpdates = Boolean(
-          profileResult.data.marketing_updates
-        );
-        state.country =
-          profileResult.data.country || userCountry();
+        state.marketingUpdates = Boolean(profileResult.data.marketing_updates);
+        state.country = profileResult.data.country || userCountry();
       } else if (profileResult.error) {
-        console.warn("[VN ACCOUNT] Profile could not be loaded:", profileResult.error.message);
+        console.warn(
+          "[VN ACCOUNT] Profile could not be loaded:",
+          profileResult.error.message
+        );
       }
 
       const addressResult = await state.supabase
@@ -201,7 +203,10 @@
       if (!addressResult.error && Array.isArray(addressResult.data)) {
         state.addresses = addressResult.data;
       } else if (addressResult.error) {
-        console.warn("[VN ACCOUNT] Addresses could not be loaded:", addressResult.error.message);
+        console.warn(
+          "[VN ACCOUNT] Addresses could not be loaded:",
+          addressResult.error.message
+        );
       }
 
       const ordersResult = await state.supabase
@@ -213,7 +218,10 @@
       if (!ordersResult.error && Array.isArray(ordersResult.data)) {
         state.orders = ordersResult.data;
       } else if (ordersResult.error) {
-        console.warn("[VN ACCOUNT] Orders could not be loaded:", ordersResult.error.message);
+        console.warn(
+          "[VN ACCOUNT] Orders could not be loaded:",
+          ordersResult.error.message
+        );
       }
 
       const returnsResult = await state.supabase
@@ -225,7 +233,10 @@
       if (!returnsResult.error && Array.isArray(returnsResult.data)) {
         state.returns = returnsResult.data;
       } else if (returnsResult.error) {
-        console.warn("[VN ACCOUNT] Returns could not be loaded:", returnsResult.error.message);
+        console.warn(
+          "[VN ACCOUNT] Returns could not be loaded:",
+          returnsResult.error.message
+        );
       }
     } catch (error) {
       console.error("[VN ACCOUNT] Data loading failed:", error);
@@ -296,6 +307,7 @@
       .vn-ac-badge{display:inline-block;padding:4px 8px;border:1px solid #ddd;border-radius:20px;font-size:11px;color:#555}
       .vn-ac-otp{display:flex;gap:8px;justify-content:flex-start;margin:20px 0}
       .vn-ac-otp input{width:43px;height:50px;text-align:center;font-size:20px;border:1px solid #bbb;border-radius:4px}
+      .vn-ac-otp input:focus{outline:2px solid #151515;outline-offset:2px}
       .vn-ac-divider{height:1px;background:#e5e5e5;margin:24px 0}
       .vn-ac-muted{font-size:12px;color:#777}
       .vn-ac-muted a{color:inherit;text-decoration:underline}
@@ -419,13 +431,14 @@
             `).join("")}
           </div>
 
-          <button class="vn-ac-button" type="submit" style="width:100%">
-            Verify email
+          <button class="vn-ac-button" type="submit" style="width:100%" ${state.busy ? "disabled" : ""}>
+            ${state.busy ? "Verifying..." : "Verify email"}
           </button>
         </form>
 
         <div class="vn-ac-actions">
-          <button type="button" class="vn-ac-button text" data-ac-action="resend">
+          <button type="button" class="vn-ac-button text" data-ac-action="resend"
+            ${Date.now() < state.resendAt || state.sendingCode ? "disabled" : ""}>
             Resend code
           </button>
           <button type="button" class="vn-ac-button text" data-ac-action="change-email">
@@ -441,42 +454,6 @@
     `;
   }
 
-  function renderDashboard() {
-    return `
-      <div class="vn-ac-layout">
-        ${sidebar()}
-        <main class="vn-ac-main">
-          <h1>Dashboard</h1>
-          <p class="vn-ac-subtitle">Manage your VN SHOP account.</p>
-
-          ${messageHTML()}
-
-          <div class="vn-ac-card-grid">
-            <button class="vn-ac-card" data-ac-section="orders">
-              <strong>MY ORDERS</strong>
-              <span>View your order history and track shipments.</span>
-            </button>
-
-            <button class="vn-ac-card" data-ac-section="returns">
-              <strong>MY RETURNS</strong>
-              <span>Start or track a return.</span>
-            </button>
-
-            <button class="vn-ac-card" data-ac-section="profile">
-              <strong>MY PROFILE</strong>
-              <span>Update your details and saved addresses.</span>
-            </button>
-
-            <button class="vn-ac-card" data-ac-section="help">
-              <strong>HELP CENTER</strong>
-              <span>Find answers to common questions.</span>
-            </button>
-          </div>
-        </main>
-      </div>
-    `;
-  }
-
   function sidebar() {
     const entries = [
       ["dashboard", "DASHBOARD"],
@@ -486,13 +463,30 @@
     return `
       <aside class="vn-ac-sidebar">
         ${entries.map(([key, label]) => `
-          <button
-            type="button"
+          <button type="button"
             class="vn-ac-nav ${state.section === key ? "active" : ""}"
-            data-ac-section="${key}"
-          >${label}</button>
+            data-ac-section="${key}">${label}</button>
         `).join("")}
       </aside>
+    `;
+  }
+
+  function renderDashboard() {
+    return `
+      <div class="vn-ac-layout">
+        ${sidebar()}
+        <main class="vn-ac-main">
+          <h1>Dashboard</h1>
+          <p class="vn-ac-subtitle">Manage your VN SHOP account.</p>
+          ${messageHTML()}
+          <div class="vn-ac-card-grid">
+            <button class="vn-ac-card" data-ac-section="orders"><strong>MY ORDERS</strong><span>View your order history and track shipments.</span></button>
+            <button class="vn-ac-card" data-ac-section="returns"><strong>MY RETURNS</strong><span>Start or track a return.</span></button>
+            <button class="vn-ac-card" data-ac-section="profile"><strong>MY PROFILE</strong><span>Update your details and saved addresses.</span></button>
+            <button class="vn-ac-card" data-ac-section="help"><strong>HELP CENTER</strong><span>Find answers to common questions.</span></button>
+          </div>
+        </main>
+      </div>
     `;
   }
 
@@ -538,10 +532,8 @@
 
   function renderProfile() {
     const email = state.user?.email || state.email;
-    const fullName = [
-      state.profile.first_name,
-      state.profile.last_name
-    ].filter(Boolean).join(" ");
+    const fullName = [state.profile.first_name, state.profile.last_name]
+      .filter(Boolean).join(" ");
 
     return `
       <div class="vn-ac-layout">
@@ -552,50 +544,31 @@
           ${messageHTML()}
 
           <div class="vn-ac-row">
-            <div>
-              <strong>Contact</strong>
-              <small>${escapeHTML(email)}</small>
+            <div><strong>Contact</strong><small>${escapeHTML(email)}</small>
               ${fullName ? `<small>${escapeHTML(fullName)}</small>` : ""}
             </div>
             <button class="vn-ac-button secondary" data-ac-action="edit-contact">EDIT</button>
           </div>
 
           <div class="vn-ac-row">
-            <div>
-              <strong>Addresses</strong>
-              <small>${state.addresses.length} saved address(es)</small>
-            </div>
+            <div><strong>Addresses</strong><small>${state.addresses.length} saved address(es)</small></div>
             <button class="vn-ac-button secondary" data-ac-action="edit-addresses">EDIT</button>
           </div>
 
           <div class="vn-ac-preference">
-            <div>
-              <strong>Marketing preferences</strong>
-              <small>EMAIL</small>
-            </div>
-            <input
-              type="checkbox"
-              class="vn-ac-toggle"
-              data-ac-toggle="marketing"
-              aria-label="Email marketing preferences"
-              ${state.marketingUpdates ? "checked" : ""}
-            >
+            <div><strong>Marketing preferences</strong><small>EMAIL</small></div>
+            <input type="checkbox" class="vn-ac-toggle" data-ac-toggle="marketing"
+              aria-label="Email marketing preferences" ${state.marketingUpdates ? "checked" : ""}>
           </div>
 
           <div class="vn-ac-actions">
             <button class="vn-ac-button secondary" data-ac-action="signout">SIGN OUT</button>
-            <button class="vn-ac-button danger" data-ac-action="signout-all">
-              SIGN OUT FROM ALL DEVICES
-            </button>
+            <button class="vn-ac-button danger" data-ac-action="signout-all">SIGN OUT FROM ALL DEVICES</button>
           </div>
 
-          <label class="vn-ac-field">
-            <span>Country / Region</span>
-            <select data-ac-country>
-              ${countryOptions(state.country)}
-            </select>
+          <label class="vn-ac-field"><span>Country / Region</span>
+            <select data-ac-country>${countryOptions(state.country)}</select>
           </label>
-
           ${legalLinks()}
         </main>
       </div>
@@ -607,24 +580,14 @@
       <div class="vn-ac-layout">
         ${sidebar()}
         <main class="vn-ac-main">
-          <h1>Edit Contact</h1>
-          <p class="vn-ac-subtitle">Update your profile details.</p>
+          <h1>Edit Contact</h1><p class="vn-ac-subtitle">Update your profile details.</p>
           ${messageHTML()}
-
           <form id="vnAcProfileForm">
             <div class="vn-ac-form-grid">
-              <label class="vn-ac-field"><span>First name</span>
-                <input name="first_name" value="${escapeHTML(state.profile.first_name || "")}" autocomplete="given-name">
-              </label>
-              <label class="vn-ac-field"><span>Last name</span>
-                <input name="last_name" value="${escapeHTML(state.profile.last_name || "")}" autocomplete="family-name">
-              </label>
+              <label class="vn-ac-field"><span>First name</span><input name="first_name" value="${escapeHTML(state.profile.first_name || "")}" autocomplete="given-name"></label>
+              <label class="vn-ac-field"><span>Last name</span><input name="last_name" value="${escapeHTML(state.profile.last_name || "")}" autocomplete="family-name"></label>
             </div>
-
-            <label class="vn-ac-field"><span>Email</span>
-              <input type="email" value="${escapeHTML(state.user?.email || state.email)}" disabled>
-            </label>
-
+            <label class="vn-ac-field"><span>Email</span><input type="email" value="${escapeHTML(state.user?.email || state.email)}" disabled></label>
             <div class="vn-ac-actions">
               <button class="vn-ac-button" type="submit">Save changes</button>
               <button class="vn-ac-button secondary" type="button" data-ac-section="profile">Cancel</button>
@@ -639,24 +602,15 @@
     const list = state.addresses.length
       ? state.addresses.map(address => `
           <article class="vn-ac-record">
-            <div class="vn-ac-record-head">
-              <strong>${escapeHTML(address.label || "Address")}</strong>
+            <div class="vn-ac-record-head"><strong>${escapeHTML(address.label || "Address")}</strong>
               ${address.is_default ? '<span class="vn-ac-badge">DEFAULT</span>' : ""}
             </div>
-            <p>
-              ${escapeHTML([
-                address.first_name,
-                address.last_name,
-                address.address,
-                address.apartment,
-                address.city,
-                address.postal_code,
-                address.country
-              ].filter(Boolean).join(", "))}
-            </p>
+            <p>${escapeHTML([
+              address.first_name, address.last_name, address.address,
+              address.apartment, address.city, address.postal_code, address.country
+            ].filter(Boolean).join(", "))}</p>
             ${address.phone ? `<p>${escapeHTML(address.phone)}</p>` : ""}
-            <button type="button" class="vn-ac-button secondary"
-              data-ac-delete-address="${escapeHTML(address.id)}">Delete address</button>
+            <button type="button" class="vn-ac-button secondary" data-ac-delete-address="${escapeHTML(address.id)}">Delete address</button>
           </article>
         `).join("")
       : `<div class="vn-ac-empty">No saved addresses yet.</div>`;
@@ -665,11 +619,8 @@
       <div class="vn-ac-layout">
         ${sidebar()}
         <main class="vn-ac-main">
-          <h1>Addresses</h1>
-          <p class="vn-ac-subtitle">Manage your saved shipping addresses.</p>
-          ${messageHTML()}
-          ${list}
-
+          <h1>Addresses</h1><p class="vn-ac-subtitle">Manage your saved shipping addresses.</p>
+          ${messageHTML()}${list}
           <h2 style="margin-top:28px">Add address</h2>
           <form id="vnAcAddressForm">
             <div class="vn-ac-form-grid">
@@ -682,16 +633,12 @@
               <label class="vn-ac-field"><span>City</span><input name="city" required></label>
               <label class="vn-ac-field"><span>ZIP code</span><input name="postal_code" required></label>
             </div>
-            <label class="vn-ac-field"><span>Country</span>
-              <select name="country">${countryOptions(state.country)}</select>
-            </label>
+            <label class="vn-ac-field"><span>Country</span><select name="country">${countryOptions(state.country)}</select></label>
             <label class="vn-ac-field"><span>Phone (optional)</span><input name="phone" type="tel"></label>
             <label class="vn-ac-preference"><span>Set as default address</span><input type="checkbox" name="is_default"></label>
             <button class="vn-ac-button" type="submit">Save address</button>
           </form>
-          <div class="vn-ac-actions">
-            <button class="vn-ac-button secondary" data-ac-section="profile">Back to profile</button>
-          </div>
+          <div class="vn-ac-actions"><button class="vn-ac-button secondary" data-ac-section="profile">Back to profile</button></div>
         </main>
       </div>
     `;
@@ -699,57 +646,33 @@
 
   function renderOrders() {
     const orders = state.orders;
-    const delivered = orders.filter(order =>
-      String(order.status || "").toLowerCase() === "delivered"
-    ).length;
-    const returned = state.returns.filter(item =>
-      ["approved", "received", "refunded", "completed"].includes(
-        String(item.status || "").toLowerCase()
-      )
-    ).length;
-    const waiting = orders.filter(order =>
-      ["pending", "processing", "paid", "shipped"].includes(
-        String(order.status || "").toLowerCase()
-      )
-    ).length;
+    const delivered = orders.filter(order => String(order.status || "").toLowerCase() === "delivered").length;
+    const returned = state.returns.filter(item => ["approved", "received", "refunded", "completed"].includes(String(item.status || "").toLowerCase())).length;
+    const waiting = orders.filter(order => ["pending", "processing", "paid", "shipped"].includes(String(order.status || "").toLowerCase())).length;
 
     return `
       <div class="vn-ac-layout">
         ${sidebar()}
         <main class="vn-ac-main">
-          <h1>My Orders</h1>
-          <p class="vn-ac-subtitle">View your order history and track shipments.</p>
+          <h1>My Orders</h1><p class="vn-ac-subtitle">View your order history and track shipments.</p>
           ${messageHTML()}
-
           <div class="vn-ac-stats">
             <div class="vn-ac-stat"><strong>${orders.length}</strong><span>TOTAL ORDERS</span></div>
             <div class="vn-ac-stat"><strong>${delivered}</strong><span>DELIVERED ORDERS</span></div>
             <div class="vn-ac-stat"><strong>${returned}</strong><span>RETURNED ORDERS</span></div>
             <div class="vn-ac-stat"><strong>${waiting}</strong><span>WAITING ORDERS</span></div>
           </div>
-
           ${orders.length ? orders.map(order => `
             <article class="vn-ac-record">
-              <div class="vn-ac-record-head">
-                <strong>Order ${escapeHTML(order.order_number || order.id)}</strong>
-                <span class="vn-ac-badge">${escapeHTML(order.status || "Status unavailable")}</span>
-              </div>
+              <div class="vn-ac-record-head"><strong>Order ${escapeHTML(order.order_number || order.id)}</strong><span class="vn-ac-badge">${escapeHTML(order.status || "Status unavailable")}</span></div>
               <p>Placed: ${escapeHTML(order.created_at || "—")}</p>
               <p>Total: ${escapeHTML(order.currency || "USD")} ${escapeHTML(order.grand_total ?? order.total ?? "—")}</p>
               <p>Tracking: ${escapeHTML(order.tracking_number || "Not available yet")}</p>
               <button class="vn-ac-button secondary" data-ac-order="${escapeHTML(order.id)}">View order</button>
               <button class="vn-ac-button secondary" data-ac-return-order="${escapeHTML(order.id)}">Start a return</button>
             </article>
-          `).join("") : `
-            <div class="vn-ac-empty">
-              No order history is available for this account yet.
-              Orders appear here after they are saved to the store database.
-            </div>
-          `}
-
-          <p class="vn-ac-muted">
-            Need help with an order? Visit the Help Center.
-          </p>
+          `).join("") : `<div class="vn-ac-empty">No order history is available for this account yet. Orders appear here after they are saved to the store database.</div>`}
+          <p class="vn-ac-muted">Need help with an order? Visit the Help Center.</p>
           <button class="vn-ac-button secondary" data-ac-section="help">Help Center</button>
         </main>
       </div>
@@ -761,63 +684,27 @@
       <div class="vn-ac-layout">
         ${sidebar()}
         <main class="vn-ac-main">
-          <h1>My Returns</h1>
-          <p class="vn-ac-subtitle">Start or track a return.</p>
+          <h1>My Returns</h1><p class="vn-ac-subtitle">Start or track a return.</p>
           ${messageHTML()}
-
           ${state.returns.length ? state.returns.map(item => `
             <article class="vn-ac-record">
-              <div class="vn-ac-record-head">
-                <strong>Return ${escapeHTML(item.return_number || item.id)}</strong>
-                <span class="vn-ac-badge">${escapeHTML(item.status || "Status unavailable")}</span>
-              </div>
-              <p>Order: ${escapeHTML(item.order_id || "—")}</p>
-              <p>Reason: ${escapeHTML(item.reason || "—")}</p>
-              <p>Created: ${escapeHTML(item.requested_at || item.created_at || "—")}</p>
-              <p>${escapeHTML(item.customer_note || "")}</p>
+              <div class="vn-ac-record-head"><strong>Return ${escapeHTML(item.return_number || item.id)}</strong><span class="vn-ac-badge">${escapeHTML(item.status || "Status unavailable")}</span></div>
+              <p>Order: ${escapeHTML(item.order_id || "—")}</p><p>Reason: ${escapeHTML(item.reason || "—")}</p>
+              <p>Created: ${escapeHTML(item.requested_at || item.created_at || "—")}</p><p>${escapeHTML(item.customer_note || "")}</p>
             </article>
-          `).join("") : `
-            <div class="vn-ac-empty">
-              No return requests are available for this account.
-              Return requests must be saved to the store database to appear here.
-            </div>
-          `}
-
+          `).join("") : `<div class="vn-ac-empty">No return requests are available for this account. Return requests must be saved to the store database to appear here.</div>`}
           <h2 style="margin-top:28px">Start a return</h2>
           <form id="vnAcReturnForm">
-            <label class="vn-ac-field"><span>Order</span>
-              <select name="order_id" required>
-                <option value="">Select an order</option>
-                ${state.orders.map(order => `
-                  <option value="${escapeHTML(order.id)}">
-                    ${escapeHTML(order.order_number || order.id)}
-                  </option>
-                `).join("")}
-              </select>
-            </label>
-
-            <label class="vn-ac-field"><span>Reason for return</span>
-              <select name="reason" required>
-                <option value="">Select a reason</option>
-                <option value="damaged">Item arrived damaged</option>
-                <option value="wrong_item">Wrong item received</option>
-                <option value="size_fit">Size or fit issue</option>
-                <option value="changed_mind">Changed my mind</option>
-                <option value="other">Other</option>
-              </select>
-            </label>
-
-            <label class="vn-ac-field"><span>Additional details</span>
-              <textarea name="customer_note" placeholder="Tell us more (optional)"></textarea>
-            </label>
-
+            <label class="vn-ac-field"><span>Order</span><select name="order_id" required><option value="">Select an order</option>
+              ${state.orders.map(order => `<option value="${escapeHTML(order.id)}">${escapeHTML(order.order_number || order.id)}</option>`).join("")}
+            </select></label>
+            <label class="vn-ac-field"><span>Reason for return</span><select name="reason" required>
+              <option value="">Select a reason</option><option value="damaged">Item arrived damaged</option><option value="wrong_item">Wrong item received</option><option value="size_fit">Size or fit issue</option><option value="changed_mind">Changed my mind</option><option value="other">Other</option>
+            </select></label>
+            <label class="vn-ac-field"><span>Additional details</span><textarea name="customer_note" placeholder="Tell us more (optional)"></textarea></label>
             <button class="vn-ac-button" type="submit">Submit return request</button>
           </form>
-
-          <p class="vn-ac-muted">
-            Submitting a request does not guarantee approval or automatically issue a refund.
-            Eligibility and return instructions must be confirmed by the store.
-          </p>
+          <p class="vn-ac-muted">Submitting a request does not guarantee approval or automatically issue a refund. Eligibility and return instructions must be confirmed by the store.</p>
         </main>
       </div>
     `;
@@ -830,26 +717,12 @@
       <div class="vn-ac-layout">
         ${sidebar()}
         <main class="vn-ac-main">
-          <h1>Help Center</h1>
-          <p class="vn-ac-subtitle">Find answers to common questions.</p>
-
+          <h1>Help Center</h1><p class="vn-ac-subtitle">Find answers to common questions.</p>
           <div class="vn-ac-card-grid">
-            <a class="vn-ac-card" href="${escapeHTML(helpPath)}">
-              <strong>ORDERS &amp; SHIPPING</strong>
-              <span>Order status, delivery estimates and tracking.</span>
-            </a>
-            <a class="vn-ac-card" href="${escapeHTML(helpPath)}">
-              <strong>RETURNS &amp; REFUNDS</strong>
-              <span>Return eligibility, requests and refund status.</span>
-            </a>
-            <a class="vn-ac-card" href="${escapeHTML(helpPath)}">
-              <strong>ACCOUNT &amp; SECURITY</strong>
-              <span>Sign-in, email verification and profile details.</span>
-            </a>
-            <a class="vn-ac-card" href="mailto:${escapeHTML(CONFIG.defaultEmail || "9ojeez9@gmail.com")}">
-              <strong>CONTACT SUPPORT</strong>
-              <span>Get in touch about an order or account issue.</span>
-            </a>
+            <a class="vn-ac-card" href="${escapeHTML(helpPath)}"><strong>ORDERS &amp; SHIPPING</strong><span>Order status, delivery estimates and tracking.</span></a>
+            <a class="vn-ac-card" href="${escapeHTML(helpPath)}"><strong>RETURNS &amp; REFUNDS</strong><span>Return eligibility, requests and refund status.</span></a>
+            <a class="vn-ac-card" href="${escapeHTML(helpPath)}"><strong>ACCOUNT &amp; SECURITY</strong><span>Sign-in, email verification and profile details.</span></a>
+            <a class="vn-ac-card" href="mailto:${escapeHTML(CONFIG.defaultEmail || "9ojeez9@gmail.com")}"><strong>CONTACT SUPPORT</strong><span>Get in touch about an order or account issue.</span></a>
           </div>
         </main>
       </div>
@@ -862,7 +735,6 @@
       title: "Policy",
       text: "Please consult the relevant store policy for details."
     };
-
     const policyKey = key === "sale" ? "terms" : key;
     const policy = config.policies?.[policyKey];
 
@@ -870,15 +742,11 @@
       const sections = Array.isArray(policy.sections)
         ? policy.sections.map(section => {
             if (typeof section === "string") return section;
-            return [section.title || section.heading, section.content || section.text]
-              .filter(Boolean).join("\n\n");
+            return [section.title || section.heading, section.content || section.text].filter(Boolean).join("\n\n");
           }).join("\n\n")
         : "";
 
-      return {
-        title: policy.title || fallback.title,
-        text: sections || fallback.text
-      };
+      return { title: policy.title || fallback.title, text: sections || fallback.text };
     }
 
     return fallback;
@@ -892,18 +760,14 @@
         ${sidebar()}
         <main class="vn-ac-main">
           <button class="vn-ac-button text" data-ac-action="legal-back">← Back to profile</button>
-          <h1>${escapeHTML(legal.title)}</h1>
-          <p class="vn-ac-subtitle">VN SHOP · LEGAL</p>
+          <h1>${escapeHTML(legal.title)}</h1><p class="vn-ac-subtitle">VN SHOP · LEGAL</p>
           <div class="vn-ac-legal-copy">${escapeHTML(legal.text)}</div>
-          <div class="vn-ac-actions">
-            <button class="vn-ac-button secondary" data-ac-action="legal-back">Back to profile</button>
-          </div>
+          <div class="vn-ac-actions"><button class="vn-ac-button secondary" data-ac-action="legal-back">Back to profile</button></div>
         </main>
       </div>
     `;
   }
 
-  // Only draws while the panel is open, so background updates never pop it up.
   function render() {
     const root = createRoot();
     if (root.hidden) return;
@@ -911,8 +775,7 @@
     const content = $("#vnAcContent", root);
 
     if (!state.user) {
-      content.innerHTML =
-        state.screen === "verify" ? renderVerify() : renderEmail();
+      content.innerHTML = state.screen === "verify" ? renderVerify() : renderEmail();
       return;
     }
 
@@ -929,49 +792,79 @@
 
   /*
    * OTP FLOW:
-   * 1. Switch to the code screen immediately (no status text).
-   * 2. Send the request in the background.
-   * 3. On success nothing is redrawn, so digits already typed are kept.
-   * 4. On failure show the error on the code screen and allow resend at once.
+   * - Switch to verification immediately.
+   * - Start the Supabase request only after the screen is rendered.
+   * - Never wait for the email request before showing the OTP inputs.
+   * - Keep errors and resend controls on the verification screen.
    */
-  async function sendCode(email) {
-    if (!state.supabase) {
+  function sendCode(email) {
+    const normalizedEmail = String(email || "").trim();
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
       state.messageType = "error";
-      state.message = "Sign-in is unavailable because the Supabase client is not configured.";
+      state.message = "Enter a valid email address.";
+      state.screen = "email";
       render();
       return;
     }
 
-    state.email = email.trim();
+    if (!state.supabase) {
+      state.email = normalizedEmail;
+      state.screen = "verify";
+      state.messageType = "error";
+      state.message = "Sign-in is unavailable because the Supabase client is not configured.";
+      render();
+      focusOtp();
+      return;
+    }
+
+    // Invalidate any earlier send response so it cannot overwrite the current screen.
+    const requestId = ++state.sendRequestId;
+
+    state.email = normalizedEmail;
     state.screen = "verify";
     state.messageType = "info";
     state.message = "";
+    state.sendingCode = true;
     state.resendAt = Date.now() + CONFIG.resendDelay * 1000;
+
+    // Render synchronously before making any network request.
     render();
     startResendTimer();
-    window.setTimeout(focusEntry, 30);
+    window.setTimeout(focusOtp, 0);
 
-    try {
-      const { error } = await state.supabase.auth.signInWithOtp({
-        email: state.email,
-        options: {
-          shouldCreateUser: true,
-          data: { marketing_updates: state.signupMarketing }
+    // The network request starts after the verification screen is already visible.
+    Promise.resolve().then(async () => {
+      try {
+        const { error } = await state.supabase.auth.signInWithOtp({
+          email: normalizedEmail,
+          options: {
+            shouldCreateUser: true,
+            data: { marketing_updates: state.signupMarketing }
+          }
+        });
+
+        if (error) throw error;
+
+        // Success needs no redraw; preserve any digits the user has already entered.
+      } catch (error) {
+        console.error("[VN ACCOUNT] OTP send failed:", error);
+
+        if (requestId !== state.sendRequestId) return;
+
+        state.resendAt = 0;
+        state.messageType = "error";
+        state.message = explainAuthError(error);
+        render();
+        startResendTimer();
+        focusOtp();
+      } finally {
+        if (requestId === state.sendRequestId) {
+          state.sendingCode = false;
+          updateResendButton();
         }
-      });
-
-      if (error) throw error;
-
-      // Success: no status text and no redraw.
-    } catch (error) {
-      console.error("[VN ACCOUNT] OTP send failed:", error);
-      state.resendAt = 0;
-
-      state.messageType = "error";
-      state.message = explainAuthError(error);
-      render();
-      startResendTimer();
-    }
+      }
+    });
   }
 
   function explainAuthError(error) {
@@ -998,30 +891,45 @@
       : "Could not send the verification email. Please try again.";
   }
 
+  function updateResendButton() {
+    const root = $("#vnAccountOverlay");
+    if (!root || root.hidden || state.screen !== "verify") return;
+
+    const button = $('[data-ac-action="resend"]', root);
+    if (!button) return;
+
+    const remaining = Math.ceil((state.resendAt - Date.now()) / 1000);
+
+    if (state.sendingCode) {
+      button.textContent = "Sending...";
+      button.disabled = true;
+    } else if (remaining > 0) {
+      button.textContent = `Resend code (${remaining}s)`;
+      button.disabled = true;
+    } else {
+      button.textContent = "Resend code";
+      button.disabled = false;
+    }
+  }
+
   function startResendTimer() {
     clearInterval(state.resendTimer);
+    updateResendButton();
 
     state.resendTimer = setInterval(() => {
       const root = $("#vnAccountOverlay");
-      if (!root || root.hidden) {
+
+      if (!root || root.hidden || state.screen !== "verify") {
         clearInterval(state.resendTimer);
         return;
       }
 
-      const button = $('[data-ac-action="resend"]', root);
-      if (!button) return;
+      updateResendButton();
 
-      const remaining = Math.ceil((state.resendAt - Date.now()) / 1000);
-
-      if (remaining > 0) {
-        button.textContent = `Resend code (${remaining}s)`;
-        button.disabled = true;
-      } else {
-        button.textContent = "Resend code";
-        button.disabled = false;
+      if (Date.now() >= state.resendAt && !state.sendingCode) {
         clearInterval(state.resendTimer);
       }
-    }, 1000);
+    }, 250);
   }
 
   async function verifyCode(code) {
@@ -1036,12 +944,15 @@
       state.messageType = "error";
       state.message = `Enter the complete ${CONFIG.otpLength}-digit code.`;
       render();
+      focusOtp();
       return;
     }
 
     if (state.busy) return;
+
     state.busy = true;
     state.message = "";
+    render();
 
     try {
       const { data, error } = await state.supabase.auth.verifyOtp({
@@ -1062,6 +973,7 @@
       state.section = "dashboard";
       state.message = "";
 
+      // Account queries start only after successful code verification.
       await loadAccountData();
       render();
     } catch (error) {
@@ -1087,7 +999,9 @@
   }
 
   function focusOtp() {
-    $('[data-otp-digit="0"]', $("#vnAccountOverlay"))?.focus();
+    const root = $("#vnAccountOverlay");
+    if (!root || root.hidden) return;
+    $('[data-otp-digit="0"]', root)?.focus();
   }
 
   async function saveProfile(form) {
@@ -1101,9 +1015,7 @@
       updated_at: new Date().toISOString()
     };
 
-    const { error } = await state.supabase
-      .from("profiles")
-      .upsert(profile, { onConflict: "id" });
+    const { error } = await state.supabase.from("profiles").upsert(profile, { onConflict: "id" });
 
     if (error) {
       console.error("[VN ACCOUNT] Profile save failed:", error);
@@ -1151,9 +1063,7 @@
       }
     }
 
-    const { error } = await state.supabase
-      .from("customer_addresses")
-      .insert(address);
+    const { error } = await state.supabase.from("customer_addresses").insert(address);
 
     if (error) {
       console.error("[VN ACCOUNT] Address save failed:", error);
@@ -1172,7 +1082,6 @@
 
   async function deleteAddress(id) {
     if (!state.supabase || !state.user) return;
-
     if (!confirm("Delete this saved address?")) return;
 
     const { error } = await state.supabase
@@ -1198,13 +1107,11 @@
 
     state.marketingUpdates = enabled;
 
-    const { error } = await state.supabase
-      .from("profiles")
-      .upsert({
-        id: state.user.id,
-        marketing_updates: enabled,
-        updated_at: new Date().toISOString()
-      }, { onConflict: "id" });
+    const { error } = await state.supabase.from("profiles").upsert({
+      id: state.user.id,
+      marketing_updates: enabled,
+      updated_at: new Date().toISOString()
+    }, { onConflict: "id" });
 
     if (error) {
       console.error("[VN ACCOUNT] Marketing preference save failed:", error);
@@ -1222,8 +1129,9 @@
   async function signOut(allDevices = false) {
     if (!state.supabase) return;
 
-    const scope = allDevices ? "global" : "local";
-    const { error } = await state.supabase.auth.signOut({ scope });
+    const { error } = await state.supabase.auth.signOut({
+      scope: allDevices ? "global" : "local"
+    });
 
     if (error) {
       state.messageType = "error";
@@ -1258,15 +1166,13 @@
       return;
     }
 
-    const { error } = await state.supabase
-      .from("returns")
-      .insert({
-        user_id: state.user.id,
-        order_id: orderId,
-        reason,
-        customer_note: note,
-        status: "requested"
-      });
+    const { error } = await state.supabase.from("returns").insert({
+      user_id: state.user.id,
+      order_id: orderId,
+      reason,
+      customer_note: note,
+      status: "requested"
+    });
 
     if (error) {
       console.error("[VN ACCOUNT] Return request failed:", error);
@@ -1292,6 +1198,7 @@
   function openPanel() {
     if (!state.user) {
       state.screen = "email";
+      state.message = "";
     } else {
       state.section = state.section === "dashboard" ? "profile" : "dashboard";
     }
@@ -1305,6 +1212,7 @@
   function goShop() {
     closePanel();
     const shopTarget = $("#shop, #products, [data-shop-home]");
+
     if (shopTarget) {
       shopTarget.scrollIntoView({ behavior: "smooth", block: "start" });
     } else {
@@ -1364,13 +1272,14 @@
           case "change-email":
             state.screen = "email";
             state.message = "";
+            state.messageType = "info";
             render();
             window.setTimeout(focusEntry, 30);
             break;
 
           case "resend":
-            if (Date.now() < state.resendAt) return;
-            await sendCode(state.email);
+            if (Date.now() < state.resendAt || state.sendingCode) return;
+            sendCode(state.email);
             break;
 
           case "edit-contact":
@@ -1405,9 +1314,7 @@
       const orderButton = event.target.closest("[data-ac-order]");
 
       if (orderButton) {
-        const order = state.orders.find(
-          item => String(item.id) === orderButton.dataset.acOrder
-        );
+        const order = state.orders.find(item => String(item.id) === orderButton.dataset.acOrder);
 
         if (order) {
           alert(
@@ -1433,9 +1340,6 @@
       }
     }
 
-    // Try to detect the existing storefront's account/profile button.
-    // #profile-open is wired directly in merch.html, so it is skipped here
-    // to avoid opening the panel twice.
     const profileButton = event.target.closest(
       '[data-account-toggle], [data-profile-toggle], #accountButton, #profileButton, .account-button, .profile-button, a[href="#account"], button[aria-label*="account" i], button[aria-label*="profile" i]'
     );
@@ -1456,7 +1360,8 @@
     if (form.id === "vnAcEmailForm") {
       event.preventDefault();
 
-      const email = String(new FormData(form).get("email") || "").trim();
+      const formData = new FormData(form);
+      const email = String(formData.get("email") || "").trim();
 
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         state.messageType = "error";
@@ -1465,9 +1370,9 @@
         return;
       }
 
-      state.signupMarketing = new FormData(form).get("updates") === "on";
+      state.signupMarketing = formData.get("updates") === "on";
 
-      // sendCode shows the code screen immediately, then sends in the background.
+      // Do not await: sendCode renders the OTP screen before starting the request.
       sendCode(email);
       return;
     }
@@ -1521,7 +1426,6 @@
     $(`[data-otp-digit="${index - 1}"]`, $("#vnAccountOverlay"))?.focus();
   });
 
-  // Pasting a full code fills all boxes.
   document.addEventListener("paste", event => {
     const input = event.target.closest?.("[data-otp-digit]");
     if (!input) return;
@@ -1534,7 +1438,10 @@
 
     event.preventDefault();
 
-    const inputs = [...$("#vnAccountOverlay").querySelectorAll("[data-otp-digit]")];
+    const root = $("#vnAccountOverlay");
+    if (!root) return;
+
+    const inputs = [...root.querySelectorAll("[data-otp-digit]")];
     inputs.forEach((element, index) => {
       element.value = digits[index] || "";
     });
@@ -1562,13 +1469,11 @@
 
       if (!state.supabase || !state.user) return;
 
-      const { error } = await state.supabase
-        .from("profiles")
-        .upsert({
-          id: state.user.id,
-          country: state.country,
-          updated_at: new Date().toISOString()
-        }, { onConflict: "id" });
+      const { error } = await state.supabase.from("profiles").upsert({
+        id: state.user.id,
+        country: state.country,
+        updated_at: new Date().toISOString()
+      }, { onConflict: "id" });
 
       state.messageType = error ? "error" : "success";
       state.message = error
