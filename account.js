@@ -327,9 +327,22 @@
       .vn-ac-record-head{display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap}
       .vn-ac-record p{font-size:13px;color:#666;margin:9px 0}
       .vn-ac-badge{display:inline-block;padding:4px 8px;border:1px solid #ddd;border-radius:20px;font-size:11px;color:#555}
-      .vn-ac-otp{display:flex;gap:8px;justify-content:flex-start;margin:20px 0}
-      .vn-ac-otp input{width:43px;height:50px;text-align:center;font-size:20px;border:1px solid #bbb;border-radius:4px}
-      .vn-ac-otp input:focus{outline:2px solid #151515;outline-offset:2px}
+      .vn-ac-otp{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px;width:100%;margin:23px 0 4px}
+      .vn-ac-otp input{display:block;width:100%;min-width:0;height:52px;padding:0;text-align:center;font:500 20px/1 Arial,sans-serif;border:1px solid #4a4a4a;border-radius:3px;background:#202020;color:#f5f5f5;appearance:none}
+      .vn-ac-otp input:focus{outline:1px solid #bdbdbd;outline-offset:2px;border-color:#bdbdbd}
+      .vn-ac-auth-shell .vn-ac-verify-main{margin:12px auto 0!important}
+      .vn-ac-verify-main h1{margin:0 0 8px;font-size:22px;font-weight:600;letter-spacing:-.02em;color:#f5f5f5}
+      .vn-ac-verify-main .vn-ac-sent-to{margin:0;color:#bdbdbd;font-size:12px}
+      .vn-ac-inline-change{padding:0 0 0 3px;border:0;background:none;color:#f5f5f5;font:inherit;text-decoration:underline;cursor:pointer}
+      .vn-ac-auth-shell:has(.vn-ac-verify-main){width:min(100%,440px)}
+      #vnAccountOverlay{flex-direction:column;gap:13px}
+      .vn-ac-policy-link{padding:2px 8px;border:0;background:transparent;color:#bdbdbd;font:11px/1.4 Arial,sans-serif;text-decoration:underline;cursor:pointer}
+      .vn-ac-policy-overlay{position:fixed;inset:0;z-index:10003;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.72)}
+      .vn-ac-policy-overlay[hidden]{display:none!important}
+      .vn-ac-policy-panel{position:relative;width:min(100%,680px);height:min(78dvh,720px);background:#fff;box-shadow:0 24px 80px rgba(0,0,0,.4)}
+      .vn-ac-policy-panel iframe{display:block;width:100%;height:100%;border:0;background:#fff}
+      .vn-ac-policy-close{position:absolute;top:8px;right:8px;z-index:1;width:32px;height:32px;border:0;border-radius:50%;background:#171717;color:#fff;font-size:22px;line-height:1;cursor:pointer}
+      @media(max-width:420px){.vn-ac-otp{gap:6px}.vn-ac-otp input{height:47px}.vn-ac-auth-shell:has(.vn-ac-verify-main){width:min(100%,410px)}}
       .vn-ac-divider{height:1px;background:#e5e5e5;margin:24px 0}
       .vn-ac-muted{font-size:12px;color:#777}
       .vn-ac-muted a{color:inherit;text-decoration:underline}
@@ -368,6 +381,13 @@
           <button type="button" class="vn-ac-close" data-ac-action="close" aria-label="Close account">×</button>
         </header>
         <div id="vnAcContent"></div>
+      </div>
+      <button type="button" class="vn-ac-policy-link" data-ac-action="privacy-open">Privacy Policy</button>
+      <div class="vn-ac-policy-overlay" hidden role="dialog" aria-modal="true" aria-label="Privacy Policy">
+        <section class="vn-ac-policy-panel">
+          <button type="button" class="vn-ac-policy-close" data-ac-action="privacy-close" aria-label="Close privacy policy">×</button>
+          <iframe title="Privacy Policy" src="policies/privacy-policy.html"></iframe>
+        </section>
       </div>
     `;
 
@@ -423,18 +443,18 @@
 
   function renderVerify() {
     return `
-      <main class="vn-ac-main" style="max-width:460px;margin:45px auto">
-        <h1>Check your email</h1>
-        <p class="vn-ac-subtitle">
-          Enter the ${CONFIG.otpLength}-digit code sent to
-          <strong>${escapeHTML(state.email)}</strong>.
+      <main class="vn-ac-main vn-ac-verify-main">
+        <h1>Enter code</h1>
+        <p class="vn-ac-subtitle vn-ac-sent-to">
+          Sent to <strong>${escapeHTML(state.email)}</strong>
+          <button type="button" class="vn-ac-inline-change" data-ac-action="change-email">(change)</button>
         </p>
 
         ${messageHTML()}
 
         <form id="vnAcVerifyForm">
           <div class="vn-ac-otp" aria-label="Verification code">
-            ${Array.from({ length: CONFIG.otpLength }, (_, index) => `
+            ${Array.from({ length: 6 }, (_, index) => `
               <input
                 aria-label="Digit ${index + 1}"
                 data-otp-digit="${index}"
@@ -447,26 +467,7 @@
               >
             `).join("")}
           </div>
-
-          <button class="vn-ac-button" type="submit" style="width:100%" ${state.busy ? "disabled" : ""}>
-            Verify email
-          </button>
         </form>
-
-        <div class="vn-ac-actions">
-          <button type="button" class="vn-ac-button text" data-ac-action="resend"
-            ${Date.now() < state.resendAt || state.sendingCode ? "disabled" : ""}>
-            Resend code
-          </button>
-          <button type="button" class="vn-ac-button text" data-ac-action="change-email">
-            Change email
-          </button>
-        </div>
-
-        <p class="vn-ac-muted">
-          If the email doesn't arrive, check spam and confirm the address.
-          You can request another code above.
-        </p>
       </main>
     `;
   }
@@ -1285,6 +1286,18 @@
             closePanel();
             break;
 
+          case "privacy-open": {
+            const policy = $(".vn-ac-policy-overlay", root);
+            if (policy) policy.hidden = false;
+            break;
+          }
+
+          case "privacy-close": {
+            const policy = $(".vn-ac-policy-overlay", root);
+            if (policy) policy.hidden = true;
+            break;
+          }
+
           case "change-email":
             state.screen = "email";
             state.message = "";
@@ -1432,6 +1445,12 @@
       const index = Number(input.dataset.otpDigit);
       $(`[data-otp-digit="${index + 1}"]`, $("#vnAccountOverlay"))?.focus();
     }
+
+    const root = $("#vnAccountOverlay");
+    const inputs = [...(root?.querySelectorAll("[data-otp-digit]") || [])];
+    if (inputs.length === 6 && inputs.every(element => element.value.length === 1)) {
+      root.querySelector("#vnAcVerifyForm")?.requestSubmit();
+    }
   });
 
   document.addEventListener("keydown", event => {
@@ -1463,6 +1482,9 @@
     });
 
     inputs[Math.min(digits.length, inputs.length) - 1]?.focus();
+    if (inputs.length === 6 && inputs.every(element => element.value.length === 1)) {
+      root.querySelector("#vnAcVerifyForm")?.requestSubmit();
+    }
   });
 
   document.addEventListener("keydown", event => {
