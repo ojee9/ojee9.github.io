@@ -45,9 +45,9 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 .product-image-wrap{display:flex;align-items:center;justify-content:center;width:100%;aspect-ratio:4/5;min-width:0;padding:12%;overflow:hidden;background:rgba(255,255,255,.22)}
 .product-image{display:block;width:100%;height:100%;object-fit:contain;object-position:center;transition:transform .3s ease}
 .product:hover .product-image{transform:scale(1.025)}
-.product-caption{padding-top:10px;font-size:10px;line-height:1.5;letter-spacing:.35px}
-.product-name{font-weight:600}
-.product-price{margin-top:2px}
+.product-caption{padding-top:10px;font-size:13px;line-height:1.5;letter-spacing:.35px}
+.product-name{font-size:13px;font-weight:600}
+.product-price{margin-top:3px;font-size:12px}
 .empty{padding:55px 0;border-top:1px solid var(--line);color:var(--muted);font-size:11px;letter-spacing:1.5px;text-align:center}
 
 /* FOOTER */
@@ -249,7 +249,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
   .products{padding-top:18px;padding-bottom:55px}
   .product-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 10px}
   .product-image-wrap{padding:10%}
-  .product-caption{font-size:10px}
+  .product-caption{font-size:13px}
   .footer-links{gap:14px 18px;line-height:1.5}
   .drawer-head{padding:16px 18px}
   .drawer-content{padding:18px}
