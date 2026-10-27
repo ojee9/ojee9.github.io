@@ -23,6 +23,7 @@
     screen: "email",
     section: "dashboard",
     busy: false,
+    otpCode: "",
     sendingCode: false,
     sendRequestId: 0,
     resendAt: 0,
@@ -334,14 +335,14 @@
       .vn-ac-record-head{display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap}
       .vn-ac-record p{font-size:13px;color:#666;margin:9px 0}
       .vn-ac-badge{display:inline-block;padding:4px 8px;border:1px solid #ddd;border-radius:20px;font-size:11px;color:#555}
-      .vn-ac-otp{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px;width:100%;margin:23px 0 4px}
+      .vn-ac-otp-wrap{position:relative;width:100%;margin:23px 0 4px}.vn-ac-otp{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px;width:100%;margin:0;transition:filter .18s ease,opacity .18s ease}.vn-ac-otp input:disabled{cursor:wait}.vn-ac-otp-wrap.is-loading .vn-ac-otp{filter:blur(1.5px);opacity:.42}.vn-ac-otp-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:10px;background:rgba(20,20,20,.32);color:#eee;font-size:12px;letter-spacing:.3px}.vn-ac-otp-loading[hidden]{display:none!important}.vn-ac-otp-spinner{width:24px;height:24px;border:2px solid rgba(255,255,255,.22);border-top-color:#f5f5f5;border-radius:50%;animation:vnAcOtpSpin .7s linear infinite;box-shadow:0 0 12px rgba(255,255,255,.14)}@keyframes vnAcOtpSpin{to{transform:rotate(360deg)}}
       .vn-ac-otp input{display:block;width:100%;min-width:0;height:52px;padding:0;text-align:center;font:500 20px/1 Arial,sans-serif;border:1px solid #4a4a4a;border-radius:3px;background:#202020;color:#f5f5f5;appearance:none}
       .vn-ac-otp input:focus{outline:1px solid #bdbdbd;outline-offset:2px;border-color:#bdbdbd}
-      .vn-ac-auth-shell .vn-ac-verify-main{margin:12px auto 0!important}
+      .vn-ac-auth-shell .vn-ac-verify-main{margin:10px auto 0!important;width:100%;max-width:100%}
       .vn-ac-verify-main h1{margin:0 0 8px;font-size:22px;font-weight:600;letter-spacing:-.02em;color:#f5f5f5}
       .vn-ac-verify-main .vn-ac-sent-to{margin:0;color:#bdbdbd;font-size:12px}
       .vn-ac-inline-change{padding:0 0 0 3px;border:0;background:none;color:#f5f5f5;font:inherit;text-decoration:underline;cursor:pointer}
-      .vn-ac-auth-shell:has(.vn-ac-verify-main){width:min(100%,440px)}
+      
       #vnAccountOverlay{flex-direction:column;gap:13px}
       .vn-ac-policy-link{display:block;align-self:center;margin:18px auto 0;padding:11px 8px 0;border:0;background:transparent;color:#a8a8a8;font:10px/1.4 Arial,sans-serif;text-align:center;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
       .vn-ac-policy-overlay{position:fixed;inset:0;z-index:10003;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.46);backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px)}
@@ -518,6 +519,7 @@
         ${messageHTML()}
 
         <form id="vnAcVerifyForm">
+          <div class="vn-ac-otp-wrap ${state.busy ? "is-loading" : ""}">
           <div class="vn-ac-otp" aria-label="Verification code">
             ${Array.from({ length: 6 }, (_, index) => `
               <input
@@ -528,9 +530,13 @@
                 pattern="[0-9]*"
                 maxlength="1"
                 autocomplete="${index === 0 ? "one-time-code" : "off"}"
+                value="${escapeHTML(state.otpCode[index] || "")}"
+                ${state.busy ? "disabled" : ""}
                 required
               >
             `).join("")}
+          </div>
+          <div class="vn-ac-otp-loading" role="status" aria-live="polite" ${state.busy ? "" : "hidden"}><span class="vn-ac-otp-spinner" aria-hidden="true"></span><span>Verifying code…</span></div>
           </div>
         </form>
       </main>
@@ -1033,6 +1039,7 @@
     if (state.busy) return;
 
     state.busy = true;
+    state.otpCode = code;
     state.message = "";
     render();
 
@@ -1062,6 +1069,7 @@
       console.error("[VN ACCOUNT] OTP verification failed:", error);
       state.messageType = "error";
       state.message = explainAuthError(error);
+      state.busy = false;
       render();
       focusOtp();
     } finally {
@@ -1522,6 +1530,9 @@
     if (!input) return;
 
     input.value = input.value.replace(/\D/g, "").slice(0, 1);
+    const root = $("#vnAccountOverlay");
+    const inputs = [...(root?.querySelectorAll("[data-otp-digit]") || [])];
+    state.otpCode = inputs.map(element => element.value).join("");
 
     if (input.value) {
       const index = Number(input.dataset.otpDigit);
@@ -1529,8 +1540,8 @@
     }
 
     const root = $("#vnAccountOverlay");
-    const inputs = [...(root?.querySelectorAll("[data-otp-digit]") || [])];
-    if (inputs.length === 6 && inputs.every(element => element.value.length === 1)) {
+    const currentInputs = [...(root?.querySelectorAll("[data-otp-digit]") || [])];
+    if (currentInputs.length === 6 && currentInputs.every(element => element.value.length === 1)) {
       root.querySelector("#vnAcVerifyForm")?.requestSubmit();
     }
   });
@@ -1562,6 +1573,7 @@
     inputs.forEach((element, index) => {
       element.value = digits[index] || "";
     });
+    state.otpCode = inputs.map(element => element.value).join("");
 
     inputs[Math.min(digits.length, inputs.length) - 1]?.focus();
     if (inputs.length === 6 && inputs.every(element => element.value.length === 1)) {
