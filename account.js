@@ -924,15 +924,25 @@
           throw new Error("Sign-in is unavailable because the Supabase client is not configured.");
         }
 
-        const { error } = await state.supabase.auth.signInWithOtp({
-          email: normalizedEmail,
-          options: {
-            shouldCreateUser: true,
-            data: { marketing_updates: state.signupMarketing }
+        let result;
+        for (let attempt = 0; attempt < 2; attempt += 1) {
+          try {
+            result = await state.supabase.auth.signInWithOtp({
+              email: normalizedEmail,
+              options: {
+                shouldCreateUser: true,
+                data: { marketing_updates: state.signupMarketing }
+              }
+            });
+            break;
+          } catch (networkError) {
+            const networkFailure = /failed to fetch|fetch failed|networkerror|network request failed|load failed|timed out|timeout/i.test(String(networkError?.message || networkError));
+            if (!networkFailure || attempt === 1) throw networkError;
+            await new Promise(resolve => window.setTimeout(resolve, 700));
           }
-        });
+        }
 
-        if (error) throw error;
+        if (result?.error) throw result.error;
 
         // Success needs no redraw; preserve any digits the user has already entered.
       } catch (error) {
@@ -957,6 +967,10 @@
 
   function explainAuthError(error) {
     const message = String(error?.message || "").toLowerCase();
+
+    if (/failed to fetch|fetch failed|networkerror|network request failed|load failed|timed out|timeout/i.test(message)) {
+      return "A network error interrupted the request. Check your connection and try again. If it continues, the email provider or Supabase endpoint may be temporarily unavailable.";
+    }
 
     if (message.includes("rate limit") || message.includes("too many requests")) {
       return "Too many verification requests. Wait a little before trying again.";
@@ -1527,7 +1541,7 @@
 
   document.addEventListener("input", event => {
     const input = event.target.closest("[data-otp-digit]");
-    if (!input) return;
+    if (!input || state.busy) return;
 
     input.value = input.value.replace(/\D/g, "").slice(0, 1);
     const root = $("#vnAccountOverlay");
@@ -1536,12 +1550,10 @@
 
     if (input.value) {
       const index = Number(input.dataset.otpDigit);
-      $(`[data-otp-digit="${index + 1}"]`, $("#vnAccountOverlay"))?.focus();
+      root?.querySelector('[data-otp-digit="' + (index + 1) + '"]')?.focus();
     }
 
-    const root = $("#vnAccountOverlay");
-    const currentInputs = [...(root?.querySelectorAll("[data-otp-digit]") || [])];
-    if (currentInputs.length === 6 && currentInputs.every(element => element.value.length === 1)) {
+    if (inputs.length === 6 && inputs.every(element => element.value.length === 1)) {
       root.querySelector("#vnAcVerifyForm")?.requestSubmit();
     }
   });
