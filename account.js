@@ -774,14 +774,11 @@
       <div class="vn-ac-layout">
         ${sidebar()}
         <main class="vn-ac-main">
-          <h1>Edit Contact</h1><p class="vn-ac-subtitle">Update your profile details.</p>
-          ${messageHTML()}
           <form id="vnAcProfileForm">
             <div class="vn-ac-form-grid">
               <label class="vn-ac-field"><span>First name</span><input name="first_name" value="${escapeHTML(state.profile.first_name || "")}" autocomplete="given-name"></label>
               <label class="vn-ac-field"><span>Last name</span><input name="last_name" value="${escapeHTML(state.profile.last_name || "")}" autocomplete="family-name"></label>
             </div>
-            <label class="vn-ac-field"><span>Email</span><input type="email" value="${escapeHTML(state.user?.email || state.email)}" disabled></label>
             <div class="vn-ac-actions">
               <button class="vn-ac-button" type="submit">Save changes</button>
               <button class="vn-ac-button secondary" type="button" data-ac-section="profile">Cancel</button>
