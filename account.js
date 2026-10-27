@@ -382,9 +382,9 @@
       .vn-ac-footer-policies .vn-ac-legal-list{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 14px;margin:0;border:0}
       .vn-ac-footer-policies .vn-ac-legal-item{display:inline-flex;gap:3px;padding:0;border:0;color:#a8a8a8;font:10px/1.4 Arial,sans-serif;text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
       .vn-ac-footer-policies .vn-ac-legal-item:hover{color:#fff}
-      .vn-ac-footer-country{display:inline-flex;align-items:center;gap:0;margin:0;padding:0;color:#a8a8a8;font:10px/1.4 Arial,sans-serif;white-space:nowrap;vertical-align:middle}
-      .vn-ac-footer-country select{display:inline-block;width:auto;max-width:150px;min-width:0;margin:0;padding:0;border:0;outline:0;background:transparent;color:inherit;font:inherit;line-height:inherit;cursor:pointer;appearance:none;-webkit-appearance:none;vertical-align:middle}
-      .vn-ac-footer-country::after{content:"⌄";display:inline-block;margin-left:-1px;padding:0;font-size:10px;line-height:1;pointer-events:none;flex:0 0 auto;vertical-align:middle}
+      .vn-ac-footer-country{display:inline-flex;align-items:center;justify-content:flex-start;gap:0;width:max-content;max-width:100%;margin:0;padding:0;color:#a8a8a8;font:10px/1.4 Arial,sans-serif;white-space:nowrap;vertical-align:middle;flex:0 0 auto}
+      .vn-ac-footer-country select{display:inline-block;box-sizing:content-box;width:0;max-width:none;min-width:0;flex:0 0 auto;margin:0;padding:0;border:0;outline:0;background:transparent;color:inherit;font:inherit;line-height:inherit;cursor:pointer;appearance:none;-webkit-appearance:none;vertical-align:middle}
+      .vn-ac-footer-country::after{content:"⌄";display:inline-block;margin-left:1px;padding:0;font-size:10px;line-height:1;pointer-events:none;flex:0 0 auto;vertical-align:middle}
       .vn-ac-profile-action{min-height:30px;padding:6px 12px;font-size:11px;letter-spacing:.3px;text-decoration:none}
       .vn-ac-address-form{display:flex;flex-direction:column;gap:12px}
       .vn-ac-address-control{position:relative;display:block;min-width:0}
@@ -1063,6 +1063,20 @@
       button.classList.remove("vn-ac-avatar-initial");
     }
   }
+  function syncFooterCountryWidth() {
+    const select = document.querySelector("#vnAccountOverlay [data-ac-country]");
+    if (!select) return;
+    const selected = select.selectedOptions?.[0];
+    if (!selected) return;
+    const measure = document.createElement("span");
+    const style = getComputedStyle(select);
+    measure.textContent = selected.textContent.trim();
+    measure.style.cssText = "position:absolute;visibility:hidden;white-space:nowrap;left:-9999px;top:0;font:" + style.font + ";letter-spacing:" + style.letterSpacing + ";";
+    document.body.appendChild(measure);
+    select.style.width = Math.ceil(measure.getBoundingClientRect().width + 1) + "px";
+    measure.remove();
+  }
+
   function render() {
     updateAccountAvatar();
     const root = createRoot();
@@ -1091,6 +1105,7 @@
     if (["dashboard", "profile", "orders", "returns", "help"].includes(state.section)) {
       content.insertAdjacentHTML("beforeend", accountFooter());
     }
+    syncFooterCountryWidth();
   }
 
   /*
