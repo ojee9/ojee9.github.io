@@ -279,7 +279,20 @@
   }
 
   function variants(product) {
-    return (product.variants || product.sizes || []).map(item =>
+    const id = String(product.id || "").toLowerCase();
+    const type = String(product.type || "").toUpperCase();
+    const category = String(product.category || "").toUpperCase();
+    let source = product.variants || product.sizes || [];
+
+    if (id === "gta-love-poster-1") source = ["40 × 30 cm", "80 × 60 cm", "120 × 80 cm"];
+    else if (id === "gta-love-poster-2") source = ["30 × 45 cm", "45 × 60 cm", "60 × 90 cm"];
+    else if (!source.length && ["TOPS", "OUTERWEAR", "PANTS"].includes(category)) {
+      source = category === "PANTS"
+        ? ["XS", "S", "M", "L", "XL", "XXL"]
+        : ["XS", "S", "M", "L", "XL", "XXL"];
+    }
+
+    return source.map(item =>
       typeof item === "object"
         ? {
             label: String(item.label || item.name || item.value),
@@ -402,33 +415,56 @@
 
     const images = imageList(product);
     const options = variants(product);
+    let activeImageIndex = 0;
+    const productCategory = String(product.category || "").trim();
+    const productType = String(product.type || "").toUpperCase();
+    const productId = String(product.id || "").toLowerCase();
+    const posterClass = productId === "gta-love-poster-1"
+      ? " is-poster-1"
+      : productId === "gta-love-poster-2" ? " is-poster-2" : "";
+    const isPoster = productType === "POSTER" || posterClass !== "";
+    const galleryImages = images.length > 1 ? images : [];
 
     detailContent.innerHTML = `
-      <div class="detail-breadcrumb">
-        <button type="button" id="detail-back">SHOP</button>
-        <span>/</span>
-        <span>${esc(product.name)}</span>
-      </div>
+      <nav class="detail-breadcrumb" aria-label="Breadcrumb">
+        <button type="button" data-breadcrumb-home>Home</button>
+        ${productCategory ? `
+          <span aria-hidden="true">›</span>
+          <button type="button" data-breadcrumb-category="${esc(productCategory)}">${esc(productCategory)}</button>
+        ` : ""}
+        <span aria-hidden="true">›</span>
+        <span aria-current="page">${esc(product.name)}</span>
+      </nav>
 
       <div class="detail-layout">
-        <div class="detail-gallery">
-          ${images.length > 1 ? `
-            <div class="detail-thumbnails">
-              ${images.map((src, index) => `
-                <button
-                  type="button"
-                  class="detail-thumb${index === 0 ? " is-active" : ""}"
-                  data-image="${index}"
-                  aria-label="View image ${index + 1}"
-                >
-                  <img src="${esc(src)}" alt="">
-                </button>
-              `).join("")}
-            </div>
-          ` : `<div class="detail-thumbnails"></div>`}
+        <div class="detail-gallery${posterClass}${isPoster ? " is-poster" : ""}">
+          <div class="detail-thumbnails" ${galleryImages.length ? "" : "hidden"}>
+            ${galleryImages.map((src, index) => `
+              <button
+                type="button"
+                class="detail-thumb${index === 0 ? " is-active" : ""}"
+                data-image="${index}"
+                aria-label="View image ${index + 1}"
+                aria-pressed="${index === 0 ? "true" : "false"}"
+              >
+                <img src="${esc(src)}" alt="">
+              </button>
+            `).join("")}
+          </div>
 
-          <div class="detail-main-image">
-            <img src="${esc(images[0] || "")}" alt="${esc(product.name)}">
+          <div class="detail-image-stage">
+            <div class="detail-main-image">
+              <img data-main-image src="${esc(images[0] || "")}" alt="${esc(product.name)}">
+            </div>
+            ${galleryImages.length > 1 ? `
+              <div class="detail-image-dots" role="group" aria-label="Choose product image">
+                ${galleryImages.map((_, index) => `
+                  <button type="button" class="detail-image-dot${index === 0 ? " is-active" : ""}"
+                    data-image-dot="${index}" aria-label="Show image ${index + 1}"
+                    aria-pressed="${index === 0 ? "true" : "false"}"></button>
+                `).join("")}
+              </div>
+            ` : ""}
           </div>
         </div>
 
@@ -438,16 +474,10 @@
 
           ${options.length ? `
             <div class="detail-field">
-              <p class="detail-field-label">
-                ${esc(product.variantLabel || t("selectOption"))}
-              </p>
-              <div class="detail-variants">
+              <p class="detail-field-label">${esc(product.variantLabel || "SIZE")}</p>
+              <div class="detail-variants${isPoster ? " is-poster-sizes" : " is-textile-sizes"}">
                 ${options.map(option => `
-                  <button
-                    type="button"
-                    class="variant-button"
-                    data-variant="${esc(option.value)}"
-                  >${esc(option.label)}</button>
+                  <button type="button" class="variant-button" data-variant="${esc(option.value)}">${esc(option.label)}</button>
                 `).join("")}
               </div>
             </div>
@@ -472,43 +502,72 @@
       </div>
     `;
 
-    $("detail-back").onclick = () => closeOverlay(detail);
+    detailContent.querySelector("[data-breadcrumb-home]").onclick = () => {
+      activeCategory = "ALL";
+      category.value = categories.some(item => (typeof item === "string" ? item : item.value) === "ALL")
+        ? "ALL"
+        : (typeof categories[0] === "string" ? categories[0] : categories[0]?.value);
+      query = "";
+      $("search-input").value = "";
+      renderProducts();
+      closeOverlay(detail);
+    };
+
+    const categoryCrumb = detailContent.querySelector("[data-breadcrumb-category]");
+    if (categoryCrumb) {
+      categoryCrumb.onclick = () => {
+        const value = categoryCrumb.dataset.breadcrumbCategory;
+        activeCategory = value;
+        if ([...category.options].some(option => option.value === value)) category.value = value;
+        query = "";
+        $("search-input").value = "";
+        renderProducts();
+        closeOverlay(detail);
+      };
+    }
+
+    const selectImage = index => {
+      if (index < 0 || index >= images.length) return;
+      activeImageIndex = index;
+      const mainImage = detailContent.querySelector("[data-main-image]");
+      if (mainImage) mainImage.src = images[index];
+
+      detailContent.querySelectorAll("[data-image]").forEach(button => {
+        const active = Number(button.dataset.image) === index;
+        button.classList.toggle("is-active", active);
+        button.setAttribute("aria-pressed", String(active));
+      });
+      detailContent.querySelectorAll("[data-image-dot]").forEach(button => {
+        const active = Number(button.dataset.imageDot) === index;
+        button.classList.toggle("is-active", active);
+        button.setAttribute("aria-pressed", String(active));
+      });
+    };
 
     detailContent.querySelectorAll("[data-image]").forEach(button => {
-      button.onclick = () => {
-        const index = Number(button.dataset.image);
-        const mainImage = detailContent.querySelector(".detail-main-image img");
-
-        mainImage.src = images[index];
-
-        detailContent.querySelectorAll("[data-image]").forEach(thumbnail => {
-          thumbnail.classList.toggle("is-active", thumbnail === button);
-        });
-      };
+      button.onclick = () => selectImage(Number(button.dataset.image));
+    });
+    detailContent.querySelectorAll("[data-image-dot]").forEach(button => {
+      button.onclick = () => selectImage(Number(button.dataset.imageDot));
     });
 
     detailContent.querySelectorAll("[data-variant]").forEach(button => {
       button.onclick = () => {
         variant = button.dataset.variant;
-
         detailContent.querySelectorAll("[data-variant]").forEach(option => {
           option.classList.toggle("is-selected", option === button);
+          option.setAttribute("aria-pressed", String(option === button));
         });
-
         const error = detailContent.querySelector(".detail-error");
         if (error) error.remove();
       };
+      button.setAttribute("aria-pressed", "false");
     });
 
     detailContent.querySelectorAll("[data-qty]").forEach(button => {
       button.onclick = () => {
         const maxQuantity = config.cart?.maxItemQuantity || 99;
-
-        quantity = Math.max(
-          1,
-          Math.min(maxQuantity, quantity + Number(button.dataset.qty))
-        );
-
+        quantity = Math.max(1, Math.min(maxQuantity, quantity + Number(button.dataset.qty)));
         $("detail-quantity-value").textContent = quantity;
       };
     });
@@ -516,13 +575,11 @@
     $("detail-add").onclick = () => {
       if (options.length && !variant) {
         let error = detailContent.querySelector(".detail-error");
-
         if (!error) {
           error = document.createElement("p");
           error.className = "detail-error";
           $("detail-add").after(error);
         }
-
         error.textContent = t("selectOption");
         return;
       }
@@ -534,12 +591,7 @@
       if (existing) {
         existing.quantity = Math.min(maxQuantity, existing.quantity + quantity);
       } else {
-        cart.push({
-          key,
-          product,
-          variant,
-          quantity
-        });
+        cart.push({ key, product, variant, quantity });
       }
 
       renderCart();
@@ -549,7 +601,7 @@
     openOverlay(detail);
   }
 
-  function renderCart() {
+    function renderCart() {
     const count = cart.reduce((total, item) => total + item.quantity, 0);
 
     $("cart-count").textContent = count;
