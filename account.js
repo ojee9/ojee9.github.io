@@ -135,6 +135,13 @@
         if (session?.user) {
           const sameUser = state.user?.id === session.user.id;
           state.user = session.user;
+          const metadata = session.user.user_metadata || {};
+          state.profile = {
+            ...state.profile,
+            first_name: state.profile.first_name || metadata.first_name || "",
+            last_name: state.profile.last_name || metadata.last_name || ""
+          };
+          updateAccountAvatar();
 
           if (sameUser) return;
 
@@ -200,6 +207,7 @@
       }
       state.marketingUpdates = state.profile.marketing_updates !== false;
       state.country = state.profile.country || userCountry();
+      updateAccountAvatar();
 
       const addressResult = await state.supabase
         .from("customer_addresses")
