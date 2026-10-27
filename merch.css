@@ -57,6 +57,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 .footer-links button{padding:0;border:0;background:transparent;font-size:inherit;letter-spacing:inherit}
 .footer-links a:hover,.footer-links button:hover{opacity:.55}
 .copyright{color:var(--muted);font-size:9px;letter-spacing:1px;text-align:center}
+.footer-sublogo{display:block;width:150px;height:97px;max-width:100%;object-fit:contain;margin:10px auto 0;opacity:.95}
 
 /* OVERLAYS AND DRAWERS */
 .drawer-overlay,.account-overlay,.policy-overlay{position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.48);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .28s ease,visibility .28s ease}
@@ -251,6 +252,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
   .product-image-wrap{padding:10%}
   .product-caption{font-size:13px}
   .footer-links{gap:14px 18px;line-height:1.5}
+  .footer-sublogo{width:135px;height:88px;margin-top:9px}
   .drawer-head{padding:16px 18px}
   .drawer-content{padding:18px}
   #detail-overlay{padding:0;align-items:flex-end}
