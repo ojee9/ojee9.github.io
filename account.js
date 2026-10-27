@@ -405,6 +405,45 @@
       .vn-ac-profile-signout{display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;gap:9px;margin-top:22px;padding-top:0;border-top:0}
       .vn-ac-profile-signout .vn-ac-button{font-size:10px;letter-spacing:.7px}
       .vn-ac-empty{padding:24px;border:1px solid #e5e5e5;color:#777;font-size:13px}
+      /* Keep every dashboard section on the same canvas; leave the footer untouched. */
+      .vn-ac-shell.vn-ac-auth-shell:has(.vn-ac-layout){
+        width:min(100%,1200px);
+        height:min(780px,calc(100dvh - 48px));
+        min-height:0;
+        padding:36px 48px 28px;
+        overflow:hidden;
+        display:flex;
+        flex-direction:column;
+      }
+      .vn-ac-shell.vn-ac-auth-shell:has(.vn-ac-layout) #vnAcContent{
+        flex:1 1 auto;
+        min-height:0;
+        overflow:auto;
+        scrollbar-gutter:stable;
+      }
+      .vn-ac-shell.vn-ac-auth-shell:has(.vn-ac-layout) .vn-ac-layout{
+        grid-template-columns:200px minmax(0,1fr);
+        gap:48px;
+        min-height:100%;
+        padding-top:24px;
+      }
+      .vn-ac-shell.vn-ac-auth-shell:has(.vn-ac-layout) .vn-ac-main{
+        width:100%;
+        max-width:none;
+        min-width:0;
+      }
+      @media(max-width:700px){
+        .vn-ac-shell.vn-ac-auth-shell:has(.vn-ac-layout){
+          width:100%;
+          height:calc(100dvh - 24px);
+          padding:20px 17px 18px;
+        }
+        .vn-ac-shell.vn-ac-auth-shell:has(.vn-ac-layout) .vn-ac-layout{
+          grid-template-columns:1fr;
+          gap:22px;
+          padding-top:22px;
+        }
+      }
       @media(max-width:700px){
         .vn-ac-shell{padding:17px}
         .vn-ac-layout{grid-template-columns:1fr;gap:22px;padding-top:22px}
