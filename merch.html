@@ -456,7 +456,7 @@
 
           <div class="detail-image-stage">
             <div class="detail-main-image">
-              <img data-main-image src="${esc(images[0] || "")}" alt="${esc(product.name)}" loading="eager" decoding="async" style="display:block;width:100%;height:auto;max-width:100%;object-fit:contain">
+              <img data-main-image src="${esc(images[0] || "")}" alt="${esc(product.name)}" loading="eager" decoding="async">
             </div>
             ${galleryImages.length > 1 ? `
               <div class="detail-image-dots" role="group" aria-label="Choose product image">
