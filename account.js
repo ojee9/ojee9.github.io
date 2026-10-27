@@ -378,6 +378,18 @@
       .vn-ac-footer-country select{display:inline-block;width:auto;max-width:150px;min-width:0;margin:0;padding:0;border:0;outline:0;background:transparent;color:inherit;font:inherit;line-height:inherit;cursor:pointer;appearance:none;-webkit-appearance:none;vertical-align:middle}
       .vn-ac-footer-country::after{content:"⌄";display:inline-block;margin-left:-1px;padding:0;font-size:10px;line-height:1;pointer-events:none;flex:0 0 auto;vertical-align:middle}
       .vn-ac-profile-action{min-height:30px;padding:6px 12px;font-size:11px;letter-spacing:.3px;text-decoration:none}
+      .vn-ac-address-form{display:flex;flex-direction:column;gap:12px}
+      .vn-ac-address-control{position:relative;display:block;min-width:0}
+      .vn-ac-address-control>span{position:absolute;z-index:1;top:7px;left:13px;font-size:10px;line-height:1.1;color:#8c8c8c;pointer-events:none}
+      .vn-ac-address-control>input,.vn-ac-address-control>select{box-sizing:border-box;width:100%;min-width:0;min-height:48px;padding:20px 12px 7px;border:1px solid #d7d7d7;border-radius:5px;background:#fff;color:#111;font:13px/1.3 Arial,sans-serif}
+      .vn-ac-address-control>input::placeholder{color:#777;opacity:1}
+      .vn-ac-address-control>select{padding-right:28px}
+      .vn-ac-address-city-row{grid-template-columns:1fr 1fr 1fr;gap:10px}
+      .vn-ac-phone-row{display:flex;align-items:stretch}
+      .vn-ac-phone-row select{flex:0 0 112px;width:112px;min-width:0;padding:18px 5px 6px;border:1px solid #d7d7d7;border-right:0;border-radius:5px 0 0 5px;background:#fff;color:#111;font:12px Arial,sans-serif}
+      .vn-ac-phone-row input{flex:1;min-width:0;width:100%;padding:20px 12px 7px;border:1px solid #d7d7d7;border-radius:0 5px 5px 0;color:#111;font:13px Arial,sans-serif}
+      @media(max-width:700px){.vn-ac-address-city-row{grid-template-columns:1fr}.vn-ac-phone-row select{flex-basis:100px;width:100px}}
+
       .vn-ac-footer-country select option{color:#111;background:#fff}
       .vn-ac-profile-detail-row{display:flex;align-items:center;justify-content:space-between;gap:18px}
       .vn-ac-profile-detail-label{display:flex;align-items:center;min-width:0}
@@ -839,16 +851,16 @@
             <div class="vn-ac-record-head"><strong>${escapeHTML(address.label || "Address")}</strong>
               ${address.is_default ? '<span class="vn-ac-badge">DEFAULT</span>' : ""}
             </div>
-            <p>${escapeHTML([
-              address.first_name, address.last_name, address.address,
-              address.apartment, address.city, address.postal_code, address.country
-            ].filter(Boolean).join(", "))}</p>
+            <p>${escapeHTML([address.first_name,address.last_name,address.address,address.apartment,address.city,address.state,address.postal_code,address.country].filter(Boolean).join(", "))}</p>
             ${address.phone ? `<p>${escapeHTML(address.phone)}</p>` : ""}
             <button type="button" class="vn-ac-button secondary" data-ac-delete-address="${escapeHTML(address.id)}">Delete address</button>
           </article>
         `).join("")
       : `<div class="vn-ac-empty">No saved addresses yet.</div>`;
-
+    const countryCodes = "AD AE AF AG AL AM AO AR AT AU AZ BA BD BE BG BH BO BR BY CA CH CL CN CO CR CY CZ DE DK DO DZ EC EE EG ES ET FI FR GB GE GH GR HK HR HU ID IE IL IN IQ IR IS IT JO JP KE KR KW KZ LB LK LT LU LV MA MD ME MX MY NG NL NO NP NZ OM PA PE PH PK PL PT QA RO RS RU SA SE SG SI SK TH TN TR TW TZ UA UG US UY UZ VE VN ZA".split(" ");
+    const dialCodes = {US:"+1",CA:"+1",GB:"+44",TR:"+90",DE:"+49",FR:"+33",NL:"+31",AU:"+61",NZ:"+64",IN:"+91",JP:"+81",KR:"+82",CN:"+86",BR:"+55",MX:"+52",ES:"+34",IT:"+39",AE:"+971",SA:"+966",QA:"+974",EG:"+20",PK:"+92",BD:"+880",ID:"+62",RU:"+7",UA:"+380",SE:"+46",NO:"+47",DK:"+45",FI:"+358",CH:"+41",AT:"+43",BE:"+32",IE:"+353",PT:"+351",GR:"+30",PL:"+48",CZ:"+420",RO:"+40",ZA:"+27",NG:"+234",KE:"+254",GH:"+233"};
+    const flags = {US:"🇺🇸",CA:"🇨🇦",GB:"🇬🇧",TR:"🇹🇷",DE:"🇩🇪",FR:"🇫🇷",NL:"🇳🇱",AU:"🇦🇺",NZ:"🇳🇿",IN:"🇮🇳",JP:"🇯🇵",KR:"🇰🇷",CN:"🇨🇳",BR:"🇧🇷",MX:"🇲🇽",ES:"🇪🇸",IT:"🇮🇹",AE:"🇦🇪",SA:"🇸🇦",QA:"🇶🇦",EG:"🇪🇬",PK:"🇵🇰",BD:"🇧🇩",ID:"🇮🇩",RU:"🇷🇺",UA:"🇺🇦",SE:"🇸🇪",NO:"🇳🇴",DK:"🇩🇰",FI:"🇫🇮",CH:"🇨🇭",AT:"🇦🇹",BE:"🇧🇪",IE:"🇮🇪",PT:"🇵🇹",GR:"🇬🇷",PL:"🇵🇱",CZ:"🇨🇿",RO:"🇷🇴",ZA:"🇿🇦",NG:"🇳🇬",KE:"🇰🇪",GH:"🇬🇭"};
+    const dialSelect = countryCodes.map(code => `<option value="${code}" ${code === (state.country || "TR") ? "selected" : ""}>${flags[code] || "🌐"} ${code} ${dialCodes[code] || ""}</option>`).join("");
     return `
       <div class="vn-ac-layout">
         ${sidebar()}
@@ -856,19 +868,23 @@
           <h1>Addresses</h1><p class="vn-ac-subtitle">Manage your saved shipping addresses.</p>
           ${messageHTML()}${list}
           <h2 style="margin-top:28px">Add address</h2>
-          <form id="vnAcAddressForm">
+          <form id="vnAcAddressForm" class="vn-ac-address-form">
+            <label class="vn-ac-address-control"><span>Country / Region</span><select name="country" autocomplete="country-name">${countryOptions(state.country)}</select></label>
             <div class="vn-ac-form-grid">
-              <label class="vn-ac-field"><span>First name</span><input name="first_name" required></label>
-              <label class="vn-ac-field"><span>Last name</span><input name="last_name" required></label>
+              <label class="vn-ac-address-control"><span>First name</span><input name="first_name" placeholder="First name" autocomplete="given-name" required></label>
+              <label class="vn-ac-address-control"><span>Last name</span><input name="last_name" placeholder="Last name" autocomplete="family-name" required></label>
             </div>
-            <label class="vn-ac-field"><span>Address</span><input name="address" required></label>
-            <label class="vn-ac-field"><span>Apartment, suite, etc. (optional)</span><input name="apartment"></label>
-            <div class="vn-ac-form-grid">
-              <label class="vn-ac-field"><span>City</span><input name="city" required></label>
-              <label class="vn-ac-field"><span>ZIP code</span><input name="postal_code" required></label>
+            <label class="vn-ac-address-control"><span>Address</span><input name="address" placeholder="Address" autocomplete="street-address" list="vnAcAddressSuggestions" required></label>
+            <datalist id="vnAcAddressSuggestions">
+              <option value="Street"></option><option value="Avenue"></option><option value="Boulevard"></option><option value="Road"></option><option value="Apartment"></option>
+            </datalist>
+            <label class="vn-ac-address-control"><span>Apartment, suite, etc. (optional)</span><input name="apartment" placeholder="Apartment, suite, etc. (optional)" autocomplete="address-line2"></label>
+            <div class="vn-ac-form-grid vn-ac-address-city-row">
+              <label class="vn-ac-address-control"><span>City</span><input name="city" placeholder="City" autocomplete="address-level2" required></label>
+              <label class="vn-ac-address-control"><span>State</span><select name="state" autocomplete="address-level1"><option value="">State / Province</option>${(state.country === "TR" ? "Adana Adıyaman Afyonkarahisar Ağrı Amasya Ankara Antalya Artvin Aydın Balıkesir Bilecik Bingöl Bitlis Bolu Burdur Bursa Çanakkale Çankırı Çorum Denizli Diyarbakır Edirne Elazığ Erzincan Erzurum Eskişehir Gaziantep Giresun Gümüşhane Hakkari Hatay Isparta Mersin İstanbul İzmir Kars Kastamonu Kayseri Kırklareli Kırşehir Kocaeli Konya Kütahya Malatya Manisa Kahramanmaraş Mardin Muğla Muş Nevşehir Niğde Ordu Rize Sakarya Samsun Siirt Sinop Sivas Tekirdağ Tokat Trabzon Tunceli Şanlıurfa Uşak Van Yozgat Zonguldak Aksaray Bayburt Karaman Kırıkkale Batman Şırnak Bartın Ardahan Iğdır Yalova Karabük Kilis Osmaniye Düzce" : "Alabama Alaska Arizona Arkansas California Colorado Connecticut Delaware Florida Georgia Hawaii Idaho Illinois Indiana Iowa Kansas Kentucky Louisiana Maine Maryland Massachusetts Michigan Minnesota Mississippi Missouri Montana Nebraska Nevada New Hampshire New Jersey New Mexico New York North Carolina North Dakota Ohio Oklahoma Oregon Pennsylvania Rhode Island South Carolina South Dakota Tennessee Texas Utah Vermont Virginia Washington West Virginia Wisconsin Wyoming").split(" ").map(item => `<option value="${escapeHTML(item)}">${escapeHTML(item)}</option>`).join("")}</select></label>
+              <label class="vn-ac-address-control"><span>ZIP Code</span><input name="postal_code" placeholder="ZIP Code" autocomplete="postal-code" required></label>
             </div>
-            <label class="vn-ac-field"><span>Country</span><select name="country">${countryOptions(state.country)}</select></label>
-            <label class="vn-ac-field"><span>Phone (optional)</span><input name="phone" type="tel"></label>
+            <label class="vn-ac-address-control"><span>Phone</span><div class="vn-ac-phone-row"><select name="phone_country" aria-label="Phone country code">${dialSelect}</select><input name="phone" type="tel" placeholder="Phone" autocomplete="tel-national"></div></label>
             <label class="vn-ac-preference"><span>Set as default address</span><input type="checkbox" name="is_default"></label>
             <button class="vn-ac-button" type="submit">Save address</button>
           </form>
