@@ -337,11 +337,12 @@
       .vn-ac-auth-shell:has(.vn-ac-verify-main){width:min(100%,440px)}
       #vnAccountOverlay{flex-direction:column;gap:13px}
       .vn-ac-policy-link{display:block;align-self:center;margin:18px auto 0;padding:11px 8px 0;border:0;background:transparent;color:#a8a8a8;font:10px/1.4 Arial,sans-serif;text-align:center;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
-      .vn-ac-policy-overlay{position:fixed;inset:0;z-index:10003;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.72)}
+      .vn-ac-policy-overlay{position:fixed;inset:0;z-index:10003;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.46);backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px)}
       .vn-ac-policy-overlay[hidden]{display:none!important}
-      .vn-ac-policy-panel{position:relative;width:min(100%,680px);height:min(78dvh,720px);overflow:auto;padding:34px 38px 38px;background:#fff;color:#171717;box-shadow:0 24px 80px rgba(0,0,0,.4);text-align:left}
-      .vn-ac-policy-panel iframe{display:block;width:100%;height:100%;border:0;background:#fff}.vn-ac-policy-panel h2{margin:0 0 20px;padding-right:28px;font-size:25px;font-weight:600;letter-spacing:-.4px}.vn-ac-policy-kicker{margin:0 0 10px;color:#777;font-size:10px;letter-spacing:1.8px;text-transform:uppercase}.vn-ac-policy-body{color:#444;font-size:13px;line-height:1.8}.vn-ac-policy-body h3{margin:23px 0 7px;color:#171717;font-size:13px;font-weight:600}.vn-ac-policy-body p{margin:0 0 13px}.vn-ac-policy-body a{color:#171717;text-decoration:underline;text-underline-offset:3px}
-      .vn-ac-policy-close{position:absolute;top:12px;right:14px;z-index:1;width:32px;height:32px;border:0;border-radius:50%;background:#171717;color:#fff;font-size:22px;line-height:1;cursor:pointer}
+      .vn-ac-policy-panel{position:relative;width:min(100%,680px);height:min(78dvh,720px);overflow:auto;padding:34px 38px 38px;background:#171717;color:#f5f5f5;border:1px solid #383838;box-shadow:0 24px 80px rgba(0,0,0,.6);text-align:left;opacity:0;transform:scale(.035);transform-origin:var(--policy-origin-x,50%) var(--policy-origin-y,50%);transition:transform .44s cubic-bezier(.2,.8,.2,1),opacity .22s ease}
+      .vn-ac-policy-overlay.is-open .vn-ac-policy-panel{opacity:1;transform:scale(1)}
+      .vn-ac-policy-panel iframe{display:block;width:100%;height:100%;border:0;background:#171717}.vn-ac-policy-panel h2{margin:0 0 20px;padding-right:28px;font-size:25px;font-weight:600;letter-spacing:-.4px;color:#f5f5f5}.vn-ac-policy-kicker{margin:0 0 10px;color:#999;font-size:10px;letter-spacing:1.8px;text-transform:uppercase}.vn-ac-policy-body{color:#c8c8c8;font-size:13px;line-height:1.8}.vn-ac-policy-body h3{margin:23px 0 7px;color:#f0f0f0;font-size:13px;font-weight:600}.vn-ac-policy-body p{margin:0 0 13px}.vn-ac-policy-body a{color:#f5f5f5;text-decoration:underline;text-underline-offset:3px}
+      .vn-ac-policy-close{position:absolute;top:12px;right:14px;z-index:1;width:32px;height:32px;border:0;border-radius:50%;background:#303030;color:#fff;font-size:22px;line-height:1;cursor:pointer}
       @media(max-width:420px){.vn-ac-otp{gap:6px}.vn-ac-otp input{height:47px}.vn-ac-auth-shell:has(.vn-ac-verify-main){width:min(100%,410px)}.vn-ac-policy-panel{padding:30px 22px 24px}.vn-ac-policy-panel h2{font-size:22px}}
       .vn-ac-divider{height:1px;background:#e5e5e5;margin:24px 0}
       .vn-ac-muted{font-size:12px;color:#777}
@@ -435,6 +436,7 @@
 
     root.addEventListener("click", event => {
       if (event.target.matches(".vn-ac-policy-overlay")) {
+        event.target.classList.remove("is-open");
         event.target.hidden = true;
       }
     });
@@ -1336,14 +1338,28 @@
           case "policy-open": {
             const policyType = action.dataset.acPolicy || "privacy";
             const policy = $(`.vn-ac-policy-overlay[data-policy-overlay="${policyType}"]`, root);
-            if (policy) policy.hidden = false;
+            if (policy) {
+              const panel = $(".vn-ac-policy-panel", policy);
+              const rect = panel.getBoundingClientRect();
+              const originX = Math.max(0, Math.min(rect.width, event.clientX - rect.left));
+              const originY = Math.max(0, Math.min(rect.height, event.clientY - rect.top));
+              panel.style.setProperty("--policy-origin-x", `${originX}px`);
+              panel.style.setProperty("--policy-origin-y", `${originY}px`);
+              policy.classList.remove("is-open");
+              policy.hidden = false;
+              void panel.offsetWidth;
+              requestAnimationFrame(() => policy.classList.add("is-open"));
+            }
             break;
           }
 
           case "privacy-close":
           case "policy-close": {
             const policy = action.closest(".vn-ac-policy-overlay");
-            if (policy) policy.hidden = true;
+            if (policy) {
+              policy.classList.remove("is-open");
+              policy.hidden = true;
+            }
             break;
           }
 
