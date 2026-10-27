@@ -259,7 +259,7 @@
       #vnAccountOverlay[hidden]{display:none!important}
       #vnAccountOverlay *{box-sizing:border-box}
       .vn-ac-shell{width:min(100%,980px);max-height:calc(100dvh - 48px);overflow:auto;margin:auto;padding:28px;background:#fff;border:1px solid #d8d8d8;box-shadow:0 24px 80px rgba(0,0,0,.25)}
-      .vn-ac-shell.vn-ac-auth-shell{display:flex;flex-direction:column;width:min(100%,660px);min-height:390px;max-height:calc(100dvh - 28px);padding:46px 58px 42px;background:#171717;color:#f5f5f5;border:0;box-shadow:0 28px 90px rgba(0,0,0,.42)}
+      .vn-ac-shell.vn-ac-auth-shell{display:flex;flex-direction:column;width:min(100%,660px);min-height:470px;max-height:calc(100dvh - 28px);padding:42px 58px 38px;background:#171717;color:#f5f5f5;border:0;box-shadow:0 28px 90px rgba(0,0,0,.42)}
       .vn-ac-header{position:relative;display:flex;justify-content:center;align-items:center;padding-bottom:24px;border-bottom:1px solid #e5e5e5}
       .vn-ac-auth-shell .vn-ac-header{padding:0 32px 22px;border:0}
       .vn-ac-brand{display:flex;align-items:center;justify-content:center;width:112px;height:54px;color:inherit;text-decoration:none}
@@ -269,7 +269,13 @@
       .vn-ac-auth-shell .vn-ac-main{width:100%;max-width:100%;margin:10px auto 0!important}
       .vn-ac-auth-shell .vn-ac-header{padding:0 32px 18px}
       .vn-ac-auth-shell .vn-ac-brand{width:176px;height:82px;pointer-events:none;user-select:none}
-      .vn-ac-auth-shell .vn-ac-email-main h1,.vn-ac-auth-shell .vn-ac-email-main .vn-ac-subtitle{display:none}
+      .vn-ac-signin-heading{margin:2px 0 0;text-align:center}
+      .vn-ac-signin-heading h1{margin:0;font-size:28px;font-weight:700;line-height:1.2;letter-spacing:-.65px;color:#f5f5f5}
+      .vn-ac-signin-heading p{margin:8px 0 0;font-size:12px;line-height:1.45;color:#a9a5ad}
+      .vn-ac-email-form-wrap{width:min(100%,420px);margin:0 auto}
+      .vn-ac-shop-space{height:48px;flex:none}
+      .vn-ac-or-divider{display:flex;align-items:center;gap:13px;width:min(100%,420px);margin:0 auto 17px;color:#8d8794;font-size:10px;line-height:1;letter-spacing:1.5px}
+      .vn-ac-or-divider:before,.vn-ac-or-divider:after{content:"";height:1px;flex:1;background:#39343e}
       .vn-ac-email-bar{display:flex;align-items:center;width:100%;min-height:46px;padding:0 5px 0 0;border:1px solid #39333f;border-radius:4px;overflow:hidden;background:#080808;transition:border-color .25s ease,box-shadow .25s ease}
       .vn-ac-email-bar input{flex:1;min-width:0;height:44px;padding:0 15px;border:0;outline:0;background:transparent;color:#f5f5f5;font:13px/1.4 Arial,sans-serif}
       .vn-ac-email-bar input::placeholder{color:#77727d;opacity:1}
@@ -283,7 +289,7 @@
       .vn-ac-email-terms{margin-top:18px!important;color:#8d8d8d;font-size:11px;line-height:1.5}
       .vn-ac-email-terms a,.vn-ac-email-terms button{padding:0;border:0;background:transparent;color:#bdbdbd;font:inherit;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
       .vn-ac-auth-shell .vn-ac-message{margin:0 0 12px}
-      @media(max-width:600px){.vn-ac-shell.vn-ac-auth-shell{width:min(100%,540px);min-height:360px;padding:36px 27px 30px}.vn-ac-auth-shell .vn-ac-close{right:-10px}.vn-ac-auth-shell .vn-ac-brand{width:164px;height:76px}}
+      @media(max-width:600px){.vn-ac-shell.vn-ac-auth-shell{width:min(100%,540px);min-height:440px;padding:32px 27px 28px}.vn-ac-auth-shell .vn-ac-close{right:-10px}.vn-ac-auth-shell .vn-ac-brand{width:164px;height:76px}}
       .vn-ac-layout{display:grid;grid-template-columns:200px minmax(0,1fr);gap:48px;padding-top:32px}
       .vn-ac-sidebar{display:flex;flex-direction:column;gap:8px}
       .vn-ac-nav{border:0;background:none;color:#666;text-align:left;padding:12px 10px;font:inherit;cursor:pointer;border-radius:4px}
@@ -464,6 +470,15 @@
       <main class="vn-ac-main vn-ac-email-main">
         ${messageHTML()}
 
+        <div class="vn-ac-signin-heading">
+          <h1>Sign in</h1>
+          <p>Sign in or create an account</p>
+        </div>
+
+        <div class="vn-ac-shop-space" aria-hidden="true"></div>
+        <div class="vn-ac-or-divider" aria-hidden="true"><span>OR</span></div>
+
+        <div class="vn-ac-email-form-wrap">
         <form id="vnAcEmailForm">
           <div class="vn-ac-email-bar">
             <input
@@ -484,6 +499,7 @@
             <span>Sign up to receive updates from 9ojeez9</span>
           </label>
         </form>
+        </div>
 
         <p class="vn-ac-muted vn-ac-email-terms">
           By continuing, you agree to our
