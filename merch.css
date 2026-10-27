@@ -12,9 +12,14 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 [hidden]{display:none!important}
 
 /* HEADER */
-.header{display:flex;align-items:center;justify-content:space-between;padding:24px 5%;border-bottom:1px solid var(--line)}
+.header{position:relative;display:flex;align-items:center;justify-content:space-between;padding:24px 5%;border-bottom:1px solid var(--line)}
 .projects-logo{font-size:25px;font-weight:900;letter-spacing:-1.8px}
 .projects-logo span{display:inline-block;margin-left:3px;font-size:9px;vertical-align:top;letter-spacing:0}
+
+/* CENTERED VN LOGO */
+.header-vn-logo{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;width:72px;height:48px}
+.header-vn-logo img{display:block;width:100%;height:100%;object-fit:contain}
+
 .header-actions{display:flex;align-items:center;gap:19px}
 .icon-link,.icon-button{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:0;border:0;background:transparent;color:var(--ink)}
 .icon-link:hover,.icon-button:hover{opacity:.6}
@@ -203,6 +208,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
   .header{padding:20px 5%}
   .projects-logo{font-size:23px}
   .header-actions{gap:15px}
+  .header-vn-logo{width:58px;height:40px}
   .icon-link svg,.icon-button svg{width:20px;height:20px}
   .catalog-bar{padding-top:12px;padding-bottom:12px}
   .category-select{width:min(230px,calc(100% - 46px))}
