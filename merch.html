@@ -3,291 +3,31 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="Explore official VN RECORDS merchandise, clothing and products.">
 <meta name="theme-color" content="#C6BBA7">
 <title>VN SHOP® — 9ojeez9</title>
-
+<link rel="stylesheet" href="merch.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<style>
-*{box-sizing:border-box}
-:root{--camel:#C6BBA7;--ink:#171717;--line:rgba(23,23,23,.25);--muted:#625744;--white:#fff}
-html{min-height:100%;scroll-behavior:smooth}
-body{margin:0;background:var(--camel);color:var(--ink);font-family:Arial,Helvetica,sans-serif}
-body.modal-open{overflow:hidden}
-a{color:inherit;text-decoration:none}
-button,input,select{font:inherit}
-button{cursor:pointer}
-button:disabled{opacity:.45;cursor:default}
-button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid currentColor;outline-offset:3px}
-[hidden]{display:none!important}
-
-/* HEADER */
-.header{display:flex;align-items:center;justify-content:space-between;padding:24px 5%;border-bottom:1px solid var(--line)}
-.projects-logo{font-size:25px;font-weight:900;letter-spacing:-1.8px}
-.projects-logo span{display:inline-block;margin-left:3px;font-size:9px;vertical-align:top;letter-spacing:0}
-.header-actions{display:flex;align-items:center;gap:19px}
-.icon-link,.icon-button{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:0;border:0;background:transparent;color:var(--ink)}
-.icon-link:hover,.icon-button:hover{opacity:.6}
-.icon-link svg,.icon-button svg{display:block;width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-#cart-count{font-size:11px}
-
-/* CATALOG */
-.catalog-bar{display:flex;align-items:center;gap:12px;padding:14px 5%;border-bottom:1px solid var(--line)}
-.category-select{width:min(230px,75%);min-height:34px;padding:6px 30px 6px 10px;border:1px solid #bcbcbc;border-radius:0;background:#fff;color:var(--ink);font-size:12px}
-.search-toggle{flex:0 0 auto;width:34px;height:34px}
-.search-toggle svg{width:20px;height:20px}
-.search-panel{display:none;padding:0 5% 15px}
-.search-panel.is-open{display:block}
-.search-form{display:flex;align-items:center;width:100%;border-bottom:1px solid var(--ink)}
-.search-input{width:100%;min-width:0;padding:12px 0;border:0;outline:0;background:transparent;color:var(--ink);font-size:14px}
-.search-input::placeholder{color:var(--muted)}
-.search-close{padding:8px;border:0;background:transparent;font-size:19px}
-.products{padding:22px 5% 80px}
-.product-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:32px 18px}
-.product{min-width:0;cursor:pointer}
-.product-image-wrap{display:flex;align-items:center;justify-content:center;width:100%;aspect-ratio:4/5;min-width:0;padding:12%;overflow:hidden;background:rgba(255,255,255,.22)}
-.product-image{display:block;width:100%;height:100%;object-fit:contain;object-position:center;transition:transform .3s ease}
-.product:hover .product-image{transform:scale(1.025)}
-.product-caption{padding-top:10px;font-size:10px;line-height:1.5;letter-spacing:.35px}
-.product-name{font-weight:600}
-.product-price{margin-top:2px}
-.empty{padding:55px 0;border-top:1px solid var(--line);color:var(--muted);font-size:11px;letter-spacing:1.5px;text-align:center}
-
-/* FOOTER */
-.footer{padding:24px 5% 18px;border-top:1px solid var(--line)}
-.footer-links{display:flex;flex-wrap:wrap;justify-content:center;gap:12px 22px;margin-bottom:24px;font-size:10px;letter-spacing:.3px}
-.footer-links a,.footer-links button{color:inherit;text-decoration:underline;text-underline-offset:3px}
-.footer-links button{padding:0;border:0;background:transparent;font-size:inherit;letter-spacing:inherit}
-.footer-links a:hover,.footer-links button:hover{opacity:.55}
-.copyright{color:var(--muted);font-size:9px;letter-spacing:1px;text-align:center}
-
-/* OVERLAYS AND DRAWERS */
-.drawer-overlay,.account-overlay,.policy-overlay{position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,.48);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .22s ease,visibility .22s ease}
-.drawer-overlay.is-open,.account-overlay.is-open,.policy-overlay.is-open{opacity:1;visibility:visible;pointer-events:auto}
-.drawer{position:absolute;top:0;right:0;width:min(620px,100%);height:100%;height:100dvh;overflow-y:auto;background:#f7f5f1;color:var(--ink);transform:translateX(102%);transition:transform .25s ease;overscroll-behavior:contain}
-.drawer-overlay.is-open .drawer{transform:translateX(0)}
-.drawer-head{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:15px;padding:19px 24px;border-bottom:1px solid #d6d0c6;background:#f7f5f1}
-.drawer-title{margin:0;font-size:13px;font-weight:600;letter-spacing:1px;text-transform:uppercase}
-.drawer-close{width:32px;height:32px;padding:0;border:0;background:transparent;font-size:27px;font-weight:300;line-height:1}
-.drawer-content{padding:22px 24px 30px}
-.drawer-empty{display:flex;min-height:55vh;flex-direction:column;align-items:center;justify-content:center;text-align:center}
-.drawer-empty h2{margin:0 0 9px;font-size:19px;font-weight:500}
-.drawer-empty p{margin:0 0 25px;color:#777;font-size:12px}
-.primary-button,.secondary-button{display:flex;align-items:center;justify-content:center;min-height:46px;padding:13px 18px;border:1px solid var(--ink);font-size:10px;font-weight:600;letter-spacing:1px;text-align:center;text-transform:uppercase;transition:background .18s,color .18s}
-.primary-button{background:var(--ink);color:#fff}
-.primary-button:hover:not(:disabled){background:transparent;color:var(--ink)}
-.secondary-button{background:transparent;color:var(--ink)}
-.secondary-button:hover{background:var(--ink);color:#fff}
-.full-button{width:100%}
-
-/* PRODUCT DETAIL */
-.detail-breadcrumb{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 22px;color:#69645c;font-size:10px;line-height:1.6;text-transform:uppercase}
-.detail-breadcrumb button{padding:0;border:0;background:transparent;color:inherit;font-size:inherit;text-decoration:underline;text-underline-offset:3px}
-.detail-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.9fr);gap:28px}
-.detail-gallery{display:grid;grid-template-columns:56px minmax(0,1fr);align-items:start;gap:12px}
-.detail-thumbnails{display:flex;flex-direction:column;gap:8px}
-.detail-thumb{width:56px;height:68px;padding:5px;border:1px solid transparent;background:rgba(255,255,255,.45)}
-.detail-thumb.is-active{border-color:var(--ink)}
-.detail-thumb img{width:100%;height:100%;object-fit:contain}
-.detail-main-image{display:flex;align-items:center;justify-content:center;min-width:0;aspect-ratio:4/5;padding:8%;background:#eae5dc}
-.detail-main-image img{width:100%;height:100%;object-fit:contain}
-.detail-info{min-width:0}
-.detail-name{margin:0 0 10px;font-size:21px;font-weight:600;line-height:1.25}
-.detail-price{margin-bottom:25px;font-size:13px}
-.detail-field{margin:0 0 22px}
-.detail-field-label{margin:0 0 10px;font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase}
-.detail-variants{display:flex;flex-wrap:wrap;gap:7px}
-.variant-button{min-width:42px;min-height:39px;padding:9px 12px;border:1px solid #bcb6ad;background:transparent;font-size:11px}
-.variant-button.is-selected{border-color:var(--ink);background:var(--ink);color:#fff}
-.detail-quantity{display:flex;align-items:center;width:max-content;border:1px solid #bcb6ad}
-.quantity-button{width:39px;height:39px;padding:0;border:0;background:transparent;font-size:18px}
-.quantity-value{min-width:34px;text-align:center;font-size:12px}
-.detail-description{margin:24px 0 0;color:#5d584f;font-size:12px;line-height:1.8;white-space:pre-line}
-.detail-note{margin-top:18px;color:#777;font-size:10px;line-height:1.7}
-.detail-add{margin-top:23px}
-.detail-error{margin-top:12px;color:#9b2727;font-size:11px;line-height:1.6}
-
-/* CART */
-.cart-items{display:flex;flex-direction:column}
-.cart-item{display:grid;grid-template-columns:92px minmax(0,1fr);gap:16px;padding:17px 0;border-bottom:1px solid #d8d1c7}
-.cart-item-image{display:flex;align-items:center;justify-content:center;width:92px;height:112px;padding:8px;background:#eae5dc}
-.cart-item-image img{width:100%;height:100%;object-fit:contain}
-.cart-item-info{min-width:0}
-.cart-item-name{margin:2px 0 7px;font-size:12px;font-weight:600;line-height:1.5}
-.cart-item-variant,.cart-item-price{margin-bottom:6px;color:#69645c;font-size:10px}
-.cart-item-bottom{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:13px}
-.cart-quantity{display:flex;align-items:center;border:1px solid #c5beb4}
-.cart-quantity button{width:29px;height:29px;padding:0;border:0;background:transparent;font-size:15px}
-.cart-quantity span{min-width:25px;text-align:center;font-size:11px}
-.cart-remove{padding:5px 0;border:0;background:transparent;color:#6c665e;font-size:10px;text-decoration:underline;text-underline-offset:3px}
-.cart-summary{position:sticky;bottom:0;margin:0 -24px;padding:19px 24px 24px;border-top:1px solid #d6d0c6;background:#f7f5f1}
-.cart-subtotal{display:flex;justify-content:space-between;gap:15px;margin-bottom:8px;font-size:12px}
-.cart-disclaimer{margin:0 0 16px;color:#777;font-size:10px;line-height:1.6}
-.cart-summary .primary-button{margin-bottom:10px}
-
-/* ACCOUNT / OTP */
-.account-overlay,.policy-overlay{display:flex;align-items:center;justify-content:center;padding:18px}
-.account-panel,.policy-panel{position:relative;width:min(100%,410px);max-height:calc(100dvh - 36px);overflow-y:auto;overscroll-behavior:contain;padding:46px 30px 27px;background:#171717;color:#f5f5f5;text-align:center;transform:translateY(12px) scale(.985);opacity:0;transition:transform .22s ease,opacity .22s ease}
-.account-overlay.is-open .account-panel,.policy-overlay.is-open .policy-panel{transform:translateY(0) scale(1);opacity:1}
-.account-close,.policy-close{position:absolute;top:12px;right:15px;padding:0;border:0;background:transparent;color:#f5f5f5;font-size:26px;font-weight:300;line-height:1}
-.account-panel h2,.policy-panel h2{margin:0 0 12px;font-size:23px;font-weight:600}
-.account-subtitle{margin:0 0 29px;color:#bdbdbd;font-size:13px;line-height:1.6}
-.account-email-wrap{display:flex;align-items:center;width:100%;min-height:48px;border:1px solid #555}
-.account-email-wrap:focus-within{border-color:#f5f5f5}
-.account-email-wrap input{flex:1;width:0;min-width:0;height:46px;padding:0 13px;border:0;outline:0;background:transparent;color:#f5f5f5;font-size:13px}
-.account-email-wrap input::placeholder{color:#bdbdbd}
-.account-submit{display:flex;align-items:center;justify-content:center;flex:0 0 45px;height:46px;padding:0;border:0;background:transparent;color:#f5f5f5}
-.account-submit svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-.account-updates{display:flex;align-items:flex-start;gap:9px;margin-top:19px;color:#d0d0d0;font-size:11px;line-height:1.5;text-align:left;cursor:pointer}
-.account-updates input{flex:0 0 auto;width:14px;height:14px;margin:1px 0 0;accent-color:#f5f5f5}
-.account-terms{margin:17px 0 0;color:#999;font-size:10px;line-height:1.7}
-.account-inline-link{padding:0;border:0;background:transparent;color:#d0d0d0;font:inherit;text-decoration:underline;text-underline-offset:2px}
-.account-privacy{margin:15px 0 0;font-size:10px}
-.account-status{display:none;margin:16px 0 0;color:#d0d0d0;font-size:11px;line-height:1.6;overflow-wrap:anywhere}
-.account-status.is-visible{display:block}
-.account-status.is-error{color:#ffb4b4}
-.account-status.is-success{color:#c7e7c7}
-.otp-step[hidden],.email-step[hidden]{display:none!important}
-.otp-description{margin:0 0 23px;color:#bdbdbd;font-size:12px;line-height:1.7;overflow-wrap:anywhere}
-.otp-email{color:#f5f5f5;overflow-wrap:anywhere}
-.otp-inputs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px;margin:0 0 22px}
-.otp-input{width:100%;min-width:0;height:52px;padding:0;border:1px solid #555;border-radius:0;outline:0;background:#202020;color:#fff;font-size:21px;font-weight:600;text-align:center;caret-color:#fff}
-.otp-input:focus{border-color:#f5f5f5;background:#292929}
-.otp-input[aria-invalid=true]{border-color:#ff8f8f}
-.account-action{display:flex;align-items:center;justify-content:center;width:100%;min-height:45px;padding:12px 16px;border:1px solid #f5f5f5;background:#f5f5f5;color:#171717;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase}
-.account-action:hover:not(:disabled){background:transparent;color:#f5f5f5}
-.otp-secondary-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:19px}
-.otp-text-button{padding:4px 0;border:0;background:transparent;color:#bdbdbd;font-size:11px;line-height:1.5;text-decoration:underline;text-underline-offset:3px}
-.otp-text-button:hover{color:#fff}
-.account-profile{margin-top:18px;padding-top:17px;border-top:1px solid #444;text-align:left}
-.account-profile p{margin:0 0 12px;color:#ccc;font-size:11px;line-height:1.7;overflow-wrap:anywhere}
-.account-profile .account-action{margin-top:10px}
-
-/* POLICIES */
-.policy-panel{text-align:left}
-.policy-panel h2{padding-right:20px;text-align:left}
-.policy-kicker{margin:0 0 12px;color:#aaa;font-size:9px;letter-spacing:2px;text-transform:uppercase}
-.policy-body{color:#c3c3c3;font-size:12px;line-height:1.8}
-.policy-body h3{margin:22px 0 7px;color:#f5f5f5;font-size:12px;font-weight:600}
-.policy-body h3:first-child{margin-top:20px}
-.policy-body p{margin:0 0 13px}
-.policy-body a{color:#f5f5f5;text-decoration:underline;text-underline-offset:3px}
-
-/* COOKIE PREFERENCES */
-.cookie-panel{position:fixed;z-index:3000;left:50%;bottom:12px;width:min(760px,calc(100% - 24px));height:min(430px,72vh);min-height:320px;transform:translate(-50%,calc(100% + 30px));visibility:hidden;opacity:0;overflow:hidden;display:flex;flex-direction:column;background:#fff;color:#171717;border:1px solid #d7d7d7;box-shadow:0 3px 24px rgba(0,0,0,.18);transition:transform .25s ease,opacity .2s ease,visibility .25s}
-.cookie-panel.is-open{transform:translate(-50%,0);visibility:visible;opacity:1}
-.cookie-content{flex:1 1 auto;min-height:0;overflow:hidden;display:flex;flex-direction:column;padding:15px 24px 8px}
-.cookie-top{display:flex;align-items:center;justify-content:center;flex:0 0 auto;margin:0 0 20px}
-.cookie-logo-wrap{display:flex;align-items:center;justify-content:center;width:100%;min-width:0}
-.cookie-logo{display:block;width:230px;height:105px;max-width:80%;object-fit:contain;object-position:center}
-.cookie-logo-fallback{display:none;font-size:42px;font-weight:900;letter-spacing:-2px;text-align:center}
-.cookie-section{flex:0 0 auto;margin-bottom:13px}
-.cookie-section h2{margin:0 0 5px;font-size:12px;font-weight:600;line-height:1.3}
-.cookie-section p{margin:0;color:#454545;font-size:10px;line-height:1.45}
-.cookie-section p a{text-decoration:underline;text-underline-offset:2px}
-.cookie-categories{flex:0 0 auto;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid #dedede;border-bottom:1px solid #dedede;margin-top:auto;padding:5px 0}
-.cookie-category{display:flex;align-items:center;justify-content:center;gap:6px;min-width:0;padding:9px 4px;font-size:10px;font-weight:600;text-align:center}
-.cookie-category+.cookie-category{border-left:1px solid #e5e5e5}
-.cookie-category input{flex:0 0 auto;width:14px;height:14px;margin:0;accent-color:#171717}
-.cookie-category.essential{color:#777;cursor:not-allowed}
-.cookie-bottom{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:15px;padding:12px 24px 15px;border-top:1px solid #e6e6e6;background:#fff}
-.cookie-privacy{font-size:11px;font-weight:600;text-decoration:underline;text-underline-offset:3px}
-.cookie-right{display:flex;align-items:center;gap:15px}
-.cookie-confirm{min-width:112px;padding:10px 19px;border:1px solid #171717;background:#171717;color:#fff;font-size:10px;font-weight:600;letter-spacing:.8px;text-transform:uppercase}
-.cookie-confirm:hover{background:#383838}
-.cookie-language{position:relative}
-.cookie-language-toggle{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;padding:0;border:0;background:transparent;color:#171717}
-.cookie-language-toggle svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-.cookie-language-select{display:none;position:absolute;right:0;bottom:37px;width:145px;max-height:240px;padding:7px;border:1px solid #bcbcbc;background:#fff;color:#171717;font-size:12px}
-.cookie-language.is-open .cookie-language-select{display:block}
-
-@media(max-width:900px){.product-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:28px 16px}}
-@media(max-width:700px){
-  .detail-layout{grid-template-columns:1fr;gap:25px}
-  .detail-gallery{grid-template-columns:48px minmax(0,1fr)}
-  .detail-thumb{width:48px;height:58px}
-  .detail-name{font-size:19px}
-  .detail-info{padding-bottom:15px}
-}
-@media(max-width:600px){
-  .header{padding:20px 5%}
-  .projects-logo{font-size:23px}
-  .header-actions{gap:15px}
-  .icon-link svg,.icon-button svg{width:20px;height:20px}
-  .catalog-bar{padding-top:12px;padding-bottom:12px}
-  .category-select{width:min(230px,calc(100% - 46px))}
-  .products{padding-top:18px;padding-bottom:55px}
-  .product-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 10px}
-  .product-image-wrap{padding:10%}
-  .product-caption{font-size:10px}
-  .footer-links{gap:14px 18px;line-height:1.5}
-  .drawer-head{padding:16px 18px}
-  .drawer-content{padding:18px}
-  .cart-summary{margin:0 -18px;padding:17px 18px 20px}
-  .account-panel,.policy-panel{padding:42px 23px 23px}
-  .otp-inputs{gap:5px}
-  .otp-input{height:47px;font-size:19px}
-  .cookie-panel{bottom:6px;width:calc(100% - 12px);height:min(510px,82vh);min-height:360px}
-  .cookie-content{padding:12px 14px 8px}
-  .cookie-top{margin-bottom:15px}
-  .cookie-logo{width:190px;height:82px;max-width:80%}
-  .cookie-logo-fallback{font-size:36px}
-  .cookie-section{margin-bottom:11px}
-  .cookie-section h2{font-size:11px}
-  .cookie-section p{font-size:9px;line-height:1.4}
-  .cookie-categories{grid-template-columns:repeat(2,minmax(0,1fr));margin-top:auto;padding:4px 0}
-  .cookie-category{justify-content:flex-start;padding:7px 6px;font-size:9px}
-  .cookie-category+.cookie-category{border-left:0}
-  .cookie-category:nth-child(even){border-left:1px solid #e5e5e5}
-  .cookie-category:nth-child(n+3){border-top:1px solid #e5e5e5}
-  .cookie-bottom{padding:10px 14px;gap:8px}
-  .cookie-right{gap:8px}
-  .cookie-privacy{font-size:10px}
-  .cookie-confirm{min-width:82px;padding:10px 12px;font-size:9px}
-}
-@media(prefers-reduced-motion:reduce){
-  *,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important}
-}
-</style>
 </head>
-
 <body>
-
 <header class="header">
   <a class="projects-logo" href="index.html" aria-label="OJEE home">OJEE<span>®</span></a>
   <div class="header-actions">
-    <a class="icon-link" id="cart-open" href="#cart" aria-label="Shopping cart" title="Shopping cart">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h2l2.2 11.1a2 2 0 0 0 2 1.6h8.7a2 2 0 0 0 1.9-1.5L21 8H6"/><circle cx="10" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg>
-      <span id="cart-count">0</span>
-    </a>
-    <button class="icon-button" id="profile-open" type="button" aria-label="Sign in" title="Sign in">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4.5 21a7.5 7.5 0 0 1 15 0"/></svg>
-    </button>
+    <a class="icon-link" id="cart-open" href="#cart" aria-label="Shopping cart"><span id="cart-count">0</span></a>
+    <button class="icon-button" id="profile-open" type="button" aria-label="Sign in"></button>
   </div>
 </header>
 
 <nav class="catalog-bar" aria-label="Product categories">
-  <label for="category-select" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0">Select category</label>
-  <select class="category-select" id="category-select">
-    <option value="ALL">ALL</option>
-    <option value="CD">CD</option>
-    <option value="VINYL">VINYL</option>
-    <option value="TOPS">TOPS</option>
-    <option value="OUTERWEAR">OUTERWEAR</option>
-    <option value="PANTS">PANTS</option>
-    <option value="XTRAS">XTRAS</option>
-    <option value="ALL MERCH">ALL MERCH</option>
-  </select>
-  <button class="icon-button search-toggle" id="search-toggle" type="button" aria-label="Open search" aria-expanded="false" aria-controls="search-panel">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg>
-  </button>
+  <label for="category-select" hidden>Category</label>
+  <select class="category-select" id="category-select"></select>
+  <button class="icon-button search-toggle" id="search-toggle" type="button" aria-expanded="false" aria-controls="search-panel" aria-label="Search">⌕</button>
 </nav>
 
 <section class="search-panel" id="search-panel">
   <form class="search-form" id="search-form" role="search">
-    <input class="search-input" id="search-input" type="search" placeholder="Search products..." aria-label="Search products" autocomplete="off">
+    <input class="search-input" id="search-input" type="search" autocomplete="off">
     <button class="search-close" id="search-close" type="button" aria-label="Close search">×</button>
   </form>
 </section>
@@ -295,937 +35,263 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 <main>
   <section class="products" aria-live="polite">
     <div class="product-grid" id="product-grid"></div>
-    <div class="empty" id="empty-message" hidden>NO PRODUCTS AVAILABLE</div>
+    <div class="empty" id="empty-message" hidden></div>
   </section>
 </main>
 
 <footer class="footer">
-  <nav class="footer-links" aria-label="Help and legal">
-    <a href="help.html">Help &amp; Support</a>
-    <a href="policies/terms-of-sale.html">Terms</a>
-    <a href="policies/privacy-policy.html">Privacy</a>
-    <a href="policies/legal-notice.html">Do not sell my personal information</a>
-    <button type="button" id="cookie-choices">Cookie Choices</button>
-  </nav>
-  <div class="copyright">© 2026 VN RECORDS. ALL RIGHTS RESERVED.</div>
+  <nav class="footer-links" id="footer-links" aria-label="Help and legal"></nav>
+  <div class="copyright" id="copyright"></div>
 </footer>
 
-<!-- PRODUCT DETAILS DRAWER -->
 <div class="drawer-overlay" id="detail-overlay" aria-hidden="true">
   <section class="drawer" role="dialog" aria-modal="true" aria-labelledby="detail-drawer-title">
     <header class="drawer-head">
-      <h2 class="drawer-title" id="detail-drawer-title">PRODUCT DETAILS</h2>
-      <button class="drawer-close" id="detail-close" type="button" aria-label="Close product details">×</button>
+      <h2 class="drawer-title" id="detail-drawer-title"></h2>
+      <button class="drawer-close" id="detail-close" type="button" aria-label="Close">×</button>
     </header>
     <div class="drawer-content" id="detail-content"></div>
   </section>
 </div>
 
-<!-- CART DRAWER -->
 <div class="drawer-overlay" id="cart-overlay" aria-hidden="true">
   <section class="drawer" role="dialog" aria-modal="true" aria-labelledby="cart-drawer-title">
     <header class="drawer-head">
-      <h2 class="drawer-title" id="cart-drawer-title">YOUR CART (0)</h2>
-      <button class="drawer-close" id="cart-close" type="button" aria-label="Close cart">×</button>
+      <h2 class="drawer-title" id="cart-drawer-title"></h2>
+      <button class="drawer-close" id="cart-close" type="button" aria-label="Close">×</button>
     </header>
     <div class="drawer-content" id="cart-content"></div>
   </section>
 </div>
 
-<!-- ACCOUNT / EMAIL OTP -->
-<section class="account-overlay" id="account-overlay" aria-hidden="true" aria-label="Account">
-  <div class="account-panel" role="dialog" aria-modal="true" aria-labelledby="account-title">
-    <button class="account-close" id="account-close" type="button" aria-label="Close">×</button>
-
-    <div class="email-step" id="email-step">
-      <h2 id="account-title">Sign in</h2>
-      <p class="account-subtitle">Sign in or create an account</p>
-      <form id="account-form">
-        <div class="account-email-wrap">
-          <input id="account-email" type="email" name="email" placeholder="Email" aria-label="Email" autocomplete="email" required>
-          <button class="account-submit" type="submit" aria-label="Continue">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-          </button>
-        </div>
-        <label class="account-updates">
-          <input id="account-updates" type="checkbox">
-          <span>Sign up to receive updates from 9ojeez9</span>
-        </label>
-        <p class="account-terms">By continuing, you agree to our <button type="button" class="account-inline-link" data-policy-open="terms">Terms of Use</button>.</p>
-        <p class="account-privacy"><button type="button" class="account-inline-link" data-policy-open="privacy">Privacy Policy</button></p>
-        <p class="account-status" id="account-status" role="status" aria-live="polite"></p>
-      </form>
-    </div>
-
-    <div class="otp-step" id="otp-step" hidden>
-      <h2>Check your email</h2>
-      <p class="otp-description">Enter the 6-digit sign-in code sent to <strong class="otp-email" id="otp-email"></strong>.</p>
-      <form id="otp-form">
-        <div class="otp-inputs" id="otp-inputs" role="group" aria-label="Six-digit verification code">
-          <input class="otp-input" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="1" aria-label="Digit 1" required>
-          <input class="otp-input" type="text" inputmode="numeric" maxlength="1" aria-label="Digit 2" required>
-          <input class="otp-input" type="text" inputmode="numeric" maxlength="1" aria-label="Digit 3" required>
-          <input class="otp-input" type="text" inputmode="numeric" maxlength="1" aria-label="Digit 4" required>
-          <input class="otp-input" type="text" inputmode="numeric" maxlength="1" aria-label="Digit 5" required>
-          <input class="otp-input" type="text" inputmode="numeric" maxlength="1" aria-label="Digit 6" required>
-        </div>
-        <button class="account-action" id="otp-verify" type="submit">Verify code</button>
-        <p class="account-status" id="otp-status" role="status" aria-live="polite"></p>
-        <div class="otp-secondary-actions">
-          <button type="button" class="otp-text-button" id="otp-back">Change email</button>
-          <button type="button" class="otp-text-button" id="otp-resend">Resend code</button>
-        </div>
-      </form>
-    </div>
-
-    <div class="account-profile" id="account-profile" hidden>
-      <p id="profile-email"></p>
-      <button type="button" class="account-action" id="sign-out">Sign out</button>
-    </div>
-  </div>
-</section>
-
-<!-- TERMS -->
-<section class="policy-overlay" id="terms-overlay" aria-hidden="true" aria-label="Terms of Use">
-  <div class="policy-panel" role="dialog" aria-modal="true" aria-labelledby="terms-title">
-    <button class="policy-close" type="button" data-policy-close aria-label="Close">×</button>
-    <p class="policy-kicker">VN SHOP · LEGAL</p>
-    <h2 id="terms-title">Terms of Use</h2>
-    <div class="policy-body">
-      <p>By accessing or using VN SHOP, you agree to these Terms of Use. If you do not agree, please discontinue use of the website.</p>
-      <h3>Website use</h3>
-      <p>You agree to use this website lawfully and not to interfere with its operation, security, availability, or content. You must not attempt to gain unauthorized access to accounts or systems.</p>
-      <h3>Products and availability</h3>
-      <p>Product descriptions, images, prices, and availability may change without notice. A product displayed on the website is not a guarantee that it is currently available for purchase.</p>
-      <h3>Accounts and security</h3>
-      <p>You are responsible for providing accurate information and keeping access to your email account secure. Verification codes are intended for your use only and should not be shared with others.</p>
-      <h3>Intellectual property</h3>
-      <p>Website content, brand assets, logos, and original materials remain the property of their respective owners. They may not be copied, redistributed, or used commercially without permission.</p>
-      <h3>Changes to these terms</h3>
-      <p>These terms may be updated when necessary. The current version published on this website applies to your use of the service.</p>
-      <h3>Contact</h3>
-      <p>For questions about these terms, visit <a href="help.html">Help &amp; Support</a>.</p>
-    </div>
-  </div>
-</section>
-
-<!-- PRIVACY -->
-<section class="policy-overlay" id="privacy-overlay" aria-hidden="true" aria-label="Privacy Policy">
-  <div class="policy-panel" role="dialog" aria-modal="true" aria-labelledby="privacy-title">
-    <button class="policy-close" type="button" data-policy-close aria-label="Close">×</button>
-    <p class="policy-kicker">VN SHOP · LEGAL</p>
-    <h2 id="privacy-title">Privacy Policy</h2>
-    <div class="policy-body">
-      <p>VN SHOP respects your privacy. This notice explains the main types of information that may be processed when you use the website.</p>
-      <h3>Information you provide</h3>
-      <p>If you use account sign-in, your email address is processed to send a verification code and establish your account session. If you choose to receive updates from 9ojeez9, that preference may also be associated with the account sign-up request.</p>
-      <h3>Authentication</h3>
-      <p>Account authentication is provided by Supabase. Your email address, verification requests, and authentication session are processed as needed to provide sign-in functionality. Never share a verification code with anyone.</p>
-      <h3>Cookies and preferences</h3>
-      <p>The website stores your cookie preferences in your browser so that your selections can be remembered. You can review those choices using Cookie Choices in the website footer.</p>
-      <h3>How information is used</h3>
-      <p>Information may be used to operate account features, maintain website security, remember your preferences, and provide features you request.</p>
-      <h3>Third-party services</h3>
-      <p>The website relies on third-party services for functionality such as authentication and loading external resources. Those services may process technical data under their own terms and privacy notices.</p>
-      <h3>Your choices</h3>
-      <p>You can choose whether to request account sign-in and whether to opt in to updates. You can also adjust your cookie preferences using Cookie Choices.</p>
-      <h3>Contact</h3>
-      <p>For privacy questions, visit <a href="help.html">Help &amp; Support</a>. The full published policy is also available at <a href="policies/privacy-policy.html">Privacy Policy</a>.</p>
-    </div>
-  </div>
-</section>
-
-<!-- COOKIE PREFERENCES -->
-<section class="cookie-panel" id="cookie-panel" aria-label="Cookie preferences" aria-hidden="true">
-  <div class="cookie-content">
-    <div class="cookie-top">
-      <div class="cookie-logo-wrap">
-        <img src="/images/vn-logo-black-transparent.png" alt="VN" class="cookie-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
-        <span class="cookie-logo-fallback">VN</span>
-      </div>
-    </div>
-    <div class="cookie-section">
-      <h2 data-i18n="collectHeading">Information We Collect About You</h2>
-      <p><span data-i18n="collectText">We want to be transparent about the data we and our partners collect and how we use it, so you can best exercise control over your personal data. For more information, please see our</span> <a href="policies/privacy-policy.html" data-i18n="privacyInline">Privacy Policy</a>.</p>
-    </div>
-    <div class="cookie-section">
-      <h2 data-i18n="partnersHeading">Information Our Partners Collect</h2>
-      <p><span data-i18n="partnersText">We use cookies or other tracking technologies from the following partners. These are used to personalize your experience, connect with social networks, and tailor advertising to better match your interests. This may include tracking across our sites, sites operated by third parties, and multiple devices.</span> <a href="policies/privacy-policy.html#tracking-technologies" data-i18n="trackingLink">Visit tracking technologies</a></p>
-    </div>
-    <div class="cookie-categories">
-      <label class="cookie-category essential" title="Essential cookies cannot be disabled"><input type="checkbox" checked disabled aria-label="Essential cookies always enabled"><span data-i18n="essential">Essential</span></label>
-      <label class="cookie-category"><input type="checkbox" id="cookie-functional" checked><span data-i18n="functional">Functional</span></label>
-      <label class="cookie-category"><input type="checkbox" id="cookie-analytics" checked><span data-i18n="analytics">Analytics</span></label>
-      <label class="cookie-category"><input type="checkbox" id="cookie-advertising" checked><span data-i18n="advertising">Advertising</span></label>
-    </div>
-  </div>
-  <div class="cookie-bottom">
-    <a class="cookie-privacy" href="policies/privacy-policy.html" data-i18n="privacyLink">Privacy Policy</a>
-    <div class="cookie-right">
-      <button type="button" class="cookie-confirm" id="cookie-confirm" data-i18n="confirm">Confirm</button>
-      <div class="cookie-language" id="cookie-language">
-        <button type="button" class="cookie-language-toggle" id="cookie-language-toggle" aria-label="Switch language" title="Switch language" aria-expanded="false">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18M12 3a15 15 0 0 0 0-18"/></svg>
-        </button>
-        <select class="cookie-language-select" id="cookie-language-select" aria-label="Language">
-          <option value="en">English</option>
-          <option value="tr">Türkçe</option>
-        </select>
-      </div>
-    </div>
-  </div>
-</section>
+<div id="merch-config-ui"></div>
 
 <script>
 "use strict";
 
-/* SUPABASE */
-const SUPABASE_URL = "https://lzihjhmccdvniditnubf.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_D438U6YN0w0gZ3yrg4SPBQ_RBMJ_ymO";
-const accountClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
-
-/* PRODUCTS: optional metadata can be added without changing the drawer code */
-const products = [
-  {
-    id:"gta-love-poster-1",
-    name:"GTA LOVE POSTER 1",
-    price:"$20.00 USD",
-    type:"POSTER",
-    category:"XTRAS",
-    material:"NON-TEXTILE",
-    image:"images/9o9-shop-product-gta-love-poster.png"
-  },
-  {
-    id:"gta-love-poster-2",
-    name:"GTA LOVE POSTER 2",
-    price:"$20.00 USD",
-    type:"POSTER",
-    category:"XTRAS",
-    material:"NON-TEXTILE",
-    image:"images/9o9-shop-product-gta-love-poster-2.png"
-  }
-];
-
-/* SHARED ELEMENTS */
-const productGrid = document.getElementById("product-grid");
-const emptyMessage = document.getElementById("empty-message");
-const categorySelect = document.getElementById("category-select");
-const searchToggle = document.getElementById("search-toggle");
-const searchPanel = document.getElementById("search-panel");
-const searchInput = document.getElementById("search-input");
-const cartCount = document.getElementById("cart-count");
-
-const detailOverlay = document.getElementById("detail-overlay");
-const detailContent = document.getElementById("detail-content");
-const detailClose = document.getElementById("detail-close");
-const cartOverlay = document.getElementById("cart-overlay");
-const cartContent = document.getElementById("cart-content");
-const cartTitle = document.getElementById("cart-drawer-title");
-
-const accountOverlay = document.getElementById("account-overlay");
-const accountOpen = document.getElementById("profile-open");
-const accountClose = document.getElementById("account-close");
-const emailStep = document.getElementById("email-step");
-const accountForm = document.getElementById("account-form");
-const accountEmail = document.getElementById("account-email");
-const accountUpdates = document.getElementById("account-updates");
-const accountSubmit = accountForm.querySelector(".account-submit");
-const accountStatus = document.getElementById("account-status");
-const otpStep = document.getElementById("otp-step");
-const otpForm = document.getElementById("otp-form");
-const otpEmail = document.getElementById("otp-email");
-const otpInputs = [...document.querySelectorAll(".otp-input")];
-const otpVerify = document.getElementById("otp-verify");
-const otpStatus = document.getElementById("otp-status");
-const otpBack = document.getElementById("otp-back");
-const otpResend = document.getElementById("otp-resend");
-const accountProfile = document.getElementById("account-profile");
-const profileEmail = document.getElementById("profile-email");
-const signOutButton = document.getElementById("sign-out");
-
-const policyOverlays = {
-  terms:document.getElementById("terms-overlay"),
-  privacy:document.getElementById("privacy-overlay")
-};
-
-let activeCategory = "ALL";
-let searchQuery = "";
-let activeProduct = null;
-let activeImageIndex = 0;
-let detailQuantity = 1;
-let selectedVariant = "";
-let cart = [];
-let pendingEmail = "";
-let rememberedEmail = "";
-let authRequestInProgress = false;
-let lastAccountTrigger = null;
-let lastPolicyTrigger = null;
-let lastDrawerTrigger = null;
-let currentSession = null;
-
-/* GENERAL HELPERS */
-function showStatus(element,message,type=""){
-  element.textContent = message;
-  element.classList.toggle("is-visible",Boolean(message));
-  element.classList.toggle("is-error",type==="error");
-  element.classList.toggle("is-success",type==="success");
-}
-function clearStatus(element){showStatus(element,"")}
-function escapeHTML(value){
-  return String(value??"").replace(/[&<>"']/g,char=>({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-  })[char]);
-}
-function parsePrice(price){
-  const match=String(price??"").replace(/,/g,"").match(/-?\d+(?:\.\d+)?/);
-  return match?Number(match[0]):0;
-}
-function formatMoney(amount,currency="USD"){
-  try{return new Intl.NumberFormat("en-US",{style:"currency",currency}).format(amount)}
-  catch{return "$"+Number(amount||0).toFixed(2)}
-}
-function productPrice(product){return parsePrice(product.price)}
-function getProductImages(product){
-  const images=Array.isArray(product.images)?product.images.filter(Boolean):[];
-  if(!images.includes(product.image)&&product.image) images.unshift(product.image);
-  return images.length?images:[product.image].filter(Boolean);
-}
-function getVariants(product){
-  if(Array.isArray(product.variants)) return product.variants.map(item=>{
-    if(typeof item==="string"||typeof item==="number") return {label:String(item),value:String(item)};
-    return {label:String(item.label??item.name??item.value??""),value:String(item.value??item.label??item.name??"")};
-  }).filter(item=>item.label&&item.value);
-  if(Array.isArray(product.sizes)) return product.sizes.map(item=>({
-    label:String(typeof item==="object"?(item.label??item.name??item.value??""):item),
-    value:String(typeof item==="object"?(item.value??item.label??item.name??""):item)
-  })).filter(item=>item.label&&item.value);
-  return [];
-}
-
-/* DRAWER MANAGEMENT */
-function anyModalOpen(){
-  return [detailOverlay,cartOverlay,accountOverlay,...Object.values(policyOverlays)]
-    .some(el=>el.classList.contains("is-open"));
-}
-function syncBodyLock(){document.body.classList.toggle("modal-open",anyModalOpen())}
-function openDrawer(overlay,trigger){
-  lastDrawerTrigger=trigger||document.activeElement;
-  overlay.classList.add("is-open");
-  overlay.setAttribute("aria-hidden","false");
-  syncBodyLock();
-  const close=overlay.querySelector(".drawer-close");
-  window.setTimeout(()=>close?.focus(),80);
-}
-function closeDrawer(overlay){
-  overlay.classList.remove("is-open");
-  overlay.setAttribute("aria-hidden","true");
-  syncBodyLock();
-  if(lastDrawerTrigger&&typeof lastDrawerTrigger.focus==="function") lastDrawerTrigger.focus();
-}
-detailClose.addEventListener("click",()=>closeDrawer(detailOverlay));
-cartOverlay.querySelector("#cart-close").addEventListener("click",()=>closeDrawer(cartOverlay));
-detailOverlay.addEventListener("click",event=>{if(event.target===detailOverlay)closeDrawer(detailOverlay)});
-cartOverlay.addEventListener("click",event=>{if(event.target===cartOverlay)closeDrawer(cartOverlay)});
-
-/* PRODUCT FILTER AND GRID */
-function getVisibleProducts(){
-  return products.filter(product=>{
-    const textile=product.material==="TEXTILE";
-    let matchesCategory;
-    if(activeCategory==="ALL") matchesCategory=true;
-    else if(activeCategory==="ALL MERCH") matchesCategory=textile;
-    else if(activeCategory==="XTRAS") matchesCategory=product.category==="XTRAS"&&!textile;
-    else matchesCategory=product.category===activeCategory&&textile;
-    const searchable=`${product.name} ${product.type} ${product.category}`.toLowerCase();
-    return matchesCategory&&searchable.includes(searchQuery.toLowerCase());
-  });
-}
-function renderProducts(){
-  productGrid.innerHTML="";
-  const visible=getVisibleProducts();
-  emptyMessage.hidden=visible.length>0;
-  if(!visible.length){
-    emptyMessage.textContent=searchQuery?"NO MATCHING PRODUCTS":"NO PRODUCTS AVAILABLE";
-    return;
-  }
-  visible.forEach(product=>{
-    const item=document.createElement("article");
-    item.className="product";
-    item.tabIndex=0;
-    item.setAttribute("role","button");
-    item.setAttribute("aria-label",`View ${product.name}`);
-    const wrap=document.createElement("div");
-    wrap.className="product-image-wrap";
-    const img=document.createElement("img");
-    img.className="product-image";
-    img.src=product.image;
-    img.alt=product.name;
-    img.loading="lazy";
-    const caption=document.createElement("div");
-    caption.className="product-caption";
-    const name=document.createElement("div");
-    name.className="product-name";
-    name.textContent=product.name;
-    const price=document.createElement("div");
-    price.className="product-price";
-    price.textContent=product.price;
-    caption.append(name,price);
-    wrap.append(img);
-    item.append(wrap,caption);
-    item.addEventListener("click",()=>openProductDetails(product));
-    item.addEventListener("keydown",event=>{
-      if(event.key==="Enter"||event.key===" "){event.preventDefault();openProductDetails(product)}
-    });
-    productGrid.append(item);
-  });
-}
-categorySelect.addEventListener("change",()=>{
-  activeCategory=categorySelect.value;
-  renderProducts();
-});
-searchToggle.addEventListener("click",()=>{
-  const open=searchPanel.classList.toggle("is-open");
-  searchToggle.setAttribute("aria-expanded",String(open));
-  if(open)searchInput.focus();
-  else{searchQuery="";searchInput.value="";renderProducts()}
-});
-document.getElementById("search-close").addEventListener("click",()=>{
-  searchPanel.classList.remove("is-open");
-  searchToggle.setAttribute("aria-expanded","false");
-  searchQuery="";searchInput.value="";renderProducts();
-});
-document.getElementById("search-form").addEventListener("submit",event=>{
-  event.preventDefault();searchQuery=searchInput.value.trim();renderProducts();
-});
-searchInput.addEventListener("input",()=>{searchQuery=searchInput.value.trim();renderProducts()});
-
-/* PRODUCT DETAILS */
-function openProductDetails(product){
-  activeProduct=product;
-  activeImageIndex=0;
-  detailQuantity=1;
-  selectedVariant="";
-  renderProductDetails();
-  openDrawer(detailOverlay);
-}
-function renderProductDetails(){
-  if(!activeProduct)return;
-  const product=activeProduct;
-  const images=getProductImages(product);
-  const variants=getVariants(product);
-  if(selectedVariant&&!variants.some(item=>item.value===selectedVariant))selectedVariant="";
-  const mainImage=images[Math.min(activeImageIndex,images.length-1)]||product.image;
-  const crumbs=[
-    `<button type="button" data-crumb-home>HOME</button>`,
-    `<span>›</span>`,
-    `<button type="button" data-crumb-category>${escapeHTML(product.category||"ALL")}</button>`,
-    `<span>›</span>`,
-    `<span>${escapeHTML(product.name)}</span>`
-  ].join("");
-  const thumbnails=images.length>1?`
-    <div class="detail-thumbnails" aria-label="Product images">
-      ${images.map((src,index)=>`
-        <button type="button" class="detail-thumb ${index===activeImageIndex?"is-active":""}" data-image-index="${index}" aria-label="View image ${index+1}" aria-pressed="${index===activeImageIndex}">
-          <img src="${escapeHTML(src)}" alt="">
-        </button>`).join("")}
-    </div>`:"";
-  const variantMarkup=variants.length?`
-    <div class="detail-field">
-      <p class="detail-field-label">${escapeHTML(product.variantLabel||"Select option")}</p>
-      <div class="detail-variants">
-        ${variants.map(item=>`<button type="button" class="variant-button ${selectedVariant===item.value?"is-selected":""}" data-variant="${escapeHTML(item.value)}" aria-pressed="${selectedVariant===item.value}">${escapeHTML(item.label)}</button>`).join("")}
-      </div>
-    </div>`:"";
-  const description=product.description?`<p class="detail-description">${escapeHTML(product.description)}</p>`:"";
-  detailContent.innerHTML=`
-    <nav class="detail-breadcrumb" aria-label="Breadcrumb">${crumbs}</nav>
-    <div class="detail-layout">
-      <div class="detail-gallery">
-        ${thumbnails}
-        <div class="detail-main-image"><img src="${escapeHTML(mainImage)}" alt="${escapeHTML(product.name)}"></div>
-      </div>
-      <div class="detail-info">
-        <h3 class="detail-name">${escapeHTML(product.name)}</h3>
-        <div class="detail-price">${escapeHTML(product.price)}</div>
-        ${variantMarkup}
-        <div class="detail-field">
-          <p class="detail-field-label">Quantity</p>
-          <div class="detail-quantity">
-            <button class="quantity-button" type="button" data-detail-quantity="-1" aria-label="Decrease quantity">−</button>
-            <span class="quantity-value" id="detail-quantity-value">${detailQuantity}</span>
-            <button class="quantity-button" type="button" data-detail-quantity="1" aria-label="Increase quantity">+</button>
-          </div>
-        </div>
-        <button type="button" class="primary-button full-button detail-add" id="detail-add">ADD TO CART</button>
-        <p class="detail-error" id="detail-error" hidden></p>
-        ${description}
-        <p class="detail-note">${escapeHTML(product.type||"")} ${product.material?`· ${escapeHTML(product.material)}`:""}</p>
-      </div>
-    </div>`;
-  detailContent.querySelector("[data-crumb-home]").addEventListener("click",()=>closeDrawer(detailOverlay));
-  detailContent.querySelector("[data-crumb-category]").addEventListener("click",()=>{
-    activeCategory=product.category||"ALL";
-    categorySelect.value=activeCategory;
-    searchQuery="";searchInput.value="";
-    renderProducts();
-    closeDrawer(detailOverlay);
-  });
-  detailContent.querySelectorAll("[data-image-index]").forEach(button=>{
-    button.addEventListener("click",()=>{
-      activeImageIndex=Number(button.dataset.imageIndex);
-      renderProductDetails();
-    });
-  });
-  detailContent.querySelectorAll("[data-variant]").forEach(button=>{
-    button.addEventListener("click",()=>{
-      selectedVariant=button.dataset.variant;
-      renderProductDetails();
-    });
-  });
-  detailContent.querySelectorAll("[data-detail-quantity]").forEach(button=>{
-    button.addEventListener("click",()=>{
-      detailQuantity=Math.max(1,Math.min(99,detailQuantity+Number(button.dataset.detailQuantity)));
-      const value=document.getElementById("detail-quantity-value");
-      if(value)value.textContent=String(detailQuantity);
-    });
-  });
-  document.getElementById("detail-add").addEventListener("click",()=>{
-    const error=document.getElementById("detail-error");
-    if(variants.length&&!selectedVariant){
-      error.hidden=false;
-      error.textContent="Please select an option before adding this product.";
-      return;
-    }
-    addToCart(product,selectedVariant,detailQuantity);
-    closeDrawer(detailOverlay);
-    renderCart();
-    openDrawer(cartOverlay,document.getElementById("cart-open"));
-  });
-}
-
-/* CART STATE */
-function cartKey(product,variant){return `${product.id}::${variant||""}`}
-function addToCart(product,variant,quantity){
-  const key=cartKey(product,variant);
-  const existing=cart.find(item=>item.key===key);
-  if(existing)existing.quantity=Math.min(99,existing.quantity+quantity);
-  else cart.push({key,productId:product.id,variant:variant||"",quantity,product});
-  updateCartCount();
-}
-function updateCartCount(){
-  const count=cart.reduce((sum,item)=>sum+item.quantity,0);
-  cartCount.textContent=String(count);
-  cartTitle.textContent=`YOUR CART (${count})`;
-}
-function changeCartQuantity(key,delta){
-  const item=cart.find(entry=>entry.key===key);
-  if(!item)return;
-  item.quantity=Math.max(0,Math.min(99,item.quantity+delta));
-  if(item.quantity===0)cart=cart.filter(entry=>entry.key!==key);
-  renderCart();
-}
-function removeCartItem(key){cart=cart.filter(item=>item.key!==key);renderCart()}
-function renderCart(){
-  updateCartCount();
-  if(!cart.length){
-    cartContent.innerHTML=`
-      <div class="drawer-empty">
-        <h2>Your cart is empty</h2>
-        <p>Time to fill up</p>
-        <button type="button" class="secondary-button" id="continue-shopping">CONTINUE SHOPPING</button>
-      </div>`;
-    document.getElementById("continue-shopping").addEventListener("click",()=>closeDrawer(cartOverlay));
-    return;
-  }
-  const subtotal=cart.reduce((sum,item)=>sum+productPrice(item.product)*item.quantity,0);
-  cartContent.innerHTML=`
-    <div class="cart-items">
-      ${cart.map(item=>`
-        <article class="cart-item">
-          <div class="cart-item-image"><img src="${escapeHTML(item.product.image)}" alt="${escapeHTML(item.product.name)}"></div>
-          <div class="cart-item-info">
-            <h3 class="cart-item-name">${escapeHTML(item.product.name)}</h3>
-            ${item.variant?`<div class="cart-item-variant">${escapeHTML(item.product.variantLabel||"Option")}: ${escapeHTML(item.variant)}</div>`:""}
-            <div class="cart-item-price">${escapeHTML(item.product.price)}</div>
-            <div class="cart-item-bottom">
-              <div class="cart-quantity" aria-label="Quantity">
-                <button type="button" data-cart-delta="-1" data-cart-key="${escapeHTML(item.key)}" aria-label="Decrease quantity">−</button>
-                <span>${item.quantity}</span>
-                <button type="button" data-cart-delta="1" data-cart-key="${escapeHTML(item.key)}" aria-label="Increase quantity">+</button>
-              </div>
-              <button type="button" class="cart-remove" data-cart-remove="${escapeHTML(item.key)}">Remove</button>
-            </div>
-          </div>
-        </article>`).join("")}
-    </div>
-    <div class="cart-summary">
-      <div class="cart-subtotal"><span>Subtotal</span><strong>${formatMoney(subtotal)}</strong></div>
-      <p class="cart-disclaimer">Shipping, taxes, and any applicable fees are calculated at checkout.</p>
-      <button type="button" class="primary-button full-button" id="checkout-button">CHECKOUT</button>
-      <button type="button" class="secondary-button full-button" id="cart-continue">CONTINUE SHOPPING</button>
-    </div>`;
-  cartContent.querySelectorAll("[data-cart-delta]").forEach(button=>{
-    button.addEventListener("click",()=>changeCartQuantity(button.dataset.cartKey,Number(button.dataset.cartDelta)));
-  });
-  cartContent.querySelectorAll("[data-cart-remove]").forEach(button=>{
-    button.addEventListener("click",()=>removeCartItem(button.dataset.cartRemove));
-  });
-  document.getElementById("cart-continue").addEventListener("click",()=>closeDrawer(cartOverlay));
-  document.getElementById("checkout-button").addEventListener("click",()=>{
-    /* Checkout/payment integration has not been implemented. */
-    alert("Checkout is not available yet.");
-  });
-}
-document.getElementById("cart-open").addEventListener("click",event=>{
-  event.preventDefault();
-  renderCart();
-  openDrawer(cartOverlay,event.currentTarget);
-});
-
-/* ACCOUNT MODAL */
-function syncModalBodyLock(){document.body.classList.toggle("modal-open",anyModalOpen())}
-function openAccountPanel(){
-  lastAccountTrigger=document.activeElement;
-  accountOverlay.classList.add("is-open");
-  accountOverlay.setAttribute("aria-hidden","false");
-  syncModalBodyLock();
-  if(currentSession?.user){
-    showAccountProfile(currentSession.user);
-  }else{
-    showEmailStep();
-    window.setTimeout(()=>accountEmail.focus(),60);
-  }
-}
-function closeAccountPanel(){
-  accountOverlay.classList.remove("is-open");
-  accountOverlay.setAttribute("aria-hidden","true");
-  clearStatus(accountStatus);clearStatus(otpStatus);
-  syncModalBodyLock();
-  if(lastAccountTrigger?.focus)lastAccountTrigger.focus();
-}
-function showEmailStep(){
-  emailStep.hidden=false;
-  otpStep.hidden=true;
-  accountProfile.hidden=true;
-  clearStatus(accountStatus);clearStatus(otpStatus);
-}
-function showOtpStep(email){
-  pendingEmail=email;
-  otpEmail.textContent=email;
-  emailStep.hidden=true;
-  otpStep.hidden=false;
-  accountProfile.hidden=true;
-  clearStatus(accountStatus);clearStatus(otpStatus);
-  otpInputs.forEach(input=>{input.value="";input.removeAttribute("aria-invalid")});
-  window.setTimeout(()=>otpInputs[0].focus(),60);
-}
-function showAccountProfile(user){
-  emailStep.hidden=true;
-  otpStep.hidden=true;
-  accountProfile.hidden=false;
-  profileEmail.textContent=user.email||"Signed-in account";
-  accountOpen.setAttribute("aria-label","Account");
-  accountOpen.setAttribute("title","Account");
-}
-function setAuthBusy(busy){
-  accountSubmit.disabled=busy;
-  otpVerify.disabled=busy;
-  otpResend.disabled=busy;
-  otpBack.disabled=busy;
-  otpInputs.forEach(input=>input.disabled=busy);
-}
-function distributeOtp(value){
-  const digits=String(value).replace(/\D/g,"").slice(0,6);
-  otpInputs.forEach((input,index)=>{
-    input.value=digits[index]||"";
-    input.removeAttribute("aria-invalid");
-  });
-  const next=otpInputs.find(input=>!input.value);
-  (next||otpInputs[5]).focus();
-}
-function getOtpToken(){return otpInputs.map(input=>input.value).join("")}
-
-otpInputs.forEach((input,index)=>{
-  input.addEventListener("input",()=>{
-    const digits=input.value.replace(/\D/g,"");
-    if(digits.length>1){distributeOtp(digits);clearStatus(otpStatus);return}
-    input.value=digits.slice(0,1);
-    input.removeAttribute("aria-invalid");
-    if(input.value&&index<otpInputs.length-1)otpInputs[index+1].focus();
-    clearStatus(otpStatus);
-    if(getOtpToken().length===6)otpForm.requestSubmit();
-  });
-  input.addEventListener("keydown",event=>{
-    if(event.key==="Backspace"&&!input.value&&index>0){
-      otpInputs[index-1].focus();
-      otpInputs[index-1].value="";
-      event.preventDefault();
-    }
-    if(event.key==="ArrowLeft"&&index>0){otpInputs[index-1].focus();event.preventDefault()}
-    if(event.key==="ArrowRight"&&index<otpInputs.length-1){otpInputs[index+1].focus();event.preventDefault()}
-  });
-  input.addEventListener("paste",event=>{
-    const digits=(event.clipboardData?.getData("text")||"").replace(/\D/g,"");
-    if(!digits)return;
-    event.preventDefault();
-    distributeOtp(digits);
-    clearStatus(otpStatus);
-    if(digits.length>=6)otpForm.requestSubmit();
-  });
-});
-
-async function requestOtp(email,isResend=false){
-  if(authRequestInProgress)return;
-  const normalized=email.trim();
-  if(!normalized)return;
-  authRequestInProgress=true;
-  setAuthBusy(true);
-  clearStatus(isResend?otpStatus:accountStatus);
-  try{
-    const {error}=await accountClient.auth.signInWithOtp({
-      email:normalized,
-      options:{
-        shouldCreateUser:true,
-        data:{marketing_updates:accountUpdates.checked}
-      }
-    });
-    if(error)throw error;
-    rememberedEmail=normalized;
-    if(isResend){
-      otpInputs.forEach(input=>{input.value="";input.removeAttribute("aria-invalid")});
-      clearStatus(otpStatus);
-      otpInputs[0].focus();
-    }else{
-      showOtpStep(normalized);
-    }
-  }catch(error){
-    console.error("OTP request failed:",error);
-    showStatus(isResend?otpStatus:accountStatus,
-      "We couldn't send the code. Check your email address and try again.","error");
-  }finally{
-    authRequestInProgress=false;
-    setAuthBusy(false);
-  }
-}
-accountForm.addEventListener("submit",event=>{
-  event.preventDefault();
-  const email=accountEmail.value.trim();
-  if(!email||!accountEmail.validity.valid){accountEmail.reportValidity();return}
-  requestOtp(email);
-});
-otpForm.addEventListener("submit",async event=>{
-  event.preventDefault();
-  if(authRequestInProgress)return;
-  const token=getOtpToken();
-  if(!/^\d{6}$/.test(token)){
-    showStatus(otpStatus,"Enter all 6 digits of your verification code.","error");
-    const firstEmpty=otpInputs.find(input=>!input.value);
-    if(firstEmpty)firstEmpty.focus();
-    otpInputs.forEach(input=>input.setAttribute("aria-invalid",String(!input.value)));
-    return;
-  }
-  authRequestInProgress=true;
-  setAuthBusy(true);
-  clearStatus(otpStatus);
-  try{
-    const {data,error}=await accountClient.auth.verifyOtp({
-      email:pendingEmail,
-      token,
-      type:"email"
-    });
-    if(error)throw error;
-    if(!data.session||!data.user)throw new Error("No active session returned.");
-    currentSession=data.session;
-    showAccountProfile(data.user);
-  }catch(error){
-    console.error("OTP verification failed:",error);
-    showStatus(otpStatus,"That code is invalid or expired. Check it or request a new one.","error");
-    otpInputs.forEach(input=>input.setAttribute("aria-invalid","true"));
-    otpInputs[0].focus();
-  }finally{
-    authRequestInProgress=false;
-    setAuthBusy(false);
-  }
-});
-otpBack.addEventListener("click",()=>{
-  if(authRequestInProgress)return;
-  accountEmail.value=pendingEmail||rememberedEmail||accountEmail.value;
-  showEmailStep();
-  accountEmail.focus();
-});
-otpResend.addEventListener("click",()=>{
-  if(pendingEmail&&!authRequestInProgress)requestOtp(pendingEmail,true);
-});
-accountOpen.addEventListener("click",openAccountPanel);
-accountClose.addEventListener("click",closeAccountPanel);
-accountOverlay.addEventListener("click",event=>{
-  if(event.target===accountOverlay)closeAccountPanel();
-});
-signOutButton.addEventListener("click",async()=>{
-  signOutButton.disabled=true;
-  try{
-    const {error}=await accountClient.auth.signOut();
-    if(error)throw error;
-    currentSession=null;
-    accountOpen.setAttribute("aria-label","Sign in");
-    accountOpen.setAttribute("title","Sign in");
-    showEmailStep();
-  }catch(error){
-    console.error("Sign out failed:",error);
-    showStatus(accountStatus,"We couldn't sign out. Please try again.","error");
-  }finally{signOutButton.disabled=false}
-});
-accountClient.auth.onAuthStateChange((event,session)=>{
-  currentSession=session;
-  if(session?.user){
-    accountOpen.setAttribute("aria-label","Account");
-    accountOpen.setAttribute("title","Account");
-    if(accountOverlay.classList.contains("is-open"))showAccountProfile(session.user);
-  }else{
-    accountOpen.setAttribute("aria-label","Sign in");
-    accountOpen.setAttribute("title","Sign in");
-    if(event==="SIGNED_OUT")showEmailStep();
-  }
-});
 (async()=>{
-  try{
-    const {data,error}=await accountClient.auth.getSession();
-    if(error)throw error;
-    currentSession=data.session;
-    if(currentSession?.user){
-      accountOpen.setAttribute("aria-label","Account");
-      accountOpen.setAttribute("title","Account");
-    }
-  }catch(error){console.error("Session check failed:",error)}
-})();
+const $=id=>document.getElementById(id);
+const esc=value=>String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const config=await fetch("merch.json").then(r=>{if(!r.ok)throw Error("merch.json");return r.json()});
+const languages=await fetch("lang.json").then(r=>{if(!r.ok)throw Error("lang.json");return r.json()});
+const products=config.products||[];
+const labels=config.labels||{};
+const language=config.cookies?.defaultLanguage||"en";
+const dictionary=languages[language]||languages.en||languages;
+const t=key=>dictionary[key]??labels[key]??config.cookies?.labels?.[key]??key;
+const supabaseConfig=config.supabase||{};
+const client=window.supabase?.createClient(supabaseConfig.url,supabaseConfig.publishableKey);
 
-/* POLICY MODALS */
-function openPolicy(type,trigger){
-  const overlay=policyOverlays[type];
-  if(!overlay)return;
-  lastPolicyTrigger=trigger||document.activeElement;
-  overlay.classList.add("is-open");
-  overlay.setAttribute("aria-hidden","false");
-  syncModalBodyLock();
-  window.setTimeout(()=>overlay.querySelector(".policy-close")?.focus(),60);
-}
-function closePolicy(overlay){
-  if(!overlay)return;
-  overlay.classList.remove("is-open");
-  overlay.setAttribute("aria-hidden","true");
-  syncModalBodyLock();
-  if(lastPolicyTrigger?.focus)lastPolicyTrigger.focus();
-}
-document.querySelectorAll("[data-policy-open]").forEach(button=>{
-  button.addEventListener("click",()=>openPolicy(button.dataset.policyOpen,button));
-});
-Object.values(policyOverlays).forEach(overlay=>{
-  overlay.addEventListener("click",event=>{if(event.target===overlay)closePolicy(overlay)});
-  overlay.querySelector("[data-policy-close]").addEventListener("click",()=>closePolicy(overlay));
-});
+const grid=$("product-grid"),empty=$("empty-message");
+const category=$("category-select"),search=$("search-input");
+const detail=$("detail-overlay"),cartOverlay=$("cart-overlay");
+const detailContent=$("detail-content"),cartContent=$("cart-content");
+let activeCategory="ALL",query="",activeProduct=null,quantity=1,variant="";
+let cart=[];
 
-/* COOKIE PREFERENCES — EN/TR */
-const cookiePanel=document.getElementById("cookie-panel");
-const cookieChoicesButton=document.getElementById("cookie-choices");
-const cookieConfirmButton=document.getElementById("cookie-confirm");
-const languageWrapper=document.getElementById("cookie-language");
-const languageToggle=document.getElementById("cookie-language-toggle");
-const languageSelect=document.getElementById("cookie-language-select");
-const cookieControls={
-  functional:document.getElementById("cookie-functional"),
-  analytics:document.getElementById("cookie-analytics"),
-  advertising:document.getElementById("cookie-advertising")
+const categories=config.categories||["ALL","CD","VINYL","TOPS","OUTERWEAR","PANTS","XTRAS","ALL MERCH"];
+category.innerHTML=categories.map(c=>`<option value="${esc(typeof c==="string"?c:c.value)}">${esc(typeof c==="string"?c:c.label)}</option>`).join("");
+
+$("copyright").textContent=config.copyright||"";
+$("detail-drawer-title").textContent=config.labels?.productDetails||"";
+$("cart-drawer-title").textContent=config.labels?.yourCart||"";
+
+const footerLinks=config.policies?.links||{};
+$("footer-links").innerHTML=Object.entries(footerLinks).map(([key,value])=>{
+ const item=typeof value==="string"?{url:value,label:key}:value;
+ return `<a href="${esc(item.url||item.href||"#")}">${esc(item.label||key)}</a>`;
+}).join("")+`<button type="button" id="cookie-choices">${esc(t("cookieChoices"))}</button>`;
+
+function price(p){const n=Number(String(p.price??0).replace(/[^0-9.-]/g,""));return Number.isFinite(n)?n:0}
+function money(n,currency="USD"){try{return new Intl.NumberFormat(language,{style:"currency",currency}).format(n)}catch{return String(n)}}
+function variants(p){return (p.variants||p.sizes||[]).map(v=>typeof v==="object"?{label:String(v.label||v.name||v.value),value:String(v.value||v.label||v.name)}:{label:String(v),value:String(v)})}
+function images(p){return p.images?.length?p.images:[p.image].filter(Boolean)}
+function visibleProducts(){return products.filter(p=>{
+ const textile=p.material==="TEXTILE";
+ const matches=activeCategory==="ALL"||activeCategory==="ALL MERCH"&&textile||activeCategory==="XTRAS"&&p.category==="XTRAS"&&!textile||p.category===activeCategory&&textile;
+ return matches&&`${p.name} ${p.type} ${p.category}`.toLowerCase().includes(query.toLowerCase());
+})}
+
+function renderProducts(){
+ grid.replaceChildren();
+ const list=visibleProducts();
+ empty.hidden=!!list.length;
+ empty.textContent=t(query?"noMatchingProducts":"noProductsAvailable");
+ list.forEach(p=>{
+  const item=document.createElement("article");
+  item.className="product";item.tabIndex=0;item.setAttribute("role","button");
+  item.setAttribute("aria-label",p.name);
+  item.innerHTML=`<div class="product-image-wrap"><img class="product-image" src="${esc(p.image||"")}" alt="${esc(p.name)}" loading="lazy"></div><div class="product-caption"><div class="product-name">${esc(p.name)}</div><div class="product-price">${esc(p.price)}</div></div>`;
+  item.addEventListener("click",()=>openProduct(p));
+  item.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();openProduct(p)}});
+  grid.append(item);
+ });
+}
+function open(overlay){
+ overlay.classList.add("is-open");overlay.setAttribute("aria-hidden","false");
+ document.body.classList.add("modal-open");
+ overlay.querySelector(".drawer-close")?.focus();
+}
+function close(overlay){
+ overlay.classList.remove("is-open");overlay.setAttribute("aria-hidden","true");
+ document.body.classList.toggle("modal-open",document.querySelector(".drawer-overlay.is-open")!==null);
+}
+function openProduct(p){
+ activeProduct=p;quantity=1;variant="";
+ const imgs=images(p),opts=variants(p);
+ detailContent.innerHTML=`
+ <div class="detail-layout">
+  <div class="detail-gallery"><div class="detail-main-image"><img src="${esc(imgs[0]||"")}" alt="${esc(p.name)}"></div>
+  ${imgs.length>1?`<div class="detail-thumbnails">${imgs.map((src,i)=>`<button type="button" data-image="${i}" aria-label="${esc(t("viewImage"))} ${i+1}"><img src="${esc(src)}" alt=""></button>`).join("")}</div>`:""}</div>
+  <div class="detail-info"><h3 class="detail-name">${esc(p.name)}</h3><div class="detail-price">${esc(p.price)}</div>
+  ${opts.length?`<div class="detail-field"><p class="detail-field-label">${esc(p.variantLabel||t("selectOption"))}</p><div class="detail-variants">${opts.map(v=>`<button type="button" class="variant-button" data-variant="${esc(v.value)}">${esc(v.label)}</button>`).join("")}</div></div>`:""}
+  <div class="detail-field"><p class="detail-field-label">${esc(t("quantity"))}</p><div class="detail-quantity"><button type="button" data-qty="-1">−</button><span id="detail-quantity-value">1</span><button type="button" data-qty="1">+</button></div></div>
+  <button type="button" class="primary-button full-button" id="detail-add">${esc(t("addToCart"))}</button>
+  <p class="detail-description">${esc(p.description||"")}</p><p class="detail-note">${esc(p.type||"")} ${esc(p.material||"")}</p></div></div>`;
+ detailContent.querySelectorAll("[data-image]").forEach(b=>b.onclick=()=>{detailContent.querySelector(".detail-main-image img").src=imgs[Number(b.dataset.image)]});
+ detailContent.querySelectorAll("[data-variant]").forEach(b=>b.onclick=()=>{
+  variant=b.dataset.variant;
+  detailContent.querySelectorAll("[data-variant]").forEach(x=>x.classList.toggle("is-selected",x===b));
+ });
+ detailContent.querySelectorAll("[data-qty]").forEach(b=>b.onclick=()=>{
+  quantity=Math.max(1,Math.min(99,quantity+Number(b.dataset.qty)));
+  $("detail-quantity-value").textContent=quantity;
+ });
+ $("detail-add").onclick=()=>{
+  if(opts.length&&!variant){let e=detailContent.querySelector(".detail-error");if(!e){e=document.createElement("p");e.className="detail-error";$("detail-add").after(e)}e.textContent=t("selectOption");return}
+  const key=p.id+"::"+variant,existing=cart.find(x=>x.key===key);
+  if(existing)existing.quantity=Math.min(99,existing.quantity+quantity);
+  else cart.push({key,product:p,variant,quantity});
+  renderCart();close(detail);open(cartOverlay);
+ };
+ open(detail);
+}
+function renderCart(){
+ const count=cart.reduce((n,x)=>n+x.quantity,0);
+ $("cart-count").textContent=count;
+ $("cart-drawer-title").textContent=`${t("yourCart")} (${count})`;
+ if(!cart.length){
+  cartContent.innerHTML=`<div class="drawer-empty"><h2>${esc(t("cartEmpty"))}</h2><button type="button" class="secondary-button" id="continue-shopping">${esc(t("continueShopping"))}</button></div>`;
+  $("continue-shopping").onclick=()=>close(cartOverlay);return;
+ }
+ const subtotal=cart.reduce((n,x)=>n+price(x.product)*x.quantity,0);
+ cartContent.innerHTML=`<div class="cart-items">${cart.map(x=>`<article class="cart-item"><div class="cart-item-image"><img src="${esc(x.product.image||"")}" alt="${esc(x.product.name)}"></div><div class="cart-item-info"><h3 class="cart-item-name">${esc(x.product.name)}</h3>${x.variant?`<div>${esc(x.variant)}</div>`:""}<div class="cart-item-price">${esc(x.product.price)}</div><div class="cart-item-bottom"><div class="cart-quantity"><button type="button" data-change="-1" data-key="${esc(x.key)}">−</button><span>${x.quantity}</span><button type="button" data-change="1" data-key="${esc(x.key)}">+</button></div><button type="button" data-remove="${esc(x.key)}">${esc(t("remove"))}</button></div></div></article>`).join("")}</div><div class="cart-summary"><div class="cart-subtotal"><span>${esc(t("subtotal"))}</span><strong>${esc(money(subtotal))}</strong></div><p class="cart-disclaimer">${esc(t("shippingDisclaimer"))}</p><button type="button" class="primary-button full-button" id="checkout-button">${esc(t("checkout"))}</button><button type="button" class="secondary-button full-button" id="cart-continue">${esc(t("continueShopping"))}</button></div>`;
+ cartContent.querySelectorAll("[data-change]").forEach(b=>b.onclick=()=>{const x=cart.find(x=>x.key===b.dataset.key);if(x)x.quantity+=Number(b.dataset.change);cart=cart.filter(x=>x.quantity>0);renderCart()});
+ cartContent.querySelectorAll("[data-remove]").forEach(b=>b.onclick=()=>{cart=cart.filter(x=>x.key!==b.dataset.remove);renderCart()});
+ $("cart-continue").onclick=()=>close(cartOverlay);
+ $("checkout-button").onclick=()=>alert(t("checkoutUnavailable"));
+}
+category.onchange=()=>{activeCategory=category.value;renderProducts()};
+search.oninput=()=>{query=search.value.trim();renderProducts()};
+$("search-form").onsubmit=e=>e.preventDefault();
+$("search-toggle").onclick=()=>{
+ const panel=$("search-panel"),isOpen=panel.classList.toggle("is-open");
+ $("search-toggle").setAttribute("aria-expanded",String(isOpen));
+ if(isOpen)search.focus();else{search.value="";query="";renderProducts()}
 };
-const translations={
-  en:{
-    collectHeading:"Information We Collect About You",
-    collectText:"We want to be transparent about the data we and our partners collect and how we use it, so you can best exercise control over your personal data. For more information, please see our",
-    privacyInline:"Privacy Policy",
-    partnersHeading:"Information Our Partners Collect",
-    partnersText:"We use cookies or other tracking technologies from the following partners. These are used to personalize your experience, connect with social networks, and tailor advertising to better match your interests. This may include tracking across our sites, sites operated by third parties, and multiple devices.",
-    trackingLink:"Visit tracking technologies",
-    essential:"Essential",functional:"Functional",analytics:"Analytics",advertising:"Advertising",
-    privacyLink:"Privacy Policy",confirm:"Confirm"
-  },
-  tr:{
-    collectHeading:"Hakkınızda Topladığımız Bilgiler",
-    collectText:"Bizim ve iş ortaklarımızın topladığı veriler ve bunları nasıl kullandığımız konusunda şeffaf olmak istiyoruz. Daha fazla bilgi için",
-    privacyInline:"Gizlilik Politikamızı",
-    partnersHeading:"İş Ortaklarımızın Topladığı Bilgiler",
-    partnersText:"Deneyiminizi kişiselleştirmek ve reklamları ilgi alanlarınıza uyarlamak için çerezler veya diğer izleme teknolojileri kullanılabilir. Bu, üçüncü taraf sitelerinde ve farklı cihazlarda izlemeyi içerebilir.",
-    trackingLink:"İzleme teknolojileri",
-    essential:"Zorunlu",functional:"İşlevsel",analytics:"Analitik",advertising:"Reklam",
-    privacyLink:"Gizlilik Politikası",confirm:"Onayla"
-  }
+$("search-close").onclick=()=>{$("search-panel").classList.remove("is-open");$("search-toggle").setAttribute("aria-expanded","false");search.value="";query="";renderProducts()};
+$("cart-open").onclick=e=>{e.preventDefault();renderCart();open(cartOverlay)};
+$("detail-close").onclick=()=>close(detail);
+$("cart-close").onclick=()=>close(cartOverlay);
+[detail,cartOverlay].forEach(overlay=>overlay.onclick=e=>{if(e.target===overlay)close(overlay)});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")[detail,cartOverlay].forEach(overlay=>close(overlay))});
+
+/* Configured account, policy and cookie interfaces */
+const host=$("merch-config-ui");
+function modal(id,title,content){
+ const el=document.createElement("div");el.className="drawer-overlay";el.id=id;el.setAttribute("aria-hidden","true");
+ el.innerHTML=`<section class="drawer" role="dialog" aria-modal="true"><header class="drawer-head"><h2 class="drawer-title">${esc(title)}</h2><button type="button" class="drawer-close" aria-label="${esc(t("close"))}">×</button></header><div class="drawer-content">${content}</div></section>`;
+ el.querySelector(".drawer-close").onclick=()=>close(el);el.onclick=e=>{if(e.target===el)close(el)};host.append(el);return el;
+}
+const account=config.account||{};
+const accountLabels=account.labels||{};
+const accountPanel=modal("account-overlay",accountLabels.title||t("signIn"),`
+ <div id="account-status" role="status"></div><form id="account-form"><p>${esc(accountLabels.subtitle||"")}</p><input id="account-email" type="email" required autocomplete="email" placeholder="${esc(accountLabels.emailPlaceholder||"")}" aria-label="${esc(accountLabels.emailPlaceholder||"Email")}"><label><input id="account-updates" type="checkbox"> ${esc(accountLabels.updatesOptIn||"")}</label><p>${esc(accountLabels.termsPrefix||"")} <a href="${esc(config.policies?.links?.terms||"#")}">${esc(accountLabels.termsLink||"")}</a> <a href="${esc(config.policies?.links?.privacy||"#")}">${esc(accountLabels.privacyLink||"")}</a></p><button class="primary-button account-submit" type="submit">${esc(accountLabels.continue||t("continue"))}</button></form>
+ <form id="otp-form" hidden><p>${esc(accountLabels.otpDescription||"")}</p><div class="otp-fields">${Array.from({length:account.otpLength||6},(_,i)=>`<input class="otp-input" inputmode="numeric" maxlength="1" aria-label="${esc(t("verificationDigit"))} ${i+1}">`).join("")}</div><p id="otp-status" role="status"></p><button class="primary-button" id="otp-verify" type="submit">${esc(accountLabels.verifyCode||t("verify"))}</button><button type="button" id="otp-resend">${esc(accountLabels.resendCode||t("resendCode"))}</button><button type="button" id="otp-back">${esc(accountLabels.changeEmail||t("changeEmail"))}</button></form>
+ <div id="account-profile" hidden><p id="profile-email"></p><button type="button" id="sign-out">${esc(accountLabels.signOut||t("signOut"))}</button></div>`);
+const $in=(root,id)=>root.querySelector("#"+id);
+$("profile-open").onclick=()=>{open(accountPanel);$in(accountPanel,"account-email").focus()};
+const accountForm=$in(accountPanel,"account-form"),otpForm=$in(accountPanel,"otp-form");
+let pendingEmail="";
+accountForm.onsubmit=async e=>{
+ e.preventDefault();if(!client)return;
+ const email=$in(accountPanel,"account-email").value.trim(),button=accountForm.querySelector("button[type=submit]");
+ button.disabled=true;
+ try{
+  const {error}=await client.auth.signInWithOtp({email,options:{shouldCreateUser:true,data:{marketing_updates:$in(accountPanel,"account-updates").checked}}});
+  if(error)throw error;pendingEmail=email;accountForm.hidden=true;otpForm.hidden=false;
+  $in(accountPanel,"otp-status").textContent="";
+  accountPanel.querySelector(".otp-input").focus();
+ }catch(err){$in(accountPanel,"account-status").textContent=t("otpSendError");console.error(err)}
+ finally{button.disabled=false}
 };
-function openCookiePanel(){
-  try{
-    const saved=JSON.parse(localStorage.getItem("vn-cookie-preferences")||"null");
-    cookieControls.functional.checked=saved?Boolean(saved.functional):true;
-    cookieControls.analytics.checked=saved?Boolean(saved.analytics):true;
-    cookieControls.advertising.checked=saved?Boolean(saved.advertising):true;
-  }catch{
-    Object.values(cookieControls).forEach(control=>control.checked=true);
-  }
-  cookiePanel.classList.add("is-open");
-  cookiePanel.setAttribute("aria-hidden","false");
-}
-function closeCookiePanel(){
-  cookiePanel.classList.remove("is-open");
-  cookiePanel.setAttribute("aria-hidden","true");
-  languageWrapper.classList.remove("is-open");
-  languageToggle.setAttribute("aria-expanded","false");
-}
-function saveCookiePreferences(){
-  const preferences={
-    essential:true,
-    functional:cookieControls.functional.checked,
-    analytics:cookieControls.analytics.checked,
-    advertising:cookieControls.advertising.checked,
-    updatedAt:new Date().toISOString()
-  };
-  try{localStorage.setItem("vn-cookie-preferences",JSON.stringify(preferences))}catch{}
-  closeCookiePanel();
-}
-function setCookieLanguage(language){
-  const lang=translations[language]?language:"en";
-  const dictionary=translations[lang];
-  document.querySelectorAll("[data-i18n]").forEach(element=>{
-    const key=element.dataset.i18n;
-    if(dictionary[key])element.textContent=dictionary[key];
-  });
-  document.documentElement.lang=lang;
-  document.body.dir="ltr";
-  languageSelect.value=lang;
-}
-cookieChoicesButton.addEventListener("click",()=>{
-  cookiePanel.classList.contains("is-open")?closeCookiePanel():openCookiePanel();
+const otpInputs=[...accountPanel.querySelectorAll(".otp-input")];
+otpInputs.forEach((input,i)=>{
+ input.oninput=()=>{input.value=input.value.replace(/\D/g,"").slice(-1);if(input.value&&otpInputs[i+1])otpInputs[i+1].focus();if(otpInputs.every(x=>x.value))otpForm.requestSubmit()};
+ input.onkeydown=e=>{if(e.key==="Backspace"&&!input.value&&otpInputs[i-1])otpInputs[i-1].focus()};
 });
-cookieConfirmButton.addEventListener("click",saveCookiePreferences);
-languageToggle.addEventListener("click",()=>{
-  const open=languageWrapper.classList.toggle("is-open");
-  languageToggle.setAttribute("aria-expanded",String(open));
-  if(open)languageSelect.focus();
-});
-languageSelect.addEventListener("change",()=>{
-  setCookieLanguage(languageSelect.value);
-  languageWrapper.classList.remove("is-open");
-  languageToggle.setAttribute("aria-expanded","false");
+otpForm.onsubmit=async e=>{
+ e.preventDefault();if(!client)return;
+ const token=otpInputs.map(x=>x.value).join("");
+ if(token.length!==(account.otpLength||6))return;
+ const button=$in(accountPanel,"otp-verify");button.disabled=true;
+ try{
+  const {data,error}=await client.auth.verifyOtp({email:pendingEmail,token,type:account.otpType||"email"});
+  if(error)throw error;otpForm.hidden=true;$in(accountPanel,"account-profile").hidden=false;
+  $in(accountPanel,"profile-email").textContent=data.user?.email||pendingEmail;
+ }catch(err){$in(accountPanel,"otp-status").textContent=t("otpVerifyError");console.error(err)}
+ finally{button.disabled=false}
+};
+$in(accountPanel,"otp-back").onclick=()=>{otpForm.hidden=true;accountForm.hidden=false;$in(accountPanel,"account-email").value=pendingEmail};
+$in(accountPanel,"otp-resend").onclick=()=>accountForm.requestSubmit();
+$in(accountPanel,"sign-out").onclick=async()=>{if(!client)return;const {error}=await client.auth.signOut();if(error)return;$in(accountPanel,"account-profile").hidden=true;accountForm.hidden=false;close(accountPanel)};
+if(client)client.auth.onAuthStateChange((event,session)=>{
+ if(session?.user){$in(accountPanel,"account-profile").hidden=false;$in(accountPanel,"profile-email").textContent=session.user.email||"";accountForm.hidden=true;otpForm.hidden=true}
+ else if(event==="SIGNED_OUT"){$in(accountPanel,"account-profile").hidden=true;accountForm.hidden=false;otpForm.hidden=true}
 });
 
-/* ESCAPE AND INITIAL RENDER */
-document.addEventListener("keydown",event=>{
-  if(event.key!=="Escape")return;
-  const openPolicy=Object.values(policyOverlays).find(overlay=>overlay.classList.contains("is-open"));
-  if(openPolicy){closePolicy(openPolicy);return}
-  if(detailOverlay.classList.contains("is-open")){closeDrawer(detailOverlay);return}
-  if(cartOverlay.classList.contains("is-open")){closeDrawer(cartOverlay);return}
-  if(accountOverlay.classList.contains("is-open")){closeAccountPanel();return}
-  if(cookiePanel.classList.contains("is-open"))closeCookiePanel();
+const policyConfig=config.policies||{};
+for(const [key,policy] of Object.entries(policyConfig)){
+ if(!policy||typeof policy!=="object"||!policy.title||!Array.isArray(policy.sections))continue;
+ const sectionHTML=policy.sections.map(s=>`<section><h3>${esc(s.title||"")}</h3><p>${esc(s.content||s.text||"")}</p></section>`).join("");
+ const panel=modal(`${key}-overlay`,policy.title,`<div class="policy-content">${sectionHTML}</div>`);
+ document.querySelectorAll(`[data-policy-open="${key}"]`).forEach(b=>b.onclick=()=>open(panel));
+ const footerLink=Object.entries(footerLinks).find(([name,value])=>name.toLowerCase().includes(key));
+ if(footerLink){const link=[...$("footer-links").querySelectorAll("a")].find(a=>a.href.includes(key));if(link)link.onclick=e=>{e.preventDefault();open(panel)}}
+}
+
+const cookieConfig=config.cookies||{},cookieLabels=cookieConfig.labels||{};
+const savedDefaults=cookieConfig.defaultPreferences||{};
+const cookiePanel=modal("cookie-panel",cookieLabels.collectHeading||t("cookieChoices"),`
+ <p>${esc(cookieLabels.collectText||"")}</p><a href="${esc(config.policies?.links?.privacy||"#")}">${esc(cookieLabels.privacyLink||"")}</a>
+ <h3>${esc(cookieLabels.partnersHeading||"")}</h3><p>${esc(cookieLabels.partnersText||"")}</p>
+ ${["essential","functional","analytics","advertising"].map(k=>`<label><input type="checkbox" id="cookie-${k}" ${k==="essential"||savedDefaults[k]?"checked":""} ${k==="essential"?"disabled":""}> ${esc(cookieLabels[k]||k)}</label>`).join("")}
+ <label>${esc(cookieLabels.languageLabel||t("language"))}<select id="cookie-language-select">${Object.entries(cookieConfig.languages||{en:"English",tr:"Türkçe"}).map(([k,v])=>`<option value="${esc(k)}">${esc(typeof v==="string"?v:v.label)}</option>`).join("")}</select></label>
+ <button type="button" class="primary-button" id="cookie-confirm">${esc(cookieLabels.confirm||t("confirm"))}</button>`);
+$("cookie-choices").onclick=()=>open(cookiePanel);
+$in(cookiePanel,"cookie-confirm").onclick=()=>{
+ const prefs={essential:true};
+ ["functional","analytics","advertising"].forEach(k=>prefs[k]=$in(cookiePanel,"cookie-"+k).checked);
+ try{localStorage.setItem("vn-cookie-preferences",JSON.stringify({...prefs,updatedAt:new Date().toISOString()}))}catch{}
+ close(cookiePanel);
+};
+$in(cookiePanel,"cookie-language-select").onchange=e=>{
+ const lang=e.target.value;document.documentElement.lang=lang;
+ const d=languages[lang]||{};
+ document.querySelectorAll("[data-i18n]").forEach(el=>{if(d[el.dataset.i18n])el.textContent=d[el.dataset.i18n]});
+};
+
+/* Initialize */
+renderProducts();renderCart();
+try{
+ const saved=JSON.parse(localStorage.getItem("vn-cookie-preferences")||"null");
+ if(saved)["functional","analytics","advertising"].forEach(k=>{if($in(cookiePanel,"cookie-"+k))$in(cookiePanel,"cookie-"+k).checked=Boolean(saved[k])});
+}catch{}
+})().catch(error=>{
+ console.error("VN SHOP configuration failed:",error);
+ const empty=document.getElementById("empty-message");
+ if(empty){empty.hidden=false;empty.textContent="SHOP CONFIGURATION COULD NOT BE LOADED"}
 });
-setCookieLanguage("en");
-renderProducts();
-renderCart();
 </script>
 </body>
 </html>
