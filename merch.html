@@ -902,8 +902,7 @@
     language.classList.remove("is-open");
     languageToggle.setAttribute("aria-expanded", "false");
   }
-  window.openCookiePreferences = openPanel;
-  button.addEventListener("click", () => panel.classList.contains("is-open") ? closePanel() : openPanel());
+  window.openCookiePreferences = () => panel.classList.contains("is-open") ? closePanel() : openPanel();
   confirm.addEventListener("click", () => {
     try { localStorage.setItem("vn-cookie-preferences", JSON.stringify({essential:true,functional:controls.functional.checked,analytics:controls.analytics.checked,advertising:controls.advertising.checked,updatedAt:new Date().toISOString()})); } catch (_) {}
     closePanel();
