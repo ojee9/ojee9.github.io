@@ -83,13 +83,13 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 .detail-breadcrumb button{padding:0;border:0;background:transparent;color:inherit;font-size:inherit;text-decoration:underline;text-underline-offset:3px}
 .detail-layout{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(280px,.92fr);align-items:start;gap:28px;min-width:0}
 .detail-gallery{display:grid;grid-template-columns:64px minmax(0,1fr);align-items:start;gap:14px;min-width:0}
-.detail-thumbnails{display:flex;flex-direction:column;gap:8px;min-width:0}
-.detail-thumb{width:64px;height:78px;padding:4px;border:1px solid transparent;background:rgba(255,255,255,.45);cursor:pointer}
+.detail-thumbnails{display:flex;flex:0 0 64px;flex-direction:column;align-items:stretch;align-self:start;gap:8px;width:64px;min-width:64px;max-height:clamp(300px,52dvh,540px);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain}
+.detail-thumb{display:flex;flex:0 0 78px;align-items:center;justify-content:center;width:64px;height:78px;min-height:78px;box-sizing:border-box;padding:4px;border:1px solid transparent;background:rgba(255,255,255,.45);cursor:pointer;overflow:hidden}
 .detail-thumb.is-active{border-color:var(--ink)}
-.detail-thumb img{display:block;width:100%;height:100%;object-fit:contain}
+.detail-thumb img{display:block;flex:none;width:100%;height:100%;min-width:0;min-height:0;object-fit:contain;object-position:center}
 .detail-image-stage{min-width:0;width:100%}
 .detail-main-image{display:flex;align-items:center;justify-content:center;width:100%;min-width:0;height:clamp(300px,52dvh,540px);padding:12px;overflow:hidden;background:#eae5dc}
-.detail-main-image img{display:block;width:100%;height:100%;min-width:0;min-height:0;max-width:100%;max-height:100%;object-fit:contain;object-position:center}
+.detail-main-image img{display:block;flex:0 1 auto;width:auto;height:auto;min-width:0;min-height:0;max-width:100%;max-height:100%;object-fit:contain;object-position:center}
 .detail-gallery.is-poster-1 .detail-main-image{height:clamp(300px,48dvh,500px)}
 .detail-gallery.is-poster-2 .detail-main-image{height:clamp(320px,54dvh,560px)}
 .detail-image-dots{display:flex;justify-content:center;align-items:center;gap:7px;min-height:22px;padding-top:10px}
@@ -227,7 +227,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
   .drawer{width:100%}
   .detail-layout{grid-template-columns:minmax(0,1fr);gap:24px}
   .detail-gallery{grid-template-columns:44px minmax(0,1fr);gap:9px}
-  .detail-thumb{width:44px;height:54px}
+  .detail-thumbnails{flex-basis:44px;width:44px;min-width:44px;max-height:clamp(280px,45dvh,430px)}
+  .detail-thumb{flex-basis:54px;width:44px;height:54px;min-height:54px}
   .detail-main-image{height:clamp(280px,45dvh,430px);padding:8px}
   .detail-gallery.is-poster-1 .detail-main-image{height:clamp(260px,40dvh,380px)}
   .detail-gallery.is-poster-2 .detail-main-image{height:clamp(300px,48dvh,450px)}
