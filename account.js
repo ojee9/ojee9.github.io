@@ -412,7 +412,7 @@
       .vn-ac-ready-row{display:flex;align-items:center;justify-content:space-between;gap:18px}
       .vn-ac-ready-row h3{margin:0;font-size:20px;color:#222}
       @media(max-width:700px){.vn-ac-policy-footer-row{gap:5px 10px}.vn-ac-footer-policies .vn-ac-legal-list{gap:6px 10px}}
-      #profile-open.vn-ac-avatar-initial{display:inline-flex;align-items:center;justify-content:center;font:600 14px/1 Arial,sans-serif;text-transform:uppercase}
+      #profile-open.vn-ac-avatar-initial{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;box-sizing:border-box;border:1px solid #9A7955;border-radius:50%;background:#B89A76;color:#17110B;font:700 15px/1 Arial,sans-serif;text-transform:uppercase;box-shadow:0 0 0 2px rgba(184,154,118,.22),0 1px 5px rgba(0,0,0,.22)}
       .vn-ac-profile-country{margin-top:20px}
       .vn-ac-profile-signout{display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;gap:9px;margin-top:22px;padding-top:0;border-top:0}
       .vn-ac-profile-signout .vn-ac-button{font-size:10px;letter-spacing:.7px}
