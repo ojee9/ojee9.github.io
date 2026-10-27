@@ -384,6 +384,7 @@
       .vn-ac-ready-row{display:flex;align-items:center;justify-content:space-between;gap:18px}
       .vn-ac-ready-row h3{margin:0;font-size:20px;color:#222}
       @media(max-width:700px){.vn-ac-policy-footer-row{gap:5px 10px}.vn-ac-footer-policies .vn-ac-legal-list{gap:6px 10px}}
+      #profile-open.vn-ac-avatar-initial{display:inline-flex;align-items:center;justify-content:center;font:600 14px/1 Arial,sans-serif;text-transform:uppercase}
       .vn-ac-profile-country{margin-top:20px}
       .vn-ac-profile-signout{margin-top:22px;padding-top:18px;border-top:1px solid #393939}
       .vn-ac-profile-signout .vn-ac-button{font-size:10px;letter-spacing:.7px}
@@ -877,6 +878,20 @@
     `;
   }
 
+  function updateAccountAvatar() {
+    const button = document.querySelector("#profile-open");
+    if (!button) return;
+    const name = [state.profile.first_name, state.profile.last_name].filter(Boolean).join(" ").trim();
+    if (state.user && name) {
+      button.textContent = name.charAt(0).toLocaleUpperCase();
+      button.setAttribute("aria-label", name);
+      button.classList.add("vn-ac-avatar-initial");
+    } else {
+      button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg>';
+      button.setAttribute("aria-label", "Account");
+      button.classList.remove("vn-ac-avatar-initial");
+    }
+  }
   function render() {
     const root = createRoot();
     if (root.hidden) return;
