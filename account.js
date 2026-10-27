@@ -330,7 +330,7 @@
       .vn-ac-toggle:checked:before{transform:translateX(19px)}
       .vn-ac-preference{display:flex;align-items:center;justify-content:space-between;gap:20px;border:1px solid #dedede;border-radius:4px;padding:18px 20px;margin:12px 0}
       .vn-ac-preference strong{display:inline;font-size:13px}
-      .vn-ac-preference>div{display:flex;align-items:center;gap:0}
+      .vn-ac-preference>div{display:flex;align-items:center;gap:0;white-space:nowrap}
       .vn-ac-preference small{display:block;color:#777;margin-top:5px}
       .vn-ac-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:24px 0}
       .vn-ac-stat{border:1px solid #dedede;border-radius:4px;padding:20px}
@@ -375,7 +375,9 @@
       .vn-ac-footer-policies .vn-ac-legal-item{display:inline-flex;gap:3px;padding:0;border:0;color:#a8a8a8;font:10px/1.4 Arial,sans-serif;text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
       .vn-ac-footer-policies .vn-ac-legal-item:hover{color:#fff}
       .vn-ac-footer-country{display:inline-flex;align-items:center;color:#a8a8a8;font:10px/1.4 Arial,sans-serif;white-space:nowrap}
-      .vn-ac-footer-country select{max-width:160px;padding:0 2px 0 0;border:0;outline:0;background:transparent;color:inherit;font:inherit;cursor:pointer}
+      .vn-ac-footer-country select{width:auto;max-width:none;padding:0 1px 0 0;border:0;outline:0;background:transparent;color:inherit;font:inherit;cursor:pointer;appearance:none;-webkit-appearance:none}
+      .vn-ac-footer-country::after{content:"⌄";margin-left:2px;font-size:10px;line-height:1;pointer-events:none}
+      .vn-ac-profile-action{min-height:30px;padding:6px 12px;font-size:11px;letter-spacing:.3px;text-decoration:none}
       .vn-ac-footer-country select option{color:#111;background:#fff}
       .vn-ac-profile-detail-row{display:flex;align-items:center;justify-content:space-between;gap:18px}
       .vn-ac-profile-detail-label{display:flex;align-items:center;min-width:0}
@@ -687,10 +689,10 @@
           <div class="vn-ac-profile-item">
             <div class="vn-ac-row"><div><strong>${escapeHTML(fullName || "Enter name")}</strong></div><button class="vn-ac-button secondary" data-ac-action="edit-contact">Edit</button></div>
           </div>
-          <section class="vn-ac-profile-section"><div class="vn-ac-profile-section-head"><strong>Email</strong><button class="vn-ac-text-action" data-ac-action="edit-contact">Edit</button></div>
+          <section class="vn-ac-profile-section"><div class="vn-ac-profile-section-head"><strong>Email</strong><button type="button" class="vn-ac-button secondary vn-ac-profile-action" data-ac-action="edit-contact">Edit</button></div>
             <div class="vn-ac-row vn-ac-profile-detail-row"><div class="vn-ac-profile-detail-label"><strong>Email</strong></div><div class="vn-ac-profile-detail-value"><small>${escapeHTML(email)}</small></div></div>
           </section>
-          <section class="vn-ac-profile-section"><div class="vn-ac-profile-section-head"><strong>Addresses</strong><button class="vn-ac-text-action" data-ac-action="edit-addresses">Add</button></div>
+          <section class="vn-ac-profile-section"><div class="vn-ac-profile-section-head"><strong>Addresses</strong><button type="button" class="vn-ac-button secondary vn-ac-profile-action" data-ac-action="edit-addresses">Add</button></div>
             <div class="vn-ac-row vn-ac-profile-detail-row"><div class="vn-ac-profile-detail-label"><span class="vn-ac-profile-icon" aria-hidden="true">⌖</span><strong>${state.addresses.length ? escapeHTML(state.addresses.length + " saved address(es)") : "No addresses added"}</strong></div></div>
           </section>
           <section class="vn-ac-profile-section"><div class="vn-ac-profile-section-head"><strong>Marketing preferences</strong></div>
@@ -1684,6 +1686,10 @@
       state.message = error && metadataResult.error
         ? `Could not save country: ${metadataResult.error.message}`
         : "";
+      if (!state.message) {
+        const current = document.querySelector("#vnAccountOverlay [data-ac-country]");
+        if (current) current.blur();
+      }
       render();
     }
   });
