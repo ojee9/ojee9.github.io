@@ -356,6 +356,17 @@
       .vn-ac-muted{font-size:12px;color:#777}
       .vn-ac-muted a{color:inherit;text-decoration:underline}
       .vn-ac-legal-copy{white-space:pre-line;line-height:1.8;color:#555;font-size:13px}
+      .vn-ac-account-footer{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px 22px;margin:28px 0 0;padding:18px 0 2px;border-top:1px solid #393939}
+      .vn-ac-account-footer button{padding:0;border:0;background:none;color:#aaa;font:10px/1.5 Arial,sans-serif;letter-spacing:.8px;text-decoration:none;cursor:pointer}
+      .vn-ac-account-footer button:hover{color:#fff}
+      .vn-ac-account-footer button[aria-current="page"]{color:#fff}
+      .vn-ac-profile-legal{display:flex;flex-wrap:wrap;gap:7px 16px;margin:20px 0 0;padding-top:16px;border-top:1px solid #393939}
+      .vn-ac-profile-legal .vn-ac-legal-list{display:contents}
+      .vn-ac-profile-legal .vn-ac-legal-item{display:inline-flex;gap:5px;align-items:center;color:#a8a8a8;font-size:10px;line-height:1.5;text-decoration:underline;text-underline-offset:3px}
+      .vn-ac-profile-legal .vn-ac-legal-item:hover{color:#fff}
+      .vn-ac-profile-country{margin-top:20px}
+      .vn-ac-profile-signout{margin-top:22px;padding-top:18px;border-top:1px solid #393939}
+      .vn-ac-profile-signout .vn-ac-button{font-size:10px;letter-spacing:.7px}
       .vn-ac-empty{padding:24px;border:1px solid #e5e5e5;color:#777;font-size:13px}
       @media(max-width:700px){
         .vn-ac-shell{padding:17px}
@@ -560,6 +571,24 @@
     `;
   }
 
+  function accountFooter() {
+    const entries = [
+      ["dashboard", "DASHBOARD"],
+      ["profile", "MY PROFILE"],
+      ["orders", "MY ORDERS"],
+      ["returns", "MY RETURNS"],
+      ["help", "HELP CENTER"]
+    ];
+
+    return `
+      <nav class="vn-ac-account-footer" aria-label="Account navigation">
+        ${entries.map(([key, label]) => `
+          <button type="button" data-ac-section="${key}" ${state.section === key ? 'aria-current="page"' : ""}>${label}</button>
+        `).join("")}
+      </nav>
+    `;
+  }
+
   function renderDashboard() {
     return `
       <div class="vn-ac-layout">
@@ -650,15 +679,15 @@
               aria-label="Email marketing preferences" ${state.marketingUpdates ? "checked" : ""}>
           </div>
 
-          <div class="vn-ac-actions">
-            <button class="vn-ac-button secondary" data-ac-action="signout">SIGN OUT</button>
+          <div class="vn-ac-profile-country">
+            <label class="vn-ac-field"><span>Country / Region</span>
+              <select data-ac-country>${countryOptions(state.country)}</select>
+            </label>
+          </div>
+          <div class="vn-ac-profile-legal">${legalLinks()}</div>
+          <div class="vn-ac-profile-signout">
             <button class="vn-ac-button danger" data-ac-action="signout-all">SIGN OUT FROM ALL DEVICES</button>
           </div>
-
-          <label class="vn-ac-field"><span>Country / Region</span>
-            <select data-ac-country>${countryOptions(state.country)}</select>
-          </label>
-          ${legalLinks()}
         </main>
       </div>
     `;
@@ -879,6 +908,10 @@
     else if (state.section === "help") content.innerHTML = renderHelp();
     else if (state.section === "legal") content.innerHTML = renderLegal();
     else content.innerHTML = renderDashboard();
+
+    if (["dashboard", "profile", "orders", "returns", "help"].includes(state.section)) {
+      content.insertAdjacentHTML("beforeend", accountFooter());
+    }
   }
 
   /*
@@ -1304,7 +1337,8 @@
       state.screen = "email";
       state.message = "";
     } else {
-      state.section = state.section === "dashboard" ? "profile" : "dashboard";
+      state.section = "dashboard";
+      state.message = "";
     }
 
     createRoot().hidden = false;
