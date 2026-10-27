@@ -329,7 +329,8 @@
       .vn-ac-toggle:checked{background:#171717}
       .vn-ac-toggle:checked:before{transform:translateX(19px)}
       .vn-ac-preference{display:flex;align-items:center;justify-content:space-between;gap:20px;border:1px solid #dedede;border-radius:4px;padding:18px 20px;margin:12px 0}
-      .vn-ac-preference strong{display:block;font-size:13px}
+      .vn-ac-preference strong{display:inline;font-size:13px}
+      .vn-ac-preference>div{display:flex;align-items:center;gap:0}
       .vn-ac-preference small{display:block;color:#777;margin-top:5px}
       .vn-ac-stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:24px 0}
       .vn-ac-stat{border:1px solid #dedede;border-radius:4px;padding:20px}
@@ -374,7 +375,7 @@
       .vn-ac-footer-policies .vn-ac-legal-item{display:inline-flex;gap:3px;padding:0;border:0;color:#a8a8a8;font:10px/1.4 Arial,sans-serif;text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
       .vn-ac-footer-policies .vn-ac-legal-item:hover{color:#fff}
       .vn-ac-footer-country{display:inline-flex;align-items:center;color:#a8a8a8;font:10px/1.4 Arial,sans-serif;white-space:nowrap}
-      .vn-ac-footer-country select{max-width:125px;padding:0 14px 0 0;border:0;outline:0;background:transparent;color:inherit;font:inherit;cursor:pointer}
+      .vn-ac-footer-country select{max-width:160px;padding:0 2px 0 0;border:0;outline:0;background:transparent;color:inherit;font:inherit;cursor:pointer}
       .vn-ac-footer-country select option{color:#111;background:#fff}
       .vn-ac-profile-detail-row{display:flex;align-items:center;justify-content:space-between;gap:18px}
       .vn-ac-profile-detail-label{display:flex;align-items:center;min-width:0}
@@ -389,7 +390,7 @@
       .vn-ac-profile-icon{display:inline-block;margin-right:10px;color:#777;font-size:16px}
       .vn-ac-profile-section .vn-ac-row{margin:0}
       .vn-ac-profile-section .vn-ac-preference{margin:0}
-      .vn-ac-profile-signout{display:flex;flex-direction:column;align-items:flex-start;gap:9px;margin-top:24px;padding-top:16px;border-top:1px solid #eee}
+      .vn-ac-profile-signout{display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;gap:9px;margin-top:24px;padding-top:0;border-top:0}
       .vn-ac-profile-signout .vn-ac-button{min-height:34px;padding:7px 10px;font-size:10px;letter-spacing:.6px}
       .vn-ac-profile-signout .vn-ac-button.secondary{color:#222;border-color:#aaa}
       .vn-ac-profile-signout .vn-ac-button.danger{color:#999;border-color:#ddd}
@@ -399,7 +400,7 @@
       @media(max-width:700px){.vn-ac-policy-footer-row{gap:5px 10px}.vn-ac-footer-policies .vn-ac-legal-list{gap:6px 10px}}
       #profile-open.vn-ac-avatar-initial{display:inline-flex;align-items:center;justify-content:center;font:600 14px/1 Arial,sans-serif;text-transform:uppercase}
       .vn-ac-profile-country{margin-top:20px}
-      .vn-ac-profile-signout{margin-top:22px;padding-top:18px;border-top:1px solid #393939}
+      .vn-ac-profile-signout{display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;gap:9px;margin-top:22px;padding-top:0;border-top:0}
       .vn-ac-profile-signout .vn-ac-button{font-size:10px;letter-spacing:.7px}
       .vn-ac-empty{padding:24px;border:1px solid #e5e5e5;color:#777;font-size:13px}
       @media(max-width:700px){
@@ -652,21 +653,15 @@
   }
 
   function countryOptions(selected) {
-    const list = state.config?.account?.profile?.country?.options || [
-      { code: "TR", name: "Türkiye" },
-      { code: "US", name: "United States" },
-      { code: "GB", name: "United Kingdom" },
-      { code: "DE", name: "Germany" },
-      { code: "FR", name: "France" },
-      { code: "NL", name: "Netherlands" },
-      { code: "CA", name: "Canada" },
-      { code: "AU", name: "Australia" }
-    ];
-
-    return list.map(item => `
-      <option value="${escapeHTML(item.code)}" ${item.code === selected ? "selected" : ""}>
-        ${escapeHTML(item.name)}
-      </option>
+    const codes = "AD AE AF AG AI AL AM AO AQ AR AS AT AU AW AX AZ BA BB BD BE BF BG BH BI BJ BL BM BN BO BQ BR BS BT BV BW BY BZ CA CC CD CF CG CH CI CK CL CM CN CO CR CU CV CW CX CY CZ DE DJ DK DM DO DZ EC EE EG EH ER ES ET FI FJ FK FM FO FR GA GB GD GE GF GG GH GI GL GM GN GP GQ GR GS GT GU GW GY HK HM HN HR HT HU ID IE IL IM IN IO IQ IR IS IT JE JM JO JP KE KG KH KI KM KN KP KR KW KY KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MF MG MH MK ML MM MN MO MP MQ MR MS MT MU MV MW MX MY MZ NA NC NE NF NG NI NL NO NP NR NU NZ OM PA PE PF PG PH PK PL PM PN PR PS PT PW PY QA RE RO RS RU RW SA SB SC SD SE SG SH SI SJ SK SL SM SN SO SR SS ST SV SX SY SZ TC TD TF TG TH TJ TK TL TM TN TO TR TT TV TW TZ UA UG UM US UY UZ VA VC VE VG VI VN VU WF WS YE YT ZA ZM ZW".split(" ");
+    const displayNames = new Intl.DisplayNames(["en"], { type: "region" });
+    const list = state.config?.account?.profile?.country?.options;
+    const options = list?.length ? list : codes.map(code => ({
+      code,
+      name: code === "TR" ? "Türkiye" : displayNames.of(code)
+    }));
+    return options.map(item => `
+      <option value="${escapeHTML(item.code)}" ${item.code === selected ? "selected" : ""}>${escapeHTML(item.name)}</option>
     `).join("");
   }
 
@@ -1685,10 +1680,10 @@
       }, { onConflict: "id" });
       const metadataResult = await state.supabase.auth.updateUser({ data: { country: state.country } });
       state.profile = { ...state.profile, country: state.country };
-      state.messageType = error && metadataResult.error ? "error" : "success";
+      state.messageType = error && metadataResult.error ? "error" : "";
       state.message = error && metadataResult.error
         ? `Could not save country: ${metadataResult.error.message}`
-        : "Country preference saved.";
+        : "";
       render();
     }
   });
