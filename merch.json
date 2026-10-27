@@ -1,1 +1,99 @@
 
+
+{
+  "supabase": {
+    "url": "https://lzihjhmccdvniditnubf.supabase.co",
+    "publishableKey": "sb_publishable_D438U6YN0w0gZ3yrg4SPBQ_RBMJ_ymO"
+  },
+  "account": {
+    "otpType": "email",
+    "otpLength": 6
+  },
+  "cookies": {
+    "defaultLanguage": "en",
+    "defaultPreferences": {
+      "essential": true,
+      "functional": false,
+      "analytics": false,
+      "advertising": false
+    }
+  },
+  "policies": {
+    "terms": {
+      "title": "Terms of Use",
+      "sections": [
+        {
+          "heading": "Introduction",
+          "text": "By accessing or using VN SHOP, you agree to these Terms of Use. If you do not agree, please discontinue use of the website."
+        },
+        {
+          "heading": "Website use",
+          "text": "You agree to use this website lawfully and not to interfere with its operation, security, availability, or content. You must not attempt to gain unauthorized access to accounts or systems."
+        },
+        {
+          "heading": "Products and availability",
+          "text": "Product descriptions, images, prices, and availability may change without notice. A product displayed on the website is not a guarantee that it is currently available for purchase."
+        },
+        {
+          "heading": "Accounts and security",
+          "text": "You are responsible for providing accurate information and keeping access to your email account secure. Verification codes are intended for your use only and should not be shared with others."
+        },
+        {
+          "heading": "Intellectual property",
+          "text": "Website content, brand assets, logos, and original materials remain the property of their respective owners. They may not be copied, redistributed, or used commercially without permission."
+        },
+        {
+          "heading": "Changes to these terms",
+          "text": "These terms may be updated when necessary. The current version published on this website applies to your use of the service."
+        },
+        {
+          "heading": "Contact",
+          "text": "For questions about these terms, visit Help & Support."
+        }
+      ]
+    },
+    "privacy": {
+      "title": "Privacy Policy",
+      "sections": [
+        {
+          "heading": "Introduction",
+          "text": "VN SHOP respects your privacy. This notice explains the main types of information that may be processed when you use the website."
+        },
+        {
+          "heading": "Information you provide",
+          "text": "If you use account sign-in, your email address is processed to send a verification code and establish your account session. If you choose to receive updates from 9ojeez9, that preference may also be associated with the account sign-up request."
+        },
+        {
+          "heading": "Authentication",
+          "text": "Account authentication is provided by Supabase. Your email address, verification requests, and authentication session are processed as needed to provide sign-in functionality. Never share a verification code with anyone."
+        },
+        {
+          "heading": "Cookies and preferences",
+          "text": "The website stores your cookie preferences in your browser so that your selections can be remembered. You can review those choices using Cookie Choices in the website footer."
+        },
+        {
+          "heading": "How information is used",
+          "text": "Information may be used to operate account features, maintain website security, remember your preferences, and provide features you request."
+        },
+        {
+          "heading": "Third-party services",
+          "text": "The website relies on third-party services for functionality such as authentication and loading external resources. Those services may process technical data under their own terms and privacy notices."
+        },
+        {
+          "heading": "Your choices",
+          "text": "You can choose whether to request account sign-in and whether to opt in to updates. You can also adjust your cookie preferences using Cookie Choices."
+        },
+        {
+          "heading": "Contact",
+          "text": "For privacy questions, visit Help & Support. The full published policy is also available at Privacy Policy."
+        }
+      ]
+    },
+    "links": {
+      "help": "help.html",
+      "terms": "policies/terms-of-sale.html",
+      "privacy": "policies/privacy-policy.html",
+      "legalNotice": "policies/legal-notice.html"
+    }
+  }
+}
