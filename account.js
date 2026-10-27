@@ -374,9 +374,9 @@
       .vn-ac-footer-policies .vn-ac-legal-list{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 14px;margin:0;border:0}
       .vn-ac-footer-policies .vn-ac-legal-item{display:inline-flex;gap:3px;padding:0;border:0;color:#a8a8a8;font:10px/1.4 Arial,sans-serif;text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
       .vn-ac-footer-policies .vn-ac-legal-item:hover{color:#fff}
-      .vn-ac-footer-country{display:inline-flex;align-items:center;color:#a8a8a8;font:10px/1.4 Arial,sans-serif;white-space:nowrap}
-      .vn-ac-footer-country select{width:auto;max-width:none;padding:0 1px 0 0;border:0;outline:0;background:transparent;color:inherit;font:inherit;cursor:pointer;appearance:none;-webkit-appearance:none}
-      .vn-ac-footer-country::after{content:"⌄";margin-left:2px;font-size:10px;line-height:1;pointer-events:none}
+      .vn-ac-footer-country{display:inline-flex;align-items:center;gap:2px;color:#a8a8a8;font:10px/1.4 Arial,sans-serif;white-space:nowrap}
+      .vn-ac-footer-country select{width:auto;max-width:150px;padding:0;border:0;outline:0;background:transparent;color:inherit;font:inherit;cursor:pointer;appearance:none;-webkit-appearance:none}
+      .vn-ac-footer-country::after{content:"⌄";display:inline-block;margin:0;font-size:10px;line-height:1;pointer-events:none;flex:0 0 auto}
       .vn-ac-profile-action{min-height:30px;padding:6px 12px;font-size:11px;letter-spacing:.3px;text-decoration:none}
       .vn-ac-footer-country select option{color:#111;background:#fff}
       .vn-ac-profile-detail-row{display:flex;align-items:center;justify-content:space-between;gap:18px}
@@ -762,15 +762,15 @@
   }
 
   function countryOptions(selected) {
-    const codes = "AD AE AF AG AI AL AM AO AQ AR AS AT AU AW AX AZ BA BB BD BE BF BG BH BI BJ BL BM BN BO BQ BR BS BT BV BW BY BZ CA CC CD CF CG CH CI CK CL CM CN CO CR CU CV CW CX CY CZ DE DJ DK DM DO DZ EC EE EG EH ER ES ET FI FJ FK FM FO FR GA GB GD GE GF GG GH GI GL GM GN GP GQ GR GS GT GU GW GY HK HM HN HR HT HU ID IE IL IM IN IO IQ IR IS IT JE JM JO JP KE KG KH KI KM KN KP KR KW KY KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MF MG MH MK ML MM MN MO MP MQ MR MS MT MU MV MW MX MY MZ NA NC NE NF NG NI NL NO NP NR NU NZ OM PA PE PF PG PH PK PL PM PN PR PS PT PW PY QA RE RO RS RU RW SA SB SC SD SE SG SH SI SJ SK SL SM SN SO SR SS ST SV SX SY SZ TC TD TF TG TH TJ TK TL TM TN TO TR TT TV TW TZ UA UG UM US UY UZ VA VC VE VG VI VN VU WF WS YE YT ZA ZM ZW".split(" ");
+    const codes = "AD AE AF AG AI AL AM AO AQ AR AS AT AU AW AX AZ BA BB BD BE BF BI BJ BL BM BN BO BQ BR BS BT BV BW BY BZ CA CC CD CF CG CH CI CK CL CM CN CO CR CU CV CW CX CY CZ DE DJ DK DM DO DZ EC EE EG EH ER ES ET FI FJ FK FM FO FR GA GB GD GE GF GG GH GI GL GM GN GP GQ GR GS GT GU GW GY HK HM HN HR HT HU ID IE IL IM IN IO IQ IR IS JE JM JO JP KE KG KH KI KM KN KP KR KW KY KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MF MG MH MK ML MM MN MO MP MQ MR MS MT MU MV MW MX MY MZ NA NC NE NF NG NI NL NO NP NR NU NZ OM PA PE PF PG PH PK PL PM PN PR PS PT PW PY QA RE RO RS RU RW SA SB SC SD SE SG SH SI SJ SK SL SM SN SO SR SS ST SV SX SY SZ TC TD TF TG TH TJ TK TL TM TN TO TR TT TV TW TZ UA UG UM US UY UZ VA VC VE VG VI VN VU WF WS YE YT ZA ZM ZW".split(" ");
     const displayNames = new Intl.DisplayNames(["en"], { type: "region" });
-    const list = state.config?.account?.profile?.country?.options;
-    const options = list?.length ? list : codes.map(code => ({
-      code,
-      name: code === "TR" ? "Türkiye" : displayNames.of(code)
-    }));
-    return options.map(item => `
-      <option value="${escapeHTML(item.code)}" ${item.code === selected ? "selected" : ""}>${escapeHTML(item.name)}</option>
+    const configured = state.config?.account?.profile?.country?.options || [];
+    const names = new Map(codes.map(code => [code, code === "TR" ? "Türkiye" : displayNames.of(code)]));
+    configured.forEach(item => {
+      if (item?.code && item?.name) names.set(item.code, item.name);
+    });
+    return codes.map(code => `
+      <option value="${escapeHTML(code)}" ${code === selected ? "selected" : ""}>${escapeHTML(names.get(code) || code)}</option>
     `).join("");
   }
 
