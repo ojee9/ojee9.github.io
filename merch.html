@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,6 +8,65 @@
 <title>VN SHOP® — 9ojeez9</title>
 <link rel="stylesheet" href="merch.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+.account-nav{display:flex;gap:20px;border-bottom:1px solid #ddd;padding:16px 0;margin-bottom:22px}
+.account-nav button,.account-link,.account-action{background:none;border:0;cursor:pointer;text-align:left;font:inherit;color:inherit}
+.account-nav button.active{font-weight:700;text-decoration:underline;text-underline-offset:5px}
+.account-page[hidden],.account-view[hidden]{display:none!important}
+.account-heading{font-size:clamp(22px,4vw,32px);margin:8px 0 22px}
+.account-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.account-card{border:1px solid #d8d8d8;padding:18px;min-width:0}
+.account-card h3{font-size:13px;letter-spacing:.06em;margin:0 0 12px}
+.account-card p{font-size:14px;line-height:1.5;margin:0 0 12px}
+.account-card button,.account-row button,.account-buttons button{border:1px solid currentColor;background:transparent;padding:10px 14px;cursor:pointer;font:inherit;font-size:12px;letter-spacing:.04em}
+.account-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 0;border-bottom:1px solid #d8d8d8}
+.account-row h3{font-size:14px;margin:0 0 6px}
+.account-row p{font-size:13px;line-height:1.5;margin:0;overflow-wrap:anywhere}
+.account-row-main{min-width:0;flex:1}
+.account-switch{position:relative;display:inline-flex;flex-shrink:0}
+.account-switch input{position:absolute;opacity:0;width:1px;height:1px}
+.account-switch span{width:46px;height:27px;border-radius:30px;background:#aaa;display:block;position:relative;cursor:pointer;transition:background .2s}
+.account-switch span:after{content:"";position:absolute;width:21px;height:21px;border-radius:50%;background:#fff;top:3px;left:3px;transition:transform .2s}
+.account-switch input:checked+span{background:#252525}
+.account-switch input:checked+span:after{transform:translateX(19px)}
+.account-switch input:focus-visible+span{outline:2px solid #555;outline-offset:3px}
+.account-buttons{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}
+.account-buttons .danger{border-color:#8b1b2b;color:#8b1b2b}
+.account-small{font-size:12px;color:#777;margin-top:28px;line-height:1.6}
+.account-country{margin:20px 0}
+.account-country label{display:block;font-size:12px;margin-bottom:8px}
+.account-country select,.account-edit-form input,.account-edit-form textarea,.account-edit-form select{width:100%;padding:12px;border:1px solid #ccc;background:transparent;color:inherit;font:inherit}
+.account-legal{border:1px solid #d8d8d8;margin-top:18px}
+.account-legal details{padding:14px;border-bottom:1px solid #d8d8d8}
+.account-legal details:last-child{border-bottom:0}
+.account-legal summary{cursor:pointer;font-size:12px;letter-spacing:.04em}
+.account-legal p{font-size:13px;line-height:1.6;margin:12px 0 0}
+.account-edit-form{display:grid;gap:14px}
+.account-edit-form label{display:grid;gap:7px;font-size:13px}
+.account-edit-form .primary-button{width:100%}
+.account-message{font-size:13px;line-height:1.5;margin:12px 0}
+.account-message:empty{display:none}
+.account-stat{font-size:28px;font-weight:600}
+.account-back{margin-bottom:16px}
+.account-return-card{margin-top:16px}
+.account-divider{border:0;border-top:1px solid #ddd;margin:20px 0}
+.account-empty{padding:22px 0;line-height:1.6;font-size:14px}
+.otp-fields{display:flex;gap:8px;margin:18px 0}
+.otp-input{width:42px;min-width:0;height:48px;text-align:center;font-size:20px;border:1px solid #ccc;background:transparent;color:inherit}
+#otp-status:empty,#account-status:empty{display:none}
+#otp-resend,#otp-back{margin:10px 12px 0 0;background:none;border:0;text-decoration:underline;cursor:pointer;font:inherit;font-size:13px}
+#account-form label{display:flex;gap:8px;align-items:flex-start;margin:14px 0}
+#account-form input[type=email]{width:100%;padding:13px;border:1px solid #ccc;background:transparent;color:inherit}
+#account-form p{font-size:13px;line-height:1.6;margin:14px 0}
+#account-form .account-submit{width:100%}
+@media(max-width:480px){
+ .account-grid{grid-template-columns:1fr}
+ .account-row{align-items:flex-start}
+ .account-row button{padding:9px 10px}
+ .otp-fields{gap:5px}
+ .otp-input{width:calc((100% - 25px)/6)}
+}
+</style>
 </head>
 <body>
 <header class="header">
@@ -87,12 +145,12 @@ const category=$("category-select"),search=$("search-input");
 const detail=$("detail-overlay"),cartOverlay=$("cart-overlay");
 const detailContent=$("detail-content"),cartContent=$("cart-content");
 let activeCategory="ALL",query="",activeProduct=null,quantity=1,variant="";
-let cart=[];
+let cart=[],currentSession=null;
 
 const categories=config.categories||["ALL","CD","VINYL","TOPS","OUTERWEAR","PANTS","XTRAS","ALL MERCH"];
 category.innerHTML=categories.map(c=>`<option value="${esc(typeof c==="string"?c:c.value)}">${esc(typeof c==="string"?c:c.label)}</option>`).join("");
 
-$("copyright").textContent=config.copyright||"";
+$("copyright").textContent=config.copyright||config.site?.copyright||"";
 $("detail-drawer-title").textContent=config.labels?.productDetails||"";
 $("cart-drawer-title").textContent=config.labels?.yourCart||"";
 
@@ -176,7 +234,7 @@ function renderCart(){
  }
  const subtotal=cart.reduce((n,x)=>n+price(x.product)*x.quantity,0);
  cartContent.innerHTML=`<div class="cart-items">${cart.map(x=>`<article class="cart-item"><div class="cart-item-image"><img src="${esc(x.product.image||"")}" alt="${esc(x.product.name)}"></div><div class="cart-item-info"><h3 class="cart-item-name">${esc(x.product.name)}</h3>${x.variant?`<div>${esc(x.variant)}</div>`:""}<div class="cart-item-price">${esc(x.product.price)}</div><div class="cart-item-bottom"><div class="cart-quantity"><button type="button" data-change="-1" data-key="${esc(x.key)}">−</button><span>${x.quantity}</span><button type="button" data-change="1" data-key="${esc(x.key)}">+</button></div><button type="button" data-remove="${esc(x.key)}">${esc(t("remove"))}</button></div></div></article>`).join("")}</div><div class="cart-summary"><div class="cart-subtotal"><span>${esc(t("subtotal"))}</span><strong>${esc(money(subtotal))}</strong></div><p class="cart-disclaimer">${esc(t("shippingDisclaimer"))}</p><button type="button" class="primary-button full-button" id="checkout-button">${esc(t("checkout"))}</button><button type="button" class="secondary-button full-button" id="cart-continue">${esc(t("continueShopping"))}</button></div>`;
- cartContent.querySelectorAll("[data-change]").forEach(b=>b.onclick=()=>{const x=cart.find(x=>x.key===b.dataset.key);if(x)x.quantity+=Number(b.dataset.change);cart=cart.filter(x=>x.quantity>0);renderCart()});
+ cartContent.querySelectorAll("[data-change]").forEach(b=>b.onclick=()=>{const x=cart.find(x=>x.key===b.dataset.key);if(x)x.quantity=Math.max(0,Math.min(99,x.quantity+Number(b.dataset.change)));cart=cart.filter(x=>x.quantity>0);renderCart()});
  cartContent.querySelectorAll("[data-remove]").forEach(b=>b.onclick=()=>{cart=cart.filter(x=>x.key!==b.dataset.remove);renderCart()});
  $("cart-continue").onclick=()=>close(cartOverlay);
  $("checkout-button").onclick=()=>alert(t("checkoutUnavailable"));
@@ -194,85 +252,472 @@ $("cart-open").onclick=e=>{e.preventDefault();renderCart();open(cartOverlay)};
 $("detail-close").onclick=()=>close(detail);
 $("cart-close").onclick=()=>close(cartOverlay);
 [detail,cartOverlay].forEach(overlay=>overlay.onclick=e=>{if(e.target===overlay)close(overlay)});
-document.addEventListener("keydown",e=>{if(e.key==="Escape")[detail,cartOverlay].forEach(overlay=>close(overlay))});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")[detail,cartOverlay,...host.querySelectorAll(".drawer-overlay.is-open")].forEach(overlay=>close(overlay))});
 
-/* Configured account, policy and cookie interfaces */
+/* Account, profile, orders, returns, help, policy and cookie interfaces */
 const host=$("merch-config-ui");
 function modal(id,title,content){
  const el=document.createElement("div");el.className="drawer-overlay";el.id=id;el.setAttribute("aria-hidden","true");
  el.innerHTML=`<section class="drawer" role="dialog" aria-modal="true"><header class="drawer-head"><h2 class="drawer-title">${esc(title)}</h2><button type="button" class="drawer-close" aria-label="${esc(t("close"))}">×</button></header><div class="drawer-content">${content}</div></section>`;
- el.querySelector(".drawer-close").onclick=()=>close(el);el.onclick=e=>{if(e.target===el)close(el)};host.append(el);return el;
+ el.querySelector(".drawer-close").onclick=()=>close(el);
+ el.onclick=e=>{if(e.target===el)close(el)};
+ host.append(el);return el;
 }
+const $in=(root,id)=>root.querySelector("#"+id);
 const account=config.account||{};
 const accountLabels=account.labels||{};
 const accountPanel=modal("account-overlay",accountLabels.title||t("signIn"),`
- <div id="account-status" role="status"></div><form id="account-form"><p>${esc(accountLabels.subtitle||"")}</p><input id="account-email" type="email" required autocomplete="email" placeholder="${esc(accountLabels.emailPlaceholder||"")}" aria-label="${esc(accountLabels.emailPlaceholder||"Email")}"><label><input id="account-updates" type="checkbox"> ${esc(accountLabels.updatesOptIn||"")}</label><p>${esc(accountLabels.termsPrefix||"")} <a href="${esc(config.policies?.links?.terms||"#")}">${esc(accountLabels.termsLink||"")}</a> <a href="${esc(config.policies?.links?.privacy||"#")}">${esc(accountLabels.privacyLink||"")}</a></p><button class="primary-button account-submit" type="submit">${esc(accountLabels.continue||t("continue"))}</button></form>
- <form id="otp-form" hidden><p>${esc(accountLabels.otpDescription||"")}</p><div class="otp-fields">${Array.from({length:account.otpLength||6},(_,i)=>`<input class="otp-input" inputmode="numeric" maxlength="1" aria-label="${esc(t("verificationDigit"))} ${i+1}">`).join("")}</div><p id="otp-status" role="status"></p><button class="primary-button" id="otp-verify" type="submit">${esc(accountLabels.verifyCode||t("verify"))}</button><button type="button" id="otp-resend">${esc(accountLabels.resendCode||t("resendCode"))}</button><button type="button" id="otp-back">${esc(accountLabels.changeEmail||t("changeEmail"))}</button></form>
- <div id="account-profile" hidden><p id="profile-email"></p><button type="button" id="sign-out">${esc(accountLabels.signOut||t("signOut"))}</button></div>`);
-const $in=(root,id)=>root.querySelector("#"+id);
-$("profile-open").onclick=()=>{open(accountPanel);$in(accountPanel,"account-email").focus()};
-const accountForm=$in(accountPanel,"account-form"),otpForm=$in(accountPanel,"otp-form");
-let pendingEmail="";
-accountForm.onsubmit=async e=>{
- e.preventDefault();if(!client)return;
- const email=$in(accountPanel,"account-email").value.trim(),button=accountForm.querySelector("button[type=submit]");
- button.disabled=true;
- try{
-  const {error}=await client.auth.signInWithOtp({email,options:{shouldCreateUser:true,data:{marketing_updates:$in(accountPanel,"account-updates").checked}}});
-  if(error)throw error;pendingEmail=email;accountForm.hidden=true;otpForm.hidden=false;
+ <div id="account-status" class="account-message" role="status"></div>
+ <form id="account-form">
+  <p>${esc(accountLabels.subtitle||"Enter your email to receive a verification code.")}</p>
+  <input id="account-email" type="email" required autocomplete="email" placeholder="${esc(accountLabels.emailPlaceholder||"Email address")}" aria-label="${esc(accountLabels.emailPlaceholder||"Email address")}">
+  <label><input id="account-updates" type="checkbox"> ${esc(accountLabels.updatesOptIn||"Receive marketing emails")}</label>
+  <p>${esc(accountLabels.termsPrefix||"By continuing, you agree to our")} <a href="${esc(config.policies?.links?.terms||"#")}">${esc(accountLabels.termsLink||"Terms of Use")}</a> <a href="${esc(config.policies?.links?.privacy||"#")}">${esc(accountLabels.privacyLink||"Privacy Policy")}</a></p>
+  <button class="primary-button account-submit" type="submit">${esc(accountLabels.continue||t("continue"))}</button>
+ </form>
+ <form id="otp-form" hidden>
+  <p>${esc(accountLabels.otpDescription||"Enter the verification code sent to your email address.")}</p>
+  <div class="otp-fields">${Array.from({length:account.otpLength||6},(_,i)=>`<input class="otp-input" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="${i===0?"one-time-code":"off"}" aria-label="Verification digit ${i+1}">`).join("")}</div>
+  <p id="otp-status" class="account-message" role="status"></p>
+  <button class="primary-button" id="otp-verify" type="submit">${esc(accountLabels.verifyCode||t("verify"))}</button>
+  <button type="button" id="otp-resend">${esc(accountLabels.resendCode||t("resendCode"))}</button>
+  <button type="button" id="otp-back">${esc(accountLabels.changeEmail||t("changeEmail"))}</button>
+ </form>
+ <div id="account-profile" hidden>
+  <p id="profile-email"></p>
+  <button type="button" class="primary-button full-button" id="account-dashboard-open">DASHBOARD</button>
+  <button type="button" id="sign-out">${esc(accountLabels.signOut||t("signOut"))}</button>
+ </div>`);
+
+const dashboardPanel=modal("dashboard-overlay","MY ACCOUNT",`
+ <nav class="account-nav" aria-label="Account navigation">
+  <button type="button" class="active" data-account-view="dashboard">DASHBOARD</button>
+  <button type="button" data-account-view="shop">SHOP</button>
+ </nav>
+ <section class="account-view" id="account-dashboard-view">
+  <h2 class="account-heading">DASHBOARD</h2>
+  <div class="account-grid">
+   <article class="account-card"><h3>MY ORDERS</h3><p>View your order history and track shipments.</p><button type="button" data-open-view="orders">VIEW ORDERS</button></article>
+   <article class="account-card"><h3>MY RETURNS</h3><p>Start or track a return.</p><button type="button" data-open-view="returns">VIEW RETURNS</button></article>
+   <article class="account-card"><h3>MY PROFILE</h3><p>Update your details and saved addresses.</p><button type="button" data-open-view="profile">EDIT PROFILE</button></article>
+   <article class="account-card"><h3>HELP CENTER</h3><p>Find answers to common questions.</p><button type="button" data-open-view="help">GET HELP</button></article>
+  </div>
+ </section>
+ <section class="account-view" id="account-profile-view" hidden>
+  <button class="account-action account-back" type="button" data-account-view="dashboard">← DASHBOARD</button>
+  <h2 class="account-heading">MY PROFILE</h2>
+  <div class="account-row"><div class="account-row-main"><h3>Contact</h3><p id="profile-contact-summary"></p></div><button type="button" data-edit="contact">EDIT</button></div>
+  <div class="account-row"><div class="account-row-main"><h3>Addresses</h3><p id="profile-address-summary">No saved addresses.</p></div><button type="button" data-edit="address">EDIT</button></div>
+  <div class="account-row"><div class="account-row-main"><h3>Marketing preferences</h3><p>EMAIL</p></div><label class="account-switch" aria-label="Email marketing preferences"><input id="marketing-toggle" type="checkbox"><span></span></label></div>
+  <p class="account-message" id="profile-save-status" role="status"></p>
+  <div class="account-buttons"><button type="button" class="danger" id="profile-sign-out">SIGN OUT</button><button type="button" class="danger" id="profile-sign-out-all">SIGN OUT FROM ALL DEVICES</button></div>
+  <div class="account-small">
+   <div class="account-country"><label for="account-country-select">COUNTRY / REGION</label><select id="account-country-select"></select></div>
+   <div class="account-legal" id="account-legal">
+    <details><summary>REFUND POLICY</summary><p>Review the refund and return conditions that apply to your purchase. Eligible returns must follow the instructions provided by VN SHOP.</p></details>
+    <details><summary>SHIPPING</summary><p>Shipping options, delivery estimates and applicable charges depend on the destination and the order. Tracking information is available when provided by the carrier.</p></details>
+    <details><summary>PRIVACY POLICY</summary><p>Personal information is used to operate your account, support orders and provide services. See the full Privacy Policy for details about data use and your rights.</p></details>
+    <details><summary>TERMS OF USE</summary><p>These terms govern your access to and use of the VN SHOP website and its services.</p></details>
+    <details><summary>TERMS AND CONDITIONS OF SALE</summary><p>These terms cover purchases, payment, order acceptance, delivery and applicable returns or cancellations.</p></details>
+    <details><summary>DO NOT SELL OR SHARE MY PERSONAL INFORMATION</summary><p>Use this option to review applicable privacy choices regarding the sale or sharing of personal information. Your available rights depend on the laws that apply to your location.</p><button type="button" id="privacy-opt-out">SAVE PRIVACY PREFERENCE</button><p id="privacy-opt-out-status" role="status"></p></details>
+   </div>
+  </div>
+ </section>
+ <section class="account-view" id="account-orders-view" hidden>
+  <button class="account-action account-back" type="button" data-account-view="dashboard">← DASHBOARD</button>
+  <h2 class="account-heading">MY ORDERS</h2>
+  <div class="account-grid">
+   <article class="account-card"><h3>TOTAL ORDERS</h3><div class="account-stat" id="orders-total">—</div></article>
+   <article class="account-card"><h3>DELIVERED ORDERS</h3><div class="account-stat" id="orders-delivered">—</div></article>
+   <article class="account-card"><h3>RETURNED ORDERS</h3><div class="account-stat" id="orders-returned">—</div></article>
+   <article class="account-card"><h3>WAITING ORDERS</h3><div class="account-stat" id="orders-waiting">—</div></article>
+  </div>
+  <div class="account-empty" id="orders-list">Order history will appear here when available.</div>
+  <p class="account-message" id="orders-status" role="status"></p>
+ </section>
+ <section class="account-view" id="account-returns-view" hidden>
+  <button class="account-action account-back" type="button" data-account-view="dashboard">← DASHBOARD</button>
+  <h2 class="account-heading">MY RETURNS</h2>
+  <p>Review the return details and instructions associated with your orders.</p>
+  <div class="account-empty" id="returns-list">No return records are available yet. If you need help with an order, contact the Help Center.</div>
+  <p class="account-message" id="returns-status" role="status"></p>
+ </section>
+ <section class="account-view" id="account-help-view" hidden>
+  <button class="account-action account-back" type="button" data-account-view="dashboard">← DASHBOARD</button>
+  <h2 class="account-heading">HELP CENTER</h2>
+  <p>Find answers to common questions about orders, shipping, returns and your account.</p>
+  <a id="account-help-link" href="${esc(config.paths?.help||"help.html")}">OPEN HELP CENTER</a>
+  <div class="account-empty">For order-specific assistance, include your order number when contacting support.</div>
+ </section>
+ <section class="account-view" id="account-edit-view" hidden>
+  <button class="account-action account-back" type="button" data-account-view="profile">← MY PROFILE</button>
+  <h2 class="account-heading" id="account-edit-heading">EDIT PROFILE</h2>
+  <form class="account-edit-form" id="account-edit-form">
+   <div id="account-edit-fields"></div>
+   <p class="account-message" id="account-edit-status" role="status"></p>
+   <button type="submit" class="primary-button">SAVE CHANGES</button>
+  </form>
+ </section>
+`);
+
+const accountViews=["dashboard","profile","orders","returns","help","edit"];
+let activeAccountView="dashboard";
+let profileDetails={name:"",phone:"",address1:"",address2:"",city:"",postalCode:"",country:"Türkiye"};
+let profileLoaded=false;
+
+function setAccountView(view){
+ if(!accountViews.includes(view))view="dashboard";
+ activeAccountView=view;
+ accountViews.forEach(v=>{
+  const el=$("account-"+v+"-view");
+  if(el)el.hidden=v!==view;
+ });
+ dashboardPanel.querySelectorAll("[data-account-view]").forEach(b=>{
+  b.classList.toggle("active",b.dataset.accountView===view);
+ });
+ if(view==="profile")renderProfileDetails();
+ if(view==="orders")loadOrders();
+ if(view==="returns")loadReturns();
+ if(view==="help"){
+  const path=config.paths?.help||"help.html";
+  $("account-help-link").href=path;
+ }
+}
+function showDashboard(){
+ close(accountPanel);
+ setAccountView("dashboard");
+ open(dashboardPanel);
+}
+$("profile-open").onclick=()=>{
+ if(currentSession?.user){showDashboard();return}
+ open(accountPanel);
+ if(!otpForm.hidden)$in(accountPanel,"otp-input")?.focus();
+ else $in(accountPanel,"account-email").focus();
+};
+dashboardPanel.querySelectorAll("[data-account-view]").forEach(b=>b.addEventListener("click",()=>{
+ if(b.dataset.accountView==="shop"){close(dashboardPanel);window.location.href="index.html";return}
+ setAccountView(b.dataset.accountView);
+}));
+dashboardPanel.querySelectorAll("[data-open-view]").forEach(b=>b.addEventListener("click",()=>setAccountView(b.dataset.openView)));
+dashboardPanel.querySelectorAll("[data-edit]").forEach(b=>b.addEventListener("click",()=>openEditForm(b.dataset.edit)));
+$("account-dashboard-open").onclick=showDashboard;
+
+function setAccountStatus(message){$in(accountPanel,"account-status").textContent=message||""}
+let pendingEmail="",sendAttempt=0,sendPromise=null,sendGeneration=0;
+
+function showOtpScreen(email){
+ pendingEmail=email;
+ accountForm.hidden=true;
+ otpForm.hidden=false;
+ otpInputs.forEach(x=>x.value="");
+ $in(accountPanel,"otp-status").textContent="";
+ // Switch screens before beginning the network request.
+ requestAnimationFrame(()=>otpInputs[0]?.focus());
+ sendOtp();
+}
+async function sendOtp(){
+ if(!client){
+  $in(accountPanel,"otp-status").textContent="Sign-in is temporarily unavailable. Please try again later.";
+  return;
+ }
+ const generation=++sendGeneration;
+ sendAttempt++;
+ const resend=$in(accountPanel,"otp-resend");
+ resend.disabled=true;
+ // Do not show a blocking loading screen or a success message.
+ const request=(async()=>{
+  try{
+   const {error}=await client.auth.signInWithOtp({
+    email:pendingEmail,
+    options:{
+     shouldCreateUser:account.shouldCreateUser!==false,
+     data:{marketing_updates:$in(accountPanel,"account-updates").checked}
+    }
+   });
+   if(error)throw error;
+   return {ok:true};
+  }catch(err){
+   console.error("Verification email request failed:",err);
+   return {ok:false,error:err};
+  }
+ })();
+ sendPromise=request;
+ const result=await request;
+ if(generation!==sendGeneration)return;
+ resend.disabled=false;
+ if(result.ok){
   $in(accountPanel,"otp-status").textContent="";
-  accountPanel.querySelector(".otp-input").focus();
- }catch(err){$in(accountPanel,"account-status").textContent=t("otpSendError");console.error(err)}
- finally{button.disabled=false}
+ }else{
+  $in(accountPanel,"otp-status").textContent="The verification email could not be sent. Check the email address and try again.";
+ }
+}
+accountForm.onsubmit=e=>{
+ e.preventDefault();
+ const email=$in(accountPanel,"account-email").value.trim();
+ if(!email||!$in(accountPanel,"account-email").checkValidity()){
+  $in(accountPanel,"account-email").reportValidity();return;
+ }
+ if(!client){setAccountStatus("Sign-in is temporarily unavailable. Please try again later.");return}
+ // Transition immediately. Email delivery happens asynchronously after the screen changes.
+ showOtpScreen(email);
 };
 const otpInputs=[...accountPanel.querySelectorAll(".otp-input")];
 otpInputs.forEach((input,i)=>{
- input.oninput=()=>{input.value=input.value.replace(/\D/g,"").slice(-1);if(input.value&&otpInputs[i+1])otpInputs[i+1].focus();if(otpInputs.every(x=>x.value))otpForm.requestSubmit()};
- input.onkeydown=e=>{if(e.key==="Backspace"&&!input.value&&otpInputs[i-1])otpInputs[i-1].focus()};
+ input.oninput=()=>{
+  input.value=input.value.replace(/\D/g,"").slice(-1);
+  if(input.value&&otpInputs[i+1])otpInputs[i+1].focus();
+  if(otpInputs.every(x=>x.value))otpForm.requestSubmit();
+ };
+ input.onkeydown=e=>{
+  if(e.key==="Backspace"&&!input.value&&otpInputs[i-1])otpInputs[i-1].focus();
+ };
+ input.onpaste=e=>{
+  const pasted=(e.clipboardData?.getData("text")||"").replace(/\D/g,"").slice(0,otpInputs.length);
+  if(!pasted)return;
+  e.preventDefault();
+  pasted.split("").forEach((digit,index)=>{if(otpInputs[index])otpInputs[index].value=digit});
+  otpInputs[Math.min(pasted.length,otpInputs.length)-1]?.focus();
+  if(pasted.length===otpInputs.length)otpForm.requestSubmit();
+ };
 });
 otpForm.onsubmit=async e=>{
- e.preventDefault();if(!client)return;
+ e.preventDefault();
+ if(!client)return;
  const token=otpInputs.map(x=>x.value).join("");
  if(token.length!==(account.otpLength||6))return;
- const button=$in(accountPanel,"otp-verify");button.disabled=true;
+ const button=$in(accountPanel,"otp-verify");
+ button.disabled=true;
+ $in(accountPanel,"otp-status").textContent="";
  try{
   const {data,error}=await client.auth.verifyOtp({email:pendingEmail,token,type:account.otpType||"email"});
-  if(error)throw error;otpForm.hidden=true;$in(accountPanel,"account-profile").hidden=false;
+  if(error)throw error;
+  currentSession=data.session||currentSession;
+  otpForm.hidden=true;
+  $in(accountPanel,"account-profile").hidden=false;
   $in(accountPanel,"profile-email").textContent=data.user?.email||pendingEmail;
- }catch(err){$in(accountPanel,"otp-status").textContent=t("otpVerifyError");console.error(err)}
- finally{button.disabled=false}
+  if(currentSession?.user)await loadProfile();
+ }catch(err){
+  $in(accountPanel,"otp-status").textContent="That code could not be verified. Check it and try again.";
+  console.error("OTP verification failed:",err);
+ }finally{button.disabled=false}
 };
-$in(accountPanel,"otp-back").onclick=()=>{otpForm.hidden=true;accountForm.hidden=false;$in(accountPanel,"account-email").value=pendingEmail};
-$in(accountPanel,"otp-resend").onclick=()=>accountForm.requestSubmit();
-$in(accountPanel,"sign-out").onclick=async()=>{if(!client)return;const {error}=await client.auth.signOut();if(error)return;$in(accountPanel,"account-profile").hidden=true;accountForm.hidden=false;close(accountPanel)};
-if(client)client.auth.onAuthStateChange((event,session)=>{
- if(session?.user){$in(accountPanel,"account-profile").hidden=false;$in(accountPanel,"profile-email").textContent=session.user.email||"";accountForm.hidden=true;otpForm.hidden=true}
- else if(event==="SIGNED_OUT"){$in(accountPanel,"account-profile").hidden=true;accountForm.hidden=false;otpForm.hidden=true}
-});
+$in(accountPanel,"otp-back").onclick=()=>{
+ sendGeneration++;
+ otpForm.hidden=true;accountForm.hidden=false;
+ $in(accountPanel,"account-email").value=pendingEmail;
+ $in(accountPanel,"otp-status").textContent="";
+ otpInputs.forEach(x=>x.value="");
+ $in(accountPanel,"account-email").focus();
+};
+$in(accountPanel,"otp-resend").onclick=()=>{
+ if(!pendingEmail)return;
+ sendOtp();
+};
+$in(accountPanel,"sign-out").onclick=signOut;
+$("profile-sign-out").onclick=signOut;
+$("profile-sign-out-all").onclick=async()=>{
+ if(!client)return;
+ const status=$("profile-save-status");
+ status.textContent="";
+ try{
+  const {error}=await client.auth.signOut({scope:"global"});
+  if(error)throw error;
+  currentSession=null;
+  close(dashboardPanel);open(accountPanel);
+  status.textContent="";
+ }catch(err){
+  status.textContent="Could not sign out from all devices. Please try again.";
+  console.error(err);
+ }
+};
+async function signOut(){
+ if(!client)return;
+ const {error}=await client.auth.signOut({scope:"local"});
+ if(error){setAccountStatus("Sign out failed. Please try again.");return}
+ currentSession=null;
+ $in(accountPanel,"account-profile").hidden=true;
+ accountForm.hidden=false;otpForm.hidden=true;
+ close(accountPanel);close(dashboardPanel);
+}
+if(client){
+ client.auth.onAuthStateChange((event,session)=>{
+  currentSession=session;
+  if(session?.user){
+   $in(accountPanel,"account-profile").hidden=false;
+   $in(accountPanel,"profile-email").textContent=session.user.email||"";
+   accountForm.hidden=true;otpForm.hidden=true;
+   loadProfile();
+  }else if(event==="SIGNED_OUT"){
+   $in(accountPanel,"account-profile").hidden=true;
+   accountForm.hidden=false;otpForm.hidden=true;
+   profileLoaded=false;
+  }
+ });
+}
 
+function renderProfileDetails(){
+ $("profile-contact-summary").textContent=[
+  profileDetails.name, currentSession?.user?.email,profileDetails.phone
+ ].filter(Boolean).join(" · ")||currentSession?.user?.email||"No contact details saved.";
+ $("profile-address-summary").textContent=[
+  profileDetails.address1,profileDetails.address2,profileDetails.city,profileDetails.postalCode,profileDetails.country
+ ].filter(Boolean).join(", ")||"No saved addresses.";
+ $("marketing-toggle").checked=Boolean(currentSession?.user?.user_metadata?.marketing_updates);
+}
+async function loadProfile(){
+ if(!client||!currentSession?.user)return;
+ try{
+  const {data,error}=await client.auth.getUser();
+  if(error)throw error;
+  currentSession={...currentSession,user:data.user};
+  const meta=data.user?.user_metadata||{};
+  profileDetails={
+   name:meta.profile_name||meta.full_name||"",
+   phone:meta.phone||"",
+   address1:meta.address1||"",
+   address2:meta.address2||"",
+   city:meta.city||"",
+   postalCode:meta.postal_code||"",
+   country:meta.country||"Türkiye"
+  };
+  profileLoaded=true;
+  renderProfileDetails();
+ }catch(err){console.error("Could not load profile details:",err)}
+}
+function openEditForm(type){
+ setAccountView("edit");
+ const fields=$("account-edit-fields");
+ const isContact=type==="contact";
+ $("account-edit-heading").textContent=isContact?"EDIT CONTACT":"EDIT ADDRESSES";
+ fields.innerHTML=isContact?`
+  <label>NAME<input name="name" autocomplete="name" value="${esc(profileDetails.name)}"></label>
+  <label>EMAIL<input type="email" value="${esc(currentSession?.user?.email||"")}" disabled></label>
+  <label>PHONE<input name="phone" type="tel" autocomplete="tel" value="${esc(profileDetails.phone)}"></label>
+ `:`
+  <label>ADDRESS LINE 1<input name="address1" autocomplete="address-line1" value="${esc(profileDetails.address1)}"></label>
+  <label>ADDRESS LINE 2<input name="address2" autocomplete="address-line2" value="${esc(profileDetails.address2)}"></label>
+  <label>CITY<input name="city" autocomplete="address-level2" value="${esc(profileDetails.city)}"></label>
+  <label>POSTAL CODE<input name="postalCode" autocomplete="postal-code" value="${esc(profileDetails.postalCode)}"></label>
+  <label>COUNTRY / REGION<select name="country">${countryOptions(profileDetails.country)}</select></label>
+ `;
+ $("account-edit-status").textContent="";
+ $("account-edit-form").dataset.type=type;
+}
+function countryOptions(selected){
+ const countries=["Türkiye","United States","United Kingdom","Germany","France","Netherlands","Italy","Spain","Canada","Australia","Japan","South Korea","China","Other"];
+ if(selected&&!countries.includes(selected))countries.unshift(selected);
+ return countries.map(c=>`<option value="${esc(c)}" ${c===selected?"selected":""}>${esc(c)}</option>`).join("");
+}
+$("account-edit-form").onsubmit=async e=>{
+ e.preventDefault();
+ if(!client||!currentSession?.user)return;
+ const form=e.currentTarget,type=form.dataset.type,data=new FormData(form);
+ const next={...profileDetails};
+ if(type==="contact"){next.name=String(data.get("name")||"").trim();next.phone=String(data.get("phone")||"").trim()}
+ else{
+  next.address1=String(data.get("address1")||"").trim();
+  next.address2=String(data.get("address2")||"").trim();
+  next.city=String(data.get("city")||"").trim();
+  next.postalCode=String(data.get("postalCode")||"").trim();
+  next.country=String(data.get("country")||"Türkiye");
+ }
+ const status=$("account-edit-status");
+ status.textContent="";
+ try{
+  const {error}=await client.auth.updateUser({data:{
+   profile_name:next.name,phone:next.phone,address1:next.address1,
+   address2:next.address2,city:next.city,postal_code:next.postalCode,country:next.country
+  }});
+  if(error)throw error;
+  profileDetails=next;
+  status.textContent="Changes saved.";
+  renderProfileDetails();
+  setAccountView("profile");
+ }catch(err){
+  status.textContent="Your changes could not be saved. Please try again.";
+  console.error("Profile update failed:",err);
+ }
+};
+$("marketing-toggle").onchange=async e=>{
+ if(!client||!currentSession?.user){e.target.checked=false;return}
+ const enabled=e.target.checked,status=$("profile-save-status");
+ status.textContent="";
+ e.target.disabled=true;
+ try{
+  const {error}=await client.auth.updateUser({data:{marketing_updates:enabled}});
+  if(error)throw error;
+  status.textContent="Marketing preference saved.";
+ }catch(err){
+  e.target.checked=!enabled;
+  status.textContent="Could not save this preference. Please try again.";
+  console.error(err);
+ }finally{e.target.disabled=false}
+};
+$("account-country-select").innerHTML=countryOptions("Türkiye");
+$("account-country-select").onchange=e=>{
+ profileDetails.country=e.target.value;
+ $("profile-save-status").textContent="Country selection updated for this session. Save it in Addresses to update your profile.";
+ renderProfileDetails();
+};
+$("privacy-opt-out").onclick=()=>{
+ try{
+  localStorage.setItem("vn-privacy-opt-out",JSON.stringify({requested:true,updatedAt:new Date().toISOString()}));
+  $("privacy-opt-out-status").textContent="Your preference has been saved on this device. This does not submit a request to an external service.";
+ }catch{
+  $("privacy-opt-out-status").textContent="This preference could not be saved in your browser.";
+ }
+};
+
+/* No order-management tables or API are defined in merch.json.
+   Show real data only if the Supabase project exposes the expected tables. */
+async function loadOrders(){
+ const list=$("orders-list"),status=$("orders-status");
+ ["orders-total","orders-delivered","orders-returned","orders-waiting"].forEach(id=>$(id).textContent="—");
+ if(!client||!currentSession?.user){
+  list.textContent="Sign in to view your orders.";
+  status.textContent="";return;
+ }
+ list.textContent="Order history is not connected to an order database yet.";
+ status.textContent="No order records have been loaded.";
+}
+async function loadReturns(){
+ const list=$("returns-list"),status=$("returns-status");
+ if(!client||!currentSession?.user){
+  list.textContent="Sign in to view your returns.";
+  status.textContent="";return;
+ }
+ list.textContent="Return tracking is not connected to a returns database yet.";
+ status.textContent="No return records have been loaded.";
+}
+
+/* Configured policy panels */
 const policyConfig=config.policies||{};
 for(const [key,policy] of Object.entries(policyConfig)){
  if(!policy||typeof policy!=="object"||!policy.title||!Array.isArray(policy.sections))continue;
  const sectionHTML=policy.sections.map(s=>`<section><h3>${esc(s.title||"")}</h3><p>${esc(s.content||s.text||"")}</p></section>`).join("");
  const panel=modal(`${key}-overlay`,policy.title,`<div class="policy-content">${sectionHTML}</div>`);
  document.querySelectorAll(`[data-policy-open="${key}"]`).forEach(b=>b.onclick=()=>open(panel));
- const footerLink=Object.entries(footerLinks).find(([name,value])=>name.toLowerCase().includes(key));
- if(footerLink){const link=[...$("footer-links").querySelectorAll("a")].find(a=>a.href.includes(key));if(link)link.onclick=e=>{e.preventDefault();open(panel)}}
+ const footerLink=Object.entries(footerLinks).find(([name])=>name.toLowerCase().includes(key));
+ if(footerLink){
+  const link=[...$("footer-links").querySelectorAll("a")].find(a=>a.textContent.toLowerCase().includes(key));
+  if(link)link.onclick=e=>{e.preventDefault();open(panel)};
+ }
 }
 
+/* Cookie preferences */
 const cookieConfig=config.cookies||{},cookieLabels=cookieConfig.labels||{};
-const savedDefaults=cookieConfig.defaultPreferences||{};
+const savedDefaults=cookieConfig.defaultOptionalCategories||cookieConfig.defaultPreferences||{};
 const cookiePanel=modal("cookie-panel",cookieLabels.collectHeading||t("cookieChoices"),`
- <p>${esc(cookieLabels.collectText||"")}</p><a href="${esc(config.policies?.links?.privacy||"#")}">${esc(cookieLabels.privacyLink||"")}</a>
+ <p>${esc(cookieLabels.collectText||"")}</p><a href="${esc(config.paths?.privacyPage||config.policies?.links?.privacy||"#")}">${esc(cookieLabels.privacyLink||"")}</a>
  <h3>${esc(cookieLabels.partnersHeading||"")}</h3><p>${esc(cookieLabels.partnersText||"")}</p>
- ${["essential","functional","analytics","advertising"].map(k=>`<label><input type="checkbox" id="cookie-${k}" ${k==="essential"||savedDefaults[k]?"checked":""} ${k==="essential"?"disabled":""}> ${esc(cookieLabels[k]||k)}</label>`).join("")}
+ ${["essential","functional","analytics","advertising"].map(k=>`<label><input type="checkbox" id="cookie-${k}" ${k==="essential"||savedDefaults[k]?"checked":""} ${k==="essential"||cookieConfig.essentialAlwaysEnabled?"disabled":""}> ${esc(cookieLabels[k]||k)}</label>`).join("")}
  <label>${esc(cookieLabels.languageLabel||t("language"))}<select id="cookie-language-select">${Object.entries(cookieConfig.languages||{en:"English",tr:"Türkçe"}).map(([k,v])=>`<option value="${esc(k)}">${esc(typeof v==="string"?v:v.label)}</option>`).join("")}</select></label>
  <button type="button" class="primary-button" id="cookie-confirm">${esc(cookieLabels.confirm||t("confirm"))}</button>`);
 $("cookie-choices").onclick=()=>open(cookiePanel);
 $in(cookiePanel,"cookie-confirm").onclick=()=>{
  const prefs={essential:true};
  ["functional","analytics","advertising"].forEach(k=>prefs[k]=$in(cookiePanel,"cookie-"+k).checked);
- try{localStorage.setItem("vn-cookie-preferences",JSON.stringify({...prefs,updatedAt:new Date().toISOString()}))}catch{}
+ try{localStorage.setItem(cookieConfig.storageKey||"vn-cookie-preferences",JSON.stringify({...prefs,updatedAt:new Date().toISOString()}))}catch{}
  close(cookiePanel);
 };
 $in(cookiePanel,"cookie-language-select").onchange=e=>{
@@ -284,8 +729,10 @@ $in(cookiePanel,"cookie-language-select").onchange=e=>{
 /* Initialize */
 renderProducts();renderCart();
 try{
- const saved=JSON.parse(localStorage.getItem("vn-cookie-preferences")||"null");
- if(saved)["functional","analytics","advertising"].forEach(k=>{if($in(cookiePanel,"cookie-"+k))$in(cookiePanel,"cookie-"+k).checked=Boolean(saved[k])});
+ const saved=JSON.parse(localStorage.getItem(cookieConfig.storageKey||"vn-cookie-preferences")||"null");
+ if(saved)["functional","analytics","advertising"].forEach(k=>{
+  if($in(cookiePanel,"cookie-"+k))$in(cookiePanel,"cookie-"+k).checked=Boolean(saved[k]);
+ });
 }catch{}
 })().catch(error=>{
  console.error("VN SHOP configuration failed:",error);
