@@ -343,7 +343,7 @@
       .vn-ac-policy-link{display:block;align-self:center;margin:18px auto 0;padding:11px 8px 0;border:0;background:transparent;color:#a8a8a8;font:10px/1.4 Arial,sans-serif;text-align:center;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
       .vn-ac-policy-overlay{position:fixed;inset:0;z-index:10003;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.46);backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px)}
       .vn-ac-policy-overlay[hidden]{display:none!important}
-      .vn-ac-policy-panel{position:relative;width:min(100%,680px);height:min(78dvh,720px);overflow:auto;padding:34px 38px 38px;background:#171717;color:#f5f5f5;border:1px solid #383838;box-shadow:0 24px 80px rgba(0,0,0,.6);text-align:left;opacity:0;transform:scale(.035);transform-origin:var(--policy-origin-x,50%) var(--policy-origin-y,50%);transition:transform .44s cubic-bezier(.2,.8,.2,1),opacity .22s ease}
+      .vn-ac-policy-panel{position:relative;width:min(100%,680px);height:min(78dvh,720px);overflow:auto;padding:34px 38px 38px;background:#171717;color:#f5f5f5;border:1px solid #383838;box-shadow:0 24px 80px rgba(0,0,0,.6);text-align:left;opacity:0;transform:scale(.06);transform-origin:var(--policy-origin-x,50%) var(--policy-origin-y,50%);transition:transform .48s cubic-bezier(.16,1,.3,1),opacity .24s ease}
       .vn-ac-policy-overlay.is-open .vn-ac-policy-panel{opacity:1;transform:scale(1)}
       .vn-ac-policy-panel iframe{display:block;width:100%;height:100%;border:0;background:#171717}.vn-ac-policy-panel h2{margin:0 0 20px;padding-right:28px;font-size:25px;font-weight:600;letter-spacing:-.4px;color:#f5f5f5}.vn-ac-policy-kicker{margin:0 0 10px;color:#999;font-size:10px;letter-spacing:1.8px;text-transform:uppercase}.vn-ac-policy-body{color:#c8c8c8;font-size:13px;line-height:1.8}.vn-ac-policy-body h3{margin:23px 0 7px;color:#f0f0f0;font-size:13px;font-weight:600}.vn-ac-policy-body p{margin:0 0 13px}.vn-ac-policy-body a{color:#f5f5f5;text-decoration:underline;text-underline-offset:3px}
       .vn-ac-policy-close{position:absolute;top:12px;right:14px;z-index:1;width:32px;height:32px;border:0;border-radius:50%;background:#303030;color:#fff;font-size:22px;line-height:1;cursor:pointer}
@@ -1345,8 +1345,8 @@
             if (policy) {
               const panel = $(".vn-ac-policy-panel", policy);
               const rect = panel.getBoundingClientRect();
-              const originX = Math.max(0, Math.min(rect.width, event.clientX - rect.left));
-              const originY = Math.max(0, Math.min(rect.height, event.clientY - rect.top));
+              const originX = event.clientX - rect.left;
+              const originY = event.clientY - rect.top;
               panel.style.setProperty("--policy-origin-x", `${originX}px`);
               panel.style.setProperty("--policy-origin-y", `${originY}px`);
               policy.classList.remove("is-open");
