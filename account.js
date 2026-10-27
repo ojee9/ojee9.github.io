@@ -373,7 +373,9 @@
       .vn-ac-footer-policies .vn-ac-legal-list{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 14px;margin:0;border:0}
       .vn-ac-footer-policies .vn-ac-legal-item{display:inline-flex;gap:3px;padding:0;border:0;color:#a8a8a8;font:10px/1.4 Arial,sans-serif;text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
       .vn-ac-footer-policies .vn-ac-legal-item:hover{color:#fff}
-      .vn-ac-footer-country{color:#a8a8a8;font:10px/1.4 Arial,sans-serif;white-space:nowrap}
+      .vn-ac-footer-country{display:inline-flex;align-items:center;color:#a8a8a8;font:10px/1.4 Arial,sans-serif;white-space:nowrap}
+      .vn-ac-footer-country select{max-width:125px;padding:0 14px 0 0;border:0;outline:0;background:transparent;color:inherit;font:inherit;cursor:pointer}
+      .vn-ac-footer-country select option{color:#111;background:#fff}
       .vn-ac-profile-detail-row{display:flex;align-items:center;justify-content:space-between;gap:18px}
       .vn-ac-profile-detail-label{display:flex;align-items:center;min-width:0}
       .vn-ac-profile-detail-value{display:flex;align-items:center;justify-content:flex-end;gap:18px;min-width:0}
@@ -434,7 +436,7 @@
         </header>
         <div id="vnAcContent"></div>
         <div class="vn-ac-policy-footer-row">
-          <span class="vn-ac-footer-country">${escapeHTML(countryName(state.country))}</span>
+          <label class="vn-ac-footer-country" aria-label="Country"><select data-ac-country>${countryOptions(state.country)}</select></label>
           <div class="vn-ac-footer-policies">${legalLinks()}</div>
         </div>
       </div>
@@ -691,15 +693,15 @@
             <div class="vn-ac-row"><div><strong>${escapeHTML(fullName || "Enter name")}</strong></div><button class="vn-ac-button secondary" data-ac-action="edit-contact">Edit</button></div>
           </div>
           <section class="vn-ac-profile-section"><div class="vn-ac-profile-section-head"><strong>Email</strong><button class="vn-ac-text-action" data-ac-action="edit-contact">Edit</button></div>
-            <div class="vn-ac-row vn-ac-profile-detail-row"><div class="vn-ac-profile-detail-label"><span class="vn-ac-profile-icon" aria-hidden="true">✉</span><strong>Email</strong></div><div class="vn-ac-profile-detail-value"><small>${escapeHTML(email)}</small><button class="vn-ac-text-action" data-ac-action="edit-contact">Edit</button></div></div>
+            <div class="vn-ac-row vn-ac-profile-detail-row"><div class="vn-ac-profile-detail-label"><strong>Email</strong></div><div class="vn-ac-profile-detail-value"><small>${escapeHTML(email)}</small></div></div>
           </section>
           <section class="vn-ac-profile-section"><div class="vn-ac-profile-section-head"><strong>Addresses</strong><button class="vn-ac-text-action" data-ac-action="edit-addresses">Add</button></div>
-            <div class="vn-ac-row vn-ac-profile-detail-row"><div class="vn-ac-profile-detail-label"><span class="vn-ac-profile-icon" aria-hidden="true">⌖</span><strong>${state.addresses.length ? escapeHTML(state.addresses.length + " saved address(es)") : "No addresses added"}</strong></div><button class="vn-ac-text-action" data-ac-action="edit-addresses">Add</button></div>
+            <div class="vn-ac-row vn-ac-profile-detail-row"><div class="vn-ac-profile-detail-label"><span class="vn-ac-profile-icon" aria-hidden="true">⌖</span><strong>${state.addresses.length ? escapeHTML(state.addresses.length + " saved address(es)") : "No addresses added"}</strong></div></div>
           </section>
           <section class="vn-ac-profile-section"><div class="vn-ac-profile-section-head"><strong>Marketing preferences</strong></div>
             <div class="vn-ac-preference"><div><span class="vn-ac-profile-icon" aria-hidden="true">✉</span><strong>Email</strong></div><input type="checkbox" class="vn-ac-toggle" data-ac-toggle="marketing" aria-label="Email marketing preferences" ${state.marketingUpdates ? "checked" : ""}></div>
           </section>
-          <div class="vn-ac-profile-country"><label class="vn-ac-field"><span>Country / Region</span><select data-ac-country>${countryOptions(state.country)}</select></label></div>
+          
           <div class="vn-ac-profile-signout"><button class="vn-ac-button secondary" data-ac-action="signout">SIGN OUT</button><button class="vn-ac-button danger" data-ac-action="signout-all">SIGN OUT FROM ALL DEVICES</button></div>
         </main>
       </div>
