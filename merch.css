@@ -14,18 +14,18 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 
 /* HEADER */
 .header{position:relative;display:flex;align-items:center;justify-content:space-between;padding:24px 5%;border-bottom:1px solid var(--line)}
-.projects-logo{font-size:25px;font-weight:900;letter-spacing:-1.8px}
+.projects-logo{font-size:30px;font-weight:900;letter-spacing:-1.8px}
 .projects-logo span{display:inline-block;margin-left:3px;font-size:9px;vertical-align:top;letter-spacing:0}
 
 /* CENTERED VN LOGO */
-.header-vn-logo{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;width:104px;height:68px;pointer-events:none;user-select:none}
+.header-vn-logo{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;width:130px;height:84px;pointer-events:none;user-select:none}
 .header-vn-logo img{display:block;width:100%;height:100%;object-fit:contain;pointer-events:none}
 
 .header-actions{display:flex;align-items:center;gap:19px}
 .icon-link,.icon-button{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:0;border:0;background:transparent;color:var(--ink)}
 .icon-link:hover,.icon-button:hover{opacity:.6}
-.icon-link svg,.icon-button svg{display:block;width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
-#cart-count{font-size:11px}
+.icon-link svg,.icon-button svg{display:block;width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+#cart-count{font-size:12px}
 
 /* CATALOG */
 .catalog-bar{display:flex;align-items:center;gap:12px;padding:14px 5%;border-bottom:1px solid var(--line)}
@@ -240,10 +240,10 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 }
 @media(max-width:600px){
   .header{padding:20px 5%}
-  .projects-logo{font-size:23px}
+  .projects-logo{font-size:27px}
   .header-actions{gap:15px}
-  .header-vn-logo{width:82px;height:54px}
-  .icon-link svg,.icon-button svg{width:20px;height:20px}
+  .header-vn-logo{width:100px;height:65px}
+  .icon-link svg,.icon-button svg{width:24px;height:24px}
   .catalog-bar{padding-top:12px;padding-bottom:12px}
   .category-select{width:min(230px,calc(100% - 46px))}
   .products{padding-top:18px;padding-bottom:55px}
