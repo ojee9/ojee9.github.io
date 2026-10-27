@@ -36,7 +36,7 @@
     message: "",
     messageType: "info",
     country: CONFIG.defaultCountry,
-    marketingUpdates: false,
+    marketingUpdates: true,
     signupMarketing: false,
     editing: "",
     loadingData: false
@@ -188,7 +188,7 @@
 
       if (!profileResult.error && profileResult.data) {
         state.profile = profileResult.data;
-        state.marketingUpdates = Boolean(profileResult.data.marketing_updates);
+        state.marketingUpdates = profileResult.data.marketing_updates !== false;
         state.country = profileResult.data.country || userCountry();
       } else if (profileResult.error) {
         console.warn(
@@ -572,30 +572,21 @@
   }
 
   function accountFooter() {
-    const entries = [
-      ["dashboard", "DASHBOARD"],
-      ["profile", "MY PROFILE"],
-      ["orders", "MY ORDERS"],
-      ["returns", "MY RETURNS"],
-      ["help", "HELP CENTER"]
-    ];
-
     return `
-      <nav class="vn-ac-account-footer" aria-label="Account navigation">
-        ${entries.map(([key, label]) => `
-          <button type="button" data-ac-section="${key}" ${state.section === key ? 'aria-current="page"' : ""}>${label}</button>
-        `).join("")}
-      </nav>
+      <div class="vn-ac-account-footer" aria-label="Account policies">
+        <div class="vn-ac-footer-policies">${legalLinks()}</div>
+      </div>
     `;
   }
 
   function renderDashboard() {
+    const name = [state.profile.first_name, state.profile.last_name].filter(Boolean).join(" ").trim() || state.user?.email || "there";
     return `
       <div class="vn-ac-layout">
         ${sidebar()}
         <main class="vn-ac-main">
-          <h1>Dashboard</h1>
-          <p class="vn-ac-subtitle">Manage your VN SHOP account.</p>
+          <h1>Welcome, ${escapeHTML(name)}!</h1>
+          <p class="vn-ac-subtitle">Here's everything you can manage in your account.</p>
           ${messageHTML()}
           <div class="vn-ac-card-grid">
             <button class="vn-ac-card" data-ac-section="orders"><strong>MY ORDERS</strong><span>View your order history and track shipments.</span></button>
@@ -650,44 +641,27 @@
 
   function renderProfile() {
     const email = state.user?.email || state.email;
-    const fullName = [state.profile.first_name, state.profile.last_name]
-      .filter(Boolean).join(" ");
-
+    const fullName = [state.profile.first_name, state.profile.last_name].filter(Boolean).join(" ").trim();
     return `
       <div class="vn-ac-layout">
         ${sidebar()}
         <main class="vn-ac-main">
           <h1>My Profile</h1>
-          <p class="vn-ac-subtitle">Manage your account information.</p>
           ${messageHTML()}
-
-          <div class="vn-ac-row">
-            <div><strong>Contact</strong><small>${escapeHTML(email)}</small>
-              ${fullName ? `<small>${escapeHTML(fullName)}</small>` : ""}
-            </div>
-            <button class="vn-ac-button secondary" data-ac-action="edit-contact">EDIT</button>
+          <div class="vn-ac-profile-item">
+            <div class="vn-ac-row"><div><strong>${escapeHTML(fullName || "Enter name")}</strong></div><button class="vn-ac-button secondary" data-ac-action="edit-contact">Edit</button></div>
           </div>
-
-          <div class="vn-ac-row">
-            <div><strong>Addresses</strong><small>${state.addresses.length} saved address(es)</small></div>
-            <button class="vn-ac-button secondary" data-ac-action="edit-addresses">EDIT</button>
-          </div>
-
-          <div class="vn-ac-preference">
-            <div><strong>Marketing preferences</strong><small>EMAIL</small></div>
-            <input type="checkbox" class="vn-ac-toggle" data-ac-toggle="marketing"
-              aria-label="Email marketing preferences" ${state.marketingUpdates ? "checked" : ""}>
-          </div>
-
-          <div class="vn-ac-profile-country">
-            <label class="vn-ac-field"><span>Country / Region</span>
-              <select data-ac-country>${countryOptions(state.country)}</select>
-            </label>
-          </div>
-          <div class="vn-ac-profile-legal">${legalLinks()}</div>
-          <div class="vn-ac-profile-signout">
-            <button class="vn-ac-button danger" data-ac-action="signout-all">SIGN OUT FROM ALL DEVICES</button>
-          </div>
+          <section class="vn-ac-profile-section"><div class="vn-ac-profile-section-head"><strong>Email</strong><button class="vn-ac-text-action" data-ac-action="edit-contact">Edit</button></div>
+            <div class="vn-ac-row"><div><span class="vn-ac-profile-icon" aria-hidden="true">✉</span><strong>Email</strong></div><small>${escapeHTML(email)}</small></div>
+          </section>
+          <section class="vn-ac-profile-section"><div class="vn-ac-profile-section-head"><strong>Addresses</strong><button class="vn-ac-text-action" data-ac-action="edit-addresses">Add</button></div>
+            <div class="vn-ac-row"><div><span class="vn-ac-profile-icon" aria-hidden="true">⌖</span><strong>${state.addresses.length ? escapeHTML(state.addresses.length + " saved address(es)") : "No addresses added"}</strong></div></div>
+          </section>
+          <section class="vn-ac-profile-section"><div class="vn-ac-profile-section-head"><strong>Marketing preferences</strong></div>
+            <div class="vn-ac-preference"><div><span class="vn-ac-profile-icon" aria-hidden="true">✉</span><strong>Email</strong></div><input type="checkbox" class="vn-ac-toggle" data-ac-toggle="marketing" aria-label="Email marketing preferences" ${state.marketingUpdates ? "checked" : ""}></div>
+          </section>
+          <div class="vn-ac-profile-country"><label class="vn-ac-field"><span>Country / Region</span><select data-ac-country>${countryOptions(state.country)}</select></label></div>
+          <div class="vn-ac-profile-signout"><button class="vn-ac-button secondary" data-ac-action="signout">SIGN OUT</button><button class="vn-ac-button danger" data-ac-action="signout-all">SIGN OUT FROM ALL DEVICES</button></div>
         </main>
       </div>
     `;
