@@ -410,12 +410,17 @@
         box-sizing:border-box;
         width:min(1200px,calc(100vw - 48px));
         height:min(780px,calc(100dvh - 48px));
-        min-height:0;
-        max-height:calc(100dvh - 48px);
+        min-height:min(780px,calc(100dvh - 48px));
+        max-height:min(780px,calc(100dvh - 48px));
         padding:36px 48px 28px;
         overflow:hidden;
         display:flex;
         flex-direction:column;
+        flex:0 0 auto;
+      }
+      .vn-ac-shell.vn-ac-auth-shell:has(.vn-ac-layout) .vn-ac-header,
+      .vn-ac-shell.vn-ac-auth-shell:has(.vn-ac-layout) .vn-ac-policy-footer-row{
+        flex:0 0 auto;
       }
       .vn-ac-shell.vn-ac-auth-shell:has(.vn-ac-layout) #vnAcContent{
         flex:1 1 auto;
@@ -459,6 +464,7 @@
         .vn-ac-shell.vn-ac-auth-shell:has(.vn-ac-layout){
           width:calc(100vw - 24px);
           height:calc(100dvh - 24px);
+          min-height:calc(100dvh - 24px);
           max-height:calc(100dvh - 24px);
           padding:20px 17px 18px;
         }
