@@ -1,4 +1,3 @@
-
 *{box-sizing:border-box}
 :root{--camel:#C6BBA7;--ink:#171717;--line:rgba(23,23,23,.25);--muted:#625744;--white:#fff}
 html{min-height:100%;scroll-behavior:smooth}
@@ -9,6 +8,8 @@ button,input,select{font:inherit}
 button{cursor:pointer}
 button:disabled{opacity:.45;cursor:default}
 button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid currentColor;outline-offset:3px}
+/* Alanların kendi odak çerçevesi olanlarda çift çerçeve çıkmasın */
+.search-input:focus-visible,.otp-input:focus-visible,.account-email-wrap input:focus-visible{outline:0}
 [hidden]{display:none!important}
 
 /* HEADER */
@@ -40,6 +41,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 .products{padding:22px 5% 80px}
 .product-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:32px 18px}
 .product{min-width:0;cursor:pointer}
+.product:focus-visible{outline:2px solid var(--ink);outline-offset:4px}
 .product-image-wrap{display:flex;align-items:center;justify-content:center;width:100%;aspect-ratio:4/5;min-width:0;padding:12%;overflow:hidden;background:rgba(255,255,255,.22)}
 .product-image{display:block;width:100%;height:100%;object-fit:contain;object-position:center;transition:transform .3s ease}
 .product:hover .product-image{transform:scale(1.025)}
@@ -102,6 +104,11 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 .detail-add{margin-top:23px}
 .detail-error{margin-top:12px;color:#9b2727;font-size:11px;line-height:1.6}
 
+/* PRODUCT PREVIEW: sepet sağ çekmece, ürün önizlemesi ortada pencere (silersen eski görünüme döner) */
+#detail-overlay{display:flex;align-items:center;justify-content:center;padding:24px}
+#detail-overlay .drawer{position:relative;top:auto;right:auto;width:min(980px,100%);height:auto;max-height:calc(100dvh - 48px);transform:translateY(14px) scale(.985);opacity:0;transition:transform .25s ease,opacity .25s ease}
+#detail-overlay.is-open .drawer{transform:none;opacity:1}
+
 /* CART */
 .cart-items{display:flex;flex-direction:column}
 .cart-item{display:grid;grid-template-columns:92px minmax(0,1fr);gap:16px;padding:17px 0;border-bottom:1px solid #d8d1c7}
@@ -120,11 +127,12 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 .cart-disclaimer{margin:0 0 16px;color:#777;font-size:10px;line-height:1.6}
 .cart-summary .primary-button{margin-bottom:10px}
 
-/* ACCOUNT / OTP */
+/* ACCOUNT / OTP (eski küçük modal stilleri; hesap paneli artık account.js içinden stil alıyor) */
 .account-overlay,.policy-overlay{display:flex;align-items:center;justify-content:center;padding:18px}
 .account-panel,.policy-panel{position:relative;width:min(100%,410px);max-height:calc(100dvh - 36px);overflow-y:auto;overscroll-behavior:contain;padding:46px 30px 27px;background:#171717;color:#f5f5f5;text-align:center;transform:translateY(12px) scale(.985);opacity:0;transition:transform .22s ease,opacity .22s ease}
 .account-overlay.is-open .account-panel,.policy-overlay.is-open .policy-panel{transform:translateY(0) scale(1);opacity:1}
 .account-close,.policy-close{position:absolute;top:12px;right:15px;padding:0;border:0;background:transparent;color:#f5f5f5;font-size:26px;font-weight:300;line-height:1}
+.account-close:hover,.policy-close:hover{opacity:.65}
 .account-panel h2,.policy-panel h2{margin:0 0 12px;font-size:23px;font-weight:600}
 .account-subtitle{margin:0 0 29px;color:#bdbdbd;font-size:13px;line-height:1.6}
 .account-email-wrap{display:flex;align-items:center;width:100%;min-height:48px;border:1px solid #555}
@@ -132,11 +140,13 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 .account-email-wrap input{flex:1;width:0;min-width:0;height:46px;padding:0 13px;border:0;outline:0;background:transparent;color:#f5f5f5;font-size:13px}
 .account-email-wrap input::placeholder{color:#bdbdbd}
 .account-submit{display:flex;align-items:center;justify-content:center;flex:0 0 45px;height:46px;padding:0;border:0;background:transparent;color:#f5f5f5}
+.account-submit:hover{opacity:.65}
 .account-submit svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 .account-updates{display:flex;align-items:flex-start;gap:9px;margin-top:19px;color:#d0d0d0;font-size:11px;line-height:1.5;text-align:left;cursor:pointer}
 .account-updates input{flex:0 0 auto;width:14px;height:14px;margin:1px 0 0;accent-color:#f5f5f5}
 .account-terms{margin:17px 0 0;color:#999;font-size:10px;line-height:1.7}
-.account-inline-link{padding:0;border:0;background:transparent;color:#d0d0d0;font:inherit;text-decoration:underline;text-underline-offset:2px}
+.account-inline-link{padding:0;border:0;background:transparent;color:#d0d0d0;font:inherit;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+.account-inline-link:hover{color:#fff}
 .account-privacy{margin:15px 0 0;font-size:10px}
 .account-status{display:none;margin:16px 0 0;color:#d0d0d0;font-size:11px;line-height:1.6;overflow-wrap:anywhere}
 .account-status.is-visible{display:block}
@@ -183,8 +193,10 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 .cookie-categories{flex:0 0 auto;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid #dedede;border-bottom:1px solid #dedede;margin-top:auto;padding:5px 0}
 .cookie-category{display:flex;align-items:center;justify-content:center;gap:6px;min-width:0;padding:9px 4px;font-size:10px;font-weight:600;text-align:center}
 .cookie-category+.cookie-category{border-left:1px solid #e5e5e5}
-.cookie-category input{flex:0 0 auto;width:14px;height:14px;margin:0;accent-color:#171717}
+.cookie-category input{flex:0 0 auto;width:14px;height:14px;margin:0;accent-color:#171717;cursor:pointer}
+.cookie-category input:focus-visible{outline:2px solid #777;outline-offset:3px}
 .cookie-category.essential{color:#777;cursor:not-allowed}
+.cookie-category.essential input,.cookie-category.essential input:disabled{accent-color:#929292;cursor:not-allowed;opacity:1}
 .cookie-bottom{flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;gap:15px;padding:12px 24px 15px;border-top:1px solid #e6e6e6;background:#fff}
 .cookie-privacy{font-size:11px;font-weight:600;text-decoration:underline;text-underline-offset:3px}
 .cookie-right{display:flex;align-items:center;gap:15px}
@@ -219,6 +231,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
   .footer-links{gap:14px 18px;line-height:1.5}
   .drawer-head{padding:16px 18px}
   .drawer-content{padding:18px}
+  #detail-overlay{padding:0;align-items:flex-end}
+  #detail-overlay .drawer{width:100%;max-height:92dvh}
   .cart-summary{margin:0 -18px;padding:17px 18px 20px}
   .account-panel,.policy-panel{padding:42px 23px 23px}
   .otp-inputs{gap:5px}
