@@ -787,9 +787,9 @@
       <div class="vn-ac-layout">
         ${sidebar()}
         <main class="vn-ac-main">
-          <h1>My Orders</h1><p class="vn-ac-subtitle">View your order history and track shipments.</p>
-          ${messageHTML()}
           ${orders.length ? `
+            <h1>My Orders</h1><p class="vn-ac-subtitle">View your order history and track shipments.</p>
+            ${messageHTML()}
             <div class="vn-ac-stats">
               <div class="vn-ac-stat"><strong>${orders.length}</strong><span>TOTAL ORDERS</span></div>
               <div class="vn-ac-stat"><strong>${delivered}</strong><span>DELIVERED ORDERS</span></div>
@@ -808,7 +808,8 @@
             `).join("")}
           ` : `
             <div class="vn-ac-empty vn-ac-orders-empty">
-              <div class="vn-ac-ready-row"><h3>Ready to shop?</h3><button class="vn-ac-button" data-ac-section="shop">Shop now</button></div>
+              <h1>Welcome${[state.profile.first_name, state.profile.last_name].filter(Boolean).join(" ").trim() ? `, ${escapeHTML([state.profile.first_name, state.profile.last_name].filter(Boolean).join(" ").trim())}` : ""}</h1>
+              <div class="vn-ac-ready-row"><h3>Ready to shop?</h3><button class="vn-ac-button" data-ac-section="shop">Shop Now</button></div>
             </div>
           `}
         </main>
