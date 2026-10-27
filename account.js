@@ -364,6 +364,26 @@
       .vn-ac-profile-legal .vn-ac-legal-list{display:contents}
       .vn-ac-profile-legal .vn-ac-legal-item{display:inline-flex;gap:5px;align-items:center;color:#a8a8a8;font-size:10px;line-height:1.5;text-decoration:underline;text-underline-offset:3px}
       .vn-ac-profile-legal .vn-ac-legal-item:hover{color:#fff}
+      .vn-ac-policy-footer-row{display:flex;align-items:center;justify-content:center;gap:6px 16px;flex-wrap:wrap;width:100%;margin-top:18px}
+      .vn-ac-policy-footer-row .vn-ac-policy-link{margin:0;padding:11px 8px 0;flex:none}
+      .vn-ac-footer-policies .vn-ac-legal-list{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 14px;margin:0;border:0}
+      .vn-ac-footer-policies .vn-ac-legal-item{display:inline-flex;gap:3px;padding:0;border:0;color:#a8a8a8;font:10px/1.4 Arial,sans-serif;text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
+      .vn-ac-footer-policies .vn-ac-legal-item:hover{color:#fff}
+      .vn-ac-profile-section{margin-top:20px}
+      .vn-ac-profile-section-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:7px;font-size:13px}
+      .vn-ac-text-action{padding:0;border:0;background:none;color:#777;font:12px Arial,sans-serif;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+      .vn-ac-text-action:hover{color:#111}
+      .vn-ac-profile-icon{display:inline-block;margin-right:10px;color:#777;font-size:16px}
+      .vn-ac-profile-section .vn-ac-row{margin:0}
+      .vn-ac-profile-section .vn-ac-preference{margin:0}
+      .vn-ac-profile-signout{display:flex;flex-direction:column;align-items:flex-start;gap:9px;margin-top:24px;padding-top:16px;border-top:1px solid #eee}
+      .vn-ac-profile-signout .vn-ac-button{min-height:34px;padding:7px 10px;font-size:10px;letter-spacing:.6px}
+      .vn-ac-profile-signout .vn-ac-button.secondary{color:#222;border-color:#aaa}
+      .vn-ac-profile-signout .vn-ac-button.danger{color:#999;border-color:#ddd}
+      .vn-ac-orders-empty h2{margin:0 0 24px;font-size:22px;color:#222}
+      .vn-ac-ready-row{display:flex;align-items:center;justify-content:space-between;gap:18px}
+      .vn-ac-ready-row h3{margin:0;font-size:20px;color:#222}
+      @media(max-width:700px){.vn-ac-policy-footer-row{gap:5px 10px}.vn-ac-footer-policies .vn-ac-legal-list{gap:6px 10px}}
       .vn-ac-profile-country{margin-top:20px}
       .vn-ac-profile-signout{margin-top:22px;padding-top:18px;border-top:1px solid #393939}
       .vn-ac-profile-signout .vn-ac-button{font-size:10px;letter-spacing:.7px}
@@ -401,7 +421,10 @@
           <button type="button" class="vn-ac-close" data-ac-action="close" aria-label="Close account">×</button>
         </header>
         <div id="vnAcContent"></div>
-        <button type="button" class="vn-ac-policy-link" data-ac-action="policy-open" data-ac-policy="privacy">Privacy Policy</button>
+        <div class="vn-ac-policy-footer-row">
+          <button type="button" class="vn-ac-policy-link" data-ac-action="policy-open" data-ac-policy="privacy">Privacy Policy</button>
+          <div class="vn-ac-footer-policies">${legalLinks()}</div>
+        </div>
       </div>
 
       <div class="vn-ac-policy-overlay" data-policy-overlay="terms" hidden role="dialog" aria-modal="true" aria-label="Terms of Use">
@@ -571,13 +594,7 @@
     `;
   }
 
-  function accountFooter() {
-    return `
-      <div class="vn-ac-account-footer" aria-label="Account policies">
-        <div class="vn-ac-footer-policies">${legalLinks()}</div>
-      </div>
-    `;
-  }
+  function accountFooter() { return ""; }
 
   function renderDashboard() {
     const name = [state.profile.first_name, state.profile.last_name].filter(Boolean).join(" ").trim() || state.user?.email || "there";
@@ -763,7 +780,7 @@
               <button class="vn-ac-button secondary" data-ac-order="${escapeHTML(order.id)}">View order</button>
               <button class="vn-ac-button secondary" data-ac-return-order="${escapeHTML(order.id)}">Start a return</button>
             </article>
-          `).join("") : `<div class="vn-ac-empty">No order history is available for this account yet. Orders appear here after they are saved to the store database.</div>`}
+          `).join("") : `<div class="vn-ac-empty vn-ac-orders-empty"><h2>Welcome, ${escapeHTML(([state.profile.first_name, state.profile.last_name].filter(Boolean).join(" ").trim()) || state.user?.email || "there")}</h2><div class="vn-ac-ready-row"><h3>Ready to shop?</h3><button class="vn-ac-button" data-ac-section="shop">Shop now</button></div></div>`}
           <p class="vn-ac-muted">Need help with an order? Visit the Help Center.</p>
           <button class="vn-ac-button secondary" data-ac-section="help">Help Center</button>
         </main>
