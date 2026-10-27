@@ -265,9 +265,21 @@
       .vn-ac-brand img{display:block;width:100%;height:100%;object-fit:contain;filter:invert(1)}
       .vn-ac-close{position:absolute;right:0;top:50%;transform:translateY(-50%);border:0;background:none;font-size:23px;cursor:pointer;color:inherit}
       .vn-ac-auth-shell .vn-ac-close{right:-18px;color:#f5f5f5}
-      .vn-ac-auth-shell .vn-ac-main{width:100%;max-width:100%;margin:22px auto 0!important}
-      .vn-ac-auth-shell .vn-ac-subtitle{color:#bdbdbd}
-      @media(max-width:600px){.vn-ac-shell.vn-ac-auth-shell{padding:24px 22px}.vn-ac-auth-shell .vn-ac-close{right:-10px}}
+      .vn-ac-auth-shell .vn-ac-main{width:100%;max-width:100%;margin:10px auto 0!important}
+      .vn-ac-auth-shell .vn-ac-header{padding-bottom:18px}
+      .vn-ac-auth-shell .vn-ac-brand{width:132px;height:62px;pointer-events:none;user-select:none}
+      .vn-ac-auth-shell .vn-ac-email-main h1,.vn-ac-auth-shell .vn-ac-email-main .vn-ac-subtitle{display:none}
+      .vn-ac-email-bar{display:flex;align-items:stretch;width:100%;min-height:48px;border:1px solid #555;border-radius:3px;overflow:hidden;background:#171717}
+      .vn-ac-email-bar input{flex:1;min-width:0;padding:0 13px;border:0;outline:0;background:transparent;color:#f5f5f5;font:14px/1.4 Arial,sans-serif}
+      .vn-ac-email-bar input::placeholder{color:#aaa;opacity:1}
+      .vn-ac-email-submit{width:48px;flex:none;border:0;border-left:1px solid #444;background:#222;color:#fff;font:25px/1 Arial,sans-serif;cursor:pointer;transition:background .15s}
+      .vn-ac-email-submit:hover{background:#333}
+      .vn-ac-updates{display:flex;align-items:center;justify-content:flex-start;gap:8px;margin:12px 0 0;color:#bdbdbd;font-size:11px;line-height:1.35}
+      .vn-ac-updates input{width:13px;height:13px;flex:none;margin:0;accent-color:#f5f5f5;cursor:pointer}
+      .vn-ac-email-terms{margin-top:18px!important;color:#8d8d8d;font-size:11px;line-height:1.5}
+      .vn-ac-email-terms a{color:#bdbdbd}
+      .vn-ac-auth-shell .vn-ac-message{margin:0 0 12px}
+      @media(max-width:600px){.vn-ac-shell.vn-ac-auth-shell{padding:24px 22px}.vn-ac-auth-shell .vn-ac-close{right:-10px}.vn-ac-auth-shell .vn-ac-brand{width:132px;height:62px}}
       .vn-ac-layout{display:grid;grid-template-columns:200px minmax(0,1fr);gap:48px;padding-top:32px}
       .vn-ac-sidebar{display:flex;flex-direction:column;gap:8px}
       .vn-ac-nav{border:0;background:none;color:#666;text-align:left;padding:12px 10px;font:inherit;cursor:pointer;border-radius:4px}
@@ -352,7 +364,7 @@
     root.innerHTML = `
       <div class="vn-ac-shell">
         <header class="vn-ac-header">
-          <a class="vn-ac-brand" href="#" data-ac-action="close" aria-label="VN home"><img src="images/vn-logo-black-transparent.png" alt="VN"></a>
+          <div class="vn-ac-brand" aria-label="VN"><img src="images/vn-logo-black-transparent.png" alt="VN"></div>
           <button type="button" class="vn-ac-close" data-ac-action="close" aria-label="Close account">×</button>
         </header>
         <div id="vnAcContent"></div>
@@ -375,36 +387,31 @@
 
   function renderEmail() {
     return `
-      <main class="vn-ac-main" style="max-width:460px;margin:45px auto">
-        <h1>Sign in or create an account</h1>
-        <p class="vn-ac-subtitle">Enter your email to receive a verification code.</p>
+      <main class="vn-ac-main vn-ac-email-main">
         ${messageHTML()}
 
         <form id="vnAcEmailForm">
-          <label class="vn-ac-field">
-            <span>Email address</span>
+          <div class="vn-ac-email-bar">
             <input
               name="email"
               type="email"
+              placeholder="Email"
+              aria-label="Email"
               value="${escapeHTML(state.email)}"
               autocomplete="email"
               required
               autofocus
             >
-          </label>
+            <button type="submit" class="vn-ac-email-submit" aria-label="Continue">→</button>
+          </div>
 
-          <label class="vn-ac-preference" style="margin:12px 0">
-            <span><strong>Sign up to receive updates from 9ojeez9</strong></span>
-            <input type="checkbox" name="updates" class="vn-ac-toggle"
-              ${state.signupMarketing ? "checked" : ""}>
+          <label class="vn-ac-updates">
+            <input type="checkbox" name="updates" ${state.signupMarketing ? "checked" : ""}>
+            <span>Sign up to receive updates from 9ojeez9</span>
           </label>
-
-          <button class="vn-ac-button" type="submit" style="width:100%">
-            Continue with email
-          </button>
         </form>
 
-        <p class="vn-ac-muted" style="margin-top:16px">
+        <p class="vn-ac-muted vn-ac-email-terms">
           By continuing, you agree to our
           <a href="${escapeHTML(state.config?.paths?.termsOfUse || "policies/terms-of-use.html")}" target="_blank" rel="noopener">Terms of Use</a>
           and
