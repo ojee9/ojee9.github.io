@@ -28,6 +28,16 @@
     .help-view-all{display:inline-block;margin-top:5px;color:inherit;font-size:12px;text-decoration:underline;text-underline-offset:4px}
     .help-no-results{padding:24px 0;font-size:14px}
     .help-no-results[hidden]{display:none}
+    .help-detail{padding-top:28px;max-width:900px}
+    .help-detail[hidden]{display:none}
+    .help-back{display:inline-block;margin:0 0 30px;padding:0;border:0;background:none;color:inherit;font:inherit;cursor:pointer}
+    .help-detail h2{margin:0 0 28px;font-size:clamp(22px,2.2vw,30px);font-weight:500;letter-spacing:-.03em}
+    .help-answer{padding:0 0 24px;margin:0 0 24px;border-bottom:1px solid rgba(20,18,15,.18)}
+    .help-answer h3{margin:0 0 12px;font-size:16px;font-weight:500;line-height:1.5}
+    .help-answer p,.help-answer li{font-size:14px;line-height:1.75}
+    .help-answer p{margin:0 0 10px}
+    .help-answer ul{padding-left:20px;margin:8px 0}
+    .help-detail-link{color:inherit;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
     @media(max-width:760px){.help-main{padding:25px 20px 42px}.help-categories{grid-template-columns:1fr;gap:30px}.help-category h2{margin-bottom:14px}.help-question{padding-bottom:13px;margin-bottom:13px}}
   </style>
 </head>
@@ -68,7 +78,7 @@
         <li class="help-question"><a href="#preorder-charge">When will I be charged for a pre-order item?</a></li>
         <li class="help-question"><a href="#cancel-order">Can I cancel or make changes to my order?</a></li>
       </ul>
-      <a class="help-view-all" href="help-center.html?category=orders">View All</a>
+      <a class="help-view-all" href="help.html?category=orders">View All</a>
     </section>
     <section class="help-category" aria-labelledby="help-returns-title">
       <h2 id="help-returns-title">Returns</h2>
@@ -77,7 +87,7 @@
         <li class="help-question"><a href="#return-condition">Will you accept returns of product in any condition?</a></li>
         <li class="help-question"><a href="#return-shipping">Who pays for my return?</a></li>
       </ul>
-      <a class="help-view-all" href="help-center.html?category=returns">View All</a>
+      <a class="help-view-all" href="help.html?category=returns">View All</a>
     </section>
     <section class="help-category" aria-labelledby="help-shipping-title">
       <h2 id="help-shipping-title">Shipping</h2>
@@ -86,9 +96,14 @@
         <li class="help-question"><a href="#tracking-no-delivery">I received notification my order was shipped but I still have not received it and my tracking info does not indicate the package was delivered.</a></li>
         <li class="help-question"><a href="#customs-fees">What do I need to know about customs fees?</a></li>
       </ul>
-      <a class="help-view-all" href="help-center.html?category=shipping">View All</a>
+      <a class="help-view-all" href="help.html?category=shipping">View All</a>
     </section>
   </div>
+  <section class="help-detail" id="help-detail" hidden aria-live="polite">
+    <button type="button" class="help-back" id="help-back">‹ Back To Help</button>
+    <h2 id="help-detail-category"></h2>
+    <div id="help-detail-content"></div>
+  </section>
   <p class="help-no-results" id="help-no-results" hidden>No matching questions found.</p>
 </main>
 <footer class="footer">
@@ -110,6 +125,38 @@
   const questions = [...document.querySelectorAll(".help-question")];
   const categories = [...document.querySelectorAll(".help-category")];
   const empty = document.getElementById("help-no-results");
+  const detail = document.getElementById("help-detail");
+  const detailTitle = document.getElementById("help-detail-category");
+  const detailContent = document.getElementById("help-detail-content");
+  const overview = document.getElementById("help-categories");
+  const topbar = document.querySelector(".help-topbar");
+  const params = new URLSearchParams(location.search);
+  const data = {
+    orders: {title:"Orders", items:[
+      ["Once I place an order, when will my account be charged?","Your payment method is charged during checkout when you place your order. If the payment is declined, the order may not be completed."],
+      ["When will I be charged for a pre-order item?","Pre-order payment timing and availability are shown during checkout and in the order confirmation. Check those details for your specific item."],
+      ["Can I cancel or make changes to my order?","Orders may begin processing soon after checkout, so changes or cancellations may not be possible. Contact support as soon as possible with your order number."]
+    ]},
+    returns: {title:"Returns", items:[
+      ["How long will it take for me to get a refund on my returned item?","Please allow 3–5 business days for your item to be processed. Refunds typically take 2–3 business days to appear in your account after processing, but can occasionally take up to 5 business days."],
+      ["Will you accept returns of product in any condition?","Items must be returned in their original condition and packaging, with tags attached. Returned items cannot be washed, worn, used, or altered. Items deemed used or altered are not eligible for a refund or exchange."],
+      ["Who pays for my return?","Customers with shipping addresses within the US are provided free return labels. International customers are responsible for return or exchange shipping costs."],
+      ["How long after my order can I submit a return request?","Return requests must be made within 30 days of the date your order is delivered."],
+      ["How do I return my order for a refund or an exchange?","Returns can be started through the self-service returns portal. Have your order number and the email address used at checkout ready. If you need your order details, sign in to your account to find them."]
+    ]},
+    shipping: {title:"Shipping", items:[
+      ["My tracking says my order was delivered, but I haven’t gotten it yet. Where is it?","Some carriers mark a package as delivered before it arrives. This can happen up to 5 days before actual delivery. Contact the carrier for more information. If it has not arrived after 5 days, check with neighbors and then contact support."],
+      ["I received notification my order was shipped but I still have not received it and my tracking info does not indicate the package was delivered.","If tracking has not moved beyond “pre-shipment” or “label created” for 2 weeks, contact support. You have up to 30 days from shipment to claim a package as lost for a possible reshipment, subject to stock, or a refund. We are not responsible for packages lost because an incorrect shipping address was provided."],
+      ["What do I need to know about customs fees?","Depending on your country, customs or import fees may apply. These charges are the purchaser’s responsibility. If fees are refused at delivery, the order may be returned to us; once received, we can refund the purchase. Contact your local postal or customs office for details."],
+      ["My tracking link says “Label Created” but hasn’t updated. What do I do?","“Label created” means the parcel may be packed and awaiting carrier pickup, or picked up but not yet scanned. If tracking does not update within 7 days, contact the carrier. If they cannot provide an update, contact support."],
+      ["When will I get tracking information?","Tracking information is emailed once your package is processed for shipment. Check all inboxes, including spam. The initial tracking status may take up to 3 days to update."],
+      ["How long will it take for my order to arrive once it ships?","Delivery time depends on the shipping method selected at checkout and is additional to any pre-order and processing time. US options listed in the supplied shipping information include UPS Mail Innovations (5–7 days), USPS Media Mail (2–10 days), and FedEx Smartpost (2–7 days). International APC ParcelConnect Priority DDU options are listed as 11–15 days in transit, but customs may cause delays. Carrier delays are outside our control."],
+      ["When will my order ship?","In most cases, excluding pre-orders, orders ship within 2–3 business days. Pre-order shipping timelines are detailed in the product description and confirmation email. Orders containing a pre-order item generally wait until all items are available unless separate shipping is offered and selected. Dates are not guaranteed unless stated otherwise."],
+      ["My order is shipping to a country outside of the United States. Will I have to pay customs/import fees to receive my order?","Depending on your country, customs or import fees may apply and are the purchaser’s responsibility. If fees are refused at delivery, the package may be returned to us; once received, we can refund your purchase. Contact your local postal or customs office for details."],
+      ["My item was shipped, but still hasn’t shown up. Is it lost in the mail?","You have up to 30 days from the shipment date to claim a package as lost for a possible reshipment, subject to stock, or a refund. If tracking has not moved beyond “pre-shipment” or “label created” for 2 weeks, contact support. We are not responsible for packages lost because an incorrect shipping address was provided."],
+      ["What happens if a package is returned to VN SHOP?","If a package is returned due to a shipping or delivery issue, we will contact you using the email provided with the order. If we do not receive a response within 5 business days, the order may be cancelled and refunded. For orders shipped in multiple packages, only items returned to us can be refunded."]
+    ]}
+  };
   function toggleSearch() {
     const open = panel.hidden;
     panel.hidden = !open;
@@ -128,6 +175,47 @@
     empty.hidden = !q || questions.some(item => !item.hidden);
   }
   input.addEventListener("input", () => filterQuestions(input.value));
+  function showDetail(category, question) {
+    const selected = data[category];
+    if (!selected) return;
+    detailTitle.textContent = selected.title;
+    detailContent.replaceChildren();
+    selected.items.filter(item => !question || item[0] === question).forEach(([q,a]) => {
+      const article = document.createElement("article");
+      article.className = "help-answer";
+      const heading = document.createElement("h3");
+      heading.textContent = q;
+      const paragraph = document.createElement("p");
+      paragraph.textContent = a;
+      article.append(heading, paragraph);
+      detailContent.append(article);
+    });
+    overview.hidden = true;
+    topbar.hidden = true;
+    empty.hidden = true;
+    detail.hidden = false;
+    history.replaceState(null, "", "help.html?category=" + encodeURIComponent(category) + (question ? "&question=" + encodeURIComponent(question) : ""));
+  }
+  document.querySelectorAll(".help-view-all").forEach(link => link.addEventListener("click", event => {
+    const category = new URL(link.href).searchParams.get("category");
+    if (data[category]) { event.preventDefault(); showDetail(category); }
+  }));
+  questions.forEach(item => {
+    const link = item.querySelector("a");
+    link.addEventListener("click", event => {
+      const match = Object.entries(data).flatMap(([key, val]) => val.items.map(([q]) => ({key,q}))).find(entry => entry.q === link.textContent.trim());
+      if (match) { event.preventDefault(); showDetail(match.key, match.q); }
+    });
+  });
+  document.getElementById("help-back").addEventListener("click", () => {
+    detail.hidden = true;
+    overview.hidden = false;
+    topbar.hidden = false;
+    history.replaceState(null, "", "help.html");
+  });
+  const category = params.get("category");
+  const question = params.get("question");
+  if (data[category]) showDetail(category, question);
 })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
