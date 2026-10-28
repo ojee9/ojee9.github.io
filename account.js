@@ -787,6 +787,12 @@
     `;
   }
 
+  function countryFlag(code) {
+    const normalized = String(code || "").toUpperCase();
+    if (!/^[A-Z]{2}$/.test(normalized)) return "";
+    return String.fromCodePoint(...[...normalized].map(char => 127397 + char.charCodeAt(0)));
+  }
+
   function countryOptions(selected) {
     const codes = "AD AE AF AG AI AL AM AO AQ AR AS AT AU AW AX AZ BA BB BD BE BF BI BJ BL BM BN BO BQ BR BS BT BV BW BY BZ CA CC CD CF CG CH CI CK CL CM CN CO CR CU CV CW CX CY CZ DE DJ DK DM DO DZ EC EE EG EH ER ES ET FI FJ FK FM FO FR GA GB GD GE GF GG GH GI GL GM GN GP GQ GR GS GT GU GW GY HK HM HN HR HT HU ID IE IL IM IN IO IQ IR IS JE JM JO JP KE KG KH KI KM KN KP KR KW KY KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MF MG MH MK ML MM MN MO MP MQ MR MS MT MU MV MW MX MY MZ NA NC NE NF NG NI NL NO NP NR NU NZ OM PA PE PF PG PH PK PL PM PN PR PS PT PW PY QA RE RO RS RU RW SA SB SC SD SE SG SH SI SJ SK SL SM SN SO SR SS ST SV SX SY SZ TC TD TF TG TH TJ TK TL TM TN TO TR TT TV TW TZ UA UG UM US UY UZ VA VC VE VG VI VN VU WF WS YE YT ZA ZM ZW".split(" ");
     const displayNames = new Intl.DisplayNames(["en"], { type: "region" });
@@ -874,7 +880,7 @@
       : `<div class="vn-ac-empty">No saved addresses yet.</div>`;
     const countryCodes = "AD AE AF AG AL AM AO AR AT AU AZ BA BD BE BG BH BO BR BY CA CH CL CN CO CR CY CZ DE DK DO DZ EC EE EG ES ET FI FR GB GE GH GR HK HR HU ID IE IL IN IQ IR IS IT JO JP KE KR KW KZ LB LK LT LU LV MA MD ME MX MY NG NL NO NP NZ OM PA PE PH PK PL PT QA RO RS RU SA SE SG SI SK TH TN TR TW TZ UA UG US UY UZ VE VN ZA".split(" ");
     const dialCodes = {US:"+1",CA:"+1",GB:"+44",TR:"+90",DE:"+49",FR:"+33",NL:"+31",AU:"+61",NZ:"+64",IN:"+91",JP:"+81",KR:"+82",CN:"+86",BR:"+55",MX:"+52",ES:"+34",IT:"+39",AE:"+971",SA:"+966",QA:"+974",EG:"+20",PK:"+92",BD:"+880",ID:"+62",RU:"+7",UA:"+380",SE:"+46",NO:"+47",DK:"+45",FI:"+358",CH:"+41",AT:"+43",BE:"+32",IE:"+353",PT:"+351",GR:"+30",PL:"+48",CZ:"+420",RO:"+40",ZA:"+27",NG:"+234",KE:"+254",GH:"+233"};
-    const flags = {US:"🇺🇸",CA:"🇨🇦",GB:"🇬🇧",TR:"🇹🇷",DE:"🇩🇪",FR:"🇫🇷",NL:"🇳🇱",AU:"🇦🇺",NZ:"🇳🇿",IN:"🇮🇳",JP:"🇯🇵",KR:"🇰🇷",CN:"🇨🇳",BR:"🇧🇷",MX:"🇲🇽",ES:"🇪🇸",IT:"🇮🇹",AE:"🇦🇪",SA:"🇸🇦",QA:"🇶🇦",EG:"🇪🇬",PK:"🇵🇰",BD:"🇧🇩",ID:"🇮🇩",RU:"🇷🇺",UA:"🇺🇦",SE:"🇸🇪",NO:"🇳🇴",DK:"🇩🇰",FI:"🇫🇮",CH:"🇨🇭",AT:"🇦🇹",BE:"🇧🇪",IE:"🇮🇪",PT:"🇵🇹",GR:"🇬🇷",PL:"🇵🇱",CZ:"🇨🇿",RO:"🇷🇴",ZA:"🇿🇦",NG:"🇳🇬",KE:"🇰🇪",GH:"🇬🇭"};
+
     const regionNames = new Intl.DisplayNames(["en"], { type: "region" });
     const dialSelect = countryCodes.map(code => `<option value="${code}" data-dial="${dialCodes[code] || ""}" ${code === (state.country || "TR") ? "selected" : ""}>${regionNames.of(code) || code}</option>`).join("");
     const selectedDial = dialCodes[state.country || "TR"] || "";
@@ -901,7 +907,7 @@
               <label class="vn-ac-address-control"><span>State</span><select name="state" autocomplete="address-level1"><option value="">State / Province</option>${(state.country === "TR" ? "Adana Adıyaman Afyonkarahisar Ağrı Amasya Ankara Antalya Artvin Aydın Balıkesir Bilecik Bingöl Bitlis Bolu Burdur Bursa Çanakkale Çankırı Çorum Denizli Diyarbakır Edirne Elazığ Erzincan Erzurum Eskişehir Gaziantep Giresun Gümüşhane Hakkari Hatay Isparta Mersin İstanbul İzmir Kars Kastamonu Kayseri Kırklareli Kırşehir Kocaeli Konya Kütahya Malatya Manisa Kahramanmaraş Mardin Muğla Muş Nevşehir Niğde Ordu Rize Sakarya Samsun Siirt Sinop Sivas Tekirdağ Tokat Trabzon Tunceli Şanlıurfa Uşak Van Yozgat Zonguldak Aksaray Bayburt Karaman Kırıkkale Batman Şırnak Bartın Ardahan Iğdır Yalova Karabük Kilis Osmaniye Düzce" : "Alabama Alaska Arizona Arkansas California Colorado Connecticut Delaware Florida Georgia Hawaii Idaho Illinois Indiana Iowa Kansas Kentucky Louisiana Maine Maryland Massachusetts Michigan Minnesota Mississippi Missouri Montana Nebraska Nevada New Hampshire New Jersey New Mexico New York North Carolina North Dakota Ohio Oklahoma Oregon Pennsylvania Rhode Island South Carolina South Dakota Tennessee Texas Utah Vermont Virginia Washington West Virginia Wisconsin Wyoming").split(" ").map(item => `<option value="${escapeHTML(item)}">${escapeHTML(item)}</option>`).join("")}</select></label>
               <label class="vn-ac-address-control"><span>ZIP Code</span><input name="postal_code" placeholder="ZIP Code" autocomplete="postal-code" required></label>
             </div>
-            <label class="vn-ac-address-control"><span>Phone</span><div class="vn-ac-phone-row"><span class="vn-ac-phone-dial" data-ac-phone-dial>${selectedDial}</span><input name="phone" type="tel" placeholder="Phone" autocomplete="tel-national"><select name="phone_country" aria-label="Phone country" title="Select phone country">${dialSelect}</select><span class="vn-ac-phone-flag" aria-hidden="true">${flags[state.country || "TR"] || "🌐"}</span></div></label>
+            <label class="vn-ac-address-control"><span>Phone</span><div class="vn-ac-phone-row"><span class="vn-ac-phone-dial" data-ac-phone-dial>${selectedDial}</span><input name="phone" type="tel" placeholder="Phone" autocomplete="tel-national"><select name="phone_country" aria-label="Phone country" title="Select phone country">${dialSelect}</select><span class="vn-ac-phone-flag" aria-hidden="true">${countryFlag(state.country || "TR")}</span></div></label>
             <label class="vn-ac-default-address"><input type="checkbox" name="is_default"><span>This is my default address</span></label>
             <button class="vn-ac-button" type="submit">Save address</button>
           </form>
@@ -1863,10 +1869,10 @@
       const option = phoneCountry.selectedOptions[0];
       const code = phoneCountry.value;
       const dialCodes = {US:"+1",CA:"+1",GB:"+44",TR:"+90",DE:"+49",FR:"+33",NL:"+31",AU:"+61",NZ:"+64",IN:"+91",JP:"+81",KR:"+82",CN:"+86",BR:"+55",MX:"+52",ES:"+34",IT:"+39",AE:"+971",SA:"+966",QA:"+974",EG:"+20",PK:"+92",BD:"+880",ID:"+62",RU:"+7",UA:"+380",SE:"+46",NO:"+47",DK:"+45",FI:"+358",CH:"+41",AT:"+43",BE:"+32",IE:"+353",PT:"+351",GR:"+30",PL:"+48",CZ:"+420",RO:"+40",ZA:"+27",NG:"+234",KE:"+254",GH:"+233"};
-      const flags = {US:"🇺🇸",CA:"🇨🇦",GB:"🇬🇧",TR:"🇹🇷",DE:"🇩🇪",FR:"🇫🇷",NL:"🇳🇱",AU:"🇦🇺",NZ:"🇳🇿",IN:"🇮🇳",JP:"🇯🇵",KR:"🇰🇷",CN:"🇨🇳",BR:"🇧🇷",MX:"🇲🇽",ES:"🇪🇸",IT:"🇮🇹",AE:"🇦🇪",SA:"🇸🇦",QA:"🇶🇦",EG:"🇪🇬",PK:"🇵🇰",BD:"🇧🇩",ID:"🇮🇩",RU:"🇷🇺",UA:"🇺🇦",SE:"🇸🇪",NO:"🇳🇴",DK:"🇩🇰",FI:"🇫🇮",CH:"🇨🇭",AT:"🇦🇹",BE:"🇧🇪",IE:"🇮🇪",PT:"🇵🇹",GR:"🇬🇷",PL:"🇵🇱",CZ:"🇨🇿",RO:"🇷🇴",ZA:"🇿🇦",NG:"🇳🇬",KE:"🇰🇪",GH:"🇬🇭"};
+
       const flag = event.target.closest(".vn-ac-phone-row")?.querySelector(".vn-ac-phone-flag");
       const dial = event.target.closest(".vn-ac-phone-row")?.querySelector("[data-ac-phone-dial]");
-      if (flag) flag.textContent = flags[code] || "🌐";
+      if (flag) flag.textContent = countryFlag(code);
       if (dial) dial.textContent = dialCodes[code] || "";
       return;
     }
