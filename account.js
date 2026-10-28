@@ -1107,7 +1107,7 @@
       if(rows.length) {
         const clean=rows.filter(x=>!/^\|?\s*:?-{3,}/.test(x));
         const cells=x=>x.replace(/^\|/,"").replace(/\|$/,"").split("|").map(v=>v.trim());
-        if(clean.length) out.push('<div class="vn-ac-policy-table-wrap"><table class="vn-ac-policy-table"><thead><tr>'+cells(clean[0]).map(x=>"<th>"+inline(x)+"</th>").join("")+"</tr></thead><tbody>"+clean.slice(1).map(x=>"<tr>"+cells(x).map(y=>"<td>"+inline(y)+"</td>").join("")+"</tr>").join("")+"</tbody></table></div>');
+        if(clean.length) out.push('<div class="vn-ac-policy-table-wrap"><table class="vn-ac-policy-table"><thead><tr>'+cells(clean[0]).map(x=>"<th>"+inline(x)+"</th>").join("")+"</tr></thead><tbody>"+clean.slice(1).map(x=>"<tr>"+cells(x).map(y=>"<td>"+inline(y)+"</td>").join("")+"</tr>").join("")+"</tbody></table></div>");
       }
       rows=[];
     };
