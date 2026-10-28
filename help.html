@@ -270,7 +270,7 @@
     cartTitle.textContent = "YOUR CART (" + quantity + ")";
     if (!cart.length) {
       cartContent.innerHTML = '<div class="drawer-empty"><h2>Your cart is empty</h2><button type="button" class="secondary-button" id="help-cart-continue">CONTINUE SHOPPING</button></div>';
-      document.getElementById("help-cart-continue").onclick = closeHelpCart;
+      document.getElementById("help-cart-continue").onclick = continueShopping;
       return;
     }
     const subtotal = cart.reduce((sum, item) => sum + itemPrice(item) * Math.max(0, Number(item.quantity) || 0), 0);
@@ -292,11 +292,15 @@
       cart.splice(Number(button.dataset.helpRemove), 1);
       saveCart(); renderHelpCart();
     });
-    document.getElementById("help-cart-continue").onclick = closeHelpCart;
+    document.getElementById("help-cart-continue").onclick = continueShopping;
     document.getElementById("help-cart-checkout").onclick = () => {
       if (window.VNCheckout?.open) window.VNCheckout.open(cart);
       else alert("Checkout is not available yet.");
     };
+  }
+  function continueShopping() {
+    closeHelpCart();
+    window.setTimeout(() => { window.location.href = "merch.html"; }, 260);
   }
   function openHelpCart() {
     renderHelpCart();
