@@ -1087,7 +1087,7 @@
         <main class="vn-ac-main">
           <button class="vn-ac-button text" data-ac-action="legal-back">← Back to profile</button>
           <h1>${escapeHTML(legal.title)}</h1><p class="vn-ac-subtitle">VN SHOP · LEGAL</p>
-          <div class="vn-ac-legal-copy">${escapeHTML(legal.text)}</div>
+          <div class="vn-ac-legal-copy">${formatLegalContent(legal.text)}</div>
           <div class="vn-ac-actions"><button class="vn-ac-button secondary" data-ac-action="legal-back">Back to profile</button></div>
         </main>
       </div>
