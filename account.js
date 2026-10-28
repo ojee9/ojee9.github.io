@@ -411,11 +411,11 @@
       .vn-ac-profile-detail-value small{text-align:right;overflow-wrap:anywhere}
       .vn-ac-profile-detail-row>.vn-ac-text-action{flex:none}
       @media(max-width:520px){.vn-ac-profile-detail-row{gap:10px}.vn-ac-profile-detail-value{gap:10px}}
-      .vn-ac-profile-name{margin:12px 0 20px;font-size:14px;line-height:1.5}\n      .vn-ac-profile-section{margin-top:20px}
+      .vn-ac-profile-name{margin:12px 0 20px;font-size:16px;font-weight:600;line-height:1.5;letter-spacing:.1px}\n      .vn-ac-profile-section{margin-top:20px}
       .vn-ac-profile-section-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:7px;font-size:13px}
       .vn-ac-text-action{padding:0;border:0;background:none;color:#777;font:12px Arial,sans-serif;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
       .vn-ac-text-action:hover{color:#111}
-      .vn-ac-profile-icon{display:inline-block;margin-right:10px;color:#777;font-size:16px}
+      .vn-ac-profile-icon{display:inline-block;margin-right:10px;color:#777;font-size:16px}.vn-ac-location-icon{width:16px;height:16px;flex:0 0 16px;vertical-align:middle}
       .vn-ac-profile-section .vn-ac-row{margin:0}
       .vn-ac-profile-section .vn-ac-preference{margin:0}
       .vn-ac-profile-signout{display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;gap:9px;margin-top:24px;padding-top:0;border-top:0}
@@ -824,7 +824,7 @@
             <div class="vn-ac-row vn-ac-profile-detail-row"><div class="vn-ac-profile-detail-label"><strong>Email</strong></div><div class="vn-ac-profile-detail-value"><small>${escapeHTML(email)}</small></div></div>
           </section>
           <section class="vn-ac-profile-section"><div class="vn-ac-profile-section-head"><strong>Addresses</strong><button type="button" class="vn-ac-button secondary vn-ac-profile-action" data-ac-action="edit-addresses">Add</button></div>
-            <div class="vn-ac-row vn-ac-profile-detail-row"><div class="vn-ac-profile-detail-label"><span class="vn-ac-profile-icon" aria-hidden="true">⌖</span><strong>${state.addresses.length ? escapeHTML(state.addresses.length + " saved address(es)") : "No addresses added"}</strong></div></div>
+            <div class="vn-ac-row vn-ac-profile-detail-row"><div class="vn-ac-profile-detail-label"><svg class="vn-ac-profile-icon vn-ac-location-icon" aria-hidden="true" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 10C20 15.25 12 22 12 22S4 15.25 4 10a8 8 0 1 1 16 0Z" stroke="currentColor" stroke-width="1.7"/><circle cx="12" cy="10" r="2.5" stroke="currentColor" stroke-width="1.7"/></svg><strong>${state.addresses.length ? escapeHTML(state.addresses.length + " saved address(es)") : "No addresses added"}</strong></div></div>
           </section>
           <section class="vn-ac-profile-section"><div class="vn-ac-profile-section-head"><strong>Marketing preferences</strong></div>
             <div class="vn-ac-preference"><div><span class="vn-ac-profile-icon" aria-hidden="true">✉</span><strong>Email</strong></div><input type="checkbox" class="vn-ac-toggle" data-ac-toggle="marketing" aria-label="Email marketing preferences" ${state.marketingUpdates ? "checked" : ""}></div>
