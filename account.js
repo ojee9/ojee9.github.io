@@ -411,7 +411,7 @@
       .vn-ac-profile-detail-value small{text-align:right;overflow-wrap:anywhere}
       .vn-ac-profile-detail-row>.vn-ac-text-action{flex:none}
       @media(max-width:520px){.vn-ac-profile-detail-row{gap:10px}.vn-ac-profile-detail-value{gap:10px}}
-      .vn-ac-profile-section{margin-top:20px}
+      .vn-ac-profile-name{margin:12px 0 20px;font-size:14px;line-height:1.5}\n      .vn-ac-profile-section{margin-top:20px}
       .vn-ac-profile-section-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:7px;font-size:13px}
       .vn-ac-text-action{padding:0;border:0;background:none;color:#777;font:12px Arial,sans-serif;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
       .vn-ac-text-action:hover{color:#111}
@@ -818,10 +818,8 @@
         ${sidebar()}
         <main class="vn-ac-main">
           <h1>My Profile</h1>
+          <p class="vn-ac-profile-name">${escapeHTML(fullName || "Enter name")}</p>
           ${messageHTML()}
-          <div class="vn-ac-profile-item">
-            <div class="vn-ac-row"><div><strong>${escapeHTML(fullName || "Enter name")}</strong></div><button class="vn-ac-button secondary" data-ac-action="edit-contact">Edit</button></div>
-          </div>
           <section class="vn-ac-profile-section"><div class="vn-ac-profile-section-head"><strong>Email</strong><button type="button" class="vn-ac-button secondary vn-ac-profile-action" data-ac-action="edit-contact">Edit</button></div>
             <div class="vn-ac-row vn-ac-profile-detail-row"><div class="vn-ac-profile-detail-label"><strong>Email</strong></div><div class="vn-ac-profile-detail-value"><small>${escapeHTML(email)}</small></div></div>
           </section>
@@ -839,15 +837,18 @@
   }
 
   function renderContactEdit() {
+    const email = state.user?.email || state.email || "";
     return `
       <div class="vn-ac-layout">
         ${sidebar()}
         <main class="vn-ac-main">
+          <h1>Edit Profile</h1>
           <form id="vnAcProfileForm">
             <div class="vn-ac-form-grid">
               <label class="vn-ac-field"><span>First name</span><input name="first_name" value="${escapeHTML(state.profile.first_name || "")}" autocomplete="given-name"></label>
               <label class="vn-ac-field"><span>Last name</span><input name="last_name" value="${escapeHTML(state.profile.last_name || "")}" autocomplete="family-name"></label>
             </div>
+            <label class="vn-ac-field"><span>Email</span><input name="email" type="email" value="${escapeHTML(email)}" autocomplete="email" required></label>
             <div class="vn-ac-actions">
               <button class="vn-ac-button" type="submit">Save changes</button>
               <button class="vn-ac-button secondary" type="button" data-ac-section="profile">Cancel</button>
@@ -1339,6 +1340,16 @@
     if (!state.supabase || !state.user) return;
 
     const data = new FormData(form);
+    const email = String(data.get("email") || "").trim();
+    if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+      state.messageType = "error";
+      state.message = "Enter a valid email address.";
+      render();
+      return;
+    }
+
+    const currentEmail = String(state.user.email || state.email || "").trim().toLowerCase();
+    const emailChanged = email.toLowerCase() !== currentEmail;
     const profile = {
       id: state.user.id,
       first_name: String(data.get("first_name") || "").trim(),
@@ -1356,10 +1367,25 @@
       render();
       return;
     }
+
     state.profile = { ...state.profile, ...profile };
-    state.section = "profile";
-    state.messageType = "success";
-    state.message = "Profile updated.";
+    if (emailChanged) {
+      const emailResult = await state.supabase.auth.updateUser({ email });
+      if (emailResult.error) {
+        state.section = "edit-contact";
+        state.messageType = "error";
+        state.message = `Your name was saved, but the email could not be updated: ${emailResult.error.message}`;
+        render();
+        return;
+      }
+      state.section = "profile";
+      state.messageType = "success";
+      state.message = "Profile updated. Check your new email address for a confirmation link to finish changing your email.";
+    } else {
+      state.section = "profile";
+      state.messageType = "success";
+      state.message = "Profile updated.";
+    }
     render();
   }
 
