@@ -46,18 +46,28 @@
 
   const $ = (selector, root = document) => root.querySelector(selector);
 
-  // Register the account trigger immediately. This remains available even if a
-  // later optional account initialization step fails.
+  // Register the SHOP profile trigger early, using capture so other page
+  // handlers cannot prevent the account panel from opening.
   document.addEventListener("click", event => {
-    const trigger = event.target.closest("#profile-open");
+    const target = event.target;
+    const trigger = target instanceof Element
+      ? target.closest("#profile-open")
+      : null;
     if (!trigger) return;
+
     event.preventDefault();
+    event.stopPropagation();
+
     try {
       openPanel();
     } catch (error) {
-      console.error("[VN ACCOUNT] Could not open account panel:", error);
-      const root = document.querySelector("#vnAccountOverlay");
-      if (root) root.hidden = false;
+      console.error("[VN ACCOUNT] Profile panel failed to open:", error);
+      // Keep a visible fallback instead of leaving the icon completely inert.
+      try {
+        createRoot().hidden = false;
+      } catch (fallbackError) {
+        console.error("[VN ACCOUNT] Could not create account panel:", fallbackError);
+      }
     }
   }, true);
 
