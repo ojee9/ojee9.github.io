@@ -46,9 +46,9 @@
 
   const $ = (selector, root = document) => root.querySelector(selector);
 
-  // The account icon must wait for persisted auth state before choosing
-  // between the signed-in dashboard and the email sign-in screen.
-  document.addEventListener("click", async event => {
+  // Open the account panel immediately on click. Session/config requests must
+  // never block the visible response to the profile icon.
+  document.addEventListener("click", event => {
     const target = event.target;
     const trigger = target instanceof Element ? target.closest("#profile-open") : null;
     if (!trigger) return;
@@ -56,34 +56,50 @@
     event.preventDefault();
 
     try {
-      if (configPromise) await configPromise;
-
-      if (state.supabase) {
-        const { data, error } = await state.supabase.auth.getSession();
-        if (error) throw error;
-        if (data?.session?.user) {
-          state.user = data.session.user;
-          state.email = data.session.user.email || "";
-          state.screen = "account";
-        }
-      }
-
-      if (state.user) {
-        state.section = "dashboard";
-        state.message = "";
-        await loadAccountData();
-      }
-
       openPanel();
     } catch (error) {
-      console.error("[VN ACCOUNT] Profile click failed:", error);
+      console.error("[VN ACCOUNT] Profile panel failed to open:", error);
       try {
         createRoot().hidden = false;
         render();
       } catch (fallbackError) {
         console.error("[VN ACCOUNT] Could not render account panel:", fallbackError);
       }
+      return;
     }
+
+    // Resolve saved authentication in the background, then show the dashboard.
+    // The panel is already visible even if the network/auth check is slow.
+    (async () => {
+      try {
+        if (configPromise) await configPromise;
+
+        if (state.supabase) {
+          const { data, error } = await state.supabase.auth.getSession();
+          if (error) throw error;
+
+          const sessionUser = data?.session?.user || null;
+          state.user = sessionUser;
+          state.email = sessionUser?.email || "";
+          state.screen = sessionUser ? "account" : "email";
+        }
+
+        if (state.user) {
+          state.section = "dashboard";
+          state.message = "";
+        }
+
+        render();
+
+        if (state.user) {
+          loadAccountData()
+            .then(() => render())
+            .catch(error => console.error("[VN ACCOUNT] Account data refresh failed:", error));
+        }
+      } catch (error) {
+        console.error("[VN ACCOUNT] Background session refresh failed:", error);
+      }
+    })();
   }, true);
 
   const escapeHTML = value =>
