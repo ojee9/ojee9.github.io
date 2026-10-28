@@ -603,7 +603,7 @@
     root.innerHTML = `
       <div class="vn-ac-shell vn-ac-auth-shell">
         <header class="vn-ac-header">
-          <div class="vn-ac-brand" aria-label="VN"><img src="images/vn-logo-black-transparent.png" alt="VN"></div>
+          <div class="vn-ac-brand" aria-label="VN"><img src="images/vn-logo-official.png" alt="VN"></div>
           <button type="button" class="vn-ac-close" data-ac-action="close" aria-label="Close account">×</button>
         </header>
         <div id="vnAcContent"></div>
