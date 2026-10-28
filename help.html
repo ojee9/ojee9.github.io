@@ -21,7 +21,7 @@
     .help-category{min-width:0}
     .help-category h2{margin:0 0 20px;font-size:clamp(19px,1.65vw,24px);font-weight:500;letter-spacing:-.025em}
     .help-question-list{list-style:none;margin:0;padding:0}
-    .help-question{padding:0 0 17px;margin:0 0 17px;border-bottom:1px solid rgba(20,18,15,.18);font-size:14px;line-height:1.55}
+    .help-question{box-sizing:border-box;height:132px;padding:0 0 17px;margin:0 0 17px;border-bottom:1px solid rgba(20,18,15,.18);font-size:14px;line-height:1.55}
     .help-question[hidden]{display:none}
     .help-question a{color:inherit;text-decoration:none}
     .help-question a:hover{text-decoration:underline;text-underline-offset:3px}
@@ -38,7 +38,7 @@
     .help-answer p{margin:0 0 10px}
     .help-answer ul{padding-left:20px;margin:8px 0}
     .help-detail-link{color:inherit;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
-    @media(max-width:760px){.help-main{padding:25px 20px 42px}.help-categories{grid-template-columns:1fr;gap:30px}.help-category h2{margin-bottom:14px}.help-question{padding-bottom:13px;margin-bottom:13px}}
+    @media(max-width:760px){.help-main{padding:25px 20px 42px}.help-categories{grid-template-columns:1fr;gap:30px}.help-category h2{margin-bottom:14px}.help-question{height:auto;padding-bottom:13px;margin-bottom:13px}}
   </style>
 </head>
 <body>
