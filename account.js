@@ -56,7 +56,6 @@
     if (!trigger) return;
 
     event.preventDefault();
-    event.stopPropagation();
 
     try {
       openPanel();
