@@ -476,6 +476,11 @@
     overlay.classList.remove("is-open");
     overlay.setAttribute("aria-hidden", "true");
 
+    // Do not leave a persistent #cart hash that reopens the drawer on every reload.
+    if (overlay === cartOverlay && window.location.hash === "#cart") {
+      history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
+
     window.setTimeout(() => {
       if (!overlay.classList.contains("is-open")) {
         overlay.hidden = true;
