@@ -46,26 +46,42 @@
 
   const $ = (selector, root = document) => root.querySelector(selector);
 
-  // Register the SHOP profile trigger early, using capture so other page
-  // handlers cannot prevent the account panel from opening.
-  document.addEventListener("click", event => {
+  // The account icon must wait for persisted auth state before choosing
+  // between the signed-in dashboard and the email sign-in screen.
+  document.addEventListener("click", async event => {
     const target = event.target;
-    const trigger = target instanceof Element
-      ? target.closest("#profile-open")
-      : null;
+    const trigger = target instanceof Element ? target.closest("#profile-open") : null;
     if (!trigger) return;
 
     event.preventDefault();
 
     try {
+      if (configPromise) await configPromise;
+
+      if (state.supabase) {
+        const { data, error } = await state.supabase.auth.getSession();
+        if (error) throw error;
+        if (data?.session?.user) {
+          state.user = data.session.user;
+          state.email = data.session.user.email || "";
+          state.screen = "account";
+        }
+      }
+
+      if (state.user) {
+        state.section = "dashboard";
+        state.message = "";
+        await loadAccountData();
+      }
+
       openPanel();
     } catch (error) {
-      console.error("[VN ACCOUNT] Profile panel failed to open:", error);
-      // Keep a visible fallback instead of leaving the icon completely inert.
+      console.error("[VN ACCOUNT] Profile click failed:", error);
       try {
         createRoot().hidden = false;
+        render();
       } catch (fallbackError) {
-        console.error("[VN ACCOUNT] Could not create account panel:", fallbackError);
+        console.error("[VN ACCOUNT] Could not render account panel:", fallbackError);
       }
     }
   }, true);
