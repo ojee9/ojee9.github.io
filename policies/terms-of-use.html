@@ -149,10 +149,27 @@
   </article>
 </main>
 <footer class="footer">
-  <nav class="footer-links" id="footer-links" aria-label="Help and legal"></nav>
-  <div class="copyright" id="copyright"></div>
+  <nav class="footer-links" id="footer-links" aria-label="Help and legal">
+    <a href="../help.html">Help &amp; Support</a>
+    <a href="terms-of-use.html">Terms</a>
+    <a href="privacy-policy.html">Privacy</a>
+    <a href="privacy-policy.html">Do Not Sell My Personal Information</a>
+    <button type="button" id="cookie-choices">Cookie Choices</button>
+  </nav>
+  <div class="copyright">© 2026 VN RECORDS. ALL RIGHTS RESERVED.</div>
   <img class="footer-sublogo" src="../images/vn-logo-black-transparent.png" alt="VN" width="180" height="116" loading="eager" decoding="async">
 </footer>
+
+<!-- CART DRAWER: shared Help/Shop behavior -->
+<div class="drawer-overlay" id="help-cart-overlay" aria-hidden="true" hidden>
+  <section class="drawer" role="dialog" aria-modal="true" aria-labelledby="help-cart-title">
+    <header class="drawer-head">
+      <h2 class="drawer-title" id="help-cart-title">YOUR CART</h2>
+      <button class="drawer-close" id="help-cart-close" type="button" aria-label="Close">×</button>
+    </header>
+    <div class="drawer-content" id="help-cart-content"></div>
+  </section>
+</div>
 
 <section class="cookie-panel" id="cookie-panel" aria-label="Cookie preferences" aria-hidden="true">
   <div class="cookie-content">
@@ -190,6 +207,110 @@
     </div>
   </div>
 </section>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../account.js"></script>
+<script src="../checkout.js"></script>
+<script>
+(() => {
+  const count = document.getElementById("cart-count");
+  try {
+    const saved = JSON.parse(localStorage.getItem("vn-shop-cart") || "[]");
+    count.textContent = saved.reduce((sum, item) => sum + Math.max(0, Number(item.quantity) || 0), 0);
+  } catch (_) { count.textContent = "0"; }
+  const cartOverlay = document.getElementById("help-cart-overlay");
+  const cartContent = document.getElementById("help-cart-content");
+  const cartTitle = document.getElementById("help-cart-title");
+  const escapeHTML = value => String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;"
+  })[char]);
+  const readCart = () => {
+    try {
+      const items = JSON.parse(localStorage.getItem("vn-shop-cart") || "[]");
+      return Array.isArray(items) ? items : [];
+    } catch (_) { return []; }
+  };
+  let cart = readCart();
+  const itemPrice = item => {
+    const raw = item?.product?.price ?? 0;
+    const n = Number(String(raw).replace(/[^0-9.-]/g, ""));
+    return Number.isFinite(n) ? n : 0;
+  };
+  const money = amount => new Intl.NumberFormat("en-US", {style:"currency",currency:"USD"}).format(amount);
+  function saveCart() {
+    try { localStorage.setItem("vn-shop-cart", JSON.stringify(cart)); } catch (_) {}
+    count.textContent = cart.reduce((sum, item) => sum + Math.max(0, Number(item.quantity) || 0), 0);
+  }
+  function renderHelpCart() {
+    cart = readCart();
+    const quantity = cart.reduce((sum, item) => sum + Math.max(0, Number(item.quantity) || 0), 0);
+    count.textContent = quantity;
+    cartTitle.textContent = "YOUR CART (" + quantity + ")";
+    if (!cart.length) {
+      cartContent.innerHTML = '<div class="drawer-empty"><h2>Your cart is empty</h2><button type="button" class="secondary-button" id="help-cart-continue">CONTINUE SHOPPING</button></div>';
+      document.getElementById("help-cart-continue").onclick = continueShopping;
+      return;
+    }
+    const subtotal = cart.reduce((sum, item) => sum + itemPrice(item) * Math.max(0, Number(item.quantity) || 0), 0);
+    cartContent.innerHTML = '<div class="cart-items">' + cart.map((item, index) => {
+      const product = item.product || {};
+      const image = product.image || (Array.isArray(product.images) ? product.images[0] : "") || "";
+      return '<article class="cart-item"><div class="cart-item-image"><img src="' + escapeHTML(image) + '" alt="' + escapeHTML(product.name || "Product") + '"></div><div class="cart-item-info"><h3 class="cart-item-name">' + escapeHTML(product.name || "Product") + '</h3>' +
+        (item.variant ? '<div class="cart-item-variant">' + escapeHTML(item.variant) + '</div>' : '') +
+        '<div class="cart-item-price">' + money(itemPrice(item)) + '</div><div class="cart-item-bottom"><div class="cart-quantity"><button type="button" data-help-change="-1" data-index="' + index + '" aria-label="Decrease quantity">−</button><span>' + Math.max(0, Number(item.quantity) || 0) + '</span><button type="button" data-help-change="1" data-index="' + index + '" aria-label="Increase quantity">+</button></div><button type="button" class="cart-remove" data-help-remove="' + index + '">REMOVE</button></div></div></article>';
+    }).join("") + '</div><div class="cart-summary"><div class="cart-subtotal"><span>SUBTOTAL</span><strong>' + money(subtotal) + '</strong></div><p class="cart-disclaimer">Shipping, taxes, and applicable fees are calculated at checkout.</p><button type="button" class="primary-button full-button" id="help-cart-checkout">CHECKOUT</button><button type="button" class="secondary-button full-button" id="help-cart-continue">CONTINUE SHOPPING</button></div>';
+    cartContent.querySelectorAll("[data-help-change]").forEach(button => button.onclick = () => {
+      const item = cart[Number(button.dataset.index)];
+      if (!item) return;
+      item.quantity = Math.max(0, Math.min(99, (Number(item.quantity) || 0) + Number(button.dataset.helpChange)));
+      cart = cart.filter(entry => entry.quantity > 0);
+      saveCart(); renderHelpCart();
+    });
+    cartContent.querySelectorAll("[data-help-remove]").forEach(button => button.onclick = () => {
+      cart.splice(Number(button.dataset.helpRemove), 1);
+      saveCart(); renderHelpCart();
+    });
+    document.getElementById("help-cart-continue").onclick = continueShopping;
+    document.getElementById("help-cart-checkout").onclick = () => {
+      if (window.VNCheckout?.open) window.VNCheckout.open(cart);
+      else alert("Checkout is not available yet.");
+    };
+  }
+  function continueShopping() {
+    closeHelpCart();
+    window.setTimeout(() => { window.location.href = "../merch.html"; }, 260);
+  }
+  function openHelpCart() {
+    renderHelpCart();
+    cartOverlay.hidden = false;
+    requestAnimationFrame(() => {
+      cartOverlay.classList.add("is-open");
+      cartOverlay.setAttribute("aria-hidden", "false");
+      document.body.classList.add("modal-open");
+      document.getElementById("help-cart-close").focus();
+    });
+  }
+  function closeHelpCart() {
+    cartOverlay.classList.remove("is-open");
+    cartOverlay.setAttribute("aria-hidden", "true");
+    window.setTimeout(() => {
+      if (!cartOverlay.classList.contains("is-open")) cartOverlay.hidden = true;
+      document.body.classList.toggle("modal-open", document.querySelector(".drawer-overlay.is-open") !== null);
+    }, 260);
+  }
+  document.getElementById("cart-open").addEventListener("click", event => {
+    event.preventDefault();
+    openHelpCart();
+  });
+  document.getElementById("help-cart-close").addEventListener("click", closeHelpCart);
+  cartOverlay.addEventListener("click", event => { if (event.target === cartOverlay) closeHelpCart(); });
+  document.addEventListener("keydown", event => { if (event.key === "Escape" && !cartOverlay.hidden) closeHelpCart(); });
+  document.getElementById("profile-open").addEventListener("click", () => {
+    if (window.VNAccount && typeof window.VNAccount.open === "function") window.VNAccount.open();
+    else window.location.href = "../merch.html#profile";
+  });
+})();
+</script>
 
 <script>
 (() => {
@@ -239,6 +360,9 @@
     document.body.dir = languageSelect.value === "ar" ? "rtl" : "ltr";
     language.classList.remove("is-open");
     languageToggle.setAttribute("aria-expanded", "false");
+  });
+  document.getElementById("cookie-choices").addEventListener("click", () => {
+    window.openCookiePreferences();
   });
   document.addEventListener("keydown", event => { if (event.key === "Escape" && panel.classList.contains("is-open")) closePanel(); });
 })();
