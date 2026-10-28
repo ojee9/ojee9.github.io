@@ -866,6 +866,11 @@
     openOverlay(cartOverlay);
   };
 
+  if (window.location.hash === "#cart") {
+    renderCart();
+    openOverlay(cartOverlay);
+  }
+
   $("profile-open").onclick = () => {
     if (window.VNAccount?.open) {
       window.VNAccount.open();
