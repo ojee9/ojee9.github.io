@@ -1636,6 +1636,17 @@
     }
   }
 
+  // Bind the SHOP profile button directly so its functionality does not depend on
+  // the later merch page script finishing its asynchronous initialization.
+  const shopProfileButton = document.querySelector("#profile-open");
+  if (shopProfileButton && !shopProfileButton.dataset.vnAccountBound) {
+    shopProfileButton.dataset.vnAccountBound = "true";
+    shopProfileButton.addEventListener("click", event => {
+      event.preventDefault();
+      openPanel();
+    });
+  }
+
   document.addEventListener("click", async event => {
     const root = $("#vnAccountOverlay");
 
@@ -1789,6 +1800,7 @@
 
     if (
       profileButton &&
+      profileButton.id !== "profile-open" &&
       !profileButton.closest("#vnAccountOverlay")
     ) {
       event.preventDefault();
