@@ -877,14 +877,6 @@
     openOverlay(cartOverlay);
   }
 
-  $("profile-open").onclick = () => {
-    if (window.VNAccount?.open) {
-      window.VNAccount.open();
-    } else {
-      console.error("VNAccount.open is unavailable. Check account.js initialization.");
-    }
-  };
-
   $("detail-close").onclick = () => closeOverlay(detail);
   $("cart-close").onclick = () => closeOverlay(cartOverlay);
 
