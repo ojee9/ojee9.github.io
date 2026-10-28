@@ -1056,6 +1056,46 @@
     `;
   }
 
+  function openLegalOverlay(key, event, root) {
+    const legal = getLegalContent(key);
+    let overlay = $('[data-policy-overlay="account-legal"]', root);
+
+    if (!overlay) {
+      overlay = document.createElement("div");
+      overlay.className = "vn-ac-policy-overlay";
+      overlay.dataset.policyOverlay = "account-legal";
+      overlay.hidden = true;
+      overlay.setAttribute("role", "dialog");
+      overlay.setAttribute("aria-modal", "true");
+      overlay.innerHTML = `
+        <section class="vn-ac-policy-panel">
+          <button type="button" class="vn-ac-policy-close" data-ac-action="policy-close" aria-label="Close legal panel">×</button>
+          <p class="vn-ac-policy-kicker">VN SHOP · LEGAL</p>
+          <h2 data-legal-panel-title></h2>
+          <div class="vn-ac-policy-body" data-legal-panel-body></div>
+        </section>
+      `;
+      root.appendChild(overlay);
+    }
+
+    overlay.querySelector("[data-legal-panel-title]").textContent = legal.title;
+    overlay.querySelector("[data-legal-panel-body]").innerHTML = String(legal.text || "")
+      .split(/\\n\\s*\\n/)
+      .map(paragraph => paragraph.trim())
+      .filter(Boolean)
+      .map(paragraph => `<p>${escapeHTML(paragraph).replace(/\\n/g, "<br>")}</p>`)
+      .join("");
+
+    const panel = $(".vn-ac-policy-panel", overlay);
+    const rect = panel.getBoundingClientRect();
+    panel.style.setProperty("--policy-origin-x", `${event.clientX - rect.left}px`);
+    panel.style.setProperty("--policy-origin-y", `${event.clientY - rect.top}px`);
+    overlay.classList.remove("is-open");
+    overlay.hidden = false;
+    void panel.offsetWidth;
+    requestAnimationFrame(() => overlay.classList.add("is-open"));
+  }
+
   function updateAccountAvatar() {
     const button = document.querySelector("#profile-open");
     if (!button) return;
@@ -1614,9 +1654,7 @@
 
       if (legalLink) {
         event.preventDefault();
-        state.legalKey = legalLink.dataset.acLegal;
-        state.section = "legal";
-        render();
+        openLegalOverlay(legalLink.dataset.acLegal, event, root);
         return;
       }
 
