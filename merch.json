@@ -742,7 +742,7 @@
   "products": [
     {
       "id": "gta-love-poster-1",
-      "name": "GTA LOVE POSTER 1",
+      "name": "GTA LOVE Poster 01",
       "price": "20.00",
       "currency": "USD",
       "type": "POSTER",
@@ -753,7 +753,7 @@
     },
     {
       "id": "gta-love-poster-2",
-      "name": "GTA LOVE POSTER 2",
+      "name": "GTA LOVE Poster 02",
       "price": "20.00",
       "currency": "USD",
       "type": "POSTER",
