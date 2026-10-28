@@ -297,6 +297,7 @@
   let activeCategory = "ALL";
   let query = "";
   let cart = [];
+  try { cart = JSON.parse(localStorage.getItem("vn-shop-cart") || "[]"); if (!Array.isArray(cart)) cart = []; } catch (_) { cart = []; }
   let activeProduct = null;
   let quantity = 1;
   let variant = "";
@@ -686,6 +687,7 @@
     const count = cart.reduce((total, item) => total + item.quantity, 0);
 
     $("cart-count").textContent = count;
+    try { localStorage.setItem("vn-shop-cart", JSON.stringify(cart)); } catch (_) {}
     $("cart-drawer-title").textContent = `${t("yourCart")} (${count})`;
 
     if (!cart.length) {
