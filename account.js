@@ -46,6 +46,21 @@
 
   const $ = (selector, root = document) => root.querySelector(selector);
 
+  // Register the account trigger immediately. This remains available even if a
+  // later optional account initialization step fails.
+  document.addEventListener("click", event => {
+    const trigger = event.target.closest("#profile-open");
+    if (!trigger) return;
+    event.preventDefault();
+    try {
+      openPanel();
+    } catch (error) {
+      console.error("[VN ACCOUNT] Could not open account panel:", error);
+      const root = document.querySelector("#vnAccountOverlay");
+      if (root) root.hidden = false;
+    }
+  }, true);
+
   const escapeHTML = value =>
     String(value ?? "").replace(/[&<>"']/g, char => ({
       "&": "&amp;",
@@ -1634,17 +1649,6 @@
     } else {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
-  }
-
-  // Bind the SHOP profile button directly so its functionality does not depend on
-  // the later merch page script finishing its asynchronous initialization.
-  const shopProfileButton = document.querySelector("#profile-open");
-  if (shopProfileButton && !shopProfileButton.dataset.vnAccountBound) {
-    shopProfileButton.dataset.vnAccountBound = "true";
-    shopProfileButton.addEventListener("click", event => {
-      event.preventDefault();
-      openPanel();
-    });
   }
 
   document.addEventListener("click", async event => {
