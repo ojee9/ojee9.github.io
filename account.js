@@ -1789,7 +1789,6 @@
 
     if (
       profileButton &&
-      profileButton.id !== "profile-open" &&
       !profileButton.closest("#vnAccountOverlay")
     ) {
       event.preventDefault();
