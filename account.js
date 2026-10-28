@@ -1566,6 +1566,13 @@
   }
 
   function goShop() {
+    const currentPage = window.location.pathname.split("/").pop().toLowerCase();
+
+    if (currentPage === "help.html") {
+      window.location.href = "merch.html";
+      return;
+    }
+
     closePanel();
     const shopTarget = $("#shop, #products, [data-shop-home]");
 
