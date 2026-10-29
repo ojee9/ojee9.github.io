@@ -789,6 +789,20 @@
       "brand": "VN SHOP",
       "availability": "https://schema.org/InStock",
       "active": true
+    },
+    {
+      "id": "planetarium-original-cd",
+      "sku": "PLANETARIUM-14124-CD",
+      "name": "PLANETARIUM (ORIGINAL CD)",
+      "price": "10.00",
+      "currency": "USD",
+      "type": "STANDART CD",
+      "category": "CD",
+      "image": "images/9o9-shop-product-planetarium-14124-cd.png",
+      "description": "9OJEEZ9'S CLASSIC PLANETARIUM EP WITH EXTENDED AND EXCLUSIVES\n\nORIGINAL PAINTED CD, LIMITED QUANTITY\n\nTRACK LIST\n\n1. EGO pt.3\n2. PLANETARIUM [EXTENDED]\n3. LUMEN-FLUX\n4. SOLARIS 3",
+      "brand": "VN SHOP",
+      "availability": "https://schema.org/InStock",
+      "active": true
     }
   ]
 }
