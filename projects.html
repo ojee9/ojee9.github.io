@@ -13,6 +13,29 @@
       object-fit: contain;
       background: #080808;
     }
+
+    .magazine-pullquote {
+      margin: 28px 0;
+      padding: 8px 0 8px 22px;
+      border-left: 2px solid var(--accent, #d8ff00);
+      color: #f2f2f2;
+      font-size: clamp(19px, 2.6vw, 27px);
+      font-weight: 700;
+      line-height: 1.35;
+      letter-spacing: -0.035em;
+    }
+
+    .magazine-pullquote cite {
+      display: block;
+      margin-top: 12px;
+      color: #888;
+      font-size: 9px;
+      font-style: normal;
+      font-weight: 700;
+      line-height: 1.6;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
   </style>
 </head>
 <body>
@@ -218,8 +241,11 @@
           collections: [],
           categories: ["news", "projects"],
           descriptionEN: [
+            "PULLQUOTE: GTA or LOVE, these aren't different cuts. — Ojee Ka$h",
             "VN Club MAGAZINE 01 is here.",
-            "The very first edition of VN Club Magazine features Ojee Ka$h in an exclusive Q&A with Exposed Vocals, covering the making of GTA LOVE and the meaning behind it. He also shares insights about his personal journey, upcoming music, and untold stories behind his creative process, including details you may not have heard before.",
+            "The very first edition of VN Club Magazine features Ojee Ka$h in an exclusive Q&A with Exposed Vocals, covering the making of GTA LOVE and the meaning behind it.",
+            "PULLQUOTE: The one or two things I value most in my life right here... — Ojee Ka$h",
+            "He also shares insights about his personal journey, upcoming music, and untold stories behind his creative process, including details you may not have heard before.",
             "Follow this page for the latest updates.",
             "More details coming soon."
           ],
@@ -469,9 +495,16 @@
               <p class="event-subtitle">${entry.subtitle}</p>
 
               <div class="event-description">
-                ${entry.descriptionEN.map(paragraph =>
-                  `<p>${paragraph}</p>`
-                ).join("")}
+                ${entry.descriptionEN.map(paragraph => {
+                  if (paragraph.startsWith("PULLQUOTE: ")) {
+                    const quote = paragraph.slice("PULLQUOTE: ".length);
+                    const separator = quote.lastIndexOf(" — ");
+                    const text = separator >= 0 ? quote.slice(0, separator) : quote;
+                    const attribution = separator >= 0 ? quote.slice(separator + 3) : "";
+                    return `<blockquote class="magazine-pullquote">“${text}”${attribution ? `<cite>— ${attribution}</cite>` : ""}</blockquote>`;
+                  }
+                  return `<p>${paragraph}</p>`;
+                }).join("")}
                 ${entry.descriptionTR ? entry.descriptionTR.map(paragraph =>
                   `<p lang="tr">${paragraph}</p>`
                 ).join("") : ""}
