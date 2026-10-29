@@ -385,7 +385,7 @@
       .vn-ac-badge{display:inline-block;padding:4px 8px;border:1px solid #ddd;border-radius:20px;font-size:11px;color:#555}
       .vn-ac-otp-wrap{position:relative;width:100%;margin:23px 0 4px}.vn-ac-otp{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px;width:100%;margin:0;transition:filter .18s ease,opacity .18s ease}.vn-ac-otp input:disabled{cursor:wait}.vn-ac-otp-wrap.is-loading .vn-ac-otp{filter:blur(1.5px);opacity:.42}.vn-ac-otp-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:10px;background:rgba(20,20,20,.32);color:#eee;font-size:12px;letter-spacing:.3px}.vn-ac-otp-loading[hidden]{display:none!important}.vn-ac-otp-spinner{width:24px;height:24px;border:2px solid rgba(255,255,255,.22);border-top-color:#f5f5f5;border-radius:50%;animation:vnAcOtpSpin .7s linear infinite;box-shadow:0 0 12px rgba(255,255,255,.14)}@keyframes vnAcOtpSpin{to{transform:rotate(360deg)}}
       .vn-ac-otp input{display:block;width:100%;min-width:0;height:52px;padding:0;text-align:center;font:500 20px/1 Arial,sans-serif;border:1px solid #4a4a4a;border-radius:3px;background:#202020;color:#f5f5f5;appearance:none}
-      .vn-ac-otp input:focus{outline:1px solid #bdbdbd;outline-offset:2px;border-color:#bdbdbd}
+      .vn-ac-otp input:focus,.vn-ac-otp input:focus-visible{outline:none;outline-offset:0;border-color:#4a4a4a;box-shadow:none}
       .vn-ac-auth-shell .vn-ac-verify-main{margin:10px auto 0!important;width:100%;max-width:100%}
       .vn-ac-verify-main h1{margin:0 0 8px;font-size:22px;font-weight:600;letter-spacing:-.02em;color:#f5f5f5}
       .vn-ac-verify-main .vn-ac-sent-to{margin:0;color:#bdbdbd;font-size:12px}
