@@ -803,6 +803,28 @@
       "brand": "VN SHOP",
       "availability": "https://schema.org/InStock",
       "active": true
+    },
+    {
+      "id": "9ojeez9-classic-poster-01",
+      "sku": "9OJEEZ9-POSTER-87425",
+      "name": "9OJEEZ9's Classic Poster 01",
+      "price": "32.00",
+      "currency": "USD",
+      "type": "POSTER",
+      "category": "XTRAS",
+      "material": "NON-TEXTILE",
+      "image": "images/9o9-shop-product-9ojeez9-poster-87425.png",
+      "imageAlt": "9OJEEZ9 Classic Poster 01, available through VN Shop. Discover the classic posters, original printed artworks, exclusives, and more.",
+      "description": "9OJEEZ9'S CLASSIC POSTER PALETTE\n\nORIGINAL PRINTED POSTER, LIMITED QUANTITY",
+      "sizes": [
+        "45 × 60",
+        "60 × 90",
+        "80 × 120"
+      ],
+      "variantLabel": "SIZE",
+      "brand": "VN SHOP",
+      "availability": "https://schema.org/InStock",
+      "active": true
     }
   ]
 }

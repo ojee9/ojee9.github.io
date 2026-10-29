@@ -5,7 +5,7 @@
 <meta name="google-site-verification" content="gK1xZwqC2QRKWWBJlY4499yNRoadr7Zvfc_u-8UFo8g" />
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="PLANETARIUM (Original CD) by 9OJEEZ9, available through VN Shop. Discover extended tracks, exclusives, artworks, and more.">
+<meta name="description" content="9OJEEZ9 Classic Poster 01, available through VN Shop. Discover the classic posters, original printed artworks, exclusives, and more.">
 <meta name="robots" content="index,follow,max-image-preview:large">
 <meta name="theme-color" content="#C6BBA7">
 <title>VN SHOP® — Official Merchandise by 9ojeez9</title>
@@ -13,12 +13,12 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="VN SHOP">
 <meta property="og:title" content="GTA LOVE (CUSTOM-PAINTED) CD — VN SHOP">
-<meta property="og:description" content="PLANETARIUM (Original CD) by 9OJEEZ9, available through VN Shop. Discover extended tracks, exclusives, artworks, and more.">
+<meta property="og:description" content="9OJEEZ9 Classic Poster 01, available through VN Shop. Discover the classic posters, original printed artworks, exclusives, and more.">
 <meta property="og:url" content="https://ojee9.github.io/merch.html">
 <meta property="og:image" content="https://ojee9.github.io/images/9o9-shop-product-gta-love-45187-cd.png">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="GTA LOVE (CUSTOM-PAINTED) CD — VN SHOP">
-<meta name="twitter:description" content="PLANETARIUM (Original CD) by 9OJEEZ9, available through VN Shop. Discover extended tracks, exclusives, artworks, and more.">
+<meta name="twitter:description" content="9OJEEZ9 Classic Poster 01, available through VN Shop. Discover the classic posters, original printed artworks, exclusives, and more.">
 <meta name="twitter:image" content="https://ojee9.github.io/images/9o9-shop-product-gta-love-45187-cd.png">
 <meta name="keywords" content="GTA LOVE CD, GTA LOVE custom-painted CD, Ojee Ka$h, VN Shop, VNION RECORDS, limited edition CD, custom painted music CD">
 <link rel="stylesheet" href="merch.css">
@@ -512,7 +512,9 @@
     const productId = String(product.id || "").toLowerCase();
     const posterClass = productId === "gta-love-poster-1"
       ? " is-poster-1"
-      : productId === "gta-love-poster-2" ? " is-poster-2" : "";
+      : productId === "gta-love-poster-2"
+        ? " is-poster-2"
+        : productId === "9ojeez9-classic-poster-01" ? " is-poster-3" : "";
     const isPoster = productType === "POSTER" || posterClass !== "";
     const galleryImages = images;
 

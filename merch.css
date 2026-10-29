@@ -96,6 +96,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 .detail-main-image img{display:block;flex:0 1 auto;width:auto;height:auto;min-width:0;min-height:0;max-width:100%;max-height:100%;object-fit:contain;object-position:center}
 .detail-gallery.is-poster-1 .detail-main-image{height:clamp(300px,48dvh,500px)}
 .detail-gallery.is-poster-2 .detail-main-image{height:clamp(320px,54dvh,560px)}
+.detail-gallery.is-poster-3 .detail-main-image{height:clamp(320px,54dvh,560px)}
 .detail-gallery.is-gta-love-cd .detail-main-image{background:#000000}
 .detail-image-dots{display:flex;justify-content:center;align-items:center;gap:7px;min-height:22px;padding-top:10px}
 .detail-image-dot{width:5px;height:5px;padding:0;border:0;border-radius:50%;background:#c2bdb4;cursor:pointer;transition:background .15s,transform .15s}
@@ -237,6 +238,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
   .detail-main-image{height:clamp(280px,45dvh,430px);padding:8px}
   .detail-gallery.is-poster-1 .detail-main-image{height:clamp(260px,40dvh,380px)}
   .detail-gallery.is-poster-2 .detail-main-image{height:clamp(300px,48dvh,450px)}
+  .detail-gallery.is-poster-3 .detail-main-image{height:clamp(300px,48dvh,450px)}
   .detail-info{width:100%}
   .detail-variants.is-textile-sizes .variant-button{width:41px;height:41px;min-width:41px}
   .detail-variants.is-poster-sizes .variant-button{min-width:0;flex:1;padding:8px 5px;font-size:9px}
