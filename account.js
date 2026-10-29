@@ -8,7 +8,7 @@
   "use strict";
 
   const CONFIG = {
-    configUrl: "merch.json",
+    configUrl: new URL("merch.json", document.currentScript.src).href,
     otpLength: 6,
     resendDelay: 30,
     defaultEmail: "",
@@ -603,7 +603,7 @@
     root.innerHTML = `
       <div class="vn-ac-shell vn-ac-auth-shell">
         <header class="vn-ac-header">
-          <div class="vn-ac-brand" aria-label="VN"><img src="images/vn-logo-official.png" alt="VN"></div>
+          <div class="vn-ac-brand" aria-label="VN"><img src="/images/vn-logo-official.png" alt="VN"></div>
           <button type="button" class="vn-ac-close" data-ac-action="close" aria-label="Close account">×</button>
         </header>
         <div id="vnAcContent"></div>
@@ -1178,9 +1178,10 @@
     const button = document.querySelector("#profile-open");
     if (!button) return;
     const name = [state.profile.first_name, state.profile.last_name].filter(Boolean).join(" ").trim();
-    if (state.user && name) {
-      button.textContent = name.charAt(0).toLocaleUpperCase();
-      button.setAttribute("aria-label", name);
+    const initialSource = name || state.user?.email || "";
+    if (state.user && initialSource) {
+      button.textContent = initialSource.trim().charAt(0).toLocaleUpperCase();
+      button.setAttribute("aria-label", name || state.user.email || "Account");
       button.classList.add("vn-ac-avatar-initial");
     } else {
       button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg>';
