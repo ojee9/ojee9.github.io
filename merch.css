@@ -30,6 +30,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 /* CATALOG */
 .catalog-bar{display:flex;align-items:center;gap:12px;padding:14px 5%;border-bottom:1px solid var(--line)}
 .category-select{width:min(230px,75%);min-height:34px;padding:6px 30px 6px 10px;border:1px solid #bcbcbc;border-radius:0;background:#fff;color:var(--ink);font-size:12px}
+.category-select:focus,.category-select:focus-visible{outline:none;box-shadow:none}
 .search-toggle{flex:0 0 auto;width:34px;height:34px}
 .search-toggle svg{width:20px;height:20px}
 .search-panel{display:none;padding:0 5% 15px}
