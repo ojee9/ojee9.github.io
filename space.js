@@ -18,7 +18,7 @@ const stars = [];
 for (let i = 0; i < 250; i++) {
   stars.push({
     x: Math.random() * canvas.width,
-    y: Math.random() * canvas.height,
+    y: Math.random() * (canvas.height + maxScrollOffset),
     size: Math.random() * 1.5,
     speed: 0.3 + Math.random() * 0.8
   });
@@ -367,7 +367,7 @@ const gradient = ctx.createRadialGradient(
   0,
   canvas.width / 2,
   canvas.height / 2,
-  canvas.width
+  Math.max(canvas.width, canvas.height + maxScrollOffset)
 );
 
 
@@ -390,7 +390,7 @@ ctx.fillRect(
   0,
   0,
   canvas.width,
-  canvas.height
+  canvas.height + maxScrollOffset
 );
 
 
@@ -420,7 +420,7 @@ stars.forEach(star=>{
 
 
 
-  if(star.y > canvas.height){
+  if(star.y > canvas.height + maxScrollOffset){
 
     star.y = 0;
     star.x = Math.random()*canvas.width;
