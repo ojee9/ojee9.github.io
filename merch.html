@@ -12,15 +12,15 @@
 <link rel="canonical" href="https://ojee9.github.io/merch.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="VN SHOP">
-<meta property="og:title" content="GTA LOVE (CUSTOM-PRINTED) CD — VN SHOP">
+<meta property="og:title" content="GTA LOVE (CUSTOM-PAINTED) CD — VN SHOP">
 <meta property="og:description" content="GTA LOVE (Custom-Printed CD) by Ojee Ka$h, available through VN Shop. Discover limited editions, artwork, exclusives, and more.">
 <meta property="og:url" content="https://ojee9.github.io/merch.html">
 <meta property="og:image" content="https://ojee9.github.io/images/9o9-shop-product-gta-love-45187-cd.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="GTA LOVE (CUSTOM-PRINTED) CD — VN SHOP">
+<meta name="twitter:title" content="GTA LOVE (CUSTOM-PAINTED) CD — VN SHOP">
 <meta name="twitter:description" content="GTA LOVE (Custom-Printed CD) by Ojee Ka$h, available through VN Shop. Discover limited editions, artwork, exclusives, and more.">
 <meta name="twitter:image" content="https://ojee9.github.io/images/9o9-shop-product-gta-love-45187-cd.png">
-<meta name="keywords" content="GTA LOVE CD, GTA LOVE custom-printed CD, Ojee Ka$h, VN Shop, VNION RECORDS, limited edition CD, custom printed music CD">
+<meta name="keywords" content="GTA LOVE CD, GTA LOVE custom-painted CD, Ojee Ka$h, VN Shop, VNION RECORDS, limited edition CD, custom painted music CD">
 <link rel="stylesheet" href="merch.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -444,7 +444,7 @@
           <img
             class="product-image"
             src="${esc(images[0] || "")}"
-            alt="${esc(product.name)}"
+            alt="${esc(product.imageAlt || product.name)}"
             loading="lazy"
           >
         </div>
@@ -547,7 +547,7 @@
 
           <div class="detail-image-stage">
             <div class="detail-main-image">
-              <img data-main-image src="${esc(images[0] || "")}" alt="${esc(product.name)}" loading="eager" decoding="async">
+              <img data-main-image src="${esc(images[0] || "")}" alt="${esc(product.imageAlt || product.name)}" loading="eager" decoding="async">
             </div>
             ${galleryImages.length > 1 ? `
               <div class="detail-image-dots" role="group" aria-label="Choose product image">

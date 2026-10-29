@@ -764,17 +764,17 @@
     {
       "id": "gta-love-custom-printed-cd",
       "sku": "GTA-LOVE-45187-CD",
-      "name": "GTA LOVE (CUSTOM-PRINTED) CD",
+      "name": "GTA LOVE (CUSTOM-PAINTED) CD",
       "price": "13.00",
       "currency": "USD",
-      "type": "CUSTOM-PRINTED CD",
+      "type": "CUSTOM-PAINTED CD",
       "category": "CD",
-      "material": "NON-TEXTILE",
       "image": "images/9o9-shop-product-gta-love-45187-cd.png",
-      "description": "GTA LOVE (Custom-Printed CD) by Ojee Ka$h, available through VN Shop. Discover limited editions, artwork, exclusives, and more.",
+      "description": "OJEE KA$H'S GTA LOVE WITH CUSTOM PRINT (LIMITED QUANTITY)\n\nCUSTOM-PAINTED CD\n\nTRACK LIST:\n\n1. GTA LOVE",
       "brand": "VN SHOP",
       "availability": "https://schema.org/InStock",
-      "active": true
+      "active": true,
+      "imageAlt": "GTA LOVE (Custom-Printed CD) by Ojee Ka$h, available through VN Shop. Discover limited editions, artwork, exclusives, and more."
     }
   ]
 }
