@@ -528,7 +528,7 @@
       </nav>
 
       <div class="detail-layout">
-        <div class="detail-gallery${posterClass}${isPoster ? " is-poster" : ""}">
+        <div class="detail-gallery${posterClass}${isPoster ? " is-poster" : ""}${productId === "gta-love-custom-painted-cd" || productId === "gta-love-custom-printed-cd" ? " is-gta-love-cd" : ""}">
           ${galleryImages.length ? `
             <div class="detail-thumbnails">
               ${galleryImages.map((src, index) => `

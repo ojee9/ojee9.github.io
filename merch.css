@@ -96,6 +96,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 .detail-main-image img{display:block;flex:0 1 auto;width:auto;height:auto;min-width:0;min-height:0;max-width:100%;max-height:100%;object-fit:contain;object-position:center}
 .detail-gallery.is-poster-1 .detail-main-image{height:clamp(300px,48dvh,500px)}
 .detail-gallery.is-poster-2 .detail-main-image{height:clamp(320px,54dvh,560px)}
+.detail-gallery.is-gta-love-cd .detail-main-image{background:#000000}
 .detail-image-dots{display:flex;justify-content:center;align-items:center;gap:7px;min-height:22px;padding-top:10px}
 .detail-image-dot{width:5px;height:5px;padding:0;border:0;border-radius:50%;background:#c2bdb4;cursor:pointer;transition:background .15s,transform .15s}
 .detail-image-dot.is-active{background:var(--ink);transform:scale(1.2)}
