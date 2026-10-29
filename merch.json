@@ -775,6 +775,20 @@
       "availability": "https://schema.org/InStock",
       "active": true,
       "imageAlt": "GTA LOVE (Custom-Printed CD) by Ojee Ka$h, available through VN Shop. Discover limited editions, artwork, exclusives, and more."
+    },
+    {
+      "id": "igotti-standard-painted-cd",
+      "sku": "IGOTTI-9841-CD",
+      "name": "IGOTTI (STANDART PAINTED) CD",
+      "price": "10.00",
+      "currency": "USD",
+      "type": "STANDART CD",
+      "category": "CD",
+      "image": "images/9o9-shop-product-igotti-9841-cd.png",
+      "description": "OJEE KA$H'S CLASSIC IGOTTI WITH STANDART-CREATIVE PAINTED CD, LIMITED QUANTITY\n\nTRACK LIST\n\n1. K.W.T.O\n2. JEEP CALLIN'\n3. THOSE LIES\n4. IGOTTI",
+      "brand": "VN SHOP",
+      "availability": "https://schema.org/InStock",
+      "active": true
     }
   ]
 }
