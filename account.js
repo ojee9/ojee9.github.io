@@ -333,7 +333,7 @@
       .vn-ac-updates{display:flex;align-items:center;justify-content:flex-start;gap:8px;margin:13px 0 0;padding-left:15px;color:#c5c1ca;font-size:13px;line-height:1.45}
       .vn-ac-updates input{width:15px;height:15px;flex:none;margin:0;accent-color:#f5f5f5;cursor:pointer}
       .vn-ac-email-terms{margin:22px auto 0!important;max-width:420px;text-align:center;color:#8d8d8d;font-size:12px;line-height:1.6}
-      .vn-ac-email-terms a,.vn-ac-email-terms button{padding:0;border:0;background:transparent;color:#bdbdbd;font:inherit;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+      .vn-ac-email-terms a,.vn-ac-email-terms button{padding:0;border:0;background:transparent;color:#fff;font:inherit;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
       .vn-ac-auth-shell .vn-ac-message{margin:0 0 12px}
       @media(max-width:600px){.vn-ac-shell.vn-ac-auth-shell{width:min(100%,540px);min-height:420px;padding:30px 24px 26px}.vn-ac-auth-shell .vn-ac-close{right:-10px}.vn-ac-auth-shell .vn-ac-brand{width:158px;height:74px}.vn-ac-signin-heading h1{font-size:27px}.vn-ac-signin-heading p{font-size:13px}.vn-ac-email-form-wrap,.vn-ac-or-divider{width:100%;max-width:420px}.vn-ac-email-bar{min-height:56px;padding-left:14px}.vn-ac-email-bar input{height:42px;font-size:16px}.vn-ac-email-submit{width:42px;height:42px}.vn-ac-email-submit svg{display:block;width:20px;height:20px}.vn-ac-shop-space{height:32px}.vn-ac-updates{font-size:12px}}
       .vn-ac-layout{display:grid;grid-template-columns:200px minmax(0,1fr);gap:48px;padding-top:32px}
@@ -721,7 +721,7 @@
         </div>
 
         <p class="vn-ac-muted vn-ac-email-terms">
-          <a href="https://ojee9.github.io/merch.html#">Privacy Policy</a>
+          <a href="#" data-ac-action="privacy-open" data-ac-policy="privacy">Privacy Policy</a>
         </p>
       </main>
     `;
@@ -1232,7 +1232,7 @@
 
     if (policyFooter) {
       policyFooter.innerHTML = !state.user
-        ? '<a class="vn-ac-legal-item" href="https://ojee9.github.io/merch.html#">Privacy Policy</a>'
+        ? ""
         : `<label class="vn-ac-footer-country" aria-label="Country"><select data-ac-country>${countryOptions(state.country)}</select></label><div class="vn-ac-footer-policies">${legalLinks()}</div>`;
     }
 
