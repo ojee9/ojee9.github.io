@@ -22,6 +22,11 @@
 <meta name="twitter:image" content="https://ojee9.github.io/images/9o9-shop-product-gta-love-45187-cd.png">
 <meta name="keywords" content="GTA LOVE CD, GTA LOVE custom-painted CD, Ojee Ka$h, VN Shop, VNION RECORDS, limited edition CD, custom painted music CD">
 <link rel="stylesheet" href="merch.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&display=swap">
+<style>
+.detail-description{font-family:"Space Grotesk",Arial,Helvetica,sans-serif;font-size:14px;font-weight:400;letter-spacing:.12px;line-height:1.85;color:#39352f}
+.detail-description-note{display:block;margin-top:13px;color:#81796d;font-family:Arial,Helvetica,sans-serif;font-size:10px;font-weight:400;letter-spacing:.18px;line-height:1.55}
+</style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="shop-loading">
@@ -178,6 +183,17 @@
     '"': "&quot;",
     "'": "&#39;"
   })[char]);
+
+  const renderProductDescription = value => {
+    const note = "Product images are standard digital representations. Physical products may vary across design & brand-marking features.";
+    const description = String(value ?? "");
+    const noteIndex = description.indexOf(note);
+    if (noteIndex === -1) return esc(description);
+    const before = description.slice(0, noteIndex).trimEnd();
+    const after = description.slice(noteIndex + note.length);
+    return esc(before) + (before ? "\n\n" : "") +
+      '<span class="detail-description-note">* ' + esc(note) + '</span>' + esc(after);
+  };
 
   const configResponse = await fetch("./merch.json");
   if (!configResponse.ok) {
@@ -596,7 +612,7 @@
             ${esc(t("addToCart"))}
           </button>
 
-          <p class="detail-description">${esc(product.description || "")}</p>
+          <p class="detail-description">${renderProductDescription(product.description || "")}</p>
           <p class="detail-note">${esc([product.type, product.material].filter(Boolean).join(" · "))}</p>
         </div>
       </div>
