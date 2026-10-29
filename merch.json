@@ -1,4 +1,3 @@
-
 {
   "version": 2,
   "supabase": {
@@ -760,6 +759,21 @@
       "category": "XTRAS",
       "material": "NON-TEXTILE",
       "image": "images/9o9-shop-product-gta-love-poster-2.png",
+      "active": true
+    },
+    {
+      "id": "gta-love-custom-printed-cd",
+      "sku": "GTA-LOVE-45187-CD",
+      "name": "GTA LOVE (CUSTOM-PRINTED) CD",
+      "price": "13.00",
+      "currency": "USD",
+      "type": "CUSTOM-PRINTED CD",
+      "category": "CD",
+      "material": "NON-TEXTILE",
+      "image": "images/9o9-shop-product-gta-love-45187-cd.png",
+      "description": "GTA LOVE (Custom-Printed CD) by Ojee Ka$h, available through VN Shop. Discover limited editions, artwork, exclusives, and more.",
+      "brand": "VN SHOP",
+      "availability": "https://schema.org/InStock",
       "active": true
     }
   ]
