@@ -316,6 +316,7 @@
       .vn-ac-auth-shell .vn-ac-main{width:100%;max-width:100%;margin:10px auto 0!important}
       .vn-ac-auth-shell .vn-ac-header{padding:0 28px 22px}
       .vn-ac-auth-shell .vn-ac-brand{width:176px;height:82px;pointer-events:none;user-select:none}
+      .vn-ac-auth-shell .vn-ac-brand img{filter:brightness(0) invert(1)}
       .vn-ac-signin-heading{margin:2px 0 0;text-align:center}
       .vn-ac-signin-heading h1{margin:0;font-size:30px;font-weight:700;line-height:1.2;letter-spacing:-.65px;color:#f5f5f5}
       .vn-ac-signin-heading p{margin:9px 0 0;font-size:14px;line-height:1.5;color:#a9a5ad}
