@@ -5,7 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#080808">
-  <title>Projects — OJEE</title>
+  <meta name="description" content="Discover VN Club Magazine 01, featuring Ojee Ka$h’s official Q&A with Exposed Vocals, GTA LOVE, 9OJEEZ9, Southside, VN STUDIOS, his relationship with Ankara, and his creative process behind the music.">
+  <title>VN Club MAGAZINE 01 — Projects — OJEE</title>
   <link rel="stylesheet" href="projects.css">
 </head>
 <body>
@@ -201,6 +202,35 @@
 
       // ONE SHARED ANNOUNCEMENT RECORD FOR NEWS, PROJECTS AND MERCH
       const archiveEntries = [
+        {
+          id: "vn-club-magazine-01",
+          title: "VN Club MAGAZINE 01",
+          subtitle: "VN Club MAGAZINE",
+          artist: "Ojee Ka$h",
+          image: "assets/visuals/event-ojee-kash-gta-love-qa-2314-poster.png",
+          tags: "VN Club MAGAZINE 01, Exposed Vocals, GTA LOVE, Ojee Ka$h, 9OJEEZ9, Southside, VN STUDIOS, Ankara, Interview",
+          collections: [],
+          categories: ["news", "projects"],
+          descriptionEN: [
+            "VN Club MAGAZINE 01 is here.",
+            "The very first edition of VN Club Magazine features Ojee Ka$h in an exclusive Q&A with Exposed Vocals, covering the making of GTA LOVE and the meaning behind it. He also shares insights about his personal journey, upcoming music, and untold stories behind his creative process, including details you may not have heard before.",
+            "Follow this page for the latest updates.",
+            "More details coming soon."
+          ],
+          descriptionTR: [
+            "VN Club’un ilk sayısında Ojee Ka$h bizlerle!",
+            "Exposed Vocals ile özel olarak gerçekleşen soru-cevap röportajında Ojee Ka$h; GTA LOVE’ın yapım sürecinden bahsediyor. Ayrıca Ojee Ka$h kişisel yolculuğuna, gelecek çalışmalarına ve yaratıcı sürecinin ardındaki henüz anlatılmamış hikayelere ışık tutuyor.",
+            "Belki de daha önce hiç duymadığınız detayları içeren bu röportajın yeni gelişmelerini ve yayın güncellemelerini buradan takip edebilirsiniz.",
+            "Daha fazla detay yakında sizlerle."
+          ],
+          details: [
+            ["INTERVIEW BY", "Exposed Vocals"],
+            ["FEATURED PROJECT", "GTA LOVE"],
+            ["COLLECTION", "VN Club MAGAZINE 01"],
+            ["FEATURED ARTIST", "Ojee Ka$h"],
+            ["STATUS", "AVAILABLE SOON"]
+          ]
+        },
         {
           id: "vn-legacy-collection",
           title: "VN: LEGACY COLLECTION — AVAILABLE SOON!",
@@ -423,8 +453,8 @@
 
             <div class="event-card-content">
               <div class="event-meta">
-                <span>VN STUDIOS</span>
-                <span>COMING SOON</span>
+                <span>01</span>
+                <span>AVAILABLE SOON</span>
               </div>
 
               <p class="event-artist">${entry.artist}</p>
@@ -435,11 +465,15 @@
                 ${entry.descriptionEN.map(paragraph =>
                   `<p>${paragraph}</p>`
                 ).join("")}
+                ${entry.descriptionTR ? entry.descriptionTR.map(paragraph =>
+                  `<p lang="tr">${paragraph}</p>`
+                ).join("") : ""}
               </div>
 
               <div class="event-details">
-                <p><span>COLLECTION</span>VN LEGACY COLLECTION</p>
-                <p><span>STATUS</span>AVAILABLE SOON</p>
+                ${(entry.details || [["COLLECTION", "VN LEGACY COLLECTION"], ["STATUS", "AVAILABLE SOON"]]).map(([label, value]) =>
+                  `<p><span>${label}</span>${value}</p>`
+                ).join("")}
               </div>
             </div>
           </article>
