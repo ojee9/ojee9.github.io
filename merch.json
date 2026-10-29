@@ -752,7 +752,8 @@
       "brand": "VN SHOP",
       "sku": "GTA-LOVE-POSTER-01",
       "seoDescription": "GTA LOVE Poster 01 by Ojee Ka$h, an original printed GTA LOVE poster available from VN SHOP. Premium-quality printed wall art featuring the GTA LOVE visual artwork. Physical poster, non-textile art print, available in a limited production run.",
-      "description": "GTA LOVE POSTER ART\n\nPREMIUM QUALITY, ORIGINAL PRINTED POSTER"
+      "description": "GTA LOVE POSTER ART\n\nPREMIUM QUALITY, ORIGINAL PRINTED POSTER",
+      "availability": "https://schema.org/InStock"
     },
     {
       "id": "gta-love-poster-2",
@@ -767,7 +768,8 @@
       "brand": "VN SHOP",
       "sku": "GTA-LOVE-POSTER-02",
       "seoDescription": "GTA LOVE Poster 02 by Ojee Ka$h, an original printed GTA LOVE poster available from VN SHOP. Premium-quality printed wall art featuring the GTA LOVE visual artwork. Physical poster, non-textile art print, available in a limited production run.",
-      "description": "GTA LOVE POSTER ART\n\nPREMIUM QUALITY, ORIGINAL PRINTED POSTER"
+      "description": "GTA LOVE POSTER ART\n\nPREMIUM QUALITY, ORIGINAL PRINTED POSTER",
+      "availability": "https://schema.org/InStock"
     },
     {
       "id": "gta-love-custom-printed-cd",
@@ -783,7 +785,7 @@
       "availability": "https://schema.org/InStock",
       "active": true,
       "imageAlt": "GTA LOVE (Custom-Printed CD) by Ojee Ka$h, available through VN Shop. Discover limited editions, artwork, exclusives, and more.",
-      "seoDescription": "GTA LOVE custom-printed CD by Ojee Ka$h, available from VN SHOP and VNION RECORDS. Physical music CD featuring the GTA LOVE release and custom-printed artwork. Limited production physical music collectible."
+      "seoDescription": "GTA LOVE custom-printed CD by Ojee Ka$h, available from VN SHOP and VNION RECORDS. Physical music CD featuring the GTA LOVE release and custom-printed artwork. Limited production physical music collectible. Product images are standard digital representations. Physical products may vary across design & brand-marking features."
     },
     {
       "id": "igotti-standard-painted-cd",
@@ -798,7 +800,7 @@
       "brand": "VN SHOP",
       "availability": "https://schema.org/InStock",
       "active": true,
-      "seoDescription": "IGOTTI standard-painted CD by Ojee Ka$h, available from VN SHOP and VNION RECORDS. Physical CD edition of the IGOTTI release featuring K.W.T.O, JEEP CALLIN', THOSE LIES and IGOTTI. Limited production music collectible."
+      "seoDescription": "IGOTTI standard-painted CD by Ojee Ka$h, available from VN SHOP and VNION RECORDS. Physical CD edition of the IGOTTI release featuring K.W.T.O, JEEP CALLIN', THOSE LIES and IGOTTI. Limited production music collectible. Product images are standard digital representations. Physical products may vary across design & brand-marking features."
     },
     {
       "id": "planetarium-original-cd",
@@ -813,7 +815,7 @@
       "brand": "VN SHOP",
       "availability": "https://schema.org/InStock",
       "active": true,
-      "seoDescription": "PLANETARIUM original CD by 9ojeez9, available from VN SHOP and VNION RECORDS. Physical CD edition of the PLANETARIUM EP featuring EGO pt.3, PLANETARIUM [EXTENDED], LUMEN-FLUX and SOLARIS 3. Limited production music collectible."
+      "seoDescription": "PLANETARIUM original CD by 9ojeez9, available from VN SHOP and VNION RECORDS. Physical CD edition of the PLANETARIUM EP featuring EGO pt.3, PLANETARIUM [EXTENDED], LUMEN-FLUX and SOLARIS 3. Limited production music collectible. Product images are standard digital representations. Physical products may vary across design & brand-marking features."
     },
     {
       "id": "9ojeez9-classic-poster-01",
