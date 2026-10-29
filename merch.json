@@ -748,7 +748,11 @@
       "category": "XTRAS",
       "material": "NON-TEXTILE",
       "image": "images/9o9-shop-product-gta-love-poster.png",
-      "active": true
+      "active": true,
+      "brand": "VN SHOP",
+      "sku": "GTA-LOVE-POSTER-01",
+      "seoDescription": "GTA LOVE Poster 01 by Ojee Ka$h, an original printed GTA LOVE poster available from VN SHOP. Premium-quality printed wall art featuring the GTA LOVE visual artwork. Physical poster, non-textile art print, available in a limited production run.",
+      "description": "GTA LOVE POSTER ART\n\nPREMIUM QUALITY, ORIGINAL PRINTED POSTER"
     },
     {
       "id": "gta-love-poster-2",
@@ -759,7 +763,11 @@
       "category": "XTRAS",
       "material": "NON-TEXTILE",
       "image": "images/9o9-shop-product-gta-love-poster-2.png",
-      "active": true
+      "active": true,
+      "brand": "VN SHOP",
+      "sku": "GTA-LOVE-POSTER-02",
+      "seoDescription": "GTA LOVE Poster 02 by Ojee Ka$h, an original printed GTA LOVE poster available from VN SHOP. Premium-quality printed wall art featuring the GTA LOVE visual artwork. Physical poster, non-textile art print, available in a limited production run.",
+      "description": "GTA LOVE POSTER ART\n\nPREMIUM QUALITY, ORIGINAL PRINTED POSTER"
     },
     {
       "id": "gta-love-custom-printed-cd",
@@ -770,11 +778,12 @@
       "type": "CUSTOM-PAINTED CD",
       "category": "CD",
       "image": "images/9o9-shop-product-gta-love-45187-cd.png",
-      "description": "OJEE KA$H GTA LOVE WITH CUSTOM PRINTED CD, LIMITED QUANTITY\n\nTRACK LIST:\n\n1. GTA LOVE",
+      "description": "OJEE KA$H GTA LOVE WITH CUSTOM PRINTED CD, LIMITED QUANTITY\n\nTRACK LIST:\n\n1. GTA LOVE\n\nProduct images are standard digital representations. Physical products may vary across design & brand-marking features.",
       "brand": "VN SHOP",
       "availability": "https://schema.org/InStock",
       "active": true,
-      "imageAlt": "GTA LOVE (Custom-Printed CD) by Ojee Ka$h, available through VN Shop. Discover limited editions, artwork, exclusives, and more."
+      "imageAlt": "GTA LOVE (Custom-Printed CD) by Ojee Ka$h, available through VN Shop. Discover limited editions, artwork, exclusives, and more.",
+      "seoDescription": "GTA LOVE custom-printed CD by Ojee Ka$h, available from VN SHOP and VNION RECORDS. Physical music CD featuring the GTA LOVE release and custom-printed artwork. Limited production physical music collectible."
     },
     {
       "id": "igotti-standard-painted-cd",
@@ -785,10 +794,11 @@
       "type": "STANDART CD",
       "category": "CD",
       "image": "images/9o9-shop-product-igotti-9841-cd.png",
-      "description": "OJEE KA$H'S CLASSIC IGOTTI WITH STANDART-CREATIVE PAINTED CD, LIMITED QUANTITY\n\nTRACK LIST\n\n1. K.W.T.O\n2. JEEP CALLIN'\n3. THOSE LIES\n4. IGOTTI",
+      "description": "OJEE KA$H'S CLASSIC IGOTTI WITH STANDART-CREATIVE PAINTED CD, LIMITED QUANTITY\n\nTRACK LIST\n\n1. K.W.T.O\n2. JEEP CALLIN'\n3. THOSE LIES\n4. IGOTTI\n\nProduct images are standard digital representations. Physical products may vary across design & brand-marking features.",
       "brand": "VN SHOP",
       "availability": "https://schema.org/InStock",
-      "active": true
+      "active": true,
+      "seoDescription": "IGOTTI standard-painted CD by Ojee Ka$h, available from VN SHOP and VNION RECORDS. Physical CD edition of the IGOTTI release featuring K.W.T.O, JEEP CALLIN', THOSE LIES and IGOTTI. Limited production music collectible."
     },
     {
       "id": "planetarium-original-cd",
@@ -799,10 +809,11 @@
       "type": "STANDART CD",
       "category": "CD",
       "image": "images/9o9-shop-product-planetarium-14124-cd.png",
-      "description": "9OJEEZ9'S CLASSIC PLANETARIUM EP WITH EXTENDED AND EXCLUSIVES\n\nORIGINAL PAINTED CD, LIMITED QUANTITY\n\nTRACK LIST\n\n1. EGO pt.3\n2. PLANETARIUM [EXTENDED]\n3. LUMEN-FLUX\n4. SOLARIS 3",
+      "description": "9OJEEZ9'S CLASSIC PLANETARIUM EP WITH EXTENDED AND EXCLUSIVES\n\nORIGINAL PAINTED CD, LIMITED QUANTITY\n\nTRACK LIST\n\n1. EGO pt.3\n2. PLANETARIUM [EXTENDED]\n3. LUMEN-FLUX\n4. SOLARIS 3\n\nProduct images are standard digital representations. Physical products may vary across design & brand-marking features.",
       "brand": "VN SHOP",
       "availability": "https://schema.org/InStock",
-      "active": true
+      "active": true,
+      "seoDescription": "PLANETARIUM original CD by 9ojeez9, available from VN SHOP and VNION RECORDS. Physical CD edition of the PLANETARIUM EP featuring EGO pt.3, PLANETARIUM [EXTENDED], LUMEN-FLUX and SOLARIS 3. Limited production music collectible."
     },
     {
       "id": "9ojeez9-classic-poster-01",
@@ -824,7 +835,8 @@
       "variantLabel": "SIZE",
       "brand": "VN SHOP",
       "availability": "https://schema.org/InStock",
-      "active": true
+      "active": true,
+      "seoDescription": "9ojeez9 Classic Poster 01, an original printed poster featuring 9ojeez9's classic poster palette. Premium printed wall art available from VN SHOP. Physical non-textile art print in listed size options."
     }
   ]
 }
