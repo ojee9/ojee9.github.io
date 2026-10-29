@@ -41,6 +41,74 @@ const nodes = [
 let hoverNode = -1;
 let time = 0;
 
+let scrollOffset = 0;
+let targetScrollOffset = 0;
+const maxScrollOffset = 110;
+
+const footerLogo = new Image();
+footerLogo.src = "images/vn-logo-official.png";
+
+function drawFooterLogo() {
+  if (!footerLogo.complete || !footerLogo.naturalWidth) return;
+
+  const maxWidth = canvas.width < 600 ? 72 : 92;
+  const maxHeight = 42;
+  const scale = Math.min(
+    maxWidth / footerLogo.naturalWidth,
+    maxHeight / footerLogo.naturalHeight
+  );
+  const width = footerLogo.naturalWidth * scale;
+  const height = footerLogo.naturalHeight * scale;
+
+  ctx.drawImage(
+    footerLogo,
+    canvas.width / 2 - width / 2,
+    canvas.height + 30,
+    width,
+    height
+  );
+}
+
+function revealFooter(reveal) {
+  targetScrollOffset = reveal ? maxScrollOffset : 0;
+}
+
+window.addEventListener("wheel", event => {
+  event.preventDefault();
+  if (event.deltaY > 0) revealFooter(true);
+  else if (event.deltaY < 0) revealFooter(false);
+}, { passive: false });
+
+window.addEventListener("keydown", event => {
+  if (event.key === "PageDown" || event.key === "ArrowDown") {
+    event.preventDefault();
+    revealFooter(true);
+  } else if (event.key === "PageUp" || event.key === "ArrowUp") {
+    event.preventDefault();
+    revealFooter(false);
+  }
+});
+
+let touchStartY = null;
+
+window.addEventListener("touchstart", event => {
+  if (event.touches.length === 1) {
+    touchStartY = event.touches[0].clientY;
+  }
+}, { passive: true });
+
+window.addEventListener("touchend", event => {
+  if (touchStartY === null || !event.changedTouches.length) return;
+
+  const touchEndY = event.changedTouches[0].clientY;
+  const deltaY = touchStartY - touchEndY;
+
+  if (deltaY > 35) revealFooter(true);
+  else if (deltaY < -35) revealFooter(false);
+
+  touchStartY = null;
+}, { passive: true });
+
 
 
 /* ================= POSITION ================= */
@@ -281,6 +349,13 @@ function draw(){
     canvas.height
   );
 
+  scrollOffset += (targetScrollOffset - scrollOffset) * 0.08;
+  if (Math.abs(targetScrollOffset - scrollOffset) < 0.1) {
+    scrollOffset = targetScrollOffset;
+  }
+
+  ctx.save();
+  ctx.translate(0, -scrollOffset);
 
 
 /* ================= SPACE DEPTH ================= */
@@ -582,6 +657,8 @@ canvas.width < 600 ? 12 : 16
 
 
 
+
+ctx.restore();
 
 requestAnimationFrame(draw);
 
