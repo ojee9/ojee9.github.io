@@ -309,8 +309,8 @@
       .vn-ac-shell.vn-ac-auth-shell{display:flex;flex-direction:column;width:min(100%,640px);min-height:480px;max-height:calc(100dvh - 28px);padding:44px 56px 38px;background:#171717;color:#f5f5f5;border:0;box-shadow:0 28px 90px rgba(0,0,0,.42)}
       .vn-ac-header{position:relative;display:flex;justify-content:center;align-items:center;padding-bottom:24px;border-bottom:1px solid #e5e5e5}
       .vn-ac-auth-shell .vn-ac-header{padding:0 32px 22px;border:0}
-      .vn-ac-brand{display:flex;align-items:center;justify-content:center;width:112px;height:54px;color:inherit;text-decoration:none}
-      .vn-ac-brand img{display:block;width:100%;height:100%;object-fit:contain;filter:invert(1)}
+      .vn-ac-brand{display:flex;align-items:center;justify-content:center;width:112px;height:54px;color:inherit;text-decoration:none;user-select:none;-webkit-user-select:none;pointer-events:none}
+      .vn-ac-brand img{display:block;width:100%;height:100%;object-fit:contain;filter:invert(1);user-select:none;-webkit-user-select:none;-webkit-user-drag:none}
       .vn-ac-close{position:absolute;right:0;top:50%;transform:translateY(-50%);border:0;background:none;font-size:23px;cursor:pointer;color:inherit}
       .vn-ac-auth-shell .vn-ac-close{top:12px;right:12px;transform:none;display:flex;align-items:center;justify-content:center;width:30px;height:30px;padding:0;color:#f5f5f5;font-size:28px;line-height:1}
       .vn-ac-auth-shell .vn-ac-main{width:100%;max-width:100%;margin:10px auto 0!important}
