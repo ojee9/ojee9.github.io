@@ -1162,9 +1162,13 @@
     }
 
     overlay.querySelector("[data-legal-panel-title]").textContent = legal.title;
-    overlay.querySelector("[data-legal-panel-body]").innerHTML = formatLegalContent(legal.text || "");
+    const body = overlay.querySelector("[data-legal-panel-body]");
+    body.innerHTML = formatLegalContent(legal.text || "");
+    body.scrollTop = 0;
 
     const panel = $(".vn-ac-policy-panel", overlay);
+    panel.scrollTop = 0;
+    overlay.scrollTop = 0;
     const rect = panel.getBoundingClientRect();
     panel.style.setProperty("--policy-origin-x", `${event.clientX - rect.left}px`);
     panel.style.setProperty("--policy-origin-y", `${event.clientY - rect.top}px`);
