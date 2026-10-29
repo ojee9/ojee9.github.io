@@ -231,3 +231,30 @@ font-size:42px;
 
 
 }
+
+/* MUSIC PAGE FOOTER */
+.music-footer {
+  position: relative;
+  z-index: 1;
+  padding: 24px 5% 18px;
+  border-top: 1px solid rgba(255,255,255,.12);
+  text-align: center;
+}
+
+.music-copyright {
+  color: rgba(255,255,255,.55);
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-align: center;
+}
+
+.music-footer-logo {
+  display: block;
+  width: 180px;
+  height: 116px;
+  max-width: 100%;
+  object-fit: contain;
+  margin: 12px auto 0;
+  opacity: .95;
+}
+
