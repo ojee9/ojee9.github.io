@@ -570,6 +570,7 @@ ctx.stroke();
 
 
 drawBrand();
+  drawFooterLogo();
 
 
 
