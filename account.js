@@ -720,8 +720,7 @@
         </div>
 
         <p class="vn-ac-muted vn-ac-email-terms">
-          By continuing, you agree to our
-          <button type="button" data-ac-action="policy-open" data-ac-policy="terms">Terms of Use</button>.
+          <a href="https://ojee9.github.io/merch.html#">Privacy Policy</a>
         </p>
       </main>
     `;
@@ -1226,8 +1225,15 @@
 
     const content = $("#vnAcContent", root);
     const shell = $(".vn-ac-shell", root);
+    const policyFooter = $(".vn-ac-policy-footer-row", root);
     shell?.classList.toggle("vn-ac-auth-shell", !state.user);
     shell?.classList.toggle("vn-ac-dashboard-open", Boolean(state.user));
+
+    if (policyFooter) {
+      policyFooter.innerHTML = !state.user
+        ? '<a class="vn-ac-legal-item" href="https://ojee9.github.io/merch.html#">Privacy Policy</a>'
+        : `<label class="vn-ac-footer-country" aria-label="Country"><select data-ac-country>${countryOptions(state.country)}</select></label><div class="vn-ac-footer-policies">${legalLinks()}</div>`;
+    }
 
     if (!state.user) {
       content.innerHTML = state.screen === "verify" ? renderVerify() : renderEmail();
