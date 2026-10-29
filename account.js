@@ -755,7 +755,7 @@
               >
             `).join("")}
           </div>
-          <div class="vn-ac-otp-loading" role="status" aria-live="polite" ${state.busy ? "" : "hidden"}><span class="vn-ac-otp-spinner" aria-hidden="true"></span><span>Verifying code…</span></div>
+          <div class="vn-ac-otp-loading" role="status" aria-live="polite" ${state.busy ? "" : "hidden"}><span class="vn-ac-otp-spinner" aria-label="Verifying code"></span></div>
           </div>
         </form>
       </main>
