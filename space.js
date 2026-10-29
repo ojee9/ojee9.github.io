@@ -1,5 +1,6 @@
 const canvas = document.getElementById("spaceCanvas");
 const ctx = canvas.getContext("2d");
+const maxScrollOffset = 110;
 
 
 function resize() {
@@ -43,7 +44,6 @@ let time = 0;
 
 let scrollOffset = 0;
 let targetScrollOffset = 0;
-const maxScrollOffset = 110;
 
 const footerLogo = new Image();
 footerLogo.src = "images/vn-logo-official.png";
