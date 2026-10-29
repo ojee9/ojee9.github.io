@@ -257,7 +257,8 @@
         "name": product.name,
         "url": productUrl,
         "image": imageUrl,
-        "sku": product.id,
+        "sku": product.sku || product.id,
+        "itemCondition": "https://schema.org/NewCondition",
         "category": product.category || product.type || "Merchandise",
         "brand": { "@type": "Brand", "name": product.brand || "VN SHOP" },
         "offers": {
@@ -265,10 +266,13 @@
           "url": productUrl,
           "price": String(product.price),
           "priceCurrency": product.currency || "USD",
-          ...(product.availability ? { "availability": product.availability } : {})
+          ...(product.availability ? { "availability": product.availability } : {}),
+          ...(product.hasMerchantReturnPolicy ? { "hasMerchantReturnPolicy": product.hasMerchantReturnPolicy } : {}),
+          ...(product.shippingDetails ? { "shippingDetails": product.shippingDetails } : {})
         }
       };
-      if (product.description) item.description = product.description;
+      if (product.seoDescription || product.description) item.description = product.seoDescription || product.description;
+      if (product.hasMerchantReturnPolicy) item.hasMerchantReturnPolicy = product.hasMerchantReturnPolicy;
       return { "@type": "ListItem", "position": index + 1, "item": item };
     })
   };
