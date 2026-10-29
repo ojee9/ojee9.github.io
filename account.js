@@ -1693,8 +1693,8 @@
   function goShop() {
     const currentPage = window.location.pathname.split("/").pop().toLowerCase();
 
-    if (currentPage === "help.html") {
-      window.location.href = "merch.html";
+    if (currentPage !== "merch.html") {
+      window.location.href = new URL("/merch.html", window.location.origin).href;
       return;
     }
 
