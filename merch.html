@@ -440,7 +440,7 @@
       item.setAttribute("aria-label", product.name || "Product");
 
       item.innerHTML = `
-        <div class="product-image-wrap">
+        <div class="product-image-wrap${product.id === "gta-love-custom-printed-cd" ? " product-image-wrap--gta-love-cd" : ""}">
           <img
             class="product-image"
             src="${esc(images[0] || "")}"
