@@ -91,8 +91,8 @@ body::before {
 } 
  
 .social-item img { 
-  width: 68px;
-  height: 68px; 
+  width: 88px;
+  height: 88px; 
   object-fit: contain; 
   flex-shrink: 0; 
 } 
@@ -681,8 +681,8 @@ body::before {
   } 
  
   .social-item img { 
-    width: 60px;
-    height: 60px; 
+    width: 76px;
+    height: 76px; 
   } 
  
   .social-item h2 { 
