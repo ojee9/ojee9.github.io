@@ -316,3 +316,33 @@ font-size:11px;
 
 
 }
+
+/* ABOUT PAGE FOOTER */
+.about-footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  padding: 24px 5% 18px;
+  border-top: 1px solid rgba(255,255,255,.12);
+  text-align: center;
+}
+
+.about-copyright {
+  color: rgba(255,255,255,.55);
+  font-size: 9px;
+  letter-spacing: 1px;
+  text-align: center;
+}
+
+.about-footer-logo {
+  display: block;
+  width: 180px;
+  height: 116px;
+  max-width: 100%;
+  object-fit: contain;
+  margin: 12px auto 0;
+  opacity: .95;
+}
+
