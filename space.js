@@ -63,7 +63,7 @@ function drawFooterLogo() {
   ctx.drawImage(
     footerLogo,
     canvas.width / 2 - width / 2,
-    canvas.height + 30,
+    canvas.height + 12,
     width,
     height
   );
@@ -216,41 +216,27 @@ function drawBrand(){
 
 /* ================= MOUSE ================= */
 
+function getNodeAtPoint(clientX, clientY) {
+  const rect = canvas.getBoundingClientRect();
+
+  // Convert screen coordinates to canvas coordinates and account for the animated space shift.
+  const x = (clientX - rect.left) * (canvas.width / rect.width);
+  const y = (clientY - rect.top) * (canvas.height / rect.height) + scrollOffset;
+
+  for (let index = 0; index < nodes.length; index++) {
+    const p = getNodePosition(nodes[index], index);
+    const dx = x - p.x;
+    const dy = y - p.y;
+
+    if (Math.sqrt(dx * dx + dy * dy) < 45) return index;
+  }
+
+  return -1;
+}
+
 canvas.addEventListener("mousemove", e => {
-
-  hoverNode = -1;
-
-
-  nodes.forEach((node,index)=>{
-
-
-    const p = getNodePosition(
-      node,
-      index
-    );
-
-
-    const dx = e.clientX - p.x;
-    const dy = e.clientY - p.y;
-
-
-    if(Math.sqrt(dx*dx + dy*dy) < 45){
-
-      hoverNode = index;
-
-    }
-
-
-  });
-
-
-
-  canvas.style.cursor =
-    hoverNode !== -1
-    ? "pointer"
-    : "default";
-
-
+  hoverNode = getNodeAtPoint(e.clientX, e.clientY);
+  canvas.style.cursor = hoverNode !== -1 ? "pointer" : "default";
 });
 
 
@@ -260,14 +246,11 @@ canvas.addEventListener("mousemove", e => {
 
 /* ================= NODE ROUTING ================= */
 
-canvas.addEventListener("click",()=>{
+canvas.addEventListener("click", event => {
+  const clickedNode = getNodeAtPoint(event.clientX, event.clientY);
 
-
-  if(hoverNode !== -1){
-
-
-    const selected =
-      nodes[hoverNode].name;
+  if (clickedNode !== -1) {
+    const selected = nodes[clickedNode].name;
 
 
 
