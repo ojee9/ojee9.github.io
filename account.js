@@ -1175,7 +1175,20 @@
     overlay.classList.remove("is-open");
     overlay.hidden = false;
     void panel.offsetWidth;
-    requestAnimationFrame(() => overlay.classList.add("is-open"));
+    panel.scrollTop = 0;
+    body.scrollTop = 0;
+    overlay.scrollTop = 0;
+    requestAnimationFrame(() => {
+      panel.scrollTop = 0;
+      body.scrollTop = 0;
+      overlay.scrollTop = 0;
+      overlay.classList.add("is-open");
+      requestAnimationFrame(() => {
+        panel.scrollTop = 0;
+        body.scrollTop = 0;
+        overlay.scrollTop = 0;
+      });
+    });
   }
 
   function updateAccountAvatar() {
