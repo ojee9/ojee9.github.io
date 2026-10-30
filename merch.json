@@ -751,9 +751,11 @@
       "active": true,
       "brand": "VN SHOP",
       "sku": "GTA-LOVE-POSTER-01",
-      "seoDescription": "GTA LOVE Poster 01 by Ojee Ka$h, an original printed GTA LOVE poster available from VN SHOP. Premium-quality printed wall art featuring the GTA LOVE visual artwork. Physical poster, non-textile art print, available in a limited production run.",
+      "seoDescription": "GTA LOVE Poster 01 by Ojee Ka$h, an original printed poster featuring the GTA LOVE visual artwork. Physical, non-textile poster available through VN SHOP.",
       "description": "GTA LOVE POSTER ART\n\nPREMIUM QUALITY, ORIGINAL PRINTED POSTER",
-      "availability": "https://schema.org/InStock"
+      "availability": "https://schema.org/InStock",
+      "slug": "gta-love-poster-01",
+      "imageAlt": "GTA LOVE Poster 01 — official poster from VN SHOP."
     },
     {
       "id": "gta-love-poster-2",
@@ -767,9 +769,11 @@
       "active": true,
       "brand": "VN SHOP",
       "sku": "GTA-LOVE-POSTER-02",
-      "seoDescription": "GTA LOVE Poster 02 by Ojee Ka$h, an original printed GTA LOVE poster available from VN SHOP. Premium-quality printed wall art featuring the GTA LOVE visual artwork. Physical poster, non-textile art print, available in a limited production run.",
+      "seoDescription": "GTA LOVE Poster 02 by Ojee Ka$h, an original printed poster featuring the GTA LOVE visual artwork. Physical, non-textile poster available through VN SHOP.",
       "description": "GTA LOVE POSTER ART\n\nPREMIUM QUALITY, ORIGINAL PRINTED POSTER",
-      "availability": "https://schema.org/InStock"
+      "availability": "https://schema.org/InStock",
+      "slug": "gta-love-poster-02",
+      "imageAlt": "GTA LOVE Poster 02 — official poster from VN SHOP."
     },
     {
       "id": "gta-love-custom-printed-cd",
@@ -785,7 +789,8 @@
       "availability": "https://schema.org/InStock",
       "active": true,
       "imageAlt": "GTA LOVE (Custom-Printed CD) by Ojee Ka$h, available through VN Shop. Discover limited editions, artwork, exclusives, and more.",
-      "seoDescription": "GTA LOVE custom-printed CD by Ojee Ka$h, available from VN SHOP and VNION RECORDS. Physical music CD featuring the GTA LOVE release and custom-printed artwork. Limited production physical music collectible."
+      "seoDescription": "GTA LOVE custom-printed CD by Ojee Ka$h, available from VN SHOP and VNION RECORDS. Physical music CD featuring the GTA LOVE release and custom-printed artwork. Limited production physical music collectible.",
+      "slug": "gta-love-custom-cd"
     },
     {
       "id": "igotti-standard-painted-cd",
@@ -800,7 +805,9 @@
       "brand": "VN SHOP",
       "availability": "https://schema.org/InStock",
       "active": true,
-      "seoDescription": "IGOTTI standard-painted CD by Ojee Ka$h, available from VN SHOP and VNION RECORDS. Physical CD edition of the IGOTTI release featuring K.W.T.O, JEEP CALLIN', THOSE LIES and IGOTTI. Limited production music collectible."
+      "seoDescription": "IGOTTI standard-painted CD by Ojee Ka$h, available from VN SHOP and VNION RECORDS. Physical CD edition of the IGOTTI release featuring K.W.T.O, JEEP CALLIN', THOSE LIES and IGOTTI. Limited production music collectible.",
+      "slug": "igotti-standart-cd",
+      "imageAlt": "IGOTTI (STANDART CD) — official standart cd from VN SHOP."
     },
     {
       "id": "planetarium-original-cd",
@@ -815,7 +822,9 @@
       "brand": "VN SHOP",
       "availability": "https://schema.org/InStock",
       "active": true,
-      "seoDescription": "PLANETARIUM original CD by 9ojeez9, available from VN SHOP and VNION RECORDS. Physical CD edition of the PLANETARIUM EP featuring EGO pt.3, PLANETARIUM [EXTENDED], LUMEN-FLUX and SOLARIS 3. Limited production music collectible."
+      "seoDescription": "PLANETARIUM original CD by 9ojeez9, available from VN SHOP and VNION RECORDS. Physical CD edition of the PLANETARIUM EP featuring EGO pt.3, PLANETARIUM [EXTENDED], LUMEN-FLUX and SOLARIS 3. Limited production music collectible.",
+      "slug": "planetarium-original-cd",
+      "imageAlt": "PLANETARIUM (ORIGINAL CD) — official standart cd from VN SHOP."
     },
     {
       "id": "9ojeez9-classic-poster-01",
@@ -838,7 +847,8 @@
       "brand": "VN SHOP",
       "availability": "https://schema.org/InStock",
       "active": true,
-      "seoDescription": "9ojeez9 Classic Poster 01, an original printed poster featuring 9ojeez9's classic poster palette. Premium printed wall art available from VN SHOP. Physical non-textile art print in listed size options."
+      "seoDescription": "9ojeez9 Classic Poster 01, an original printed poster featuring 9ojeez9's classic poster palette. Premium printed wall art available from VN SHOP. Physical non-textile art print in listed size options.",
+      "slug": "9ojeez9-s-classic-poster-01"
     },
     {
       "id": "9ojeez9-classic-poster-02",
@@ -861,7 +871,8 @@
       "brand": "VN SHOP",
       "availability": "https://schema.org/InStock",
       "active": true,
-      "seoDescription": "9OJEEZ9 Classic Poster 02, available through VN Shop. Discover the classic posters, original printed artworks, exclusives, and more."
+      "seoDescription": "9OJEEZ9's Classic Poster 02 — an original printed work from the artist's classic poster palette, presented as a physical non-textile poster at VN SHOP.",
+      "slug": "9ojeez9-s-classic-poster-02"
     },
     {
       "id": "9ojeez9-classic-poster-03",
@@ -884,7 +895,8 @@
       "brand": "VN SHOP",
       "availability": "https://schema.org/InStock",
       "active": true,
-      "seoDescription": "9OJEEZ9 Classic Poster 03, available through VN Shop. Discover the classic posters, original printed artworks, exclusives, and more."
+      "seoDescription": "9OJEEZ9's Classic Poster 03 — an original printed work from the artist's classic poster palette, presented as a physical non-textile poster at VN SHOP.",
+      "slug": "9ojeez9-s-classic-poster-03"
     },
     {
       "id": "vn-original-poster-01",
@@ -907,7 +919,17 @@
       "brand": "VN SHOP",
       "availability": "https://schema.org/InStock",
       "active": true,
-      "seoDescription": "VN Original Poster 01, available through VN Shop. Discover the classic posters, original printed artworks, exclusives, and more."
+      "seoDescription": "VN Original Poster 01 — an original printed work from the VN origins poster palette, presented as a physical non-textile poster at VN SHOP.",
+      "slug": "vn-original-poster-01"
     }
-  ]
+  ],
+  "seo": {
+    "defaultLanguage": "en",
+    "supportedLanguages": [
+      "en"
+    ],
+    "productPath": "/products/",
+    "collectionPath": "/collections/",
+    "languageStrategy": "Publish hreflang only for complete localized static pages. Add translations under product.translations.<locale>; do not declare fallback-only content as translated."
+  }
 }

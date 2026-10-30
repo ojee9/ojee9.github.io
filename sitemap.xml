@@ -1,27 +1,22 @@
-
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>https://ojee9.github.io/</loc>
-  </url>
-  <url>
-    <loc>https://ojee9.github.io/about.html</loc>
-  </url>
-  <url>
-    <loc>https://ojee9.github.io/archive.html</loc>
-  </url>
-  <url>
-    <loc>https://ojee9.github.io/music.html</loc>
-  </url>
-  <url>
-    <loc>https://ojee9.github.io/socials.html</loc>
-  </url>
-  <url>
-    <loc>https://ojee9.github.io/space.html</loc>
-  </url>
-  <url>
-    <loc>https://ojee9.github.io/visuals.html</loc>
-  </url>
-  <url>
-    <loc>https://ojee9.github.io/merch.html</loc>
-  </url>
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url><loc>https://ojee9.github.io/</loc></url>
+  <url><loc>https://ojee9.github.io/about.html</loc></url>
+  <url><loc>https://ojee9.github.io/archive.html</loc></url>
+  <url><loc>https://ojee9.github.io/music.html</loc></url>
+  <url><loc>https://ojee9.github.io/socials.html</loc></url>
+  <url><loc>https://ojee9.github.io/space.html</loc></url>
+  <url><loc>https://ojee9.github.io/visuals.html</loc></url>
+  <url><loc>https://ojee9.github.io/merch.html</loc></url>
+  <url><loc>https://ojee9.github.io/products/gta-love-poster-01/</loc><image:image><image:loc>https://ojee9.github.io/images/9o9-shop-product-gta-love-poster.png</image:loc><image:title>GTA LOVE Poster 01</image:title><image:caption>GTA LOVE Poster 01 — official poster from VN SHOP.</image:caption></image:image></url>
+  <url><loc>https://ojee9.github.io/products/gta-love-poster-02/</loc><image:image><image:loc>https://ojee9.github.io/images/9o9-shop-product-gta-love-poster-2.png</image:loc><image:title>GTA LOVE Poster 02</image:title><image:caption>GTA LOVE Poster 02 — official poster from VN SHOP.</image:caption></image:image></url>
+  <url><loc>https://ojee9.github.io/products/gta-love-custom-cd/</loc><image:image><image:loc>https://ojee9.github.io/images/9o9-shop-product-gta-love-45187-cd.png</image:loc><image:title>GTA LOVE (CUSTOM CD)</image:title><image:caption>GTA LOVE (Custom-Printed CD) by Ojee Ka$h, available through VN Shop. Discover limited editions, artwork, exclusives, and more.</image:caption></image:image></url>
+  <url><loc>https://ojee9.github.io/products/igotti-standart-cd/</loc><image:image><image:loc>https://ojee9.github.io/images/9o9-shop-product-igotti-9841-cd.png</image:loc><image:title>IGOTTI (STANDART CD)</image:title><image:caption>IGOTTI (STANDART CD) — official standart cd from VN SHOP.</image:caption></image:image></url>
+  <url><loc>https://ojee9.github.io/products/planetarium-original-cd/</loc><image:image><image:loc>https://ojee9.github.io/images/9o9-shop-product-planetarium-14124-cd.png</image:loc><image:title>PLANETARIUM (ORIGINAL CD)</image:title><image:caption>PLANETARIUM (ORIGINAL CD) — official standart cd from VN SHOP.</image:caption></image:image></url>
+  <url><loc>https://ojee9.github.io/products/9ojeez9-s-classic-poster-01/</loc><image:image><image:loc>https://ojee9.github.io/images/9o9-shop-product-9ojeez9-poster-87425.png</image:loc><image:title>9OJEEZ9&apos;s Classic Poster 01</image:title><image:caption>9OJEEZ9 Classic Poster 01, available through VN Shop. Discover the classic posters, original printed artworks, exclusives, and more.</image:caption></image:image></url>
+  <url><loc>https://ojee9.github.io/products/9ojeez9-s-classic-poster-02/</loc><image:image><image:loc>https://ojee9.github.io/images/9o9-shop-product-9ojeez9-poster-1568.png</image:loc><image:title>9OJEEZ9&apos;s Classic Poster 02</image:title><image:caption>9OJEEZ9 Classic Poster 02, available through VN Shop. Discover the classic posters, original printed artworks, exclusives, and more.</image:caption></image:image></url>
+  <url><loc>https://ojee9.github.io/products/9ojeez9-s-classic-poster-03/</loc><image:image><image:loc>https://ojee9.github.io/images/9o9-shop-product-9ojeez9-poster-4846.png</image:loc><image:title>9OJEEZ9&apos;s Classic Poster 03</image:title><image:caption>9OJEEZ9 Classic Poster 03, available through VN Shop. Discover the classic posters, original printed artworks, exclusives, and more.</image:caption></image:image></url>
+  <url><loc>https://ojee9.github.io/products/vn-original-poster-01/</loc><image:image><image:loc>https://ojee9.github.io/images/9o9-shop-product-vn-poster-798.png</image:loc><image:title>VN Original Poster 01</image:title><image:caption>VN Original Poster 01, available through VN Shop. Discover the classic posters, original printed artworks, exclusives, and more.</image:caption></image:image></url>
+  <url><loc>https://ojee9.github.io/collections/xtras/</loc></url>
+  <url><loc>https://ojee9.github.io/collections/cd/</loc></url>
 </urlset>
