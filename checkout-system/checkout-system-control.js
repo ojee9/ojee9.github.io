@@ -2,7 +2,7 @@ import{cart}from"./checkout-data.js";import{state}from"./checkout-state.js";impo
 state.cart=cart();render(state.cart);
 const form=document.getElementById("info"),country=document.getElementById("country"),phoneCountry=document.getElementById("phoneCountry"),countryDialog=document.getElementById("country-modal"),policyDialog=document.getElementById("modal"),policyOptions=document.getElementById("policy-options"),policySelect=document.getElementById("policy-select");
 const dial=()=>{const m=phoneCountry.selectedOptions[0]?.textContent.match(/\+(\d{1,4})/);return m?"+"+m[1]:""};
-const updatePhone=()=>{document.querySelector("[data-phone-dial]").textContent=dial()};
+const updatePhone=()=>{const option=phoneCountry.selectedOptions[0],code=phoneCountry.value.toLowerCase();document.querySelector("[data-phone-dial]").textContent=dial();const flag=document.querySelector(".vn-ac-phone-flag");if(flag){flag.src="https://flagcdn.com/w40/"+code+".png";flag.alt="";flag.hidden=false}};
 const showCountry=()=>{const selected=country.selectedOptions[0]?.textContent||"this country";document.getElementById("country-dialog-message").textContent="We're currently trying to reach our premium products to "+selected+" right now. Please try again later. — VN Shop";countryDialog.hidden=false;requestAnimationFrame(()=>countryDialog.classList.add("is-open"));document.body.style.overflow="hidden"};
 const hideCountry=()=>{countryDialog.classList.remove("is-open");setTimeout(()=>{countryDialog.hidden=true;if(policyDialog.hidden)document.body.style.overflow=""},210)};
 const saved=(()=>{try{return JSON.parse(sessionStorage.getItem("vn-checkout-information")||"{}")}catch{return{}}})();
@@ -10,7 +10,7 @@ for(const [key,value]of Object.entries(saved)){const field=form.elements.namedIt
 if(saved.updates===true)document.getElementById("updates").checked=true;
 if(saved.phoneCountry&&phoneCountry.querySelector('option[value="'+saved.phoneCountry+'"]'))phoneCountry.value=saved.phoneCountry;
 updatePhone();if(country.value!=="TR")showCountry();
-country.addEventListener("change",()=>{updatePhone();if(country.value!=="TR")showCountry()});phoneCountry.addEventListener("change",updatePhone);
+country.addEventListener("change",()=>{if(phoneCountry.querySelector('option[value="'+country.value+'"]'))phoneCountry.value=country.value;updatePhone();if(country.value!=="TR")showCountry()});phoneCountry.addEventListener("change",updatePhone);
 document.getElementById("country-understand").addEventListener("click",hideCountry);
 countryDialog.addEventListener("click",e=>{if(e.target===countryDialog)hideCountry()});
 form.addEventListener("submit",e=>{e.preventDefault();if(!form.reportValidity())return;if(country.value!=="TR"){showCountry();return}if(!validEmail(document.getElementById("email").value)){document.getElementById("email").focus();return}const data=Object.fromEntries(new FormData(form));data.updates=document.getElementById("updates").checked;try{sessionStorage.setItem("vn-checkout-information",JSON.stringify(data))}catch{}document.getElementById("discountmsg").textContent="Your shipping details are saved for the next step. Shipping rates and online payment are not connected yet."});
