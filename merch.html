@@ -852,8 +852,12 @@
     $("cart-continue").onclick = () => closeOverlay(cartOverlay);
 
     $("checkout-button").onclick = () => {
-      try { localStorage.setItem("vn-shop-cart", JSON.stringify(cart)); } catch (_) {}
-      window.location.href = "checkout.html";
+      try {
+        const snapshot = JSON.stringify(cart);
+        localStorage.setItem("vn-shop-cart", snapshot);
+        sessionStorage.setItem("vn-shop-checkout-cart", snapshot);
+      } catch (_) {}
+      window.location.href = new URL("checkout.html", window.location.href).href;
     };
   }
 
