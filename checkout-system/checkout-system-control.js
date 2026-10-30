@@ -44,6 +44,9 @@ document.getElementById("close").onclick=close;
 document.getElementById("modal").onclick=event=>{if(event.target.id==="modal")close()};
 document.addEventListener("keydown",event=>{if(event.key==="Escape")close()});
 document.getElementById("cookies").onclick=()=>location.href="merch.html#cookie-choices";
+const emailField=document.getElementById("email");
+const savedEmail=(()=>{try{return localStorage.getItem("vn-account-email")||""}catch{return""}})();
+if(savedEmail&&!emailField.value)emailField.value=savedEmail;
 
 const items=document.getElementById("items");
 const scrollHint=document.getElementById("scrollhint");
@@ -51,8 +54,3 @@ const updateScrollHint=()=>{scrollHint.hidden=items.scrollHeight<=items.clientHe
 items.addEventListener("scroll",updateScrollHint,{passive:true});
 window.addEventListener("resize",updateScrollHint);
 requestAnimationFrame(updateScrollHint);
-
-// Keep checkout on this document when reloaded; cart data is hydrated from persistent storage.
-if(!location.pathname.endsWith("/checkout.html")&&!location.pathname.endsWith("checkout.html")){
-  history.replaceState(null,"",new URL("checkout.html",location.href).pathname);
-}
