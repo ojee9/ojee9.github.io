@@ -453,3 +453,27 @@ body.checkout-page{margin:0;background:#C6BBA7;color:#f5f5f5;font:13px Arial,Hel
 @media(max-width:600px){
   .checkout-page .checkout-shop-banner img{width:40%;height:81px}
 }
+
+
+/* MORE ITEMS: compact, centered, passive overflow cue. */
+.checkout-page #scrollhint{
+  position:relative!important;float:none!important;clear:both!important;
+  display:flex;align-items:center;justify-content:center;
+  width:max-content!important;min-width:0!important;
+  min-height:21px!important;height:21px!important;
+  margin:-25px auto 5px!important;padding:0 7px!important;gap:4px!important;
+  border:0!important;border-radius:999px!important;
+  background:transparent!important;color:#e4cea5!important;
+  box-shadow:none!important;letter-spacing:.07em!important;
+  font-size:8px!important;line-height:1!important;font-weight:600!important;
+  cursor:default!important;pointer-events:none!important;
+  opacity:1;transition:opacity .28s ease!important;
+}
+.checkout-page #scrollhint[hidden]{display:none!important}
+.checkout-page #scrollhint .scrollhint-label{font-size:8px!important}
+.checkout-page #scrollhint .scrollhint-arrow{
+  width:14px!important;height:14px!important;
+  background:transparent!important;color:#e4cea5!important;
+  font-size:12px!important;
+}
+.checkout-page #scrollhint.is-fading{opacity:0!important}
