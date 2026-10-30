@@ -2062,4 +2062,5 @@
   configPromise.then(() => {
     if (state.user) render();
   });
+  if (new URLSearchParams(window.location.search).get("account") === "register") window.setTimeout(() => openPanel(), 0);
 })();

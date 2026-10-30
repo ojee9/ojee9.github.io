@@ -28,13 +28,18 @@ const placeholders={
 export function policy(key){
  if(!names[key])return;
  document.getElementById("ptitle").textContent=names[key];
- document.querySelectorAll("[data-p]").forEach(button=>button.classList.toggle("active",button.dataset.p===key));
+ const selector=document.getElementById("policy-select");
+ if(selector)selector.firstChild.textContent=names[key];
  const content=document.getElementById("pcontent");
+ content.classList.add("is-changing");
+ document.querySelectorAll("[data-p]").forEach(button=>button.classList.toggle("active",button.dataset.p===key));
  if(urls[key]){
   content.innerHTML='<iframe title="'+names[key]+'" src="'+urls[key]+'"></iframe>';
   const frame=content.querySelector("iframe");
   frame.addEventListener("load",()=>{try{const doc=frame.contentDocument;doc.querySelector(".header-actions")?.remove();doc.querySelector(".footer")?.remove();doc.body.style.background="#000";doc.querySelector(".policy-page")?.style.setProperty("min-height","0")}catch{}});
  }else content.innerHTML=placeholders[key]||CONFIG.temporaryPolicy;
  document.getElementById("modal").hidden=false;
+ requestAnimationFrame(()=>document.getElementById("modal").classList.add("is-open"));
+ requestAnimationFrame(()=>content.classList.remove("is-changing"));
 }
-export const close=()=>document.getElementById("modal").hidden=true;
+export const close=()=>{const modal=document.getElementById("modal");modal.classList.remove("is-open");window.setTimeout(()=>{modal.hidden=true;},240);};
