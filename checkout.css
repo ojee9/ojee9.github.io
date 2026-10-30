@@ -396,3 +396,34 @@ body.checkout-page{margin:0;background:#C6BBA7;color:#f5f5f5;font:13px Arial,Hel
  .checkout-page #scrollhint{margin-top:-28px;margin-bottom:8px}
  .checkout-page .vn-ac-phone-help{right:45px!important}
 }
+
+
+/* Final narrow focus and phone help placement adjustment. */
+.checkout-page .vn-ac-address-control{margin-bottom:15px}
+.checkout-page :is(input,select,textarea):focus-visible{
+  outline:1px solid #c6bba7!important;
+  outline-offset:-2px!important;
+  box-shadow:none!important;
+}
+.checkout-page .vn-ac-phone-row input:focus,
+.checkout-page .vn-ac-phone-row select:focus{
+  outline:0!important;box-shadow:none!important;
+}
+.checkout-page .vn-ac-phone-row:focus-within{
+  border-color:#c6bba7;
+  box-shadow:inset 0 0 0 1px #c6bba7!important;
+}
+.checkout-page .vn-ac-phone-help{
+  right:55px!important;top:50%!important;left:auto!important;bottom:auto!important;
+  width:15px!important;height:15px!important;min-width:15px!important;
+  border:1px solid #8f8069!important;border-radius:50%!important;
+  background:#c6bba7!important;color:#171717!important;
+  font:700 10px/13px Arial,sans-serif!important;
+  transform:translateY(-50%)!important;
+  outline:0!important;box-shadow:none!important;
+}
+.checkout-page .vn-ac-phone-help::after{right:-4px;max-width:min(230px,65vw)}
+@media(max-width:600px){
+ .checkout-page .vn-ac-address-control{margin-bottom:14px}
+ .checkout-page .vn-ac-phone-help{right:51px!important}
+}
