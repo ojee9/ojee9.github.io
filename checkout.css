@@ -257,3 +257,40 @@ body.checkout-page{margin:0;background:#C6BBA7;color:#f5f5f5;font:13px Arial,Hel
 .checkout-page .vn-ac-phone-row{display:flex;align-items:center;box-sizing:border-box;width:100%;min-width:0}
 .checkout-page .vn-ac-phone-row input,.checkout-page .vn-ac-phone-row select{box-sizing:border-box}
 @media(max-width:600px){.checkout-page .vn-ac-address-control:has(.vn-ac-phone-row)>.vn-ac-phone-flag{right:47px;bottom:18px}}
+
+/* Final checkout interaction refinements */
+
+/* Checkout field guidance: descriptive text becomes a compact label on interaction. */
+.checkout-page .vn-ac-address-control>span{top:50%;left:14px;opacity:1;transform:translateY(-50%);font-size:13px;line-height:1.2;color:#aaa;transition:top .14s ease,transform .14s ease,font-size .14s ease,color .14s ease}
+.checkout-page .vn-ac-address-control:focus-within>span,
+.checkout-page .vn-ac-address-control:has(>input:not(:placeholder-shown))>span,
+.checkout-page .vn-ac-address-control:has(.vn-ac-phone-row input:not(:placeholder-shown))>span,
+.checkout-page .vn-ac-address-control:has(>select)>span{top:8px;transform:none;font-size:10px;color:#d4c5a8}
+.checkout-page .vn-ac-address-control>input{padding:0 14px}
+.checkout-page .vn-ac-address-control>input:focus,
+.checkout-page .vn-ac-address-control>input:not(:placeholder-shown){padding:17px 14px 4px}
+.checkout-page .checkout-email-control>span{top:50%;left:14px;transform:translateY(-50%)}
+.checkout-page .checkout-email-control:has(input:focus)>span,
+.checkout-page .checkout-email-control:has(input:not(:placeholder-shown))>span{top:8px;transform:none}
+.checkout-page .checkout-email-control .helpwrap input{padding:0 48px 0 14px}
+.checkout-page .checkout-email-control .helpwrap input:focus,
+.checkout-page .checkout-email-control .helpwrap input:not(:placeholder-shown){padding:17px 48px 4px 14px}
+.checkout-page .vn-ac-phone-row{position:relative}
+.checkout-page .vn-ac-phone-row select{z-index:3;flex:0 0 48px;width:48px;background:#111}
+.checkout-page .vn-ac-phone-flag{position:absolute;z-index:4;right:61px;top:50%;width:22px;height:16px;transform:translateY(-50%);display:block;object-fit:cover;border:1px solid #777;border-radius:2px;pointer-events:none}
+.checkout-page .vn-ac-phone-row:has(select:focus) .vn-ac-phone-flag{opacity:1}
+.checkout-page .vn-ac-phone-row .vn-ac-phone-dial{background:#111;color:#e4cea5}
+.checkout-page .vn-ac-phone-row select option{background:#111;color:#f5f1e8}
+
+.checkout-page .policy-link{display:inline;width:auto;min-height:0;margin:25px 0 0;padding:0;border:0;border-radius:0;background:none;color:#e4cea5;font-size:13px;font-weight:600;letter-spacing:.02em;text-decoration:underline;text-underline-offset:4px;cursor:pointer}
+.checkout-page .policy-link:hover,.checkout-page .policy-link:focus-visible{border:0;background:none;color:#fff}
+.checkout-page .scrollhint{position:fixed;right:clamp(16px,3vw,34px);bottom:clamp(18px,3vh,30px);z-index:30;display:flex;align-items:center;gap:11px;width:auto;min-width:0;min-height:46px;margin:0;padding:0 17px;border:1px solid #8f8069;border-radius:999px;background:#e4cea5;color:#171717;box-shadow:0 8px 26px #0007;cursor:pointer;letter-spacing:.1em;font-size:10px;font-weight:700;transition:transform .18s ease,background .18s ease,box-shadow .18s ease}
+.checkout-page .scrollhint[hidden]{display:none!important}
+.checkout-page .scrollhint:hover{transform:translateY(-3px);background:#f0dfbd;box-shadow:0 12px 30px #0009}
+.checkout-page .scrollhint-arrow{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#171717;color:#e4cea5;font-size:15px;line-height:1;transition:transform .18s ease}
+.checkout-page .scrollhint:hover .scrollhint-arrow{transform:translateY(3px)}
+@media(max-width:600px){
+ .checkout-page .scrollhint{right:14px;bottom:16px;min-height:42px;padding:0 14px}
+ .checkout-page .vn-ac-phone-row select{flex-basis:44px;width:44px}
+ .checkout-page .vn-ac-phone-flag{right:56px;width:20px;height:15px}
+}
