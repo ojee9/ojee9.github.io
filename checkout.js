@@ -789,11 +789,6 @@
   function open() {
     state.cart = readCart();
 
-    if (!state.cart.length) {
-      alert("Your cart is empty.");
-      return;
-    }
-
     state.step = 1;
     render();
   }
