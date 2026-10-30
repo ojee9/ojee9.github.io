@@ -74,7 +74,7 @@ body.checkout-page{margin:0;background:#C6BBA7;color:#f5f5f5;font:13px Arial,Hel
 @media(max-width:600px){.checkout-main{min-height:0;padding:28px 16px 48px}.banner{height:36px}.right{padding-top:0}.vn-ac-address-city-row{grid-template-columns:1fr}.vn-ac-form-grid{grid-template-columns:1fr 1fr}.international-panel p{font-size:11px}}
 
 /* Checkout stabilization overrides */
-.checkout-page :focus,.checkout-page :focus-visible{outline:none!important;box-shadow:none!important}
+/* Preserve native keyboard focus; checkout-specific focus-visible styling is defined below. */
 .checkout-main{min-height:760px;padding:36px clamp(20px,4.5vw,64px) 58px}
 .layout{max-width:1220px;gap:clamp(28px,5vw,68px)}
 .banner{height:62px}.right{padding-top:110px}
@@ -163,3 +163,8 @@ body.checkout-page{margin:0;background:#C6BBA7;color:#f5f5f5;font:13px Arial,Hel
 .checkout-page .checkout-footer .footer-links a:hover,.checkout-page .checkout-footer .footer-links button:hover{opacity:.58;}
 .checkout-page :is(button,a,input,select):focus-visible{outline:2px solid #e4cea5!important;outline-offset:3px!important;box-shadow:0 0 0 4px #171717!important;}
 @media(max-width:700px){.checkout-page .vn-ac-address-city-row{grid-template-columns:1fr 1fr;}.checkout-page #modal .modal{padding:27px 18px;}.checkout-page .policy-link{margin-top:27px;padding:18px 13px;}}
+
+/* Keep the phone field's floating label visible after a value is entered and focus leaves the nested input. */
+.checkout-page .vn-ac-address-control:has(.vn-ac-phone-row input:not(:placeholder-shown))>span{opacity:1;transform:translateY(0);}
+/* At narrow widths, preserve the two-column City / Postal Code row without letting the form overflow. */
+@media(max-width:600px){.checkout-page .vn-ac-address-city-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}.checkout-page .vn-ac-address-city-row>*{min-width:0}}
