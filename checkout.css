@@ -168,3 +168,51 @@ body.checkout-page{margin:0;background:#C6BBA7;color:#f5f5f5;font:13px Arial,Hel
 .checkout-page .vn-ac-address-control:has(.vn-ac-phone-row input:not(:placeholder-shown))>span{opacity:1;transform:translateY(0);}
 /* At narrow widths, preserve the two-column City / Postal Code row without letting the form overflow. */
 @media(max-width:600px){.checkout-page .vn-ac-address-city-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}.checkout-page .vn-ac-address-city-row>*{min-width:0}}
+
+
+/* Checkout readability pass: improve type size, contrast and text spacing without changing layout or behavior. */
+.checkout-page{font-size:14px;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+.checkout-page .progress{font-size:12px;line-height:1.6;color:#b7b7b7}
+.checkout-page .progress span{color:#929292}
+.checkout-page .left h1,.checkout-page .left h2{font-size:18px;line-height:1.4}
+.checkout-page .heading a,.checkout-page .actions a{font-size:12px;line-height:1.6}
+.checkout-page .field-wrap>label{font-size:12px;line-height:1.5;color:#e0d9cc}
+.checkout-page .vn-ac-address-control>span{font-size:11px;line-height:1.25}
+.checkout-page .vn-ac-address-control>input,.checkout-page .vn-ac-address-control>select,
+.checkout-page .checkout-email-control .helpwrap input{font-size:14px;line-height:1.45}
+.checkout-page .vn-ac-address-control>input::placeholder,
+.checkout-page .checkout-email-control .helpwrap input::placeholder,
+.checkout-page .right form input::placeholder{color:#c2c2c2}
+.checkout-page .help::after{font-size:13px;line-height:1.55}
+.checkout-page .check span{font-size:12px;line-height:1.5;color:#e0e0e0}
+.checkout-page .or{font-size:11px;line-height:1.5;color:#b0b0b0}
+.checkout-page .iname{font-size:14px;line-height:1.5}
+.checkout-page .variant{font-size:12px;line-height:1.5;color:#d4c5a8}
+.checkout-page .price{font-size:13px;line-height:1.45}
+.checkout-page .qty{font-size:11px}
+.checkout-page .scrollhint{font-size:12px;line-height:1.5}
+.checkout-page .right form input{font-size:13px;line-height:1.45}
+.checkout-page .right form button{font-size:12px}
+.checkout-page .discount-message{font-size:12px;line-height:1.6;color:#c4c4c4}
+.checkout-page .totals>div{font-size:13px;line-height:1.55}
+.checkout-page .totals>div>span:last-child{color:#c6c6c6}
+.checkout-page .totals #shipping{font-size:13px}
+.checkout-page .totals .total{font-size:16px;line-height:1.5}
+.checkout-page .policy-link{font-size:14px;line-height:1.5}
+.checkout-page #policy-select{font-size:14px;line-height:1.5}
+.checkout-page #policy-options button{font-size:13px;line-height:1.5}
+.checkout-page #pcontent{font-size:14px;line-height:1.7}
+.checkout-page .checkout-footer .footer-links{font-size:11px;line-height:1.6}
+.checkout-page .checkout-footer .copyright{font-size:10px;line-height:1.6}
+.checkout-page .checkout-dialog-panel p{font-size:14px;line-height:1.7}
+@media(max-width:600px){
+ .checkout-page .progress{font-size:11px}
+ .checkout-page .left h1,.checkout-page .left h2{font-size:17px}
+ .checkout-page .vn-ac-address-control>input,.checkout-page .vn-ac-address-control>select,
+ .checkout-page .checkout-email-control .helpwrap input{font-size:16px}
+ .checkout-page .iname{font-size:14px}
+ .checkout-page .variant{font-size:12px}
+ .checkout-page .price{font-size:12px}
+ .checkout-page .totals>div{font-size:13px}
+ .checkout-page .checkout-footer .footer-links{gap:10px 16px}
+}
