@@ -1,1 +1,100 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#000"><title>Checkout | VN SHOP®</title><link rel="stylesheet" href="checkout.css"></head><body><header><a class="brand" href="merch.html">OJEE<span>®</span></a><a class="logo" href="merch.html"><img src="images/vn-logo-official.png" alt="VN"></a></header><main><div class="layout"><section class="left"><div class="banner"></div><nav class="progress"><a href="merch.html#cart">Cart</a> › <b>Information</b> › <span>Shipping &amp; Handling</span> › <span>Payment</span></nav><div class="express"></div><div class="or">OR</div><form id="info"><section><div class="heading"><h1>Contact</h1><a href="merch.html#profile">Sign in</a></div><label>Email</label><div class="helpwrap"><input name="email" id="email" type="email" autocomplete="email" required><button class="help" title="required for your order">?</button></div><label class="check"><input type="checkbox" id="updates"> Sign up to receive updates from 9ojeez9</label></section><section><h2>Shipping address</h2><label>Country/Region</label><select id="country" name="country"><option value="TR" selected>Türkiye</option><option value="US">United States</option><option value="GB">United Kingdom</option><option value="DE">Germany</option><option value="FR">France</option><option value="CA">Canada</option><option value="AU">Australia</option><option value="NL">Netherlands</option></select><div class="two"><div><label>First name</label><input name="firstName" autocomplete="given-name" required></div><div><label>Last name</label><input name="lastName" autocomplete="family-name" required></div></div><label>Address</label><input name="address" autocomplete="address-line1" required><label>Apartment, suite, etc. (optional)</label><input name="apartment" autocomplete="address-line2"><div class="three"><div><label>City</label><input name="city" autocomplete="address-level2" required></div><div><label>State</label><input name="region" autocomplete="address-level1"></div><div><label>ZIP code</label><input name="postal" autocomplete="postal-code" required></div></div><label>Phone</label><div class="helpwrap"><input name="phone" type="tel" autocomplete="tel" required><button class="help" title="In case we need to contact you about your order">?</button></div></section><div class="actions"><a href="merch.html#cart">Return to cart</a><button class="primary">Continue to shipping</button></div></form><button id="policies" class="policy-link">Terms and policies</button></section><aside class="right"><div id="items" class="items"></div><p id="scrollhint" class="scrollhint" hidden>↓ Scroll for more items</p><form id="discount"><input placeholder="Discount code"><button>Apply</button></form><p id="discountmsg"></p><div class="totals"><div><span id="subtotal-label">Subtotal · 0 items</span><b id="subtotal">$0.00</b></div><div><button id="shipping">Shipping &amp; Handling <i>?</i></button><span>Calculated at next step</span></div><div class="total"><b>Total</b><b>USD <span id="total">$0.00</span></b></div></div></aside></div></main><footer><nav><a href="help.html">Help &amp; Support</a><a href="policies/terms-of-use.html">Terms</a><a href="policies/privacy-policy.html">Privacy</a><a href="policies/legal-notice.html">Do Not Sell My Personal Information</a><button id="cookies">Cookie Choices</button></nav><p>© 2026 VN RECORDS. ALL RIGHTS RESERVED.</p><img src="images/vn-logo-black-transparent.png" alt="VN"></footer><div id="modal" hidden><section class="modal"><button id="close">×</button><h2 id="ptitle">Terms and policies</h2><nav id="tabs"><button data-p="refund">Refund Policy</button><button data-p="shipping">Shipping</button><button data-p="privacy">Privacy Policy</button><button data-p="terms">Terms of Use</button><button data-p="sale">Terms and Conditions of Sale</button><button data-p="sell">Do Not Sell My Information</button></nav><div id="pcontent"></div></section></div><script type="module" src="checkout-system/checkout-system-control.js"></script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#E4CEA5">
+  <title>Checkout | VN SHOP®</title>
+  <link rel="stylesheet" href="checkout.css">
+</head>
+<body class="checkout-page">
+  <header class="site-header">
+    <a class="brand" href="merch.html" aria-label="OJEE home">OJEE<span>®</span></a>
+    <a class="logo" href="merch.html" aria-label="VN SHOP home"><img src="images/vn-logo-official.png" alt="VN"></a>
+  </header>
+
+  <main>
+    <div class="layout">
+      <section class="left">
+        <div class="banner" aria-label="VN SHOP banner space"></div>
+        <nav class="progress" aria-label="Checkout progress">
+          <a href="merch.html#cart">Cart</a><span>›</span><b>Information</b><span>›</span><span>Shipping &amp; Handling</span><span>›</span><span>Payment</span>
+        </nav>
+        <div class="express" aria-label="Express payment options"></div>
+        <div class="or"><span>OR</span></div>
+
+        <form id="info">
+          <section class="contact-section">
+            <div class="heading"><h1>Contact</h1><a href="merch.html#profile">Sign in</a></div>
+            <label for="email">Email</label>
+            <div class="helpwrap">
+              <input name="email" id="email" type="email" autocomplete="email" required>
+              <button class="help" type="button" title="Required for your order" aria-label="Required for your order">?</button>
+            </div>
+            <label class="check"><input type="checkbox" id="updates" name="updates"> <span>Sign up to receive updates from 9ojeez9</span></label>
+          </section>
+
+          <section class="address-section">
+            <h2>Shipping address</h2>
+            <label for="country">Country/Region</label>
+            <select id="country" name="country">
+              <option value="TR" selected>Türkiye</option><option value="US">United States</option><option value="GB">United Kingdom</option><option value="DE">Germany</option><option value="FR">France</option><option value="CA">Canada</option><option value="AU">Australia</option><option value="NL">Netherlands</option>
+            </select>
+            <div class="two">
+              <div><label for="firstName">First name</label><input id="firstName" name="firstName" autocomplete="given-name" required></div>
+              <div><label for="lastName">Last name</label><input id="lastName" name="lastName" autocomplete="family-name" required></div>
+            </div>
+            <label for="address">Address</label><input id="address" name="address" autocomplete="address-line1" required>
+            <label for="apartment">Apartment, suite, etc. (optional)</label><input id="apartment" name="apartment" autocomplete="address-line2">
+            <div class="three">
+              <div><label for="city">City</label><input id="city" name="city" autocomplete="address-level2" required></div>
+              <div><label for="region">State</label><input id="region" name="region" autocomplete="address-level1"></div>
+              <div><label for="postal">ZIP code</label><input id="postal" name="postal" autocomplete="postal-code" required></div>
+            </div>
+            <label for="phone">Phone</label>
+            <div class="helpwrap">
+              <input id="phone" name="phone" type="tel" autocomplete="tel" required>
+              <button class="help" type="button" title="In case we need to contact you about your order" aria-label="In case we need to contact you about your order">?</button>
+            </div>
+          </section>
+
+          <div class="actions"><a href="merch.html#cart">Return to cart</a><button class="primary" type="submit">Continue to shipping</button></div>
+        </form>
+        <button id="policies" class="policy-link" type="button">Terms and policies</button>
+      </section>
+
+      <aside class="right" aria-label="Order summary">
+        <div id="items" class="items"></div>
+        <p id="scrollhint" class="scrollhint" hidden>↓ Scroll for more items</p>
+        <form id="discount"><input name="discount" placeholder="Discount code" aria-label="Discount code"><button type="submit">Apply</button></form>
+        <p id="discountmsg" class="discount-message" aria-live="polite"></p>
+        <div class="totals">
+          <div><span id="subtotal-label">Subtotal · 0 items</span><b id="subtotal">$0.00</b></div>
+          <div class="shipping-row"><button id="shipping" type="button">Shipping &amp; Handling <i>?</i></button><span>Calculated at next step</span></div>
+          <div class="total"><b>Total</b><b>USD <span id="total">$0.00</span></b></div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer>
+    <nav>
+      <a href="help.html">Help &amp; Support</a><a href="policies/terms-of-use.html">Terms</a><a href="policies/privacy-policy.html">Privacy</a><a href="policies/legal-notice.html">Do Not Sell My Personal Information</a><button id="cookies" type="button">Cookie Choices</button>
+    </nav>
+    <p>© 2026 VN RECORDS. ALL RIGHTS RESERVED.</p>
+    <img src="images/vn-logo-black-transparent.png" alt="VN">
+  </footer>
+
+  <div id="modal" hidden>
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="ptitle">
+      <button id="close" class="modal-close" type="button" aria-label="Close">×</button>
+      <h2 id="ptitle">Terms and policies</h2>
+      <nav id="tabs" aria-label="Policies">
+        <button data-p="refund" type="button">Refund Policy</button><button data-p="shipping" type="button">Shipping</button><button data-p="privacy" type="button">Privacy Policy</button><button data-p="terms" type="button">Terms of Use</button><button data-p="sale" type="button">Terms and Conditions of Sale</button><button data-p="sell" type="button">Do Not Sell My Information</button>
+      </nav>
+      <div id="pcontent"></div>
+    </section>
+  </div>
+  <script type="module" src="checkout-system/checkout-system-control.js"></script>
+</body>
+</html>

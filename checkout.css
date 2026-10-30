@@ -1,1 +1,72 @@
-*{box-sizing:border-box}body{margin:0;background:#e4cea5;color:#f5f5f5;font:13px Arial,sans-serif}a{color:inherit;text-decoration:none}header{height:104px;padding:0 5%;display:flex;align-items:center;justify-content:space-between;color:#111}.brand{font-size:30px;font-weight:900;letter-spacing:-2px}.brand span{font-size:9px;vertical-align:top}.logo{position:absolute;left:50%;transform:translateX(-50%);width:115px;height:78px}.logo img{width:100%;height:100%;object-fit:contain}main{max-width:1380px;margin:auto;background:#080808;padding:42px clamp(22px,5vw,75px) 55px;min-height:650px}.layout{max-width:1160px;margin:auto;display:grid;grid-template-columns:1.05fr .85fr;gap:clamp(35px,6vw,95px)}.left,.right{min-width:0}.banner{height:76px}.progress{display:flex;gap:9px;flex-wrap:wrap;color:#999;font-size:11px;margin-bottom:24px}.progress b{color:white}.progress a{text-decoration:underline}.express{height:56px}.or{display:flex;align-items:center;gap:15px;color:#999;font-size:10px;margin-bottom:27px}.or:before,.or:after{content:"";height:1px;background:#383838;flex:1}h1,h2{font-size:17px;margin:0 0 17px}.heading{display:flex;justify-content:space-between;align-items:center}.heading a{font-size:11px;color:#bbb;text-decoration:underline}.left section{margin-bottom:28px}.left label{display:block;color:#bbb;font-size:11px;margin:0 0 7px}.left input,.left select{width:100%;height:44px;padding:0 12px;margin-bottom:14px;background:#111;border:1px solid #555;color:white;border-radius:2px}.left input:focus,.left select:focus{outline:1px solid #eee}.helpwrap{position:relative}.helpwrap input{padding-right:43px}.help{position:absolute;right:11px;top:12px;border:1px solid #888;border-radius:50%;width:18px;height:18px;background:none;color:#ddd;font-size:10px}.check{display:flex!important;align-items:center;gap:8px}.check input{width:14px;height:14px;margin:0;accent-color:white}.two,.three{display:grid;gap:12px}.two{grid-template-columns:1fr 1fr}.three{grid-template-columns:1.2fr .9fr .9fr}.actions{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:25px}.actions a,.policy-link{font-size:11px;color:#ccc;text-decoration:underline}.primary{background:#eee;color:#111;border:1px solid #eee;padding:0 20px;height:46px;font-size:11px;font-weight:bold}.primary:hover{background:transparent;color:white}.policy-link{border:0;background:none;padding:0}.right{padding-top:76px}.items{max-height:390px;overflow-y:auto;scrollbar-width:thin;overscroll-behavior:contain}.item{display:grid;grid-template-columns:62px 1fr auto;gap:13px;align-items:center;padding:10px 0;border-bottom:1px solid #292929;min-height:82px}.thumb{width:62px;height:62px;background:#222;position:relative}.thumb img{width:100%;height:100%;object-fit:contain}.qty{position:absolute;right:-7px;top:-7px;border-radius:50%;background:#777;padding:4px 6px;font-size:10px}.iname{font-size:12px;font-weight:bold}.variant{font-size:10px;color:#999;margin-top:4px}.price{font-size:11px;white-space:nowrap}.scrollhint{text-align:center;color:#aaa;font-size:10px}.right form{display:flex;gap:8px;margin:20px 0}.right form input{min-width:0;flex:1;height:43px;background:#111;border:1px solid #555;color:white;padding:0 12px}.right form button{width:75px;background:#252525;border:1px solid #777;color:white;font-size:11px}.totals{border-top:1px solid #333;padding-top:16px}.totals>div{display:flex;justify-content:space-between;gap:12px;margin-bottom:15px;font-size:11px}.totals>div span:last-child{color:#999}.totals #shipping{padding:0;background:none;border:0;color:#ddd;font-size:11px}.totals i{font-style:normal;border:1px solid #888;border-radius:50%;padding:1px 5px}.totals .total{border-top:1px solid #333;padding-top:18px;margin-top:18px;font-size:15px}footer{background:#e4cea5;color:#171717;text-align:center;padding:26px 5% 20px}footer nav{display:flex;justify-content:center;flex-wrap:wrap;gap:12px 22px;font-size:10px;margin-bottom:22px}footer nav a,footer nav button{text-decoration:underline}footer nav button{border:0;background:none;color:inherit;font-size:inherit}footer p{font-size:9px;letter-spacing:1px;color:#625744}footer img{width:180px;height:116px;object-fit:contain;margin-top:10px}#modal{position:fixed;inset:0;background:#000b;z-index:10;display:grid;place-items:center;padding:18px}#modal[hidden]{display:none}.modal{position:relative;background:#111;border:1px solid #444;width:min(720px,100%);max-height:90dvh;overflow:auto;padding:32px;color:#eee}.modal>button:first-child{position:absolute;right:14px;top:8px;border:0;background:none;color:white;font-size:26px}#tabs{display:flex;flex-wrap:wrap;gap:7px;border-bottom:1px solid #444;padding-bottom:16px}#tabs button{background:none;border:1px solid #555;color:#bbb;padding:8px;font-size:10px}#tabs button.active{background:#eee;color:#111}#pcontent{padding:20px 0;color:#ccc;font-size:12px;line-height:1.8}#pcontent iframe{width:100%;height:430px;border:0;background:white}@media(max-width:800px){header{height:78px}main{padding:25px 20px 40px}.layout{grid-template-columns:1fr;gap:32px}.right{grid-row:1;padding-top:0}.left{grid-row:2}.banner{height:30px}.express{height:34px}.items{max-height:320px}.three{grid-template-columns:1fr 1fr}.three>div:first-child{grid-column:1/-1}.actions{flex-direction:column-reverse;align-items:stretch}.primary{width:100%}}
+*{box-sizing:border-box}
+:root{color-scheme:dark;--camel:#e4cea5;--black:#080808;--line:#343434;--muted:#aaa;--white:#f3f1ec}
+html{min-height:100%;background:var(--camel)}
+body{margin:0;background:var(--camel);color:var(--white);font:13px Arial,Helvetica,sans-serif}
+a{color:inherit;text-decoration:none}
+.site-header{height:104px;padding:0 5%;display:flex;align-items:center;justify-content:space-between;color:#17130d;position:relative}
+.brand{font-size:30px;font-weight:900;letter-spacing:-2px}.brand span{font-size:9px;vertical-align:top}
+.logo{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:115px;height:78px}.logo img{width:100%;height:100%;object-fit:contain}
+main{width:100%;max-width:1440px;margin:0 auto;background:var(--black);padding:38px clamp(22px,5vw,76px) 54px;min-height:650px}
+.layout{max-width:1190px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1.06fr) minmax(340px,.94fr);column-gap:clamp(36px,6vw,88px);align-items:start}
+.left,.right{min-width:0}
+.banner{height:76px}
+.progress{display:flex;align-items:center;gap:8px;flex-wrap:wrap;color:#888;font-size:11px;margin:0 0 20px;white-space:normal}
+.progress b{color:#fff;font-weight:600}.progress a{text-decoration:underline;color:#ddd}.progress span{color:#666}
+.express{height:56px}
+.or{display:flex;align-items:center;gap:14px;color:#888;font-size:10px;letter-spacing:1px;margin:0 0 25px}
+.or:before,.or:after{content:"";height:1px;background:#393939;flex:1}
+h1,h2{font-size:17px;font-weight:600;margin:0 0 16px}
+.heading{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.heading h1{margin:0}.heading a{font-size:11px;color:#bbb;text-decoration:underline}
+.left section{margin-bottom:27px}
+.left label{display:block;color:#c4c0b8;font-size:11px;margin:0 0 7px}
+.left input,.left select{display:block;width:100%;height:44px;padding:0 12px;margin:0 0 13px;background:#111;border:1px solid #4b4b4b;color:#f4f4f4;border-radius:2px;font:12px Arial,sans-serif}
+.left input:focus,.left select:focus{outline:1px solid #ddd;border-color:#ddd}
+.helpwrap{position:relative}.helpwrap input{padding-right:44px}
+.help{position:absolute;right:11px;top:11px;border:1px solid #888;border-radius:50%;width:20px;height:20px;padding:0;background:transparent;color:#ddd;font-size:10px;cursor:help}
+.check{display:flex!important;align-items:center;gap:8px;margin:0!important;color:#bbb!important}
+.check input{width:14px;height:14px;margin:0;accent-color:#eee}.check span{font-size:11px}
+.two,.three{display:grid;gap:12px}.two{grid-template-columns:1fr 1fr}.three{grid-template-columns:1.2fr .9fr .9fr}
+.actions{display:flex;justify-content:space-between;align-items:center;gap:14px;margin:0 0 24px}
+.actions a,.policy-link{font-size:11px;color:#ccc;text-decoration:underline}
+.primary{min-height:46px;padding:0 20px;background:#eee;color:#111;border:1px solid #eee;font-size:11px;font-weight:700;cursor:pointer}
+.primary:hover{background:transparent;color:#fff}
+.policy-link{border:0;background:none;padding:0;cursor:pointer}
+.right{padding-top:76px}
+.items{max-height:390px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#666 #171717;padding:0 8px 0 0}
+.item{display:grid;grid-template-columns:62px minmax(0,1fr) auto;gap:13px;align-items:center;padding:9px 0;border-bottom:1px solid #292929;min-height:82px}
+.thumb{width:62px;height:62px;background:#1b1b1b;position:relative;overflow:visible}
+.thumb img{display:block;width:100%;height:100%;object-fit:contain}
+.qty{position:absolute;right:-7px;top:-7px;min-width:19px;height:19px;display:grid;place-items:center;border-radius:50%;background:#777;color:#fff;padding:0 5px;font-size:10px;font-style:normal}
+.iname{font-size:12px;font-weight:600;line-height:1.4}.variant{font-size:10px;color:#999;margin-top:5px}.price{font-size:11px;white-space:nowrap}
+.scrollhint{text-align:center;color:#aaa;font-size:10px;margin:9px 0 0}
+.right form{display:flex;gap:8px;margin:20px 0 10px}
+.right form input{min-width:0;flex:1;height:43px;background:#111;border:1px solid #555;color:#fff;padding:0 12px;font:11px Arial,sans-serif}
+.right form button{width:75px;background:#252525;border:1px solid #777;color:#fff;font-size:11px;text-transform:none;cursor:pointer}
+.discount-message{min-height:0;margin:0;color:#aaa;font-size:10px}
+.totals{border-top:1px solid #333;padding-top:16px;margin-top:14px}
+.totals>div{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:15px;font-size:11px}
+.totals>div>span:last-child{color:#999}
+.totals .shipping-row{align-items:center}
+.totals #shipping{padding:0;background:none;border:0;color:#ddd;font-size:11px;cursor:pointer}
+.totals i{font-style:normal;border:1px solid #888;border-radius:50%;padding:1px 5px;margin-left:3px}
+.totals .total{border-top:1px solid #333;padding-top:18px;margin-top:18px;font-size:15px}
+.totals .total> b:last-child{white-space:nowrap}
+footer{background:var(--camel);color:#171717;text-align:center;padding:26px 5% 20px}
+footer nav{display:flex;justify-content:center;flex-wrap:wrap;gap:12px 22px;font-size:10px;margin-bottom:22px}
+footer nav a,footer nav button{text-decoration:underline}
+footer nav button{border:0;background:none;color:inherit;font-size:inherit;cursor:pointer}
+footer p{font-size:9px;letter-spacing:1px;color:#625744}
+footer img{width:180px;height:116px;object-fit:contain;margin-top:10px}
+#modal{position:fixed;inset:0;background:#000b;z-index:20;display:grid;place-items:center;padding:18px}
+#modal[hidden]{display:none}
+.modal{position:relative;background:#111;border:1px solid #444;width:min(760px,100%);max-height:90dvh;overflow:auto;padding:32px;color:#eee}
+.modal h2{padding-right:32px}
+.modal-close{position:absolute;right:14px;top:8px;border:0;background:none;color:#fff;font-size:26px;cursor:pointer}
+#tabs{display:flex;flex-wrap:wrap;gap:7px;border-bottom:1px solid #444;padding-bottom:16px}
+#tabs button{background:none;border:1px solid #555;color:#bbb;padding:8px 10px;font-size:10px;cursor:pointer}
+#tabs button.active{background:#eee;color:#111}
+#pcontent{padding:20px 0;color:#ccc;font-size:12px;line-height:1.8}
+#pcontent iframe{width:100%;height:430px;border:0;background:#fff}
+@media(max-width:850px){.site-header{height:82px}main{padding:24px 20px 38px}.layout{grid-template-columns:minmax(0,1fr);gap:30px}.right{grid-row:1;padding-top:0}.left{grid-row:2}.banner{height:30px}.express{height:36px}.items{max-height:320px}.three{grid-template-columns:1fr 1fr}.three>div:first-child{grid-column:1/-1}}
+@media(max-width:520px){.site-header{height:72px}.brand{font-size:25px}.logo{width:92px;height:62px}main{padding-left:16px;padding-right:16px}.progress{gap:6px;font-size:10px}.two{gap:9px}.three{gap:9px}.actions{align-items:stretch;flex-direction:column-reverse}.actions .primary{width:100%}.right form{margin-top:16px}.modal{padding:27px 18px}.modal #tabs{gap:6px}.modal #tabs button{padding:7px;font-size:9px}}
