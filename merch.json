@@ -839,6 +839,29 @@
       "availability": "https://schema.org/InStock",
       "active": true,
       "seoDescription": "9ojeez9 Classic Poster 01, an original printed poster featuring 9ojeez9's classic poster palette. Premium printed wall art available from VN SHOP. Physical non-textile art print in listed size options."
+    },
+    {
+      "id": "9ojeez9-classic-poster-02",
+      "sku": "9OJEEZ9-POSTER-1568",
+      "name": "9OJEEZ9's Classic Poster 02",
+      "price": "36.00",
+      "currency": "USD",
+      "type": "POSTER",
+      "category": "XTRAS",
+      "material": "NON-TEXTILE",
+      "image": "images/9o9-shop-product-9ojeez9-poster-1568.png",
+      "imageAlt": "9OJEEZ9 Classic Poster 02, available through VN Shop. Discover the classic posters, original printed artworks, exclusives, and more.",
+      "description": "9OJEEZ9'S CLASSIC POSTER PALETTE\n\nORIGINAL PRINTED POSTER, LIMITED QUANTITY",
+      "sizes": [
+        "45 × 60 cm",
+        "60 × 90 cm",
+        "80 × 120 cm"
+      ],
+      "variantLabel": "SIZE",
+      "brand": "VN SHOP",
+      "availability": "https://schema.org/InStock",
+      "active": true,
+      "seoDescription": "9OJEEZ9 Classic Poster 02, available through VN Shop. Discover the classic posters, original printed artworks, exclusives, and more."
     }
   ]
 }
