@@ -216,3 +216,37 @@ body.checkout-page{margin:0;background:#C6BBA7;color:#f5f5f5;font:13px Arial,Hel
  .checkout-page .totals>div{font-size:13px}
  .checkout-page .checkout-footer .footer-links{gap:10px 16px}
 }
+
+
+/* Checkout information + phone control repair */
+.checkout-page .vn-ac-address-control>span{opacity:0;transform:translateY(3px);transition:opacity .12s ease,transform .12s ease}
+.checkout-page .vn-ac-address-control>input::placeholder,
+.checkout-page .checkout-email-control .helpwrap input::placeholder,
+.checkout-page .vn-ac-phone-row input::placeholder{color:transparent;opacity:0}
+.checkout-page .vn-ac-address-control>input:focus::placeholder,
+.checkout-page .checkout-email-control .helpwrap input:focus::placeholder,
+.checkout-page .vn-ac-phone-row input:focus::placeholder{color:transparent;opacity:0}
+.checkout-page .vn-ac-address-control:focus-within>span,
+.checkout-page .vn-ac-address-control:has(>input:not(:placeholder-shown))>span,
+.checkout-page .vn-ac-address-control:has(.vn-ac-phone-row input:not(:placeholder-shown))>span{opacity:1;transform:translateY(0)}
+.checkout-page .vn-ac-phone-row{height:54px;min-height:54px;overflow:hidden;border:1px solid #4b463f;border-radius:3px;background:#111;transition:border-color .15s ease}
+.checkout-page .vn-ac-phone-row:focus-within{border-color:#c6bba7}
+.checkout-page .vn-ac-phone-row .vn-ac-phone-dial{flex:0 0 auto;min-width:58px;justify-content:center;padding:0 10px;border:0;border-right:1px solid #494238;border-radius:0;background:#111;color:#e4cea5;font-size:13px}
+.checkout-page .vn-ac-phone-row input{flex:1 1 auto;width:1%;height:100%;min-width:0;padding:0 12px;border:0;border-radius:0;background:transparent;color:#f6f2ea;font:14px/1.4 Arial,sans-serif;outline:0}
+.checkout-page .vn-ac-phone-row input:focus{padding-top:0;padding-bottom:0;background:transparent;outline:0}
+.checkout-page .vn-ac-phone-row input::placeholder{text-align:left}
+.checkout-page .vn-ac-phone-row select{position:relative;inset:auto;z-index:3;flex:0 0 48px;width:48px;height:100%;padding:0;border:0;border-left:1px solid #494238;border-radius:0;background:transparent;color:transparent;font-size:0;appearance:auto;-webkit-appearance:menulist;cursor:pointer}
+.checkout-page .vn-ac-phone-row select option{background:#111;color:#f5f1e8;font-size:14px}
+.checkout-page .vn-ac-phone-flag{display:block!important;position:absolute;z-index:2;right:51px;top:50%;width:22px;height:16px;object-fit:cover;border:1px solid #777;border-radius:2px;transform:translateY(-50%);pointer-events:none}
+.checkout-page .vn-ac-phone-row:has(select:focus) .vn-ac-phone-flag{opacity:.45}
+.checkout-page .vn-ac-address-control:has(.vn-ac-phone-row input:not(:placeholder-shown))>span{opacity:1;transform:translateY(0)}
+.checkout-page .policy-link{display:inline-flex;width:auto;max-width:100%;min-height:44px;align-self:flex-start;justify-content:flex-start;margin-top:26px;padding:11px 15px;border:1px solid #8f8069;border-radius:3px;background:rgba(198,187,167,.08);white-space:nowrap}
+.checkout-page .policy-link>span:last-child{margin-left:14px}
+.checkout-page .policy-link:hover,.checkout-page .policy-link:focus-visible{background:#c6bba7;color:#171717;border-color:#c6bba7}
+@media(max-width:600px){
+ .checkout-page .vn-ac-phone-row{height:52px;min-height:52px}
+ .checkout-page .vn-ac-phone-row .vn-ac-phone-dial{min-width:54px;padding:0 8px}
+ .checkout-page .vn-ac-phone-row select{flex-basis:44px;width:44px}
+ .checkout-page .vn-ac-phone-flag{right:47px;width:20px;height:15px}
+ .checkout-page .policy-link{margin-top:22px;min-height:42px;padding:10px 13px}
+}
