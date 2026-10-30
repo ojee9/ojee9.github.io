@@ -143,10 +143,6 @@
     <div class="product-grid" id="product-grid"></div>
     <div class="empty" id="empty-message" hidden></div>
   </section>
-  <nav class="shop-collection-links" aria-label="Explore VN SHOP collections">
-    <a href="collections/cd/">CD</a>
-    <a href="collections/xtras/">XTRAS</a>
-  </nav>
 </main>
 
 <footer class="footer">
@@ -310,19 +306,49 @@
   // Product structured data is generated from the same catalog data as the visible cards.
   // This adds search metadata only; it does not alter product presentation.
   const activeProducts = products.filter(product => product.active !== false);
-  const productPath = product => "products/" + (product.slug || encodeURIComponent(product.id)) + "/";
   const productStructuredData = {
     "@context": "https://schema.org",
-    "@type": "ItemList",
-    "@id": "https://ojee9.github.io/merch.html#product-list",
-    "name": "VN SHOP Products",
-    "url": "https://ojee9.github.io/merch.html",
-    "itemListElement": activeProducts.map((product, index) => ({
-      "@type": "ListItem",
-      "position": index + 1,
-      "url": "https://ojee9.github.io/" + productPath(product),
-      "name": product.name
-    }))
+    "@graph": [
+      {
+        "@type": "ItemList",
+        "@id": "https://ojee9.github.io/merch.html#product-list",
+        "name": "VN SHOP Products",
+        "url": "https://ojee9.github.io/merch.html",
+        "itemListElement": activeProducts.map((product, index) => ({
+          "@type": "ListItem",
+          "position": index + 1,
+          "item": { "@id": "https://ojee9.github.io/merch.html#" + encodeURIComponent(product.id) }
+        }))
+      },
+      ...activeProducts.map(product => {
+        const productUrl = "https://ojee9.github.io/merch.html#" + encodeURIComponent(product.id);
+        const imageUrl = new URL(product.image, "https://ojee9.github.io/").href;
+        const item = {
+          "@type": "Product",
+          "@id": productUrl,
+          "name": product.name,
+          "url": productUrl,
+          "mainEntityOfPage": { "@type": "WebPage", "@id": productUrl },
+          "image": imageUrl,
+          "sku": product.sku || product.id,
+          "itemCondition": "https://schema.org/NewCondition",
+          "category": product.category || product.type || "Merchandise",
+          "brand": { "@type": "Brand", "name": product.brand || "VN SHOP" },
+          "offers": {
+            "@type": "Offer",
+            "url": productUrl,
+            "price": String(product.price),
+            "priceCurrency": product.currency || "USD",
+            ...(product.availability ? { "availability": product.availability } : {}),
+            ...(product.hasMerchantReturnPolicy ? { "hasMerchantReturnPolicy": product.hasMerchantReturnPolicy } : {}),
+            ...(product.shippingDetails ? { "shippingDetails": product.shippingDetails } : {})
+          }
+        };
+        if (product.seoDescription || product.description) item.description = product.seoDescription || product.description;
+        if (product.hasMerchantReturnPolicy) item.hasMerchantReturnPolicy = product.hasMerchantReturnPolicy;
+        return item;
+      })
+    ]
   };
   let productSchema = document.getElementById("vn-product-structured-data");
   if (!productSchema) {
@@ -483,11 +509,12 @@
     empty.textContent = t(query ? "noMatchingProducts" : "noProductsAvailable");
 
     list.forEach(product => {
-      const item = document.createElement("a");
+      const item = document.createElement("article");
       const images = imageList(product);
 
       item.className = "product";
-      item.href = productPath(product);
+      item.tabIndex = 0;
+      item.setAttribute("role", "button");
       item.setAttribute("aria-label", product.name || "Product");
 
       item.innerHTML = `
@@ -504,6 +531,15 @@
           <div class="product-price">${esc(displayPrice(product))}</div>
         </div>
       `;
+
+      item.addEventListener("click", () => openProduct(product));
+
+      item.addEventListener("keydown", event => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          openProduct(product);
+        }
+      });
 
       grid.append(item);
     });
@@ -1014,9 +1050,8 @@
   languageSelect.addEventListener("change", () => {
     const dict = translations[languageSelect.value] || translations.en;
     document.querySelectorAll("[data-i18n]").forEach(el => { if (dict[el.dataset.i18n]) el.textContent = dict[el.dataset.i18n]; });
-    const activeLocale = Object.prototype.hasOwnProperty.call(translations, languageSelect.value) ? languageSelect.value : "en";
-    panel.setAttribute("lang", activeLocale);
-    panel.setAttribute("dir", activeLocale === "ar" ? "rtl" : "ltr");
+    document.documentElement.lang = languageSelect.value;
+    document.body.dir = languageSelect.value === "ar" ? "rtl" : "ltr";
     language.classList.remove("is-open");
     languageToggle.setAttribute("aria-expanded", "false");
   });
