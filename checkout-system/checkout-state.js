@@ -1,1 +1,1 @@
-
+export const state={cart:[],policy:"refund"};

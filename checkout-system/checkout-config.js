@@ -1,1 +1,1 @@
-
+export const CONFIG={currency:"USD",temporaryPolicy:"Content will be added soon."};

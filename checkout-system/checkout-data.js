@@ -1,1 +1,1 @@
-
+export const cart=()=>{try{const x=JSON.parse(localStorage.getItem("vn-shop-cart")||"[]");return Array.isArray(x)?x:[]}catch{return[]}};export const safe=x=>String(x??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));export const price=i=>{const n=Number(String(i?.product?.price??0).replace(/[^0-9.-]/g,""));return Number.isFinite(n)?n:0};export const money=n=>new Intl.NumberFormat("en-US",{style:"currency",currency:"USD"}).format(n||0);

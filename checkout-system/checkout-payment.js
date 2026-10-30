@@ -1,1 +1,1 @@
-
+export const PAYMENT_CONNECTED=false;export const startPayment=()=>({ok:false,message:"Online payment is not connected yet."});

@@ -1,1 +1,1 @@
-
+import{price}from"./checkout-data.js";export const subtotal=c=>c.reduce((s,i)=>s+price(i)*Math.max(0,Number(i.quantity)||0),0);export const count=c=>c.reduce((s,i)=>s+Math.max(0,Number(i.quantity)||0),0);export const validEmail=s=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(s||"").trim());
