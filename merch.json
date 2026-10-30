@@ -885,6 +885,29 @@
       "availability": "https://schema.org/InStock",
       "active": true,
       "seoDescription": "9OJEEZ9 Classic Poster 03, available through VN Shop. Discover the classic posters, original printed artworks, exclusives, and more."
+    },
+    {
+      "id": "vn-original-poster-01",
+      "sku": "VN-ORIGINAL-POSTER-798",
+      "name": "VN Original Poster 01",
+      "price": "40.00",
+      "currency": "USD",
+      "type": "POSTER",
+      "category": "XTRAS",
+      "material": "NON-TEXTILE",
+      "image": "images/9o9-shop-product-vn-poster-798.png",
+      "imageAlt": "VN Original Poster 01, available through VN Shop. Discover the classic posters, original printed artworks, exclusives, and more.",
+      "description": "VN ORIGINS POSTER PALETTE\n\nORIGINAL PRINTED POSTER, LIMITED QUANTITY",
+      "sizes": [
+        "45 × 60 cm",
+        "60 × 90 cm",
+        "80 × 120 cm"
+      ],
+      "variantLabel": "SIZE",
+      "brand": "VN SHOP",
+      "availability": "https://schema.org/InStock",
+      "active": true,
+      "seoDescription": "VN Original Poster 01, available through VN Shop. Discover the classic posters, original printed artworks, exclusives, and more."
     }
   ]
 }
