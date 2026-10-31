@@ -216,7 +216,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../account.js"></script>
-<script src="../checkout.js"></script>
+
 <script>
 (() => {
   const count = document.getElementById("cart-count");
@@ -278,8 +278,7 @@
     });
     document.getElementById("help-cart-continue").onclick = continueShopping;
     document.getElementById("help-cart-checkout").onclick = () => {
-      if (window.VNCheckout?.open) window.VNCheckout.open(cart);
-      else alert("Checkout is not available yet.");
+      window.location.href = "../checkout.html";
     };
   }
   function continueShopping() {
