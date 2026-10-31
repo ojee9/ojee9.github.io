@@ -298,3 +298,8 @@ body[data-product-page="true"] main{min-height:0}
 @media(max-width:700px){body[data-product-page="true"] #detail-overlay .drawer-content{padding:20px 18px 28px}}
 /* Keep the standalone product board compact and centered on desktop. */
 @media(min-width:1001px){body[data-product-page="true"] #detail-overlay .drawer{width:min(1100px,calc(90% - 520px));margin-left:auto;margin-right:auto}}
+
+/* Black-and-white treatment for standalone product boards only. */
+body[data-product-page="true"] #detail-overlay .drawer{background:#000;color:#fff}
+body[data-product-page="true"] #detail-overlay .drawer *{color:#fff!important}
+body[data-product-page="true"] #detail-overlay .drawer .detail-variants .variant-button.is-selected{background:rgba(255,255,255,.12);border-color:#fff;color:#fff}
