@@ -321,4 +321,4 @@ body[data-product-page="true"] #detail-overlay .drawer *{-webkit-user-select:non
 /* Match the cart drawer to the poster product-card surround. */
 #cart-overlay .drawer,
 #cart-overlay .drawer-head,
-#cart-overlay .cart-summary{background:#D3CABA}
+#cart-overlay .cart-summary{background:#EAE5DC}
