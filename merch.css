@@ -303,9 +303,13 @@ body[data-product-page="true"] main{min-height:0}
 body[data-product-page="true"] #detail-overlay .drawer{background:#000;color:#fff}
 body[data-product-page="true"] #detail-overlay .drawer *{color:#fff!important}
 body[data-product-page="true"] #detail-overlay .drawer .detail-variants .variant-button.is-selected{background:rgba(255,255,255,.12);border-color:#fff;color:#fff}
-/* Match every standalone product board to the Planetarium product-page proportions. */
-body[data-product-page="true"] #detail-overlay .drawer{box-sizing:border-box;min-height:calc(clamp(300px,52dvh,540px) + 120px)}
-body[data-product-page="true"] #detail-overlay .drawer-content{box-sizing:border-box}
+/* Standardized standalone product board: fixed shared dimensions based on Planetarium. */
+body[data-product-page="true"] #detail-overlay .drawer{box-sizing:border-box;height:calc(clamp(300px,52dvh,540px) + 140px);min-height:0;max-height:none;overflow:hidden}
+body[data-product-page="true"] #detail-overlay .drawer-content{box-sizing:border-box;height:100%;min-height:0;overflow-y:auto;overflow-x:hidden}
 body[data-product-page="true"] #detail-overlay .detail-layout{grid-template-columns:minmax(0,1.08fr) minmax(280px,.92fr);align-items:start}
 body[data-product-page="true"] #detail-overlay .detail-gallery .detail-main-image{height:clamp(300px,52dvh,540px)!important}
+@media(max-width:700px){
+  body[data-product-page="true"] #detail-overlay .drawer{height:92dvh;min-height:0;max-height:92dvh;overflow:hidden}
+  body[data-product-page="true"] #detail-overlay .drawer-content{height:100%;overflow-y:auto;overflow-x:hidden}
+}
 
