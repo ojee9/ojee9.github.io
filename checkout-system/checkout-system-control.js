@@ -160,7 +160,7 @@ countryDialog.addEventListener("click",e=>{if(e.target===countryDialog)hideCount
 const addressConfirmation=document.getElementById("address-confirmation"),addressConfirmationDetails=document.getElementById("address-confirmation-details"),shippingStep=document.getElementById("shipping-step"),progressInformation=document.getElementById("progress-information"),progressShipping=document.getElementById("progress-shipping"),continueShipping=document.getElementById("continue-to-shipping");
 let addressConfirmed=false;
 const collectInformation=()=>{const data=Object.fromEntries(new FormData(form));data.updates=document.getElementById("updates").checked;try{sessionStorage.setItem("vn-checkout-information",JSON.stringify(data))}catch{}return data};
-const addressLines=data=>[data.address,data.apartment,data.city,data.state,data.postal,country.selectedOptions[0]?.textContent||data.country].map(value=>String(value||"").trim());
+const addressLines=data=>[data.address,data.apartment,data.city,data.state,data.postal,country.selectedOptions[0]?.textContent||data.country].map(value=>String(value||"").trim()).filter(Boolean);
 const renderAddressConfirmation=data=>{addressConfirmationDetails.textContent=addressLines(data).join("\n")};
 const addBusinessDays=(date,count)=>{const result=new Date(date);let added=0;while(added<count){result.setDate(result.getDate()+1);if(result.getDay()!==0&&result.getDay()!==6)added++}return result};
 const showShippingStep=data=>{
