@@ -1,7 +1,8 @@
 /**
- * VN SHOP product shipping profiles.
- * Dimensions are the user's inner protective-package dimensions in centimetres.
- * Weights use the conservative upper end of the supplied range.
+ * VN SHOP prepared-shipping-unit profiles.
+ * Dimensions and weights are the user's supplied estimates for the protected
+ * product package; weights deliberately use the upper end of each range.
+ * HandlingTRY is the user's fixed budgeting amount per item, not carrier cost.
  */
 export const PRODUCT_PROFILES = {
   CD: { dimensionsCm: [27, 27, 12], weightKg: 1.1, handlingTRY: 2300, taxRate: 0.20 },
