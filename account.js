@@ -365,7 +365,7 @@
         display:grid;
         grid-template-columns:repeat(2,minmax(0,1fr));
         gap:14px;
-        background:radial-gradient(ellipse at 48% 18%,rgba(228,206,165,.78) 0%,rgba(228,206,165,.42) 28%,rgba(228,206,165,0) 68%),#D2C9BA;
+        background:#D2C9BA;
       }
       .vn-ac-card-grid::before{
         content:"";
