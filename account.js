@@ -346,10 +346,17 @@
       .vn-ac-sidebar .vn-ac-nav[data-ac-section="shop"]{color:#000}
       .vn-ac-shell.vn-ac-dashboard-open .vn-ac-footer-policies .vn-ac-legal-item{color:#000}
       .vn-ac-shell.vn-ac-dashboard-open .vn-ac-footer-policies .vn-ac-legal-item:hover{color:#000}
+      .vn-ac-shell.vn-ac-dashboard-open .vn-ac-policy-footer-row,
+      .vn-ac-shell.vn-ac-dashboard-open .vn-ac-policy-footer-row a,
+      .vn-ac-shell.vn-ac-dashboard-open .vn-ac-policy-footer-row button,
+      .vn-ac-shell.vn-ac-dashboard-open .vn-ac-policy-footer-row label,
+      .vn-ac-shell.vn-ac-dashboard-open .vn-ac-policy-footer-row select,
+      .vn-ac-shell.vn-ac-dashboard-open .vn-ac-policy-footer-row .vn-ac-legal-item,
+      .vn-ac-shell.vn-ac-dashboard-open .vn-ac-policy-footer-row .vn-ac-footer-country::after{color:#000!important}
       .vn-ac-main{min-width:0;max-width:760px}
       .vn-ac-main h1{font-size:25px;letter-spacing:-.025em;margin:0 0 8px}
       .vn-ac-subtitle{color:#777;margin:0 0 28px}
-      .vn-ac-card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;background:#BFC5C8}
+      .vn-ac-card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;background:#C8C7C5}
       .vn-ac-card{border:1px solid #151515;border-radius:5px;padding:22px;min-height:135px;display:flex;flex-direction:column;align-items:flex-start;text-align:left;background:#000;color:#fff;cursor:pointer}
       .vn-ac-card strong{font-size:13px;letter-spacing:.045em;margin-bottom:9px;color:#fff}
       .vn-ac-card span{font-size:13px;color:#fff}
