@@ -578,3 +578,14 @@ body.checkout-page{margin:0;background:#C6BBA7;color:#f5f5f5;font:13px Arial,Hel
 .checkout-page .vn-ac-phone-help{cursor:default!important}
 .checkout-page .vn-ac-phone-help::after{content:attr(aria-label)!important}
 .checkout-page .vn-ac-phone-help::after{font:inherit!important;font-family:Arial,Helvetica,sans-serif!important;font-size:12px!important;line-height:1.4!important}
+
+/* VN SHOP address autocomplete dropdown */
+.checkout-page .vn-ac-autocomplete{position:relative;margin:0 0 13px;z-index:20}
+.checkout-page .vn-ac-autocomplete>.vn-ac-address-control{display:block;margin:0}
+.checkout-page .vn-ac-address-suggestions{position:absolute;z-index:1000;top:calc(100% + 3px);left:0;right:0;max-height:280px;overflow-y:auto;border:1px solid #625747;border-radius:3px;background:#101010;color:#f5f1e8;box-shadow:0 12px 28px #000b;scrollbar-width:thin;scrollbar-color:#8f8069 #171717}
+.checkout-page .vn-ac-address-suggestions[hidden]{display:none!important}
+.checkout-page .vn-ac-address-suggestion{display:block;width:100%;min-height:0;padding:12px 14px;border:0;border-bottom:1px solid #34302a;border-radius:0;background:#101010;color:#f5f1e8;text-align:left;cursor:pointer;font:13px/1.45 Arial,Helvetica,sans-serif}
+.checkout-page .vn-ac-address-suggestion:last-child{border-bottom:0}
+.checkout-page .vn-ac-address-suggestion:hover,.checkout-page .vn-ac-address-suggestion:focus-visible,.checkout-page .vn-ac-address-suggestion[aria-selected="true"]{outline:0;background:#29241d;color:#e4cea5}
+.checkout-page .vn-ac-address-city-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)!important}
+@media(max-width:700px){.checkout-page .vn-ac-address-city-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}.checkout-page .vn-ac-address-city-row .vn-ac-city-field{grid-column:1/-1}}
