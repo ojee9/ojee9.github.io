@@ -484,6 +484,9 @@
       .vn-ac-address-control:focus-within::after{
         inset:0;
       }
+      .vn-ac-address-control:has(.vn-ac-phone-row select:focus)::after{
+        content:none;
+      }
       .vn-ac-field input:focus,
       .vn-ac-field input:focus-visible,
       .vn-ac-field select:focus,
