@@ -248,7 +248,8 @@
     const subtotal = cart.reduce((sum, item) => sum + itemPrice(item) * Math.max(0, Number(item.quantity) || 0), 0);
     cartContent.innerHTML = '<div class="cart-items">' + cart.map((item, index) => {
       const product = item.product || {};
-      const image = product.image || (Array.isArray(product.images) ? product.images[0] : "") || "";
+      const imageSource = product.image || (Array.isArray(product.images) ? product.images[0] : "") || item.image || "";
+      const image = imageSource ? new URL(imageSource, window.location.origin + "/").href : "";
       return '<article class="cart-item"><div class="cart-item-image"><img src="' + escapeHTML(image) + '" alt="' + escapeHTML(product.name || "Product") + '"></div><div class="cart-item-info"><h3 class="cart-item-name">' + escapeHTML(product.name || "Product") + '</h3>' +
         (item.variant ? '<div class="cart-item-variant">' + escapeHTML(item.variant) + '</div>' : '') +
         '<div class="cart-item-price">' + money(itemPrice(item)) + '</div><div class="cart-item-bottom"><div class="cart-quantity"><button type="button" data-help-change="-1" data-index="' + index + '" aria-label="Decrease quantity">−</button><span>' + Math.max(0, Number(item.quantity) || 0) + '</span><button type="button" data-help-change="1" data-index="' + index + '" aria-label="Increase quantity">+</button></div><button type="button" class="cart-remove" data-help-remove="' + index + '">REMOVE</button></div></div></article>';
