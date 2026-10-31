@@ -492,40 +492,9 @@
         position:relative;
         background-color:#E4E3E1;
         background-image:
-          radial-gradient(circle at 4% 12%,rgba(255,255,255,.92) 0 .55px,rgba(194,177,255,.38) 1px,transparent 2.2px),
-          radial-gradient(circle at 11% 67%,rgba(157,207,255,.78) 0 .55px,transparent 1.8px),
-          radial-gradient(circle at 18% 31%,rgba(255,183,225,.82) 0 .65px,rgba(255,183,225,.2) 1.3px,transparent 2.4px),
-          radial-gradient(circle at 24% 86%,rgba(183,197,255,.72) 0 .5px,transparent 1.7px),
-          radial-gradient(circle at 31% 14%,rgba(255,255,255,.95) 0 .65px,rgba(190,183,255,.35) 1.2px,transparent 2.3px),
-          radial-gradient(circle at 38% 58%,rgba(159,218,255,.8) 0 .55px,transparent 1.8px),
-          radial-gradient(circle at 44% 28%,rgba(255,190,229,.78) 0 .6px,transparent 2px),
-          radial-gradient(circle at 51% 78%,rgba(191,184,255,.76) 0 .55px,transparent 1.8px),
-          radial-gradient(circle at 58% 9%,rgba(255,255,255,.9) 0 .6px,rgba(165,211,255,.35) 1.2px,transparent 2.3px),
-          radial-gradient(circle at 64% 46%,rgba(255,180,222,.76) 0 .55px,transparent 1.8px),
-          radial-gradient(circle at 71% 20%,rgba(164,211,255,.82) 0 .6px,transparent 2px),
-          radial-gradient(circle at 78% 73%,rgba(207,181,255,.78) 0 .55px,transparent 1.8px),
-          radial-gradient(circle at 85% 37%,rgba(255,255,255,.94) 0 .6px,rgba(255,177,224,.3) 1.2px,transparent 2.3px),
-          radial-gradient(circle at 93% 88%,rgba(158,209,255,.8) 0 .55px,transparent 1.8px),
-          radial-gradient(circle at 8% 92%,rgba(255,185,228,.86) 0 .7px,transparent 2px),
-          radial-gradient(circle at 27% 48%,rgba(161,211,255,.82) 0 .6px,transparent 1.9px),
-          radial-gradient(circle at 69% 91%,rgba(255,255,255,.92) 0 .65px,rgba(199,175,255,.32) 1.2px,transparent 2.4px),
-          radial-gradient(circle at 16% 9%,rgba(194,177,255,.82) 0 .55px,transparent 1.8px),
-          radial-gradient(circle at 47% 91%,rgba(255,184,225,.78) 0 .55px,transparent 1.8px),
-          radial-gradient(circle at 89% 15%,rgba(160,211,255,.84) 0 .6px,transparent 1.9px),
-          radial-gradient(circle at 36% 76%,rgba(255,255,255,.82) 0 .45px,transparent 1.5px),
-          radial-gradient(circle at 61% 63%,rgba(255,181,226,.72) 0 .5px,transparent 1.7px),
-          radial-gradient(circle at 96% 52%,rgba(190,180,255,.78) 0 .55px,transparent 1.8px),
-          radial-gradient(circle at 14% 43%,rgba(164,211,255,.7) 0 .45px,transparent 1.5px),
-          radial-gradient(circle at 33% 94%,rgba(255,190,230,.72) 0 .5px,transparent 1.6px),
-          radial-gradient(circle at 55% 37%,rgba(255,255,255,.82) 0 .45px,transparent 1.5px),
-          radial-gradient(circle at 74% 54%,rgba(173,194,255,.76) 0 .5px,transparent 1.7px),
-          radial-gradient(circle at 82% 8%,rgba(255,190,230,.72) 0 .5px,transparent 1.6px),
-          radial-gradient(circle at 3% 54%,rgba(197,180,255,.72) 0 .5px,transparent 1.6px),
-          radial-gradient(circle at 41% 5%,rgba(157,207,255,.74) 0 .5px,transparent 1.6px),
-          radial-gradient(circle at 91% 65%,rgba(255,255,255,.82) 0 .45px,transparent 1.5px),
-          radial-gradient(ellipse at 18% 22%,rgba(213,187,255,.12),transparent 32%),
-          radial-gradient(ellipse at 76% 68%,rgba(160,210,255,.12),transparent 34%),
-          radial-gradient(ellipse at 48% 88%,rgba(255,183,225,.09),transparent 30%);
+          radial-gradient(ellipse at 18% 22%,rgba(126,220,208,.12),transparent 34%),
+          radial-gradient(ellipse at 78% 70%,rgba(132,202,224,.13),transparent 36%),
+          radial-gradient(ellipse at 50% 48%,rgba(188,238,222,.08),transparent 48%);
         box-sizing:border-box;
         width:min(1280px,calc(100vw - 40px)) !important;
         height:min(860px,calc(100dvh - 40px)) !important;
@@ -536,6 +505,18 @@
         display:flex !important;
         flex-direction:column !important;
         flex:0 0 auto;
+      }
+      .vn-ac-shell.vn-ac-dashboard-open::before{
+        content:"";
+        position:absolute;
+        inset:0;
+        z-index:0;
+        pointer-events:none;
+        background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22180%22%20height%3D%22180%22%20viewBox%3D%220%200%20180%20180%22%3E%3Cg%20stroke%3D%22%23f8ffff%22%20stroke-width%3D%22.35%22%20stroke-opacity%3D%22.65%22%3E%0A%3Cpath%20d%3D%22M12%2013%2014.4%2011.6%2016.8%2013v2.8l-2.4%201.4L12%2015.8Z%22%20fill%3D%22%2371d9d0%22%20fill-opacity%3D%22.76%22%2F%3E%0A%3Cpath%20d%3D%22M48%208%2051%206.3%2054%208v3.4l-3%201.7-3-1.7Z%22%20fill%3D%22%238bdce8%22%20fill-opacity%3D%22.72%22%2F%3E%0A%3Cpath%20d%3D%22M91%2018%2093%2016.8%2095%2018v2.3l-2%201.2-2-1.2Z%22%20fill%3D%22%23a5e8d9%22%20fill-opacity%3D%22.8%22%2F%3E%0A%3Cpath%20d%3D%22M143%2012%20146%2010.3%20149%2012v3.4l-3%201.7-3-1.7Z%22%20fill%3D%22%2379c9dc%22%20fill-opacity%3D%22.7%22%2F%3E%0A%3Cpath%20d%3D%22M27%2042%2030%2040.3%2033%2042v3.4l-3%201.7-3-1.7Z%22%20fill%3D%22%23b0e8df%22%20fill-opacity%3D%22.7%22%2F%3E%0A%3Cpath%20d%3D%22M69%2037%2071.5%2035.6%2074%2037v2.8l-2.5%201.4-2.5-1.4Z%22%20fill%3D%22%2375d7d0%22%20fill-opacity%3D%22.78%22%2F%3E%0A%3Cpath%20d%3D%22M117%2048%20120%2046.3%20123%2048v3.4l-3%201.7-3-1.7Z%22%20fill%3D%22%238bcfe5%22%20fill-opacity%3D%22.75%22%2F%3E%0A%3Cpath%20d%3D%22M164%2039%20166%2037.8%20168%2039v2.3l-2%201.2-2-1.2Z%22%20fill%3D%22%23a8eadd%22%20fill-opacity%3D%22.78%22%2F%3E%0A%3Cpath%20d%3D%22M8%2079%2011%2077.3%2014%2079v3.4l-3%201.7-3-1.7Z%22%20fill%3D%22%2382d6df%22%20fill-opacity%3D%22.72%22%2F%3E%0A%3Cpath%20d%3D%22M43%2072%2045.5%2070.6%2048%2072v2.8l-2.5%201.4-2.5-1.4Z%22%20fill%3D%22%23b5eee4%22%20fill-opacity%3D%22.76%22%2F%3E%0A%3Cpath%20d%3D%22M86%2082%2089%2080.3%2092%2082v3.4l-3%201.7-3-1.7Z%22%20fill%3D%22%2369cfc7%22%20fill-opacity%3D%22.72%22%2F%3E%0A%3Cpath%20d%3D%22M132%2075%20134.5%2073.6%20137%2075v2.8l-2.5%201.4-2.5-1.4Z%22%20fill%3D%22%238bcfe8%22%20fill-opacity%3D%22.8%22%2F%3E%0A%3Cpath%20d%3D%22M169%2091%20171.5%2089.6%20174%2091v2.8l-2.5%201.4-2.5-1.4Z%22%20fill%3D%22%23b5e9de%22%20fill-opacity%3D%22.7%22%2F%3E%0A%3Cpath%20d%3D%22M22%20116%2024%20114.8%2026%20116v2.3l-2%201.2-2-1.2Z%22%20fill%3D%22%238eddd5%22%20fill-opacity%3D%22.78%22%2F%3E%0A%3Cpath%20d%3D%22M59%20111%2062%20109.3%2065%20111v3.4l-3%201.7-3-1.7Z%22%20fill%3D%22%2379cddd%22%20fill-opacity%3D%22.72%22%2F%3E%0A%3Cpath%20d%3D%22M104%20121%20107%20119.3%20110%20121v3.4l-3%201.7-3-1.7Z%22%20fill%3D%22%23b1e9df%22%20fill-opacity%3D%22.76%22%2F%3E%0A%3Cpath%20d%3D%22M151%20113%20153.5%20111.6%20156%20113v2.8l-2.5%201.4-2.5-1.4Z%22%20fill%3D%22%2372d3c9%22%20fill-opacity%3D%22.8%22%2F%3E%0A%3Cpath%20d%3D%22M4%20153%207%20151.3%2010%20153v3.4l-3%201.7-3-1.7Z%22%20fill%3D%22%23a5e5e2%22%20fill-opacity%3D%22.7%22%2F%3E%0A%3Cpath%20d%3D%22M39%20151%2041%20149.8%2043%20151v2.3l-2%201.2-2-1.2Z%22%20fill%3D%22%237bcbdc%22%20fill-opacity%3D%22.76%22%2F%3E%0A%3Cpath%20d%3D%22M78%20157%2081%20155.3%2084%20157v3.4l-3%201.7-3-1.7Z%22%20fill%3D%22%23a5e7d8%22%20fill-opacity%3D%22.72%22%2F%3E%0A%3Cpath%20d%3D%22M119%20151%20121.5%20149.6%20124%20151v2.8l-2.5%201.4-2.5-1.4Z%22%20fill%3D%22%2383d8dc%22%20fill-opacity%3D%22.76%22%2F%3E%0A%3Cpath%20d%3D%22M158%20158%20161%20156.3%20164%20158v3.4l-3%201.7-3-1.7Z%22%20fill%3D%22%23a5dce8%22%20fill-opacity%3D%22.74%22%2F%3E%0A%3Cpath%20d%3D%22M33%2091%2035%2089.8%2037%2091v2.3l-2%201.2-2-1.2Z%22%20fill%3D%22%23ffffff%22%20fill-opacity%3D%22.72%22%2F%3E%0A%3Cpath%20d%3D%22M101%2052%20103%2050.8%20105%2052v2.3l-2%201.2-2-1.2Z%22%20fill%3D%22%23ffffff%22%20fill-opacity%3D%22.68%22%2F%3E%0A%3Cpath%20d%3D%22M145%20143%20147%20141.8%20149%20143v2.3l-2%201.2-2-1.2Z%22%20fill%3D%22%23ffffff%22%20fill-opacity%3D%22.72%22%2F%3E%0A%3Cpath%20d%3D%22M74%20130%2076%20128.8%2078%20130v2.3l-2%201.2-2-1.2Z%22%20fill%3D%22%23ffffff%22%20fill-opacity%3D%22.64%22%2F%3E%0A%3C%2Fg%3E%3C%2Fsvg%3E");
+        background-size:180px 180px;
+        background-repeat:repeat;
+        opacity:.76;
+        mix-blend-mode:soft-light;
       }
       .vn-ac-dashboard-trail{
         position:absolute;
