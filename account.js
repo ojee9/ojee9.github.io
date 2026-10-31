@@ -341,6 +341,11 @@
       .vn-ac-sidebar{display:flex;flex-direction:column;gap:8px}
       .vn-ac-nav{border:0;background:none;color:#666;text-align:left;padding:12px 10px;font:inherit;cursor:pointer;border-radius:4px}
       .vn-ac-nav.active{color:#111;background:#f3f3f3;font-weight:700}
+      .vn-ac-main:has(button[data-ac-section="orders"]) > .vn-ac-subtitle{color:#000}
+      .vn-ac-sidebar .vn-ac-nav[data-ac-section="dashboard"],
+      .vn-ac-sidebar .vn-ac-nav[data-ac-section="shop"]{color:#000}
+      .vn-ac-shell.vn-ac-dashboard-open .vn-ac-footer-policies .vn-ac-legal-item{color:#000}
+      .vn-ac-shell.vn-ac-dashboard-open .vn-ac-footer-policies .vn-ac-legal-item:hover{color:#000}
       .vn-ac-main{min-width:0;max-width:760px}
       .vn-ac-main h1{font-size:25px;letter-spacing:-.025em;margin:0 0 8px}
       .vn-ac-subtitle{color:#777;margin:0 0 28px}
