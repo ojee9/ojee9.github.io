@@ -56,7 +56,8 @@
         <div><span id="subtotal-label">Subtotal · 0 items</span><b id="subtotal">$0.00</b></div>
         <div class="shipping-row"><button id="shipping" type="button">Shipping &amp; Handling <i>?</i></button><span id="shipping-estimate" aria-live="polite">Calculated at next step</span></div>
         <div class="estimated-taxes-row" id="estimated-taxes-row" hidden><span>Estimated Taxes</span><span id="estimated-taxes">$0.00</span></div>
-        <div class="total"><b>Total</b><b>USD <span id="total">$0.00</span></b></div>
+        <div class="total"><b>Total</b><b class="total-amount"><span class="total-currency-info"><span class="total-currency-code">USD</span><button class="currency-help-toggle" id="currency-help-toggle" type="button" aria-expanded="false" aria-controls="currency-help-message"><span class="currency-help-arrow" aria-hidden="true"></span>WHY USD?</button></span><span id="total">$0.00</span></b></div>
+        <div class="currency-help-message" id="currency-help-message" hidden>We’re temporarily displaying prices in USD while we make sure our currency calculations are working correctly. Local-currency pricing will be shown before you complete your purchase once the calculations are finalized.</div>
       </div>
     </aside>
   </div>
