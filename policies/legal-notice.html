@@ -224,6 +224,10 @@
       return Array.isArray(items) ? items : [];
     } catch (_) { return []; }
   };
+  const productCatalogPromise = fetch("/merch.json", { cache: "no-store" })
+    .then(response => response.ok ? response.json() : null)
+    .then(data => Array.isArray(data?.products) ? data.products : [])
+    .catch(() => []);
   let cart = readCart();
   const itemPrice = item => {
     const raw = item?.product?.price ?? 0;
@@ -235,8 +239,10 @@
     try { localStorage.setItem("vn-shop-cart", JSON.stringify(cart)); } catch (_) {}
     count.textContent = cart.reduce((sum, item) => sum + Math.max(0, Number(item.quantity) || 0), 0);
   }
-  function renderHelpCart() {
+  async function renderHelpCart() {
     cart = readCart();
+    const catalog = await productCatalogPromise;
+    const catalogById = new Map(catalog.map(product => [String(product.id), product]));
     const quantity = cart.reduce((sum, item) => sum + Math.max(0, Number(item.quantity) || 0), 0);
     count.textContent = quantity;
     cartTitle.textContent = "YOUR CART (" + quantity + ")";
@@ -248,8 +254,16 @@
     const subtotal = cart.reduce((sum, item) => sum + itemPrice(item) * Math.max(0, Number(item.quantity) || 0), 0);
     cartContent.innerHTML = '<div class="cart-items">' + cart.map((item, index) => {
       const product = item.product || {};
-      const imageSource = product.image || (Array.isArray(product.images) ? product.images[0] : "") || item.image || "";
-      const image = imageSource ? new URL(imageSource, window.location.origin + "/").href : "";
+      const catalogProduct = catalogById.get(String(product.id || item.productId || ""));
+      const imageSource = product.image || (Array.isArray(product.images) ? product.images[0] : "") || item.image || catalogProduct?.image || (Array.isArray(catalogProduct?.images) ? catalogProduct.images[0] : "") || "";
+      let image = "";
+      if (imageSource) {
+        try {
+          image = /^https?:\/\//i.test(imageSource)
+            ? new URL(imageSource).href
+            : new URL(String(imageSource).replace(/^\/+/, ""), window.location.origin + "/").href;
+        } catch (_) {}
+      }
       return '<article class="cart-item"><div class="cart-item-image"><img src="' + escapeHTML(image) + '" alt="' + escapeHTML(product.name || "Product") + '"></div><div class="cart-item-info"><h3 class="cart-item-name">' + escapeHTML(product.name || "Product") + '</h3>' +
         (item.variant ? '<div class="cart-item-variant">' + escapeHTML(item.variant) + '</div>' : '') +
         '<div class="cart-item-price">' + money(itemPrice(item)) + '</div><div class="cart-item-bottom"><div class="cart-quantity"><button type="button" data-help-change="-1" data-index="' + index + '" aria-label="Decrease quantity">−</button><span>' + Math.max(0, Number(item.quantity) || 0) + '</span><button type="button" data-help-change="1" data-index="' + index + '" aria-label="Increase quantity">+</button></div><button type="button" class="cart-remove" data-help-remove="' + index + '">REMOVE</button></div></div></article>';
