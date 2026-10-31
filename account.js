@@ -486,7 +486,27 @@
       .vn-ac-orders-empty .vn-ac-button{background:#fff;color:#000;border-color:#fff}
       /* One fixed-size dashboard shell for every signed-in section, including views without .vn-ac-layout. */
       .vn-ac-shell.vn-ac-dashboard-open{
-        background:#E4E3E1;
+        background-color:#E4E3E1;
+        background-image:
+          radial-gradient(circle at 4% 12%,rgba(255,255,255,.92) 0 .7px,transparent 1.5px),
+          radial-gradient(circle at 11% 67%,rgba(119,130,136,.22) 0 .65px,transparent 1.4px),
+          radial-gradient(circle at 18% 31%,rgba(255,255,255,.88) 0 .8px,transparent 1.6px),
+          radial-gradient(circle at 24% 86%,rgba(130,139,144,.2) 0 .7px,transparent 1.5px),
+          radial-gradient(circle at 31% 14%,rgba(255,255,255,.95) 0 .75px,transparent 1.5px),
+          radial-gradient(circle at 38% 58%,rgba(120,130,136,.2) 0 .65px,transparent 1.4px),
+          radial-gradient(circle at 44% 28%,rgba(255,255,255,.9) 0 .8px,transparent 1.6px),
+          radial-gradient(circle at 51% 78%,rgba(125,135,141,.2) 0 .7px,transparent 1.5px),
+          radial-gradient(circle at 58% 9%,rgba(255,255,255,.95) 0 .7px,transparent 1.5px),
+          radial-gradient(circle at 64% 46%,rgba(125,135,141,.2) 0 .7px,transparent 1.5px),
+          radial-gradient(circle at 71% 20%,rgba(255,255,255,.9) 0 .8px,transparent 1.6px),
+          radial-gradient(circle at 78% 73%,rgba(125,135,141,.2) 0 .7px,transparent 1.5px),
+          radial-gradient(circle at 85% 37%,rgba(255,255,255,.95) 0 .75px,transparent 1.5px),
+          radial-gradient(circle at 93% 88%,rgba(125,135,141,.2) 0 .7px,transparent 1.5px),
+          radial-gradient(circle at 8% 92%,rgba(255,255,255,.85) 0 1px,transparent 2px),
+          radial-gradient(circle at 27% 48%,rgba(255,255,255,.75) 0 .9px,transparent 1.8px),
+          radial-gradient(circle at 69% 91%,rgba(255,255,255,.8) 0 .9px,transparent 1.8px),
+          radial-gradient(ellipse at 22% 18%,rgba(255,255,255,.2),transparent 34%),
+          radial-gradient(ellipse at 82% 76%,rgba(255,255,255,.16),transparent 38%);
         box-sizing:border-box;
         width:min(1280px,calc(100vw - 40px)) !important;
         height:min(860px,calc(100dvh - 40px)) !important;
