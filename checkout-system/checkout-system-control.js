@@ -15,22 +15,23 @@ const addressInput=document.getElementById("address"),addressSuggestions=documen
 const cityInput=document.getElementById("city"),stateInput=document.getElementById("state"),postalInput=document.getElementById("postal");
 
 /* Live shipping estimate is displayed in the order summary only. */
-const normalizeShippingCity=value=>String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("tr-TR").replace(/\\s+/g," ").trim();
+const normalizeShippingCity=value=>String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("tr-TR").replace(/ı/g,"i").replace(/\s+/g," ").trim();
 const turkishProvinces=new Set("adana adiyaman afyonkarahisar agri amasya ankara antalya artvin aydin balikesir bilecik bingol bitlis bolu burdur bursa canakkale cankiri corum denizli diyarbakir edirne elazig erzincan erzurum eskisehir gaziantep giresun gumushane hakkari hatay igdir isparta istanbul izmir kahramanmaras karabuk karaman kars kastamonu kayseri kilis kirikkale kirklareli kirsehir kocaeli konya kutahya malatya manisa mardin mersin mugla mus nevsehir nigde ordu osmaniye rize sakarya samsun siirt sinop sivas sanliurfa sirnak tekirdag tokat trabzon tunceli usak van yalova yozgat zonguldak".split(" "));
 const profileForPoster=(product,variant)=>{
- const size=String(variant||"").replace(/[×*]/g,"x").replace(/cm/gi,"").replace(/\\s+/g,"").toLowerCase();
+ const size=String(variant||"").replace(/[×*]/g,"x").replace(/cm/gi,"").replace(/\s+/g,"").toLowerCase();
  const id=String(product?.id||"").toLowerCase();
  if(id==="gta-love-poster-1")return({"40x30":"POSTER_40x30","80x60":"POSTER_80x60","120x80":"POSTER_120x80"})[size]||null;
  if(id==="gta-love-poster-2")return({"30x45":"POSTER_30x45","45x60":"POSTER_45x60","60x90":"POSTER_60x90"})[size]||null;
  return({"45x60":"POSTER_45x60","60x90":"POSTER_60x90","80x120":"POSTER_80x120"})[size]||null;
 };
 const prepareShippingCart=items=>items.map(line=>{
- const product=line?.product||{};
+ const product=line?.product||line||{};
  const category=String(product.category||"").toUpperCase();
  const type=String(product.type||"").toUpperCase();
+ const variant=line?.variant??line?.size??line?.version??"";
  let shippingProfile=null;
  if(category==="CD"||type.includes("CD"))shippingProfile="CD";
- else if(type==="POSTER"||(category==="XTRAS"&&String(product.name||"").toUpperCase().includes("POSTER")))shippingProfile=profileForPoster(product,line.variant);
+ else if(type==="POSTER"||String(product.name||"").toUpperCase().includes("POSTER"))shippingProfile=profileForPoster(product,variant);
  return{...line,shippingProfile};
 });
 let shippingCalculationTimer;
@@ -48,7 +49,7 @@ const calculateOrderSummary=()=>{
  try{
   const result=calculateCheckout(prepareShippingCart(state.cart),{destinationType});
   const estimatedTaxes=Number.isFinite(Number(result.estimatedTaxes?.amount))?Number(result.estimatedTaxes.amount):null;
-  const shippingAndHandling=result.status==="ok"&&Number.isFinite(Number(result.shipping?.amount))&&Number.isFinite(Number(result.handling?.amount))
+  const shippingAndHandling=Number.isFinite(Number(result.shipping?.amount))&&Number.isFinite(Number(result.handling?.amount))
    ?Number(result.shipping.amount)+Number(result.handling.amount):null;
   updateShippingSummary({
    shippingAndHandling,
@@ -96,7 +97,9 @@ const fillAddressFromGeoapify=result=>{
  const streetName=p.street||p.address_line1||p.name||"";
  const normalizedStreet=isTurkey?streetName.replace(/\bSokağı\b/gi,"Sokak"):streetName;
  const street=[normalizedStreet,p.housenumber].filter(Boolean).join(" ")||p.formatted||"";
- const city=isTurkey?(p.state||p.city||p.town||""):(p.city||p.town||p.village||p.municipality||p.state||"");
+ const provinceCandidates=[p.city,p.town,p.village,p.municipality,p.state].filter(Boolean);
+ const matchedProvince=isTurkey?provinceCandidates.find(value=>turkishProvinces.has(normalizeShippingCity(value))):null;
+ const city=isTurkey?(matchedProvince||p.city||p.town||p.village||p.municipality||p.state||""):(p.city||p.town||p.village||p.municipality||p.state||"");
  const district=isTurkey?(p.county||p.district||p.suburb||""):(p.state||p.county||"");
  window.clearTimeout(addressSearchTimer);
  clearAddressSuggestions();
