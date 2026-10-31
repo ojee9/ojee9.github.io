@@ -511,9 +511,8 @@
       /* One fixed-size dashboard shell for every signed-in section, including views without .vn-ac-layout. */
       .vn-ac-shell.vn-ac-dashboard-open{
         position:relative;
-        background-color:#D2C9BA;
+        background-color:#E4E3E1;
         background-image:
-          radial-gradient(ellipse at 28% 34%,rgba(228,206,165,.82) 0%,rgba(228,206,165,.48) 24%,rgba(228,206,165,0) 56%),
           radial-gradient(ellipse at 18% 22%,rgba(126,220,208,.12),transparent 34%),
           radial-gradient(ellipse at 78% 70%,rgba(132,202,224,.13),transparent 36%),
           radial-gradient(ellipse at 50% 48%,rgba(188,238,222,.08),transparent 48%);
