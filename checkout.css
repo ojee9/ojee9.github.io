@@ -629,10 +629,12 @@ body.checkout-page{margin:0;background:#C6BBA7;color:#f5f5f5;font:13px Arial,Hel
 }
 
 
-/* Mobile only: separate the Phone floating label from the field above it. */
+/* Mobile only: keep the Phone label close to its own field, clear of the field above. */
 @media(max-width:600px){
   .checkout-page .vn-ac-address-control:has(.vn-ac-phone-row)>span{
-    top:-12px;
+    top:-4px!important;
+    left:12px!important;
+    line-height:12px;
   }
 }
 
