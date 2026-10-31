@@ -486,6 +486,7 @@
       .vn-ac-orders-empty .vn-ac-button{background:#fff;color:#000;border-color:#fff}
       /* One fixed-size dashboard shell for every signed-in section, including views without .vn-ac-layout. */
       .vn-ac-shell.vn-ac-dashboard-open{
+        position:relative;
         background-color:#E4E3E1;
         background-image:
           radial-gradient(circle at 4% 12%,rgba(255,255,255,.92) 0 .7px,transparent 1.5px),
@@ -517,6 +518,21 @@
         display:flex !important;
         flex-direction:column !important;
         flex:0 0 auto;
+      }
+      .vn-ac-dashboard-trail{
+        position:absolute;
+        inset:0;
+        z-index:0;
+        width:100%;
+        height:100%;
+        pointer-events:none;
+        mix-blend-mode:screen;
+      }
+      .vn-ac-shell.vn-ac-dashboard-open > .vn-ac-header,
+      .vn-ac-shell.vn-ac-dashboard-open > #vnAcContent,
+      .vn-ac-shell.vn-ac-dashboard-open > .vn-ac-policy-footer-row{
+        position:relative;
+        z-index:1;
       }
       .vn-ac-shell.vn-ac-dashboard-open #vnAcContent{
         flex:1 1 auto;
@@ -699,6 +715,88 @@
         </section>
       </div>
     `;
+
+    const dashboardShell = root.querySelector(".vn-ac-shell");
+    if (dashboardShell && !dashboardShell.querySelector(".vn-ac-dashboard-trail")) {
+      const trailCanvas = document.createElement("canvas");
+      trailCanvas.className = "vn-ac-dashboard-trail";
+      trailCanvas.setAttribute("aria-hidden", "true");
+      dashboardShell.prepend(trailCanvas);
+
+      const trailContext = trailCanvas.getContext("2d");
+      const trailPoints = [];
+      let trailFrame = 0;
+      let trailWidth = 0;
+      let trailHeight = 0;
+      let trailDpr = 1;
+
+      const resizeTrail = () => {
+        const rect = dashboardShell.getBoundingClientRect();
+        trailDpr = Math.min(window.devicePixelRatio || 1, 2);
+        trailWidth = rect.width;
+        trailHeight = rect.height;
+        trailCanvas.width = Math.round(trailWidth * trailDpr);
+        trailCanvas.height = Math.round(trailHeight * trailDpr);
+        trailContext.setTransform(trailDpr, 0, 0, trailDpr, 0, 0);
+      };
+
+      const animateTrail = () => {
+        trailFrame = 0;
+        const now = performance.now();
+        trailPoints.splice(0, trailPoints.findIndex(point => now - point.time < 210) < 0
+          ? trailPoints.length
+          : trailPoints.findIndex(point => now - point.time < 210));
+        trailContext.clearRect(0, 0, trailWidth, trailHeight);
+        if (trailPoints.length > 1) {
+          trailContext.globalCompositeOperation = "screen";
+          trailContext.lineCap = "round";
+          trailContext.lineJoin = "round";
+          for (let i = 1; i < trailPoints.length; i++) {
+            const a = trailPoints[i - 1];
+            const b = trailPoints[i];
+            const life = Math.max(0, 1 - (now - b.time) / 210);
+            if (!life) continue;
+            trailContext.beginPath();
+            trailContext.moveTo(a.x, a.y);
+            trailContext.lineTo(b.x, b.y);
+            trailContext.strokeStyle = `rgba(255,255,255,${life * 0.72})`;
+            trailContext.lineWidth = 0.55 + life * 1.15;
+            trailContext.shadowColor = `rgba(255,255,255,${life * 0.48})`;
+            trailContext.shadowBlur = 3.5 * life;
+            trailContext.stroke();
+          }
+          const head = trailPoints[trailPoints.length - 1];
+          const headLife = Math.max(0, 1 - (now - head.time) / 210);
+          trailContext.beginPath();
+          trailContext.arc(head.x, head.y, 1.15, 0, Math.PI * 2);
+          trailContext.fillStyle = `rgba(255,255,255,${headLife * 0.72})`;
+          trailContext.fill();
+        }
+        trailContext.shadowBlur = 0;
+        if (trailPoints.length > 1) trailFrame = requestAnimationFrame(animateTrail);
+      };
+
+      dashboardShell.addEventListener("pointermove", event => {
+        if (!dashboardShell.classList.contains("vn-ac-dashboard-open")
+          || event.pointerType === "touch"
+          || !window.matchMedia("(hover: hover) and (pointer: fine)").matches
+          || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        if (!trailWidth || trailWidth !== dashboardShell.clientWidth || trailHeight !== dashboardShell.clientHeight) resizeTrail();
+        const rect = dashboardShell.getBoundingClientRect();
+        trailPoints.push({x:event.clientX - rect.left, y:event.clientY - rect.top, time:performance.now()});
+        if (trailPoints.length > 16) trailPoints.shift();
+        if (!trailFrame) trailFrame = requestAnimationFrame(animateTrail);
+      }, {passive:true});
+
+      dashboardShell.addEventListener("pointerleave", () => {
+        trailPoints.length = 0;
+        if (trailFrame) cancelAnimationFrame(trailFrame);
+        trailFrame = 0;
+        trailContext.clearRect(0, 0, trailWidth, trailHeight);
+      });
+      window.addEventListener("resize", resizeTrail, {passive:true});
+      resizeTrail();
+    }
 
     root.addEventListener("click", event => {
       if (event.target.matches(".vn-ac-policy-overlay")) {
