@@ -1021,7 +1021,19 @@
     const productMain = document.querySelector("main");
     productMain?.addEventListener("click", event => {
       if (!event.target.closest("#detail-overlay .drawer")) {
-        window.location.href = "/merch.html";
+        const categoryCrumb = document.querySelector("[data-breadcrumb-category]");
+        const categoryValue = categoryCrumb?.dataset.breadcrumbCategory;
+        const referrerIsLocal = (() => {
+          try { return Boolean(document.referrer) && new URL(document.referrer).origin === window.location.origin; }
+          catch (_) { return false; }
+        })();
+        if (referrerIsLocal && window.history.length > 1) {
+          window.history.back();
+        } else {
+          window.location.href = categoryValue
+            ? "/merch.html?category=" + encodeURIComponent(categoryValue)
+            : "/merch.html";
+        }
       }
     });
   }
