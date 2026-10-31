@@ -763,7 +763,7 @@
       const animateTrail = () => {
         trailFrame = 0;
         const now = performance.now();
-        const firstLivePoint = trailPoints.findIndex(point => now - point.time < 245);
+        const firstLivePoint = trailPoints.findIndex(point => now - point.time < 620);
         trailPoints.splice(0, firstLivePoint < 0 ? trailPoints.length : firstLivePoint);
         trailContext.clearRect(0, 0, trailWidth, trailHeight);
 
@@ -782,32 +782,32 @@
           const last = trailPoints[trailPoints.length - 1];
           path.lineTo(last.x, last.y);
 
-          const headLife = Math.max(0, 1 - (now - last.time) / 245);
+          const headLife = Math.max(0, 1 - (now - last.time) / 620);
           trailContext.globalCompositeOperation = "screen";
           trailContext.lineCap = "round";
           trailContext.lineJoin = "round";
 
-          trailContext.strokeStyle = `rgba(170,205,255,${headLife * .18})`;
-          trailContext.lineWidth = 15 * headLife;
-          trailContext.shadowColor = `rgba(190,170,255,${headLife * .38})`;
-          trailContext.shadowBlur = 11 * headLife;
+          trailContext.strokeStyle = `rgba(150,205,255,${headLife * .25})`;
+          trailContext.lineWidth = 19 * headLife;
+          trailContext.shadowColor = `rgba(130,155,255,${headLife * .62})`;
+          trailContext.shadowBlur = 18 * headLife;
           trailContext.stroke(path);
 
-          trailContext.strokeStyle = `rgba(220,174,255,${headLife * .22})`;
+          trailContext.strokeStyle = `rgba(255,145,220,${headLife * .3})`;
           trailContext.lineWidth = 10.5 * headLife;
-          trailContext.shadowColor = `rgba(255,166,222,${headLife * .32})`;
-          trailContext.shadowBlur = 7 * headLife;
+          trailContext.shadowColor = `rgba(255,92,205,${headLife * .58})`;
+          trailContext.shadowBlur = 16 * headLife;
           trailContext.stroke(path);
 
-          trailContext.strokeStyle = `rgba(178,222,255,${headLife * .38})`;
+          trailContext.strokeStyle = `rgba(105,205,255,${headLife * .52})`;
           trailContext.lineWidth = 6.5 * headLife;
-          trailContext.shadowColor = `rgba(164,213,255,${headLife * .38})`;
+          trailContext.shadowColor = `rgba(75,190,255,${headLife * .62})`;
           trailContext.shadowBlur = 5 * headLife;
           trailContext.stroke(path);
 
-          trailContext.strokeStyle = `rgba(255,226,246,${headLife * .48})`;
+          trailContext.strokeStyle = `rgba(255,238,252,${headLife * .66})`;
           trailContext.lineWidth = 3.2 * headLife;
-          trailContext.shadowColor = `rgba(232,195,255,${headLife * .3})`;
+          trailContext.shadowColor = `rgba(255,170,235,${headLife * .55})`;
           trailContext.shadowBlur = 3 * headLife;
           trailContext.stroke(path);
         }
