@@ -394,7 +394,7 @@
       .vn-ac-actions{display:flex;gap:12px;flex-wrap:wrap;margin:24px 0}
       .vn-ac-field{display:flex;flex-direction:column;gap:6px;margin:13px 0}
       .vn-ac-field span{font-size:12px;color:#555}
-      .vn-ac-field input,.vn-ac-field select,.vn-ac-field textarea{box-sizing:border-box;width:100%;min-height:45px;padding:12px;border:1px solid #d7d7d7;border-radius:5px;background:#fff;color:#111;font:inherit}
+      .vn-ac-field input,.vn-ac-field select,.vn-ac-field textarea{box-sizing:border-box;width:100%;min-height:48px;padding:12px;border:1px solid #d7d7d7;border-radius:5px;background:#fff;color:#111;font:inherit}
       .vn-ac-field textarea{min-height:90px;resize:vertical}
       .vn-ac-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
       .vn-ac-message{margin:15px 0;padding:12px 14px;border:1px solid #ddd;background:#f7f7f7;font-size:13px;overflow-wrap:anywhere}
@@ -467,20 +467,22 @@
       .vn-ac-address-control>select{padding-right:28px}
       .vn-ac-field{position:relative}
       .vn-ac-field:focus-within::after,
-      .vn-ac-address-control:focus-within::after,
-      .vn-ac-phone-row:focus-within::after{
-        border:1px solid #111;
-        border-radius:5px;
-      }
-      .vn-ac-field:focus-within::after{
+      .vn-ac-address-control:focus-within::after{
         content:"";
         position:absolute;
         z-index:3;
+        border:1px solid #111;
+        border-radius:5px;
+        pointer-events:none;
+      }
+      .vn-ac-field:focus-within::after{
         top:20px;
         right:0;
         bottom:0;
         left:0;
-        pointer-events:none;
+      }
+      .vn-ac-address-control:focus-within::after{
+        inset:0;
       }
       .vn-ac-field input:focus,
       .vn-ac-field input:focus-visible,
@@ -494,18 +496,9 @@
         box-shadow:none!important;
         background-color:#fff!important;
       }
-      .vn-ac-address-control:focus-within,
-      .vn-ac-phone-row:focus-within{
+      .vn-ac-address-control:focus-within{
         outline:none!important;
         box-shadow:none!important;
-      }
-      .vn-ac-address-control:focus-within::after,
-      .vn-ac-phone-row:focus-within::after{
-        content:"";
-        position:absolute;
-        z-index:3;
-        inset:0;
-        pointer-events:none;
       }
       .vn-ac-address-control>input:focus,
       .vn-ac-address-control>input:focus-visible,
@@ -525,7 +518,7 @@
       .vn-ac-phone-row{display:flex;align-items:stretch}
       .vn-ac-phone-row{position:relative;display:flex;align-items:stretch;width:100%;min-width:0}
       .vn-ac-phone-dial{display:flex;align-items:center;flex:0 0 auto;padding:0 10px;border:1px solid #d7d7d7;border-right:0;border-radius:5px 0 0 5px;background:#fff;color:#222;font:13px Arial,sans-serif;white-space:nowrap}
-      .vn-ac-phone-row input{flex:1;min-width:0;width:100%;padding:14px 12px;border:1px solid #d7d7d7;border-left:0;border-right:0;border-radius:0;color:#111;font:13px Arial,sans-serif}
+      .vn-ac-phone-row input{box-sizing:border-box;flex:1;min-width:0;width:100%;min-height:48px;padding:14px 12px;border:1px solid #d7d7d7;border-left:0;border-right:0;border-radius:0;color:#111;font:13px Arial,sans-serif}
       .vn-ac-phone-row select{position:relative;z-index:1;flex:0 0 42px;width:42px;min-width:0;padding:0;border:1px solid #d7d7d7;border-left:0;border-radius:0 5px 5px 0;background:transparent;color:transparent;font-size:0;cursor:pointer;appearance:none;-webkit-appearance:none}
       .vn-ac-phone-row select option{color:#111;font-size:13px}
       .vn-ac-phone-flag{position:absolute;z-index:2;right:11px;top:50%;transform:translateY(-50%);display:block;width:22px;height:16px;object-fit:cover;border:1px solid rgba(0,0,0,.12);border-radius:2px;pointer-events:none}
