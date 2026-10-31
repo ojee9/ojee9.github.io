@@ -365,8 +365,7 @@
         display:grid;
         grid-template-columns:repeat(2,minmax(0,1fr));
         gap:14px;
-        background:#D2C9BA;
-      }
+        }
       .vn-ac-card-grid::before{
         content:"";
         position:absolute;
