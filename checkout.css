@@ -522,3 +522,26 @@ body.checkout-page{margin:0;background:#C6BBA7;color:#f5f5f5;font:13px Arial,Hel
 .checkout-page .vn-ac-phone-flag{
   border:0!important;box-shadow:none!important;filter:none!important;opacity:1!important;
 }
+
+
+/* Final micro-polish: lively discount placeholder and fully even phone selector focus. */
+.checkout-page #discount input[name="discount"]::placeholder{
+  color:#e4cea5!important;opacity:.88;letter-spacing:.12em;font-size:10px;font-weight:600;
+  transition:color .18s ease,opacity .18s ease,letter-spacing .18s ease;
+}
+.checkout-page #discount input[name="discount"]:focus::placeholder{
+  color:#f4e5c8!important;opacity:1;letter-spacing:.14em;
+}
+.checkout-page .vn-ac-phone-row select,
+.checkout-page .vn-ac-phone-row select:focus,
+.checkout-page .vn-ac-phone-row select:focus-visible{
+  background-color:transparent!important;border:0!important;outline:0!important;
+  box-shadow:none!important;filter:none!important;
+}
+.checkout-page .vn-ac-phone-row:has(select:focus) .vn-ac-phone-flag{
+  opacity:1!important;filter:none!important;box-shadow:none!important;
+}
+.checkout-page .vn-ac-phone-flag{
+  border:0!important;outline:0!important;box-shadow:none!important;
+  filter:none!important;opacity:1!important;
+}
