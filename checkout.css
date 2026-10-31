@@ -773,19 +773,28 @@ body.checkout-page{margin:0;background:#C6BBA7;color:#f5f5f5;font:13px Arial,Hel
 }
 
 
-/* Address confirmation: prominent, directly beneath the section heading. */
+/* Address confirmation: centered message with a clearer warning heading. */
 .checkout-page .address-confirmation{
-  margin:0 0 20px;padding:22px 22px;
+  margin:0 0 20px;padding:24px 22px;
   border:1px solid #514b40;border-radius:5px;
-  background:#292929;color:#f5f1e8;
+  background:#292929;color:#f5f1e8;text-align:center;
   box-shadow:0 9px 24px rgba(0,0,0,.22);
 }
-.checkout-page .address-warning-title{font-size:13px;margin-bottom:9px}
-.checkout-page .address-warning-question{font-size:15px;line-height:1.5;margin-bottom:15px}
-.checkout-page .address-confirmation-details{
-  margin:0 0 15px;font-size:13px;line-height:1.75;white-space:pre-line;
+.checkout-page .address-warning-title{
+  display:block;margin:0 0 10px;color:#fff;
+  font-size:16px;line-height:1.4;font-weight:800;letter-spacing:.045em;
 }
-.checkout-page .address-confirmation small{font-size:11px;line-height:1.55}
+.checkout-page .address-warning-question{
+  display:block;margin:0 0 15px;color:#e4cea5;
+  font-size:15px;line-height:1.5;font-weight:700;
+}
+.checkout-page .address-confirmation-details{
+  margin:0 0 15px;font-size:13px;line-height:1.75;
+  white-space:pre-line;text-align:center;
+}
+.checkout-page .address-confirmation small{
+  display:block;color:#aaa;font-size:11px;line-height:1.55;text-align:center;
+}
 
 /* Shipping methods are selectable cards, ready for additional radio options. */
 .checkout-page .shipping-method-option{
@@ -808,7 +817,8 @@ body.checkout-page{margin:0;background:#C6BBA7;color:#f5f5f5;font:13px Arial,Hel
 .checkout-page .shipping-method-copy{flex:1}
 .checkout-page .shipping-method-price{margin-left:auto}
 @media(max-width:600px){
-  .checkout-page .address-confirmation{padding:19px 17px;margin-bottom:18px}
+  .checkout-page .address-confirmation{padding:20px 16px;margin-bottom:18px}
+  .checkout-page .address-warning-title{font-size:15px}
   .checkout-page .address-warning-question{font-size:14px}
   .checkout-page .shipping-method-option{gap:11px;padding:15px 12px}
 }
