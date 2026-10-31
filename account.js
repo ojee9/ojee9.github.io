@@ -339,7 +339,10 @@
       @media(max-width:600px){.vn-ac-shell.vn-ac-auth-shell{width:min(100%,540px);min-height:420px;padding:30px 24px 26px}.vn-ac-auth-shell .vn-ac-close{right:-10px}.vn-ac-auth-shell .vn-ac-brand{width:158px;height:74px}.vn-ac-signin-heading h1{font-size:27px}.vn-ac-signin-heading p{font-size:13px}.vn-ac-email-form-wrap,.vn-ac-or-divider{width:100%;max-width:420px}.vn-ac-email-bar{min-height:56px;padding-left:14px}.vn-ac-email-bar input{height:42px;font-size:16px}.vn-ac-email-submit{width:42px;height:42px}.vn-ac-email-submit svg{display:block;width:20px;height:20px}.vn-ac-shop-space{height:32px}.vn-ac-updates{font-size:12px}}
       .vn-ac-layout{display:grid;grid-template-columns:200px minmax(0,1fr);gap:48px;padding-top:32px}
       .vn-ac-sidebar{display:flex;flex-direction:column;gap:8px}
-      .vn-ac-nav{border:0;background:none;color:#666;text-align:left;padding:12px 10px;font:inherit;cursor:pointer;border-radius:4px}
+      .vn-ac-nav{border:0;background:none;color:#666;text-align:left;padding:12px 10px;font:inherit;cursor:pointer;border-radius:4px;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+      .vn-ac-nav,.vn-ac-nav *,.vn-ac-close{user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+      .vn-ac-nav::selection,.vn-ac-nav *::selection,.vn-ac-close::selection{background:transparent;color:inherit}
+      .vn-ac-close{user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
       .vn-ac-nav.active{color:#111;background:#f3f3f3;font-weight:700}
       .vn-ac-main:has(button[data-ac-section="orders"]) > .vn-ac-subtitle{color:#000}
       .vn-ac-sidebar .vn-ac-nav[data-ac-section="dashboard"],
