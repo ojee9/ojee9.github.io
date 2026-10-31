@@ -305,7 +305,7 @@
       #vnAccountOverlay{position:fixed;inset:0;z-index:10001;display:flex;align-items:center;justify-content:center;overflow:auto;padding:24px;background:rgba(0,0,0,.48);color:#151515;font:14px/1.55 Arial,sans-serif}
       #vnAccountOverlay[hidden]{display:none!important}
       #vnAccountOverlay *{box-sizing:border-box}
-      .vn-ac-shell{width:min(100%,980px);max-height:calc(100dvh - 48px);overflow:auto;margin:auto;padding:28px;background:#fff;border:1px solid #d8d8d8;box-shadow:0 24px 80px rgba(0,0,0,.25)}
+      .vn-ac-shell{width:min(100%,980px);max-height:calc(100dvh - 48px);overflow:auto;margin:auto;padding:28px;background:#8A9397;border:1px solid #d8d8d8;box-shadow:0 24px 80px rgba(0,0,0,.25)}
       .vn-ac-shell.vn-ac-auth-shell{display:flex;flex-direction:column;width:min(100%,640px);min-height:480px;max-height:calc(100dvh - 28px);padding:44px 56px 38px;background:#171717;color:#f5f5f5;border:0;box-shadow:0 28px 90px rgba(0,0,0,.42)}
       .vn-ac-header{position:relative;display:flex;justify-content:center;align-items:center;padding-bottom:24px;border-bottom:1px solid #e5e5e5}
       .vn-ac-auth-shell .vn-ac-header{padding:0 32px 22px;border:0}
@@ -345,7 +345,7 @@
       .vn-ac-main h1{font-size:25px;letter-spacing:-.025em;margin:0 0 8px}
       .vn-ac-subtitle{color:#777;margin:0 0 28px}
       .vn-ac-card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-      .vn-ac-card{border:1px solid #dedede;border-radius:5px;padding:22px;min-height:135px;display:flex;flex-direction:column;align-items:flex-start;text-align:left;background:#fff;color:inherit;cursor:pointer}
+      .vn-ac-card{border:1px solid #dedede;border-radius:5px;padding:22px;min-height:135px;display:flex;flex-direction:column;align-items:flex-start;text-align:left;background:#8A9397;color:inherit;cursor:pointer}
       .vn-ac-card strong{font-size:13px;letter-spacing:.045em;margin-bottom:9px}
       .vn-ac-card span{font-size:13px;color:#777}
       .vn-ac-card:hover{border-color:#888}
