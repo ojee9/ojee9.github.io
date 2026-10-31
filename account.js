@@ -486,7 +486,7 @@
       .vn-ac-orders-empty .vn-ac-button{background:#fff;color:#000;border-color:#fff}
       /* One fixed-size dashboard shell for every signed-in section, including views without .vn-ac-layout. */
       .vn-ac-shell.vn-ac-dashboard-open{
-        background:#BFC5C8;
+        background:#C8C7C5;
         box-sizing:border-box;
         width:min(1280px,calc(100vw - 40px)) !important;
         height:min(860px,calc(100dvh - 40px)) !important;
