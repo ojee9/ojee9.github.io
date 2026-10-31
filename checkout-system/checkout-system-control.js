@@ -16,12 +16,18 @@ const cityInput=document.getElementById("city"),stateInput=document.getElementBy
 let suggestionRequest=0,activeSuggestion=-1,currentSuggestions=[];
 const hideAddressSuggestions=()=>{addressSuggestions.hidden=true;addressInput.setAttribute("aria-expanded","false");addressInput.removeAttribute("aria-activedescendant");activeSuggestion=-1};
 const clearAddressSuggestions=()=>{suggestionRequest++;currentSuggestions=[];addressSuggestions.replaceChildren();hideAddressSuggestions()};
+const geoapifyAddress=result=>result?.properties||result||{};
+const addressSuggestionLabel=result=>{
+ const p=geoapifyAddress(result);
+ return p.formatted||p.address_line1||p.name||[p.street,p.housenumber].filter(Boolean).join(" ")||p.address_line2||"";
+};
 const renderAddressSuggestions=results=>{
+ results=results.filter(result=>addressSuggestionLabel(result));
  currentSuggestions=results;addressSuggestions.replaceChildren();activeSuggestion=-1;
  results.forEach((result,index)=>{
-  const p=result.properties||{},button=document.createElement("button");button.type="button";button.className="vn-ac-address-suggestion";button.id="address-suggestion-"+index;
+  const button=document.createElement("button");button.type="button";button.className="vn-ac-address-suggestion";button.id="address-suggestion-"+index;
   button.setAttribute("role","option");button.setAttribute("aria-selected","false");
-  const main=document.createElement("span");main.textContent=p.formatted||p.address_line1||p.name||"";button.appendChild(main);
+  const main=document.createElement("span");main.textContent=addressSuggestionLabel(result);button.appendChild(main);
   button.addEventListener("mousedown",event=>event.preventDefault());
   button.addEventListener("click",()=>fillAddressFromGeoapify(result));
   addressSuggestions.appendChild(button);
@@ -29,7 +35,7 @@ const renderAddressSuggestions=results=>{
  addressSuggestions.hidden=results.length===0;addressInput.setAttribute("aria-expanded",String(results.length>0));
 };
 const fillAddressFromGeoapify=result=>{
- const p=result.properties||{},isTurkey=country.value==="TR";
+ const p=geoapifyAddress(result),isTurkey=country.value==="TR";
  const street=p.address_line1||[p.street,p.housenumber].filter(Boolean).join(" ")||p.formatted||"";
  const city=isTurkey?(p.state||p.city||p.town||""):(p.city||p.town||p.village||p.municipality||p.state||"");
  const district=isTurkey?(p.county||p.district||p.suburb||""):(p.state||p.county||"");
@@ -49,7 +55,11 @@ const searchAddressSuggestions=async()=>{
   if(!response.ok)throw new Error("Geoapify request failed: "+response.status);
   const data=await response.json();
   if(requestId!==suggestionRequest||region!==country.value.toLowerCase()||query!==addressInput.value.trim())return;
-  const results=(data.results||[]).filter(item=>!item.properties?.country_code||item.properties.country_code.toLowerCase()===region);
+  if(!Array.isArray(data.results))throw new Error("Geoapify returned an unexpected response.");
+  const results=data.results.filter(item=>{
+   const resultCountry=String(geoapifyAddress(item).country_code||"").toLowerCase();
+   return !resultCountry||resultCountry===region;
+  });
   renderAddressSuggestions(results);
  }catch(error){if(requestId===suggestionRequest)hideAddressSuggestions();console.warn("VN address autocomplete unavailable; manual entry remains enabled.",error)}
 };
