@@ -577,3 +577,4 @@ body.checkout-page{margin:0;background:#C6BBA7;color:#f5f5f5;font:13px Arial,Hel
 /* Phone help tooltip: use its accessible text and keep a normal pointer. */
 .checkout-page .vn-ac-phone-help{cursor:default!important}
 .checkout-page .vn-ac-phone-help::after{content:attr(aria-label)!important}
+.checkout-page .vn-ac-phone-help::after{font:inherit!important;font-family:Arial,Helvetica,sans-serif!important;font-size:12px!important;line-height:1.4!important}
