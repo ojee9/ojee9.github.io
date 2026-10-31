@@ -356,7 +356,7 @@
       .vn-ac-main{min-width:0;max-width:760px}
       .vn-ac-main h1{font-size:25px;letter-spacing:-.025em;margin:0 0 8px}
       .vn-ac-subtitle{color:#777;margin:0 0 28px}
-      .vn-ac-card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;background:#C8C7C5}
+      .vn-ac-card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;background:#E4E3E1}
       .vn-ac-card{border:1px solid #151515;border-radius:5px;padding:22px;min-height:135px;display:flex;flex-direction:column;align-items:flex-start;text-align:left;background:#000;color:#fff;cursor:pointer}
       .vn-ac-card strong{font-size:13px;letter-spacing:.045em;margin-bottom:9px;color:#fff}
       .vn-ac-card span{font-size:13px;color:#fff}
@@ -486,7 +486,7 @@
       .vn-ac-orders-empty .vn-ac-button{background:#fff;color:#000;border-color:#fff}
       /* One fixed-size dashboard shell for every signed-in section, including views without .vn-ac-layout. */
       .vn-ac-shell.vn-ac-dashboard-open{
-        background:#C8C7C5;
+        background:#E4E3E1;
         box-sizing:border-box;
         width:min(1280px,calc(100vw - 40px)) !important;
         height:min(860px,calc(100dvh - 40px)) !important;
