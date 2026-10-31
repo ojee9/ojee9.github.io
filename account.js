@@ -328,7 +328,7 @@
       .vn-ac-email-bar input{flex:1;min-width:0;height:44px;padding:0;border:0;outline:0;background:transparent;color:#f5f5f5;font:16px/1.45 Arial,sans-serif}
       .vn-ac-email-bar input::placeholder{color:#a4a4a4;opacity:1}
       .vn-ac-email-bar input:-webkit-autofill,.vn-ac-email-bar input:-webkit-autofill:hover,.vn-ac-email-bar input:-webkit-autofill:focus,.vn-ac-email-bar input:-webkit-autofill:active{-webkit-text-fill-color:#f5f5f5!important;caret-color:#f5f5f5;-webkit-box-shadow:0 0 0 1000px #101010 inset!important;box-shadow:0 0 0 1000px #101010 inset!important;transition:background-color 999999s ease-out 0s}
-      .vn-ac-email-bar:focus-within{border-color:#bdbdbd;background:#111}
+      .vn-ac-email-bar:focus-within{border-color:#100E13;background:#111;box-shadow:0 0 5px rgba(151,82,255,.34),0 0 12px rgba(151,82,255,.20)}
       .vn-ac-email-submit{display:flex;align-items:center;justify-content:center;width:44px;height:44px;flex:none;padding:0;border:0;border-radius:0;background:transparent;color:#f5f5f5;cursor:pointer;transition:color .16s ease,background .16s ease}
       .vn-ac-email-submit:hover{background:#242424;color:#fff}.vn-ac-email-submit svg{display:block;width:20px;height:20px}
       .vn-ac-updates{display:flex;align-items:center;justify-content:flex-start;gap:8px;margin:13px 0 0;padding-left:15px;color:#c5c1ca;font-size:13px;line-height:1.45}
@@ -471,8 +471,9 @@
         content:"";
         position:absolute;
         z-index:3;
-        border:1px solid #111;
+        border:1px solid #100E13;
         border-radius:5px;
+        box-shadow:0 0 5px rgba(151,82,255,.34),0 0 12px rgba(151,82,255,.20);
         pointer-events:none;
       }
       .vn-ac-field:focus-within::after{
