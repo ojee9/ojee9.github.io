@@ -635,3 +635,15 @@ body.checkout-page{margin:0;background:#C6BBA7;color:#f5f5f5;font:13px Arial,Hel
     top:-12px;
   }
 }
+
+
+/* Estimated tax tooltip uses the same question-mark treatment as contact fields. */
+.checkout-page .estimated-taxes-help{
+  display:inline-flex;align-items:center;gap:7px;
+}
+.checkout-page .estimated-taxes-help .help{
+  position:relative;right:auto;top:auto;flex:0 0 21px;transform:none;
+}
+.checkout-page .estimated-taxes-help .help::after{
+  right:0;bottom:calc(100% + 10px);
+}
