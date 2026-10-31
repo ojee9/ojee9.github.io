@@ -510,3 +510,15 @@ body.checkout-page{margin:0;background:#C6BBA7;color:#f5f5f5;font:13px Arial,Hel
 .checkout-page .vn-ac-address-control:has(.vn-ac-phone-row)>span{
   left:12px!important;
 }
+
+
+/* Fine checkout polish: discount prompt and clean phone-flag focus area only. */
+.checkout-page #discount input[name="discount"]::placeholder{
+  color:#c6bba7;opacity:1;letter-spacing:.09em;font-size:10px;font-weight:600;
+}
+.checkout-page .vn-ac-phone-row select:focus-visible{
+  outline:0!important;outline-offset:0!important;box-shadow:none!important;
+}
+.checkout-page .vn-ac-phone-flag{
+  border:0!important;box-shadow:none!important;filter:none!important;opacity:1!important;
+}
