@@ -932,7 +932,7 @@
   if (requestedCategory && [...category.options].some(option => option.value === requestedCategory)) { activeCategory = requestedCategory; category.value = requestedCategory; }
   if (requestedSearch) { query = requestedSearch.trim().toLowerCase(); $("search-input").value = requestedSearch; }
   category.onchange = () => {
-    if (category.value === "ALL") { window.location.href = "/merch.html"; return; }
+    if (category.value === "ALL") { window.location.href = "/merch.html?category=ALL"; return; }
     if (document.body.dataset.productPage === "true") { window.location.href = "/merch.html?category=" + encodeURIComponent(category.value); return; }
     activeCategory = category.value || "ALL";
     renderProducts();

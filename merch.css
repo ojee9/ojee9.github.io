@@ -303,16 +303,18 @@ body[data-product-page="true"] main{min-height:0}
 body[data-product-page="true"] #detail-overlay .drawer{background:#000;color:#fff}
 body[data-product-page="true"] #detail-overlay .drawer *{color:#fff!important}
 body[data-product-page="true"] #detail-overlay .drawer .detail-variants .variant-button.is-selected{background:rgba(255,255,255,.12);border-color:#fff;color:#fff}
-/* Standalone product boards share the Planetarium width and expand to fit all content. */
-body[data-product-page="true"] #detail-overlay{display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;overflow-x:hidden;padding:24px;overscroll-behavior:contain}
-body[data-product-page="true"] #detail-overlay .drawer{box-sizing:border-box;width:min(1100px,100%);height:auto!important;min-height:0;max-height:none!important;margin:auto;overflow:visible!important}
+/* Standalone product pages: shared Planetarium board geometry with document-level scrolling. */
+body[data-product-page="true"] #detail-overlay{position:absolute;inset:0 0 auto;display:flex;align-items:flex-start;justify-content:center;width:100%;height:auto;min-height:100vh;overflow:visible;padding:24px;overscroll-behavior:auto}
+body[data-product-page="true"] #detail-overlay .drawer{position:relative;top:auto;right:auto;box-sizing:border-box;display:flex;flex-direction:column;width:min(1100px,calc(100vw - 48px));height:auto!important;min-height:min(850px,calc(100vh - 48px));max-height:none!important;margin:0 auto;overflow:visible!important;transform:none!important;opacity:1}
 body[data-product-page="true"] #detail-overlay .drawer-content{box-sizing:border-box;flex:0 0 auto;height:auto;min-height:0;overflow:visible!important;overscroll-behavior:auto}
 body[data-product-page="true"] #detail-overlay .detail-layout{grid-template-columns:minmax(0,1.08fr) minmax(280px,.92fr);align-items:start}
 body[data-product-page="true"] #detail-overlay .detail-thumbnails{max-height:none;overflow:visible}
 body[data-product-page="true"] #detail-overlay .detail-gallery .detail-main-image{height:clamp(300px,52dvh,540px)!important}
+body[data-product-page="true"] #detail-overlay .drawer,
+body[data-product-page="true"] #detail-overlay .drawer *{-webkit-user-select:none;user-select:none}
 @media(max-width:700px){
-  body[data-product-page="true"] #detail-overlay{align-items:flex-start;padding:12px}
-  body[data-product-page="true"] #detail-overlay .drawer{width:100%;height:auto!important;max-height:none!important;margin:auto;overflow:visible!important}
+  body[data-product-page="true"] #detail-overlay{padding:12px;min-height:100vh}
+  body[data-product-page="true"] #detail-overlay .drawer{width:calc(100vw - 24px);min-height:0;margin:0 auto}
   body[data-product-page="true"] #detail-overlay .drawer-content{height:auto;overflow:visible!important}
   body[data-product-page="true"] #detail-overlay .detail-thumbnails{max-height:none;overflow:visible}
 }
