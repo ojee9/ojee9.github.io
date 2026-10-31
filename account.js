@@ -467,30 +467,22 @@
       .vn-ac-address-control>select{padding-right:28px}
       .vn-ac-field input:focus,
       .vn-ac-field input:focus-visible,
-      .vn-ac-field select:focus:not(:open),
-      .vn-ac-field select:focus-visible:not(:open),
+      .vn-ac-field select:focus,
+      .vn-ac-field select:focus-visible,
       .vn-ac-field textarea:focus,
-      .vn-ac-field textarea:focus-visible,
-      .vn-ac-address-control>input:focus,
-      .vn-ac-address-control>input:focus-visible,
-      .vn-ac-address-control>select:focus:not(:open),
-      .vn-ac-address-control>select:focus-visible:not(:open){
+      .vn-ac-field textarea:focus-visible{
         outline:none!important;
         outline-offset:0!important;
-        border-color:#111!important;
+        border-color:#d7d7d7!important;
         box-shadow:inset 0 0 0 1px #111!important;
         background-color:#fff!important;
       }
-      .vn-ac-field select:focus:open,
-      .vn-ac-address-control>select:focus:open{
-        outline:none!important;
-        box-shadow:none!important;
-      }
+      .vn-ac-address-control:focus-within,
       .vn-ac-phone-row:focus-within{
         outline:none!important;
         box-shadow:none!important;
-        border-radius:5px;
       }
+      .vn-ac-address-control:focus-within::after,
       .vn-ac-phone-row:focus-within::after{
         content:"";
         position:absolute;
@@ -500,6 +492,10 @@
         border-radius:5px;
         pointer-events:none;
       }
+      .vn-ac-address-control>input:focus,
+      .vn-ac-address-control>input:focus-visible,
+      .vn-ac-address-control>select:focus,
+      .vn-ac-address-control>select:focus-visible,
       .vn-ac-phone-row input:focus,
       .vn-ac-phone-row input:focus-visible,
       .vn-ac-phone-row select:focus,
