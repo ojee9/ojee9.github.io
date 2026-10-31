@@ -822,3 +822,36 @@ body.checkout-page{margin:0;background:#C6BBA7;color:#f5f5f5;font:13px Arial,Hel
   .checkout-page .address-warning-question{font-size:14px}
   .checkout-page .shipping-method-option{gap:11px;padding:15px 12px}
 }
+
+
+/* Shipping radio: remove the rectangular focus treatment from the native circle only. */
+.checkout-page .shipping-method-radio:focus,
+.checkout-page .shipping-method-radio:focus-visible{
+  outline:0!important;
+  outline-offset:0!important;
+  box-shadow:none!important;
+}
+
+/* Phone floating label: align it over the number-entry area, never over the dial code. */
+.checkout-page .vn-ac-address-control:has(.vn-ac-phone-row)>span{
+  top:8px!important;
+  left:70px!important;
+  z-index:2;
+  opacity:0;
+  transform:translateY(3px);
+  pointer-events:none;
+  transition:opacity .12s ease,transform .12s ease;
+}
+.checkout-page .vn-ac-address-control:has(.vn-ac-phone-row input:focus)>span,
+.checkout-page .vn-ac-address-control:has(.vn-ac-phone-row input:not(:placeholder-shown))>span{
+  opacity:1;
+  transform:translateY(0);
+}
+.checkout-page .vn-ac-phone-row input{
+  padding:0 12px!important;
+  line-height:1.4;
+}
+.checkout-page .vn-ac-phone-row input:focus,
+.checkout-page .vn-ac-phone-row input:not(:placeholder-shown){
+  padding:16px 12px 3px!important;
+}
