@@ -35,9 +35,22 @@ const prepareShippingCart=items=>items.map(line=>{
  return{...line,shippingProfile};
 });
 let shippingCalculationTimer;
+const resolveTurkishProvince=(...values)=>{
+ const candidates=values.map(normalizeShippingCity).filter(Boolean);
+ for(const candidate of candidates){
+  if(turkishProvinces.has(candidate))return candidate;
+  const tokens=candidate.split(/[^a-z]+/).filter(Boolean);
+  const matched=tokens.find(token=>turkishProvinces.has(token));
+  if(matched)return matched;
+  const embedded=[...turkishProvinces].find(province=>new RegExp("(?:^|[^a-z])"+province+"(?:$|[^a-z])").test(candidate));
+  if(embedded)return embedded;
+ }
+ return null;
+};
 const calculateOrderSummary=()=>{
  const city=normalizeShippingCity(cityInput.value);
- if(country.value!=="TR"||!turkishProvinces.has(city)){
+ const province=resolveTurkishProvince(cityInput.value,stateInput.value);
+ if(country.value!=="TR"||!city){
   updateShippingSummary({shippingAndHandling:null,estimatedTaxes:null});
   return;
  }
@@ -45,7 +58,9 @@ const calculateOrderSummary=()=>{
   updateShippingSummary({shippingAndHandling:null,estimatedTaxes:null,shippingLabel:"Unavailable"});
   return;
  }
- const destinationType=city==="ankara"?"intracity":"intercity";
+ // City is sufficient to estimate. Resolve province from City or State when available;
+ // district-only/manual City entries still receive the intercity estimate.
+ const destinationType=province==="ankara"?"intracity":"intercity";
  try{
   const result=calculateCheckout(prepareShippingCart(state.cart),{destinationType});
   const estimatedTaxes=Number.isFinite(Number(result.estimatedTaxes?.amount))?Number(result.estimatedTaxes.amount):null;
