@@ -39,25 +39,26 @@
     .help-answer ul{padding-left:20px;margin:8px 0}
     .help-detail-link{color:inherit;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
     @media(max-width:760px){.help-main{padding:25px 20px 42px}.help-categories{grid-template-columns:1fr;gap:30px}.help-category h2{margin-bottom:14px}.help-question{height:auto;padding-bottom:13px;margin-bottom:13px}}
-    /* Black content panel, matching the Terms page while preserving the Help layout. */
-    .help-main{background:#000;color:#f5f5f5;min-height:calc(100vh - 200px)}
+    /* Match the Privacy Policy page structure: full-width black panel and centered content column. */
+    .help-main{width:100%;max-width:none;margin:0;padding:clamp(32px,6vw,88px) max(5%,calc((100% - 900px)/2));box-sizing:border-box;background:#000;color:#f5f5f5;min-height:calc(100vh - 200px)}
+    .help-topbar,.help-search-panel,.help-categories,.help-detail,.help-no-results{width:100%;max-width:900px;margin-left:auto;margin-right:auto}
     .help-topbar{border-bottom-color:rgba(255,255,255,.28)}
-    .help-title{font-size:clamp(30px,3.4vw,42px);color:#fff}
-    .help-categories{color:#f5f5f5}
-    .help-category h2{font-size:clamp(22px,1.8vw,26px);color:#fff}
-    .help-question{height:auto;min-height:132px;border-bottom-color:rgba(255,255,255,.24);font-size:16px;line-height:1.75;color:#f5f5f5}
+    .help-title{margin:0 0 12px;font-size:clamp(28px,4vw,42px);line-height:1.15;letter-spacing:-.04em;color:#fff}
+    .help-categories{grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(22px,3.2vw,40px);padding-top:30px;color:#f5f5f5}
+    .help-category h2{margin:36px 0 12px;font-size:20px;line-height:1.35;color:#fff}
+    .help-question{height:auto;min-height:0;padding:0 0 15px;margin:0 0 15px;border-bottom-color:rgba(255,255,255,.22);font-size:15px;line-height:1.8;color:#f5f5f5}
     .help-question a,.help-view-all,.help-detail-link{color:#fff}
     .help-view-all{font-size:13px}
-    .help-search-input{color:#fff;border-bottom-color:rgba(255,255,255,.7);font-size:16px}
+    .help-search-input{color:#fff;border-bottom-color:rgba(255,255,255,.7);font-size:15px;line-height:1.8}
     .help-search-input::placeholder{color:#aaa;opacity:1}
-    .help-no-results{color:#f5f5f5;font-size:16px}
-    .help-detail{color:#f5f5f5}
+    .help-no-results{padding:24px 0;color:#f5f5f5;font-size:15px;line-height:1.8}
+    .help-detail{padding-top:28px;color:#f5f5f5;line-height:1.8}
     .help-back{color:#fff}
-    .help-detail h2{font-size:clamp(26px,2.4vw,32px);color:#fff}
-    .help-answer{border-bottom-color:rgba(255,255,255,.24)}
-    .help-answer h3{font-size:19px;color:#fff}
-    .help-answer p,.help-answer li{font-size:16px;line-height:1.8;color:#f5f5f5}
-    @media(max-width:760px){.help-question{min-height:0;font-size:15px}.help-answer p,.help-answer li{font-size:15px}}
+    .help-detail h2{margin:0 0 28px;font-size:clamp(28px,4vw,42px);line-height:1.15;color:#fff}
+    .help-answer{padding:0 0 24px;margin:0 0 24px;border-bottom-color:rgba(255,255,255,.22)}
+    .help-answer h3{margin:24px 0 8px;font-size:16px;line-height:1.4;color:#fff}
+    .help-answer p,.help-answer li{font-size:15px;line-height:1.8;color:#f5f5f5}
+    @media(max-width:760px){.help-main{padding:36px 6%}.help-categories{grid-template-columns:1fr;gap:20px}.help-category h2{margin:28px 0 12px;font-size:18px}.help-question{font-size:14px}.help-answer p,.help-answer li{font-size:14px}}
   </style>
 </head>
 <body>
