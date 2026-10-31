@@ -409,7 +409,7 @@
     doNotSell: config.paths?.doNotSell || config.policies?.links?.doNotSell || "policies/legal-notice.html"
   };
 
-  category.innerHTML = categories.map(item => {
+  category.innerHTML = '<option value="" selected></option>' + categories.map(item => {
     const value = typeof item === "string" ? item : item.value;
     const label = typeof item === "string" ? item : item.label || value;
     return `<option value="${esc(value)}">${esc(label)}</option>`;
@@ -920,7 +920,7 @@
         localStorage.setItem("vn-shop-cart", snapshot);
         sessionStorage.setItem("vn-shop-checkout-cart", snapshot);
       } catch (_) {}
-      window.location.href = new URL("checkout.html", window.location.href).href;
+      window.location.href = "/checkout.html";
     };
   }
 
@@ -930,8 +930,10 @@
   if (requestedCategory && [...category.options].some(option => option.value === requestedCategory)) { activeCategory = requestedCategory; category.value = requestedCategory; }
   if (requestedSearch) { query = requestedSearch.trim().toLowerCase(); $("search-input").value = requestedSearch; }
   category.onchange = () => {
+    if (category.value === "ALL") { window.location.href = "/merch.html"; return; }
     if (document.body.dataset.productPage === "true") { window.location.href = "/merch.html?category=" + encodeURIComponent(category.value); return; }
-    activeCategory = category.value; renderProducts();
+    activeCategory = category.value || "ALL";
+    renderProducts();
   };
   $("search-form").onsubmit = event => {
     event.preventDefault();
