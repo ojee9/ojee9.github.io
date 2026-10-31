@@ -287,3 +287,12 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important}
 }
+/* Standalone product pages reuse the existing product-detail layout in document flow. */
+body[data-product-page="true"] #detail-overlay{position:static;inset:auto;z-index:auto;display:block;height:auto;background:transparent;opacity:1;visibility:visible;pointer-events:auto;transition:none}
+body[data-product-page="true"] #detail-overlay .drawer{position:static;top:auto;right:auto;width:100%;height:auto;min-height:0;max-height:none;overflow:visible;background:#f7f5f1;transform:none;transition:none}
+body[data-product-page="true"] #detail-overlay .drawer-head{display:none}
+body[data-product-page="true"] #detail-overlay .drawer-content{padding:26px 30px 34px;overflow:visible;min-height:0}
+body[data-product-page="true"] #detail-page-slot{width:100%}
+body[data-product-page="true"] .products{display:none}
+body[data-product-page="true"] main{min-height:0}
+@media(max-width:700px){body[data-product-page="true"] #detail-overlay .drawer-content{padding:20px 18px 28px}}

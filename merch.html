@@ -147,6 +147,16 @@
 </section>
 
 <main>
+  <div id="detail-page-slot"></div>
+  <div class="drawer-overlay" id="detail-overlay" aria-hidden="true" hidden>
+  <section class="drawer" role="dialog" aria-modal="true" aria-labelledby="detail-drawer-title">
+    <header class="drawer-head">
+      <h2 class="drawer-title" id="detail-drawer-title">PRODUCT DETAILS</h2>
+      <button class="drawer-close" id="detail-close" type="button" aria-label="Close">×</button>
+    </header>
+    <div class="drawer-content" id="detail-content"></div>
+  </section>
+</div>
   <section class="products" aria-live="polite">
     <div class="product-grid" id="product-grid"></div>
     <div class="empty" id="empty-message" hidden></div>
@@ -197,16 +207,7 @@
 </section>
 
 
-<!-- PRODUCT DETAILS -->
-<div class="drawer-overlay" id="detail-overlay" aria-hidden="true" hidden>
-  <section class="drawer" role="dialog" aria-modal="true" aria-labelledby="detail-drawer-title">
-    <header class="drawer-head">
-      <h2 class="drawer-title" id="detail-drawer-title">PRODUCT DETAILS</h2>
-      <button class="drawer-close" id="detail-close" type="button" aria-label="Close">×</button>
-    </header>
-    <div class="drawer-content" id="detail-content"></div>
-  </section>
-</div>
+
 
 <!-- CART -->
 <div class="drawer-overlay" id="cart-overlay" aria-hidden="true" hidden>
@@ -540,12 +541,12 @@
         </div>
       `;
 
-      item.addEventListener("click", () => openProduct(product));
+      item.addEventListener("click", () => { if (document.body.dataset.productPage !== "true") window.location.href = "/products/" + encodeURIComponent(product.id) + "/"; });
 
       item.addEventListener("keydown", event => {
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
-          openProduct(product);
+          if (document.body.dataset.productPage !== "true") window.location.href = "/products/" + encodeURIComponent(product.id) + "/";
         }
       });
 
@@ -684,6 +685,7 @@
     `;
 
     detailContent.querySelector("[data-breadcrumb-home]").onclick = () => {
+      if (document.body.dataset.productPage === "true") { window.location.href = "/merch.html"; return; }
       activeCategory = "ALL";
       category.value = categories.some(item => (typeof item === "string" ? item : item.value) === "ALL")
         ? "ALL"
@@ -698,6 +700,7 @@
     if (categoryCrumb) {
       categoryCrumb.onclick = () => {
         const value = categoryCrumb.dataset.breadcrumbCategory;
+        if (document.body.dataset.productPage === "true") { window.location.href = "/merch.html?category=" + encodeURIComponent(value); return; }
         activeCategory = value;
         if ([...category.options].some(option => option.value === value)) category.value = value;
         query = "";
@@ -779,7 +782,13 @@
       closeOverlay(detail);
     };
 
-    openOverlay(detail);
+    if (document.body.dataset.productPage === "true") {
+      detail.hidden = false;
+      detail.classList.add("is-open");
+      detail.setAttribute("aria-hidden", "false");
+    } else {
+      openOverlay(detail);
+    }
   }
 
     function renderCart() {
@@ -915,16 +924,23 @@
     };
   }
 
+  const pageParams = new URLSearchParams(window.location.search);
+  const requestedCategory = pageParams.get("category");
+  const requestedSearch = pageParams.get("search");
+  if (requestedCategory && [...category.options].some(option => option.value === requestedCategory)) { activeCategory = requestedCategory; category.value = requestedCategory; }
+  if (requestedSearch) { query = requestedSearch.trim().toLowerCase(); $("search-input").value = requestedSearch; }
   category.onchange = () => {
-    activeCategory = category.value;
-    renderProducts();
+    if (document.body.dataset.productPage === "true") { window.location.href = "/merch.html?category=" + encodeURIComponent(category.value); return; }
+    activeCategory = category.value; renderProducts();
+  };
+  $("search-form").onsubmit = event => {
+    event.preventDefault();
+    if (document.body.dataset.productPage === "true") window.location.href = "/merch.html?search=" + encodeURIComponent($("search-input").value.trim());
   };
 
-  $("search-form").onsubmit = event => event.preventDefault();
-
   $("search-input").oninput = event => {
-    query = event.target.value.trim().toLowerCase();
-    renderProducts();
+    if (document.body.dataset.productPage === "true") return;
+    query = event.target.value.trim().toLowerCase(); renderProducts();
   };
 
   $("search-toggle").onclick = () => {
@@ -996,8 +1012,12 @@
     openProduct
   };
 
-  renderProducts();
-  renderCart();
+  renderProducts(); renderCart();
+  if (document.body.dataset.productPage === "true") {
+    const requestedProduct = products.find(product => product.id === document.body.dataset.productId && product.active !== false);
+    if (requestedProduct) openProduct(requestedProduct);
+    else { const slot = document.getElementById("detail-page-slot"); if (slot) slot.textContent = "PRODUCT NOT FOUND"; }
+  }
   document.body.classList.remove("shop-loading");
 
 })().catch(error => {
