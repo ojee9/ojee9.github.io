@@ -357,10 +357,13 @@
       .vn-ac-main h1{font-size:25px;letter-spacing:-.025em;margin:0 0 8px}
       .vn-ac-subtitle{color:#777;margin:0 0 28px}
       .vn-ac-card-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;background:#E4E3E1}
-      .vn-ac-card{border:1px solid #151515;border-radius:5px;padding:22px;min-height:135px;display:flex;flex-direction:column;align-items:flex-start;text-align:left;background:#000;color:#fff;cursor:pointer}
+      .vn-ac-card{border:1px solid #151515;border-radius:5px;padding:22px;min-height:135px;display:flex;flex-direction:column;align-items:flex-start;text-align:left;background:#000;color:#fff;cursor:pointer;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;outline:none}
+      .vn-ac-card strong,.vn-ac-card span{user-select:none;-webkit-user-select:none;pointer-events:none}
       .vn-ac-card strong{font-size:13px;letter-spacing:.045em;margin-bottom:9px;color:#fff}
       .vn-ac-card span{font-size:13px;color:#fff}
       .vn-ac-card:hover{border-color:#888}
+      .vn-ac-card:focus:not(:focus-visible){outline:none;box-shadow:none}
+      .vn-ac-card:focus-visible{outline:2px solid #777;outline-offset:3px}
       .vn-ac-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px;align-items:center;border:1px solid #dedede;padding:18px 20px;margin:10px 0;border-radius:4px}
       .vn-ac-row strong{display:block;font-size:13px}
       .vn-ac-row small{display:block;color:#777;margin-top:5px;overflow-wrap:anywhere}
