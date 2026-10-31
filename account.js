@@ -465,6 +465,24 @@
       .vn-ac-address-control>input,.vn-ac-address-control>select{box-sizing:border-box;width:100%;min-width:0;min-height:48px;padding:20px 12px 7px;border:1px solid #d7d7d7;border-radius:5px;background:#fff;color:#111;font:13px/1.3 Arial,sans-serif}
       .vn-ac-address-control>input::placeholder{color:#777;opacity:1}
       .vn-ac-address-control>select{padding-right:28px}
+      .vn-ac-field input:focus-visible,
+      .vn-ac-field select:focus-visible,
+      .vn-ac-field textarea:focus-visible,
+      .vn-ac-address-control>input:focus-visible,
+      .vn-ac-address-control>select:focus-visible,
+      .vn-ac-phone-row input:focus-visible,
+      .vn-ac-phone-row select:focus-visible{
+        outline:none!important;
+        outline-offset:0!important;
+        border-color:#777!important;
+        box-shadow:inset 0 0 0 1px rgba(0,0,0,.10)!important;
+        background-color:#fafafa;
+      }
+      .vn-ac-phone-row:focus-within{
+        outline:none;
+        box-shadow:inset 0 0 0 1px rgba(0,0,0,.10);
+        border-radius:5px;
+      }
       .vn-ac-address-city-row{grid-template-columns:1fr 1fr 1fr;gap:10px}
       .vn-ac-phone-row{display:flex;align-items:stretch}
       .vn-ac-phone-row{position:relative;display:flex;align-items:stretch;width:100%;min-width:0}
