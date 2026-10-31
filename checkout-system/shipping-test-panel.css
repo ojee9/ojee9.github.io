@@ -1,0 +1,31 @@
+.shipping-test-panel{
+  margin-top:18px;
+  padding:16px 18px;
+  border:1px solid rgba(20,18,15,.16);
+  border-radius:10px;
+  background:rgba(228,206,165,.22);
+  color:#171512;
+  font-size:13px;
+  line-height:1.45;
+}
+.shipping-test-panel__eyebrow{
+  margin:0 0 8px;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.13em;
+}
+.shipping-test-panel__message{margin:0;color:#514b42}
+.shipping-test-panel__detail{display:grid;gap:7px;margin-top:12px}
+.shipping-test-panel__detail>div{
+  display:flex;
+  justify-content:space-between;
+  gap:16px;
+  align-items:baseline;
+}
+.shipping-test-panel__detail>div span{color:#655e53}
+.shipping-test-panel__detail>div strong{text-align:right;font-weight:650}
+.shipping-test-panel__detail small{display:block;margin-top:5px;color:#756d61;font-size:11px}
+@media(max-width:700px){
+  .shipping-test-panel{padding:14px}
+  .shipping-test-panel__detail>div{gap:10px}
+}

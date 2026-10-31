@@ -8,6 +8,7 @@
 <title>Checkout | VN SHOP®</title>
 <link rel="stylesheet" href="merch.css">
 <link rel="stylesheet" href="checkout.css">
+<link rel="stylesheet" href="checkout-system/shipping-test-panel.css">
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-3EDYHGQD8N"></script>
 <script>
@@ -57,6 +58,10 @@
         <div class="shipping-row"><button id="shipping" type="button">Shipping &amp; Handling <i>?</i></button><span>Calculated at next step</span></div>
         <div class="total"><b>Total</b><b>USD <span id="total">$0.00</span></b></div>
       </div>
+      <section id="shipping-test-panel" class="shipping-test-panel" aria-live="polite" aria-atomic="true">
+        <div class="shipping-test-panel__eyebrow">SHIPPING CALCULATOR · TEST</div>
+        <p class="shipping-test-panel__message">Enter your shipping address to test the calculator response.</p>
+      </section>
     </aside>
   </div>
 </main>
@@ -67,4 +72,5 @@
 </footer>
 <div id="country-modal" class="checkout-dialog" hidden><section class="checkout-dialog-panel" role="dialog" aria-modal="true" aria-labelledby="country-dialog-title"><div class="dialog-mark" aria-hidden="true">!</div><h2 id="country-dialog-title">Shipping availability</h2><p id="country-dialog-message">We're currently trying to reach our premium products to your country right now. Please try again later. — VN Shop</p><button id="country-understand" class="primary" type="button">I understand</button></section></div><div id="modal" hidden><section class="modal" role="dialog" aria-modal="true" aria-labelledby="ptitle"><button id="close" class="modal-close" type="button" aria-label="Close">×</button><h2 id="ptitle">Terms and policies</h2><div class="policy-picker"><button id="policy-select" type="button" aria-expanded="false">Choose a policy <span>⌄</span></button><div id="policy-options" hidden><button data-p="refund" type="button">Refund policy</button><button data-p="shipping" type="button">Shipping</button><button data-p="privacy" type="button">Privacy policy</button><button data-p="terms" type="button">Terms of use</button><button data-p="sale" type="button">Terms and conditions of Sale</button><button data-p="sell" type="button">Do not sell my information</button></div></div><div id="pcontent"></div></section></div>
 <script type="module" src="checkout-system/checkout-system-control.js"></script>
+<script type="module" src="checkout-system/shipping-test-panel.js"></script>
 </body></html>
