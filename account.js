@@ -347,8 +347,8 @@
       .vn-ac-main:has(button[data-ac-section="orders"]) > .vn-ac-subtitle{color:#000}
       .vn-ac-sidebar .vn-ac-nav[data-ac-section="dashboard"],
       .vn-ac-sidebar .vn-ac-nav[data-ac-section="shop"]{color:#000}
-      .vn-ac-shell.vn-ac-dashboard-open .vn-ac-footer-policies .vn-ac-legal-item{color:#000}
-      .vn-ac-shell.vn-ac-dashboard-open .vn-ac-footer-policies .vn-ac-legal-item:hover{color:#000}
+      .vn-ac-shell.vn-ac-dashboard-open .vn-ac-footer-policies .vn-ac-legal-item{color:#000!important}
+      .vn-ac-shell.vn-ac-dashboard-open .vn-ac-footer-policies .vn-ac-legal-item:hover{color:#000!important}
       .vn-ac-shell.vn-ac-dashboard-open .vn-ac-policy-footer-row,
       .vn-ac-shell.vn-ac-dashboard-open .vn-ac-policy-footer-row a,
       .vn-ac-shell.vn-ac-dashboard-open .vn-ac-policy-footer-row button,
