@@ -471,10 +471,10 @@
       .vn-ac-field select:focus-visible,
       .vn-ac-field textarea:focus,
       .vn-ac-field textarea:focus-visible{
-        outline:none!important;
-        outline-offset:0!important;
+        outline:1px solid #111!important;
+        outline-offset:-1px!important;
         border-color:#d7d7d7!important;
-        box-shadow:inset 0 0 0 1px #111!important;
+        box-shadow:none!important;
         background-color:#fff!important;
       }
       .vn-ac-address-control:focus-within,
