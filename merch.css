@@ -318,4 +318,7 @@ body[data-product-page="true"] #detail-overlay .drawer *{-webkit-user-select:non
   body[data-product-page="true"] #detail-overlay .drawer-content{height:auto;overflow:visible!important}
   body[data-product-page="true"] #detail-overlay .detail-thumbnails{max-height:none;overflow:visible}
 }
-
+/* Match the cart drawer to the poster product-card surround. */
+#cart-overlay .drawer,
+#cart-overlay .drawer-head,
+#cart-overlay .cart-summary{background:#D3CABA}
