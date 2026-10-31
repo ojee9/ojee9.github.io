@@ -465,14 +465,27 @@
       .vn-ac-address-control>input,.vn-ac-address-control>select{box-sizing:border-box;width:100%;min-width:0;min-height:48px;padding:20px 12px 7px;border:1px solid #d7d7d7;border-radius:5px;background:#fff;color:#111;font:13px/1.3 Arial,sans-serif}
       .vn-ac-address-control>input::placeholder{color:#777;opacity:1}
       .vn-ac-address-control>select{padding-right:28px}
+      .vn-ac-field{position:relative}
+      .vn-ac-field:focus-within::after{
+        content:"";
+        position:absolute;
+        z-index:3;
+        top:20px;
+        right:0;
+        bottom:0;
+        left:0;
+        border:1px solid #111;
+        border-radius:5px;
+        pointer-events:none;
+      }
       .vn-ac-field input:focus,
       .vn-ac-field input:focus-visible,
       .vn-ac-field select:focus,
       .vn-ac-field select:focus-visible,
       .vn-ac-field textarea:focus,
       .vn-ac-field textarea:focus-visible{
-        outline:1px solid #111!important;
-        outline-offset:-1px!important;
+        outline:none!important;
+        outline-offset:0!important;
         border-color:#d7d7d7!important;
         box-shadow:none!important;
         background-color:#fff!important;
