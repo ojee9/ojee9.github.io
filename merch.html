@@ -937,6 +937,12 @@
       return;
     }
     activeCategory = category.value || "ALL";
+    const params = new URLSearchParams(window.location.search);
+    if (activeCategory === "ALL") params.delete("category");
+    else params.set("category", activeCategory);
+    const queryString = params.toString();
+    const nextUrl = window.location.pathname + (queryString ? "?" + queryString : "") + window.location.hash;
+    window.history.replaceState({}, "", nextUrl);
     renderProducts();
   };
   $("search-form").onsubmit = event => {
