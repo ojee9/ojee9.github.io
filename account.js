@@ -530,7 +530,7 @@
       .vn-ac-dashboard-trail{
         position:absolute;
         inset:0;
-        z-index:0;
+        z-index:5;
         width:100%;
         height:100%;
         pointer-events:none;
@@ -751,9 +751,8 @@
       const animateTrail = () => {
         trailFrame = 0;
         const now = performance.now();
-        trailPoints.splice(0, trailPoints.findIndex(point => now - point.time < 210) < 0
-          ? trailPoints.length
-          : trailPoints.findIndex(point => now - point.time < 210));
+        const firstLivePoint = trailPoints.findIndex(point => now - point.time < 230);
+        trailPoints.splice(0, firstLivePoint < 0 ? trailPoints.length : firstLivePoint);
         trailContext.clearRect(0, 0, trailWidth, trailHeight);
         if (trailPoints.length > 1) {
           trailContext.globalCompositeOperation = "screen";
@@ -762,22 +761,59 @@
           for (let i = 1; i < trailPoints.length; i++) {
             const a = trailPoints[i - 1];
             const b = trailPoints[i];
-            const life = Math.max(0, 1 - (now - b.time) / 210);
+            const life = Math.max(0, 1 - (now - b.time) / 230);
             if (!life) continue;
+
+            const gradient = trailContext.createLinearGradient(a.x, a.y, b.x, b.y);
+            gradient.addColorStop(0, `rgba(139,225,255,${life * 0.34})`);
+            gradient.addColorStop(.52, `rgba(218,190,255,${life * 0.48})`);
+            gradient.addColorStop(1, `rgba(255,239,205,${life * 0.58})`);
+
+            trailContext.beginPath();
+            trailContext.moveTo(a.x - .35, a.y);
+            trailContext.lineTo(b.x - .35, b.y);
+            trailContext.strokeStyle = `rgba(119,224,255,${life * .28})`;
+            trailContext.lineWidth = 3.8 * life;
+            trailContext.shadowColor = `rgba(115,211,255,${life * .5})`;
+            trailContext.shadowBlur = 6 * life;
+            trailContext.stroke();
+
+            trailContext.beginPath();
+            trailContext.moveTo(a.x + .35, a.y);
+            trailContext.lineTo(b.x + .35, b.y);
+            trailContext.strokeStyle = `rgba(224,169,255,${life * .24})`;
+            trailContext.lineWidth = 3.2 * life;
+            trailContext.shadowColor = `rgba(220,160,255,${life * .42})`;
+            trailContext.shadowBlur = 5 * life;
+            trailContext.stroke();
+
             trailContext.beginPath();
             trailContext.moveTo(a.x, a.y);
             trailContext.lineTo(b.x, b.y);
-            trailContext.strokeStyle = `rgba(255,255,255,${life * 0.72})`;
-            trailContext.lineWidth = 0.55 + life * 1.15;
-            trailContext.shadowColor = `rgba(255,255,255,${life * 0.48})`;
-            trailContext.shadowBlur = 3.5 * life;
+            trailContext.strokeStyle = gradient;
+            trailContext.lineWidth = 1.65 + life * .8;
+            trailContext.shadowColor = `rgba(225,215,255,${life * .58})`;
+            trailContext.shadowBlur = 4.5 * life;
+            trailContext.stroke();
+
+            trailContext.beginPath();
+            trailContext.moveTo(a.x, a.y);
+            trailContext.lineTo(b.x, b.y);
+            trailContext.strokeStyle = `rgba(255,255,255,${life * .62})`;
+            trailContext.lineWidth = .65;
+            trailContext.shadowBlur = 0;
             trailContext.stroke();
           }
+
           const head = trailPoints[trailPoints.length - 1];
-          const headLife = Math.max(0, 1 - (now - head.time) / 210);
+          const headLife = Math.max(0, 1 - (now - head.time) / 230);
+          const sparkle = trailContext.createRadialGradient(head.x, head.y, 0, head.x, head.y, 5.5);
+          sparkle.addColorStop(0, `rgba(255,255,255,${headLife * .82})`);
+          sparkle.addColorStop(.28, `rgba(192,231,255,${headLife * .38})`);
+          sparkle.addColorStop(1, "rgba(220,185,255,0)");
           trailContext.beginPath();
-          trailContext.arc(head.x, head.y, 1.15, 0, Math.PI * 2);
-          trailContext.fillStyle = `rgba(255,255,255,${headLife * 0.72})`;
+          trailContext.arc(head.x, head.y, 5.5, 0, Math.PI * 2);
+          trailContext.fillStyle = sparkle;
           trailContext.fill();
         }
         trailContext.shadowBlur = 0;
