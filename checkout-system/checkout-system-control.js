@@ -1,4 +1,4 @@
-import{cart}from"./checkout-data.js";import{state}from"./checkout-state.js";import{validEmail}from"./checkout-engine.js";import{render,policy,close}from"./checkout-view.js";
+import{cart,money}from"./checkout-data.js";import{state}from"./checkout-state.js";import{validEmail}from"./checkout-engine.js";import{render,updateShippingSummary,policy,close}from"./checkout-view.js";import{calculateCheckout}from"./shipping-calculator.js";
 state.cart=cart();render(state.cart);
 const form=document.getElementById("info"),country=document.getElementById("country"),phoneCountry=document.getElementById("phoneCountry"),countryDialog=document.getElementById("country-modal"),policyDialog=document.getElementById("modal"),policyOptions=document.getElementById("policy-options"),policySelect=document.getElementById("policy-select");
 const dial=()=>{const m=phoneCountry.selectedOptions[0]?.textContent.match(/\+(\d{1,4})/);return m?"+"+m[1]:""};
@@ -13,6 +13,63 @@ updatePhone();if(country.value!=="TR")showCountry();
 /* Country-scoped Geoapify autocomplete with VN SHOP-owned suggestion UI. */
 const addressInput=document.getElementById("address"),addressSuggestions=document.getElementById("address-suggestions");
 const cityInput=document.getElementById("city"),stateInput=document.getElementById("state"),postalInput=document.getElementById("postal");
+
+/* Live shipping estimate is displayed in the order summary only. */
+const normalizeShippingCity=value=>String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLocaleLowerCase("tr-TR").replace(/\\s+/g," ").trim();
+const turkishProvinces=new Set("adana adiyaman afyonkarahisar agri amasya ankara antalya artvin aydin balikesir bilecik bingol bitlis bolu burdur bursa canakkale cankiri corum denizli diyarbakir edirne elazig erzincan erzurum eskisehir gaziantep giresun gumushane hakkari hatay igdir isparta istanbul izmir kahramanmaras karabuk karaman kars kastamonu kayseri kilis kirikkale kirklareli kirsehir kocaeli konya kutahya malatya manisa mardin mersin mugla mus nevsehir nigde ordu osmaniye rize sakarya samsun siirt sinop sivas sanliurfa sirnak tekirdag tokat trabzon tunceli usak van yalova yozgat zonguldak".split(" "));
+const profileForPoster=(product,variant)=>{
+ const size=String(variant||"").replace(/[×*]/g,"x").replace(/cm/gi,"").replace(/\\s+/g,"").toLowerCase();
+ const id=String(product?.id||"").toLowerCase();
+ if(id==="gta-love-poster-1")return({"40x30":"POSTER_40x30","80x60":"POSTER_80x60","120x80":"POSTER_120x80"})[size]||null;
+ if(id==="gta-love-poster-2")return({"30x45":"POSTER_30x45","45x60":"POSTER_45x60","60x90":"POSTER_60x90"})[size]||null;
+ return({"45x60":"POSTER_45x60","60x90":"POSTER_60x90","80x120":"POSTER_80x120"})[size]||null;
+};
+const prepareShippingCart=items=>items.map(line=>{
+ const product=line?.product||{};
+ const category=String(product.category||"").toUpperCase();
+ const type=String(product.type||"").toUpperCase();
+ let shippingProfile=null;
+ if(category==="CD"||type.includes("CD"))shippingProfile="CD";
+ else if(type==="POSTER"||(category==="XTRAS"&&String(product.name||"").toUpperCase().includes("POSTER")))shippingProfile=profileForPoster(product,line.variant);
+ return{...line,shippingProfile};
+});
+let shippingCalculationTimer;
+const calculateOrderSummary=()=>{
+ const city=normalizeShippingCity(cityInput.value);
+ if(country.value!=="TR"||!turkishProvinces.has(city)){
+  updateShippingSummary({shippingAndHandling:null,estimatedTaxes:null});
+  return;
+ }
+ if(!state.cart.length){
+  updateShippingSummary({shippingAndHandling:null,estimatedTaxes:null,shippingLabel:"Unavailable"});
+  return;
+ }
+ const destinationType=city==="ankara"?"intracity":"intercity";
+ try{
+  const result=calculateCheckout(prepareShippingCart(state.cart),{destinationType});
+  const estimatedTaxes=Number.isFinite(Number(result.estimatedTaxes?.amount))?Number(result.estimatedTaxes.amount):null;
+  const shippingAndHandling=result.status==="ok"&&Number.isFinite(Number(result.shipping?.amount))&&Number.isFinite(Number(result.handling?.amount))
+   ?Number(result.shipping.amount)+Number(result.handling.amount):null;
+  updateShippingSummary({
+   shippingAndHandling,
+   estimatedTaxes,
+   shippingLabel:shippingAndHandling===null?"Manual quote required":undefined
+  });
+ }catch(error){
+  console.error("VN shipping calculation failed:",error);
+  updateShippingSummary({shippingAndHandling:null,estimatedTaxes:null,shippingLabel:"Unable to calculate"});
+ }
+};
+const scheduleShippingCalculation=()=>{
+ window.clearTimeout(shippingCalculationTimer);
+ shippingCalculationTimer=window.setTimeout(calculateOrderSummary,350);
+};
+[cityInput,country].forEach(field=>{
+ field.addEventListener("input",scheduleShippingCalculation);
+ field.addEventListener("change",scheduleShippingCalculation);
+});
+window.requestAnimationFrame(scheduleShippingCalculation);
+
 let suggestionRequest=0,activeSuggestion=-1,currentSuggestions=[],isApplyingSuggestion=false;
 const hideAddressSuggestions=()=>{addressSuggestions.hidden=true;addressInput.setAttribute("aria-expanded","false");addressInput.removeAttribute("aria-activedescendant");activeSuggestion=-1};
 const clearAddressSuggestions=()=>{suggestionRequest++;currentSuggestions=[];addressSuggestions.replaceChildren();hideAddressSuggestions()};
