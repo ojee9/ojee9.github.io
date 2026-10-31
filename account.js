@@ -518,6 +518,10 @@
         box-shadow:none!important;
         background-color:#fff!important;
       }
+      .vn-ac-phone-row select:focus,
+      .vn-ac-phone-row select:focus-visible{
+        background-color:transparent!important;
+      }
       .vn-ac-address-city-row{grid-template-columns:1fr 1fr 1fr;gap:10px}
       .vn-ac-phone-row{display:flex;align-items:stretch}
       .vn-ac-phone-row{position:relative;display:flex;align-items:stretch;width:100%;min-width:0}
