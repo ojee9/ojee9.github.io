@@ -409,7 +409,7 @@
     doNotSell: config.paths?.doNotSell || config.policies?.links?.doNotSell || "policies/legal-notice.html"
   };
 
-  category.innerHTML = '<option value="" selected></option>' + categories.map(item => {
+  category.innerHTML = '<option value="" selected disabled hidden></option>' + categories.map(item => {
     const value = typeof item === "string" ? item : item.value;
     const label = typeof item === "string" ? item : item.label || value;
     return `<option value="${esc(value)}">${esc(label)}</option>`;
