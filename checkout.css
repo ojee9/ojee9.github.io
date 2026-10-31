@@ -500,3 +500,13 @@ body.checkout-page{margin:0;background:#C6BBA7;color:#f5f5f5;font:13px Arial,Hel
 @media(max-width:600px){
   .checkout-page .vn-ac-phone-help{right:60px!important}
 }
+
+
+/* Phone field only: remove country-selector divider and inset its label. */
+.checkout-page .vn-ac-phone-row select{
+  border-left:0!important;
+  box-shadow:none!important;
+}
+.checkout-page .vn-ac-address-control:has(.vn-ac-phone-row)>span{
+  left:12px!important;
+}
