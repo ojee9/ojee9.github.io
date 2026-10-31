@@ -797,13 +797,13 @@ body.checkout-page{margin:0;background:#C6BBA7;color:#f5f5f5;font:13px Arial,Hel
 }
 .checkout-page .shipping-method-radio{
   appearance:auto;-webkit-appearance:radio;
-  flex:0 0 16px;width:16px;height:16px;margin:0;
+  flex:0 0 17px;width:17px;height:17px;margin:0;
   accent-color:#e4cea5;cursor:pointer;
 }
 .checkout-page .shipping-method-option:has(.shipping-method-radio:checked){
-  border-color:#bba77f;
-  background:linear-gradient(135deg,#242016,#15130f);
-  box-shadow:inset 0 0 0 1px rgba(228,206,165,.12),0 0 15px rgba(228,206,165,.08);
+  border-color:#e4cea5;
+  background:linear-gradient(135deg,rgba(228,206,165,.13),#171510 72%);
+  box-shadow:inset 0 0 0 1px rgba(228,206,165,.2),0 0 0 1px rgba(228,206,165,.14),0 0 18px rgba(228,206,165,.2);
 }
 .checkout-page .shipping-method-option:has(.shipping-method-radio:focus-visible){
   outline:2px solid #e4cea5;outline-offset:3px;
