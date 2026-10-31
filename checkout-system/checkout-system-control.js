@@ -13,7 +13,7 @@ updatePhone();if(country.value!=="TR")showCountry();
 /* Country-scoped Geoapify autocomplete with VN SHOP-owned suggestion UI. */
 const addressInput=document.getElementById("address"),addressSuggestions=document.getElementById("address-suggestions");
 const cityInput=document.getElementById("city"),stateInput=document.getElementById("state"),postalInput=document.getElementById("postal");
-let suggestionRequest=0,activeSuggestion=-1,currentSuggestions=[];
+let suggestionRequest=0,activeSuggestion=-1,currentSuggestions=[],isApplyingSuggestion=false;
 const hideAddressSuggestions=()=>{addressSuggestions.hidden=true;addressInput.setAttribute("aria-expanded","false");addressInput.removeAttribute("aria-activedescendant");activeSuggestion=-1};
 const clearAddressSuggestions=()=>{suggestionRequest++;currentSuggestions=[];addressSuggestions.replaceChildren();hideAddressSuggestions()};
 const geoapifyAddress=result=>result?.properties||result||{};
@@ -36,15 +36,21 @@ const renderAddressSuggestions=results=>{
 };
 const fillAddressFromGeoapify=result=>{
  const p=geoapifyAddress(result),isTurkey=country.value==="TR";
- const street=p.address_line1||[p.street,p.housenumber].filter(Boolean).join(" ")||p.formatted||"";
+ const streetName=p.street||p.address_line1||p.name||"";
+ const normalizedStreet=isTurkey?streetName.replace(/\bSokağı\b/gi,"Sokak"):streetName;
+ const street=[normalizedStreet,p.housenumber].filter(Boolean).join(" ")||p.formatted||"";
  const city=isTurkey?(p.state||p.city||p.town||""):(p.city||p.town||p.village||p.municipality||p.state||"");
  const district=isTurkey?(p.county||p.district||p.suburb||""):(p.state||p.county||"");
+ window.clearTimeout(addressSearchTimer);
+ clearAddressSuggestions();
  addressInput.value=street;
  cityInput.value=city;
  stateInput.value=district;
  postalInput.value=p.postcode||"";
+ isApplyingSuggestion=true;
  [addressInput,cityInput,stateInput,postalInput].forEach(field=>{field.dispatchEvent(new Event("input",{bubbles:true}));field.dispatchEvent(new Event("change",{bubbles:true}))});
- hideAddressSuggestions();addressInput.blur();
+ isApplyingSuggestion=false;
+ addressInput.blur();
 };
 const searchAddressSuggestions=async()=>{
  const query=addressInput.value.trim(),requestId=++suggestionRequest,region=country.value.toLowerCase(),key=String(window.VN_GEOAPIFY_API_KEY||"").trim();
@@ -64,7 +70,7 @@ const searchAddressSuggestions=async()=>{
  }catch(error){if(requestId===suggestionRequest)hideAddressSuggestions();console.warn("VN address autocomplete unavailable; manual entry remains enabled.",error)}
 };
 let addressSearchTimer;
-addressInput.addEventListener("input",()=>{window.clearTimeout(addressSearchTimer);if(addressInput.value.trim().length<3){clearAddressSuggestions();return}addressSearchTimer=window.setTimeout(searchAddressSuggestions,350)});
+addressInput.addEventListener("input",()=>{if(isApplyingSuggestion)return;window.clearTimeout(addressSearchTimer);if(addressInput.value.trim().length<3){clearAddressSuggestions();return}addressSearchTimer=window.setTimeout(searchAddressSuggestions,350)});
 addressInput.addEventListener("keydown",event=>{
  if(addressSuggestions.hidden)return;
  if(event.key==="ArrowDown"||event.key==="ArrowUp"){event.preventDefault();activeSuggestion=(activeSuggestion+(event.key==="ArrowDown"?1:-1)+currentSuggestions.length)%currentSuggestions.length;[...addressSuggestions.children].forEach((node,index)=>node.setAttribute("aria-selected",String(index===activeSuggestion)));addressInput.setAttribute("aria-activedescendant","address-suggestion-"+activeSuggestion)}
