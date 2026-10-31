@@ -989,13 +989,18 @@
 
   [detail, cartOverlay].forEach(overlay => {
     overlay.onclick = event => {
-      if (event.target === overlay) closeOverlay(overlay);
+      if (event.target === overlay) {
+        if (overlay === detail && document.body.dataset.productPage === "true") return;
+        closeOverlay(overlay);
+      }
     };
   });
 
   document.addEventListener("keydown", event => {
     if (event.key === "Escape") {
-      document.querySelectorAll(".drawer-overlay.is-open").forEach(closeOverlay);
+      document.querySelectorAll(".drawer-overlay.is-open").forEach(overlay => {
+        if (!(overlay === detail && document.body.dataset.productPage === "true")) closeOverlay(overlay);
+      });
     }
   });
 
