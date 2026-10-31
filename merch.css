@@ -296,3 +296,5 @@ body[data-product-page="true"] #detail-page-slot{width:100%}
 body[data-product-page="true"] .products{display:none}
 body[data-product-page="true"] main{min-height:0}
 @media(max-width:700px){body[data-product-page="true"] #detail-overlay .drawer-content{padding:20px 18px 28px}}
+/* Keep the standalone product board compact and centered on desktop. */
+@media(min-width:1001px){body[data-product-page="true"] #detail-overlay .drawer{width:min(1100px,calc(90% - 520px));margin-left:auto;margin-right:auto}}
