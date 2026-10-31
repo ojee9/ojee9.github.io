@@ -1018,6 +1018,14 @@
 
   renderProducts(); renderCart();
   if (document.body.dataset.productPage === "true") {
+    const productMain = document.querySelector("main");
+    productMain?.addEventListener("click", event => {
+      if (!event.target.closest("#detail-overlay .drawer")) {
+        window.location.href = "/merch.html";
+      }
+    });
+  }
+  if (document.body.dataset.productPage === "true") {
     const requestedProduct = products.find(product => product.id === document.body.dataset.productId && product.active !== false);
     if (requestedProduct) openProduct(requestedProduct);
     else { const slot = document.getElementById("detail-page-slot"); if (slot) slot.textContent = "PRODUCT NOT FOUND"; }
