@@ -1290,3 +1290,45 @@ body.checkout-page{margin:0;background:#C6BBA7;color:#f5f5f5;font:13px Arial,Hel
  outline:0!important;
  box-shadow:none!important;
 }
+
+/* Use the Card number's outer-wrapper focus frame for every Payment field. */
+.checkout-page .payment-section .payment-card-fields .vn-ac-address-control:has(>input),
+.checkout-page .billing-section .billing-fields .vn-ac-address-control:has(>input),
+.checkout-page .billing-section .billing-fields .vn-ac-address-control:has(>select){
+ box-sizing:border-box;
+ border:1px solid #4b463f!important;
+ border-radius:3px!important;
+ background:#111!important;
+ transition:border-color .18s ease,background .18s ease,box-shadow .18s ease!important;
+}
+.checkout-page .payment-section .payment-card-fields .vn-ac-address-control:has(>input:focus),
+.checkout-page .billing-section .billing-fields .vn-ac-address-control:has(>input:focus),
+.checkout-page .billing-section .billing-fields .vn-ac-address-control:has(>select:focus){
+ border-color:#c6bba7!important;
+ background:#141414!important;
+ box-shadow:none!important;
+}
+.checkout-page .payment-section .payment-card-fields .vn-ac-address-control>input,
+.checkout-page .billing-section .billing-fields .vn-ac-address-control>input,
+.checkout-page .billing-section .billing-fields .vn-ac-address-control>select{
+ box-sizing:border-box!important;
+ width:100%!important;
+ height:calc(100% - 2px)!important;
+ min-height:0!important;
+ border:0!important;
+ border-radius:2px!important;
+ background:transparent!important;
+ outline:0!important;
+ box-shadow:none!important;
+}
+.checkout-page .payment-section .payment-card-fields .vn-ac-address-control>input:focus,
+.checkout-page .payment-section .payment-card-fields .vn-ac-address-control>input:focus-visible,
+.checkout-page .billing-section .billing-fields .vn-ac-address-control>input:focus,
+.checkout-page .billing-section .billing-fields .vn-ac-address-control>input:focus-visible,
+.checkout-page .billing-section .billing-fields .vn-ac-address-control>select:focus,
+.checkout-page .billing-section .billing-fields .vn-ac-address-control>select:focus-visible{
+ border:0!important;
+ background:transparent!important;
+ outline:0!important;
+ box-shadow:none!important;
+}
