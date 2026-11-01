@@ -171,12 +171,12 @@ const showShippingStep=data=>{
  const estimate=document.getElementById("shipping-estimate").textContent.trim();
  document.getElementById("shipping-method-price").textContent=estimate;
  form.hidden=true;shippingStep.hidden=false;addressConfirmation.hidden=true;
- progressInformation.classList.remove("is-current");progressInformation.removeAttribute("aria-current");
+ progressInformation.classList.remove("is-current");progressInformation.removeAttribute("aria-current");progressInformation.classList.add("is-complete");
  progressShipping.classList.add("is-current");progressShipping.setAttribute("aria-current","step");
  document.getElementById("shipping-payment-notice").hidden=true;paymentStep.hidden=true;
  window.scrollTo({top:0,behavior:"smooth"});
 };
-const returnToInformation=()=>{shippingStep.hidden=true;form.hidden=false;progressShipping.classList.remove("is-current");progressShipping.removeAttribute("aria-current");progressInformation.classList.add("is-current");progressInformation.setAttribute("aria-current","step");window.scrollTo({top:0,behavior:"smooth"})};
+const returnToInformation=()=>{shippingStep.hidden=true;paymentStep.hidden=true;form.hidden=false;document.body.classList.remove("checkout-after-information");progressShipping.classList.remove("is-current","is-complete");progressShipping.removeAttribute("aria-current");progressPayment.classList.remove("is-current","is-complete");progressPayment.removeAttribute("aria-current");progressInformation.classList.add("is-current");progressInformation.setAttribute("aria-current","step");window.scrollTo({top:0,behavior:"smooth"})};
 form.addEventListener("input",()=>{if(!addressConfirmation.hidden){addressConfirmation.hidden=true;addressConfirmed=false}});
 form.addEventListener("change",()=>{if(!addressConfirmation.hidden){addressConfirmation.hidden=true;addressConfirmed=false}});
 form.addEventListener("submit",e=>{e.preventDefault();if(!form.reportValidity())return;if(country.value!=="TR"){showCountry();return}if(!validEmail(document.getElementById("email").value)){document.getElementById("email").focus();return}const data=collectInformation();if(!addressConfirmed){renderAddressConfirmation(data);addressConfirmation.hidden=false;addressConfirmed=true;addressConfirmation.scrollIntoView({behavior:"smooth",block:"nearest"});return}showShippingStep(data)});
@@ -191,14 +191,18 @@ const showPaymentStep=()=>{
  document.getElementById("payment-contact-summary").textContent=contact;
  document.getElementById("payment-address-summary").textContent=address;
  document.getElementById("payment-shipping-price").textContent=document.getElementById("shipping-method-price").textContent;
- shippingStep.hidden=true;paymentStep.hidden=false;
- progressShipping.classList.remove("is-current");progressShipping.removeAttribute("aria-current");
+ shippingStep.hidden=true;paymentStep.hidden=false;document.body.classList.add("checkout-after-information");
+ progressShipping.classList.remove("is-current");progressShipping.removeAttribute("aria-current");progressShipping.classList.add("is-complete");
  progressPayment.classList.add("is-current");progressPayment.setAttribute("aria-current","step");
  document.getElementById("shipping-payment-notice").hidden=true;
  window.scrollTo({top:0,behavior:"smooth"});
 };
-const returnToShipping=()=>{paymentStep.hidden=true;shippingStep.hidden=false;progressPayment.classList.remove("is-current");progressPayment.removeAttribute("aria-current");progressShipping.classList.add("is-current");progressShipping.setAttribute("aria-current","step");window.scrollTo({top:0,behavior:"smooth"})};
+const returnToShipping=()=>{paymentStep.hidden=true;shippingStep.hidden=false;document.body.classList.add("checkout-after-information");progressPayment.classList.remove("is-current","is-complete");progressPayment.removeAttribute("aria-current");progressShipping.classList.add("is-current");progressShipping.setAttribute("aria-current","step");window.scrollTo({top:0,behavior:"smooth"})};
 document.getElementById("continue-to-payment").addEventListener("click",showPaymentStep);
+progressInformation.addEventListener("click",event=>{if(!form.hidden){event.preventDefault();return}event.preventDefault();returnToInformation()});
+progressShipping.addEventListener("click",event=>{if(paymentStep.hidden){event.preventDefault();return}event.preventDefault();returnToShipping()});
+progressPayment.addEventListener("click",event=>event.preventDefault());
+
 document.getElementById("return-to-shipping").addEventListener("click",returnToShipping);
 document.getElementById("change-shipping").addEventListener("click",returnToShipping);
 const paymentOptions=[...document.querySelectorAll("[data-payment-option]")];

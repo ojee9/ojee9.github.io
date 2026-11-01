@@ -1144,3 +1144,12 @@ body.checkout-page{margin:0;background:#C6BBA7;color:#f5f5f5;font:13px Arial,Hel
 .checkout-page .payment-card-number input:not(:placeholder-shown)::placeholder{opacity:0!important}
 .checkout-page .payment-field-card:focus-within>span,
 .checkout-page .payment-field-card:has(.payment-card-number input:not(:placeholder-shown))>span{opacity:1!important;transform:translateY(0)!important}
+
+
+/* Checkout progress: completed steps are one-click navigation links. */
+.checkout-page .progress a{color:#ddd;text-decoration:none;cursor:pointer}
+.checkout-page .progress a:hover{text-decoration:underline;color:#fff}
+.checkout-page .progress a.is-current{color:#fff;font-weight:600;pointer-events:none}
+.checkout-page .progress a.is-complete{color:#e4cea5;text-decoration:underline}
+.checkout-page.checkout-after-information .or{display:none!important}
+.checkout-page.checkout-after-information .express{display:none!important}
