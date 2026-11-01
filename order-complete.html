@@ -10,7 +10,7 @@
 <link rel="icon" type="image/png" href="images/vn-logo-official.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Courier+Prime:wght@400;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&display=swap" rel="stylesheet">
 <style>
 :root{--black:#050505;--silver:#E4E3E1;--smoke:#BFC5C8;--camel:#C6BBA7;--ink:#171717;--line:rgba(23,23,23,.22);--muted:#625e58}
 *{box-sizing:border-box}
@@ -248,6 +248,28 @@ a.package-card:hover{background:rgba(240,237,231,.42)!important;transform:transl
 a.package-card{box-shadow:none!important;filter:none!important;transition:transform .25s ease!important}
 .scene--credits::after,.scene--welcome::after,.scene--package::after{height:clamp(300px,52vh,600px);filter:blur(22px);transform:translateY(8%);opacity:var(--blend-opacity,0)}
 @media(max-width:600px){.receipt-meta--order{grid-template-columns:1fr;gap:10px}.swipe-cue{bottom:14px;gap:12px}}
+
+/* Final requested refinements */
+.created{display:flex;flex-direction:column;align-items:center;gap:5px;letter-spacing:0}
+.created-label{font:500 8px/1 Inter,Arial,sans-serif;letter-spacing:.34em;text-transform:uppercase;color:rgba(255,255,255,.42)}
+.created-by{font:italic 500 clamp(23px,3.2vw,34px)/1.05 "Cormorant Garamond",Georgia,serif;letter-spacing:.015em;color:rgba(255,255,255,.9)}
+.created-by strong{font-weight:600;color:#fff;letter-spacing:.025em}
+.space-ad-card:hover,.space-ad-card:focus-visible{background:radial-gradient(ellipse at 50% 48%,rgba(255,255,255,.18),transparent 58%),linear-gradient(145deg,#08090d,#171820 58%,#090a0e)!important;transform:none!important;box-shadow:none!important;filter:none!important}
+.space-ad-card{transition:none!important}
+.receipt-meta--order{grid-template-columns:repeat(3,minmax(0,1fr))}
+.receipt-meta--order>div{min-width:0}
+.receipt-meta--order .meta-value{overflow-wrap:anywhere;line-height:1.5}
+#order-status,#receipt-payment-status{font-family:Inter,Arial,sans-serif;font-size:9px;letter-spacing:.08em;text-transform:uppercase}
+.scene--credits{background:#000}
+.scene--credits::after{height:78vh;filter:blur(76px);opacity:1;background:radial-gradient(ellipse 78% 52% at 50% 100%,rgba(228,227,225,.86) 0%,rgba(180,184,190,.42) 42%,rgba(0,0,0,0) 100%)}
+.scene--welcome{background-color:#E4E3E1;background-image:radial-gradient(ellipse 78% 55% at 50% 100%,rgba(191,197,200,.92) 0%,rgba(191,197,200,.58) 43%,rgba(191,197,200,0) 100%),radial-gradient(ellipse at 26% 28%,rgba(177,218,255,.16),transparent 43%),radial-gradient(ellipse at 76% 72%,rgba(255,190,226,.17),transparent 46%),radial-gradient(ellipse at 52% 48%,rgba(255,255,255,.2),transparent 54%)}
+.scene--welcome::after{height:78vh;filter:blur(82px);opacity:1;background:radial-gradient(ellipse 82% 56% at 50% 100%,rgba(191,197,200,.96) 0%,rgba(191,197,200,.52) 48%,rgba(191,197,200,0) 100%)}
+.scene--package{background:radial-gradient(ellipse 84% 58% at 50% 0%,rgba(191,197,200,.95) 0%,rgba(191,197,200,.48) 52%,rgba(191,197,200,0) 100%),radial-gradient(ellipse 90% 58% at 50% 100%,rgba(198,187,167,.96) 0%,rgba(198,187,167,.55) 50%,rgba(198,187,167,0) 100%),linear-gradient(135deg,#c9c5bf 0%,#b7b3ad 42%,#d4cec3 100%)}
+.scene--package::after{height:82vh;filter:blur(84px);opacity:1;background:radial-gradient(ellipse 84% 56% at 50% 100%,rgba(198,187,167,.98) 0%,rgba(198,187,167,.58) 48%,rgba(198,187,167,0) 100%)}
+.scene--receipt{background:radial-gradient(ellipse 90% 36% at 50% 0%,rgba(198,187,167,.9) 0%,rgba(198,187,167,0) 100%),linear-gradient(180deg,#c6bba7 0%,#d0c5b2 18%,#c6bba7 52%,#E4CEA5 100%)}
+.scene--credits::after,.scene--welcome::after,.scene--package::after{--blend-opacity:1}
+@media(max-width:600px){.receipt-meta--order{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -259,7 +281,7 @@ a.package-card{box-shadow:none!important;filter:none!important;transition:transf
     <p class="credits-copy">WE'LL MISS YOU. TAKE YOUR TIME WHILE WE GET YOUR ORDER DETAILS READY.</p>
     <button class="skip-link" id="skip-to-receipt" type="button">TAKE ME DIRECTLY TO THE ORDER DETAILS</button>
     <div class="credits-bottom">
-      <div class="created">Created by 9ojeez9</div>
+      <div class="created"><span class="created-label">A VN ORIGINAL</span><span class="created-by">Created by <strong>9ojeez9</strong></span></div>
       <div class="copyright-line">© 2026 VN RECORDS. ALL RIGHTS RESERVED.</div>
       <img class="creator-logo" src="images/9ojeez9-logo-banner-white.png" alt="9ojeez9" loading="eager">
     </div>
@@ -342,6 +364,8 @@ a.package-card{box-shadow:none!important;filter:none!important;transition:transf
           <div><span class="meta-label">ORDER NUMBER</span><span class="meta-value" id="order-number">—</span></div>
           <div><span class="meta-label">ORDER DATE</span><span class="meta-value" id="order-date">—</span></div>
           <div><span class="meta-label">VN CODE</span><span class="meta-value" id="vn-code">—</span></div>
+          <div><span class="meta-label">ORDER STATUS</span><span class="meta-value" id="order-status">PENDING CONFIRMATION</span></div>
+          <div><span class="meta-label">PAYMENT STATUS</span><span class="meta-value" id="receipt-payment-status">NOT PROCESSED</span></div>
         </div>
       </section>
       <section class="receipt-section">
@@ -399,6 +423,8 @@ const total=items.reduce((sum,line)=>{const product=line.product||line;const pri
 set("subtotal",money(order?.subtotal??order?.sub_total??total));
 set("order-number",order?.orderNumber||order?.order_number||order?.id||"—");
 set("vn-code",order?.vnCode||order?.vn_code||"—");
+set("order-status",order?.orderStatus||order?.order_status||"Pending confirmation");
+set("receipt-payment-status",order?.paymentStatusLabel||order?.payment_status_label||"Not processed");
 const date=order?.createdAt||order?.created_at||order?.orderDate||order?.date;
 set("order-date",date?new Intl.DateTimeFormat("en-US",{dateStyle:"long"}).format(new Date(date)):new Intl.DateTimeFormat("en-US",{dateStyle:"long"}).format(new Date()));
 const customer=order?.customer||{};
@@ -407,6 +433,7 @@ set("customer-email",info.email||order?.email||customer.email);
 set("customer-phone",[info.phoneCountry,info.phone].filter(Boolean).join(" ")||info.phone||customer.phone);
 const address=[info.address,info.apartment,info.city,info.state,info.postal,info.country].filter(Boolean).join(", ");
 set("shipping-address",order?.shippingAddress||order?.shipping_address||address||customer.address);
+set("shipping-method",order?.shippingMethod||order?.shipping_method||"Pending confirmation");
 if(items.length){
  $("receipt-items").innerHTML=items.map(line=>{
   const product=line.product||line;const name=product.name||product.title||line.name||"Product";
