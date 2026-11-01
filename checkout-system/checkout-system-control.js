@@ -209,6 +209,34 @@ const syncPaymentMethod=()=>{
  paymentCardFields.hidden=selected!=="card";
 };
 document.querySelectorAll('input[name="payment-method"]').forEach(input=>input.addEventListener("change",syncPaymentMethod));
+
+const paymentCardNumber=document.getElementById("payment-card-number");
+const acceptedCardBrands=document.getElementById("accepted-card-brands");
+const detectPaymentCardBrand=value=>{
+ const digits=value.replace(/\\D/g,"");
+ if(!digits)return null;
+ const starts=(prefix)=>digits.startsWith(prefix);
+ const inRange=(prefix,length,min,max)=>{
+  if(digits.length<length)return false;
+  const n=Number(digits.slice(0,length));return n>=min&&n<=max;
+ };
+ if(starts("4"))return "visa";
+ if(starts("34")||starts("37"))return "amex";
+ if(starts("6011")||starts("65")||inRange("644",3,644,649)||inRange("622",6,622126,622925))return "discover";
+ if(["401178","401179","431274","438935","451416","457393","504175","5067","509","627780","636297","636368","650","6516","6550"].some(prefix=>digits.startsWith(prefix)))return "elo";
+ if(inRange("3528",4,3528,3589))return "jcb";
+ if(starts("62"))return "unionpay";
+ if(inRange("51",2,51,55)||inRange("2221",4,2221,2720))return "mastercard";
+ return null;
+};
+paymentCardNumber.addEventListener("input",()=>{
+ const brand=detectPaymentCardBrand(paymentCardNumber.value);
+ acceptedCardBrands.querySelectorAll("[data-card-brand]").forEach(mark=>{
+  mark.hidden=Boolean(brand)&&mark.dataset.cardBrand!==brand;
+ });
+ acceptedCardBrands.classList.toggle("has-detected-brand",Boolean(brand));
+});
+
 syncPaymentMethod();
 document.querySelectorAll('input[name="billing-address-choice"]').forEach(input=>input.addEventListener("change",()=>{document.getElementById("billing-fields").hidden=input.value!=="different"||!input.checked}));
 document.getElementById("billing-country").innerHTML=country.innerHTML;
