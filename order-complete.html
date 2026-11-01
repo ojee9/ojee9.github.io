@@ -297,6 +297,16 @@ a.package-card{box-shadow:none!important;filter:none!important;transition:transf
 .scene--credits::after,.scene--welcome::after,.scene--package::after{--blend-opacity:1}
 @media(max-width:600px){.receipt-meta--order{grid-template-columns:1fr}}
 
+
+/* 03 — weekly VN SHOP homepage preview */
+.package-cards>.package-card--shop-preview .package-product-intro{display:flex;flex-direction:column;min-height:0;flex:1;margin:0 0 12px}
+.package-cards>.package-card--shop-preview .package-product-intro h3{margin:0 0 6px}
+.package-cards>.package-card--shop-preview .package-product-intro p{margin:0!important}
+.vn-shop-preview{display:block;position:relative;flex:1;min-height:74px;max-height:clamp(78px,10vw,124px);aspect-ratio:16/9;overflow:hidden;margin-top:12px;border:1px solid rgba(14,12,10,.24);background:linear-gradient(135deg,#D2C9BA,#E4CEA5);text-decoration:none}
+.vn-shop-preview img{display:block;width:100%;height:100%;object-fit:cover;object-position:top center}
+.vn-shop-preview-fallback{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#0E0C0A;font-size:clamp(14px,2vw,22px);font-weight:800;letter-spacing:.12em;text-align:center}
+.vn-shop-preview-fallback small{margin-top:5px;font-size:7px;letter-spacing:.2em;font-weight:600}
+@media(max-width:760px){.package-cards>.package-card--shop-preview .package-product-intro{margin-bottom:8px}.vn-shop-preview{min-height:58px;max-height:90px;margin-top:8px}}
 </style>
 </head>
 <body>
@@ -359,11 +369,15 @@ a.package-card{box-shadow:none!important;filter:none!important;transition:transf
         <article class="package-card">
           <span class="card-no">02 / WHAT'S INSIDE</span><div><div class="package-product-intro"><h3>PRODUCT</h3><p>Explore the specifications, materials and edition information listed with each product.</p></div><p id="package-contents">—</p></div><span class="card-link">YOUR SELECTION</span>
         </article>
-        <article class="package-card">
+        <article class="package-card package-card--shop-preview">
           <span class="card-no">03 / DISCOVER MORE</span>
-          <div>
+          <div class="package-product-intro">
             <h3>VN SHOP</h3>
             <p>Find more releases, objects and selected pieces from the VN SHOP catalog.</p>
+            <a class="vn-shop-preview" href="merch.html" aria-label="Open VN SHOP">
+              <img src="images/vn-shop-weekly.png" alt="Weekly preview of the VN SHOP homepage" onerror="this.hidden=true;this.nextElementSibling.hidden=false">
+              <span class="vn-shop-preview-fallback" hidden>VN SHOP<br><small>WEEKLY STORE PREVIEW</small></span>
+            </a>
           </div>
           <a class="card-link" href="merch.html">EXPLORE THE SHOP ↗</a>
         </article>
