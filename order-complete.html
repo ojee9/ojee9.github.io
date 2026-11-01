@@ -75,7 +75,7 @@ a.package-card:hover{background:rgba(255,255,255,.52);transform:translateY(-3px)
 .package-card .card-no{font-size:8px;letter-spacing:.2em;opacity:.58}
 .package-card h3{margin:24px 0 8px;font-size:clamp(15px,2vw,23px);font-weight:700;letter-spacing:-.05em}
 .package-card p{margin:0;color:rgba(25,25,25,.62);font-size:10px;line-height:1.7}
-.package-product-intro{margin:0 0 14px}.package-product-intro h3{margin:0 0 6px}.package-product-intro p{margin:0!important}#package-contents{white-space:pre-line}
+.package-product-intro{margin:0 0 14px}.package-product-intro h3{margin:0 0 6px}.package-product-intro p{margin:0!important}#package-contents{display:grid;gap:0;margin-top:2px}.package-spec-item{display:grid;grid-template-columns:26px minmax(0,1fr);align-items:center;gap:10px;padding:9px 10px;border-top:1px solid rgba(25,25,25,.13);background:linear-gradient(90deg,rgba(255,255,255,.32),rgba(255,255,255,.08))}.package-spec-item:first-child{border-top:1px solid rgba(25,25,25,.2)}.package-spec-no{font:600 8px/1 Inter,Arial,sans-serif;letter-spacing:.12em;color:rgba(25,25,25,.42);font-variant-numeric:tabular-nums}.package-spec-label{font-size:9px;line-height:1.35;font-weight:700;letter-spacing:.105em;color:#211d17}.package-spec-item--category{background:linear-gradient(90deg,rgba(228,206,165,.42),rgba(228,206,165,.12));border-top:0;margin-bottom:4px;padding-top:10px;padding-bottom:10px}.package-spec-item--category .package-spec-label{font-size:10px;letter-spacing:.18em;color:#51432d}
 .package-card .card-link{margin-top:20px;font-size:8px;font-weight:700;letter-spacing:.18em;text-transform:uppercase}
 /* 04 — receipt */
 .scene--receipt{color:#1c1a17;background:linear-gradient(180deg,#c6bba7 0%,#d0c5b2 18%,#c6bba7 52%,#c6bba7 100%)}
@@ -474,7 +474,7 @@ if(items.length){
    if(!packageTypes.includes(label))packageTypes.push(label);
   });
  }
- $("package-contents").textContent=packageTypes.join("\n");
+ $("package-contents").innerHTML=packageTypes.map((label,index)=>'<div class="package-spec-item'+(index===0&&label==="CD"?' package-spec-item--category':'')+'"><span class="package-spec-no">'+String(index+1).padStart(2,"0")+'</span><span class="package-spec-label">'+safe(label)+'</span></div>').join("");
 }
 const shipping=order?.shipping??order?.shippingTotal??order?.shipping_total;
 const taxes=order?.taxes??order?.tax??order?.tax_total;
