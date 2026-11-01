@@ -320,24 +320,36 @@ const returnFromPaymentTest=()=>{
 document.getElementById("return-to-payment-from-test").addEventListener("click",returnFromPaymentTest);
 document.getElementById("pay-now").addEventListener("click",()=>{
  const information=collectInformation();
- const orderCart=state.cart||[];
+ const readCart=(storage,key)=>{try{const value=JSON.parse(storage.getItem(key)||"[]");return Array.isArray(value)?value:[]}catch{return[]}};
+ const orderCart=readCart(sessionStorage,"vn-shop-checkout-cart");
+ const fallbackCart=readCart(localStorage,"vn-shop-cart");
+ const items=orderCart.length?orderCart:fallbackCart;
  const now=new Date();
- const stamp=now.toISOString().slice(0,10).replace(/-/g,"");
- const random=(length)=>Array.from(crypto.getRandomValues(new Uint8Array(length)),value=>"0123456789ABCDEFGHJKLMNPQRSTUVWXYZ"[value%32]).join("");
- const existing=(()=>{try{return JSON.parse(localStorage.getItem("vn-shop-order-complete")||"null")}catch{return null}})();
- const orderNumber=existing?.orderNumber||"VN-"+stamp+"-"+random(6);
- const vnCode=existing?.vnCode||"VN-"+random(4)+"-"+random(4);
- const orderRecord={
-  orderNumber,
-  vnCode,
-  createdAt:now.toISOString(),
-  customer:{firstName:information.firstName||"",lastName:information.lastName||"",email:information.email||"",phone:[information.phoneCountry,information.phone].filter(Boolean).join(" "),address:[information.address,information.apartment,information.city,information.state,information.postal,information.country].filter(Boolean).join(", ")},
-  items:orderCart,
-  subtotal:orderCart.reduce((sum,line)=>{const product=line.product||line;const price=Number(String(product.price??line.price??0).replace(/[^0-9.-]/g,""))||0;return sum+price*Math.max(1,Number(line.quantity||line.qty||1))},0),
-  status:"reference_created",
-  paymentStatus:"not_processed"
+ const pad=value=>String(value).padStart(2,"0");
+ const stamp=now.getFullYear()+pad(now.getMonth()+1)+pad(now.getDate());
+ const alphabet="0123456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+ const random=length=>{const bytes=crypto.getRandomValues(new Uint8Array(length));return Array.from(bytes,value=>alphabet[value%alphabet.length]).join("")};
+ const orderNumber="VN-"+stamp+"-"+random(6);
+ const vnCode="VN-"+random(4)+"-"+random(4);
+ const subtotal=items.reduce((sum,line)=>{const product=line.product||line;const price=Number(String(product.price??line.price??0).replace(/[^0-9.-]/g,""))||0;return sum+price*Math.max(1,Number(line.quantity||line.qty||1))},0);
+ const customer={
+  firstName:information.firstName||"",
+  lastName:information.lastName||"",
+  email:information.email||"",
+  phone:[information.phoneCountry,information.phone].filter(Boolean).join(" "),
+  address:[information.address,information.apartment,information.city,information.state,information.postal,information.country].filter(Boolean).join(", ")
  };
- try{localStorage.setItem("vn-shop-order-complete",JSON.stringify(orderRecord));sessionStorage.setItem("vn-shop-order-complete",JSON.stringify(orderRecord));}catch(error){console.error("Unable to save VN order reference",error)}
+ const orderRecord={orderNumber,vnCode,createdAt:now.toISOString(),customer,items,subtotal,status:"reference_created",paymentStatus:"not_processed"};
+ try{
+  localStorage.setItem("vn-shop-order-complete",JSON.stringify(orderRecord));
+  sessionStorage.setItem("vn-shop-order-complete",JSON.stringify(orderRecord));
+  sessionStorage.setItem("vn-shop-checkout-cart",JSON.stringify(items));
+  sessionStorage.setItem("vn-checkout-information",JSON.stringify(information));
+ }catch(error){
+  console.error("VN receipt could not save order details:",error);
+  alert("Your order reference could not be saved in this browser. Please try again.");
+  return;
+ }
  window.location.href="order-complete.html";
 });
 
