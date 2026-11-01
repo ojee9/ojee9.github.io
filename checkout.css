@@ -970,7 +970,1520 @@ body.checkout-page{margin:0;background:#C6BBA7;color:#f5f5f5;font:13px Arial,Hel
 .checkout-page .shop-save-section a{color:#d4c5a8;text-decoration:underline}
 .checkout-page .not-now-button{padding:3px 0;border:0;background:none;color:#c6bba7;font-size:9px;letter-spacing:.08em;cursor:pointer}
 .checkout-page .payment-step-actions{margin-top:23px}
+
+.checkout-page .payment-test-confirmation{max-width:620px;margin:30px auto 0;padding:34px 28px;border:1px solid #50483c;border-radius:3px;background:#111;text-align:center}
+.checkout-page .payment-test-confirmation[hidden]{display:none}
+.checkout-page .payment-test-eyebrow{margin:0 0 20px;color:#c6bba7;font-size:9px;font-weight:700;letter-spacing:.16em}
+.checkout-page .payment-test-mark{display:grid;place-items:center;width:42px;height:42px;margin:0 auto 18px;border:1px solid #c6bba7;border-radius:50%;color:#e4cea5;font-size:21px}
+.checkout-page .payment-test-confirmation h1{margin:0 0 8px;color:#f5f1e8;font-size:25px;font-weight:500}
+.checkout-page .payment-test-lead{margin:0 0 14px;color:#e4cea5;font-size:14px}
+.checkout-page .payment-test-notice{max-width:420px;margin:0 auto 26px;color:#aaa;font-size:11px;line-height:1.65}
+.checkout-page .payment-test-summary{margin:0 0 24px;border-top:1px solid #38332d;text-align:left}
+.checkout-page .payment-test-summary>div{display:grid;grid-template-columns:100px minmax(0,1fr);gap:12px;padding:13px 0;border-bottom:1px solid #38332d;font-size:11px}
+.checkout-page .payment-test-summary span{color:#999}
+.checkout-page .payment-test-summary strong{color:#eee;font-weight:400;white-space:pre-line;overflow-wrap:anywhere}
+.checkout-page .payment-test-confirmation .secondary-action{margin-top:4px}
+
+*{box-sizing:border-box}
+html{min-height:100%;background:#C6BBA7}
+body.checkout-page{margin:0;background:#C6BBA7;color:#f5f5f5;font:13px Arial,Helvetica,sans-serif}
+.checkout-header{min-height:94px;background:#C6BBA7;border-bottom:1px solid rgba(23,23,23,.25)}
+.checkout-header .projects-logo{color:#171717}
+.checkout-main{width:100%;max-width:1440px;min-height:850px;margin:0 auto;padding:48px clamp(22px,5vw,76px) 70px;background:#000;color:#f5f5f5}
+.layout{display:grid;grid-template-columns:minmax(0,1.06fr) minmax(320px,.94fr);gap:clamp(36px,6vw,88px);max-width:1190px;margin:0 auto;align-items:start}
+.left,.right{min-width:0}.banner{height:92px}
+.progress{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 20px;color:#888;font-size:11px}
+.progress b{color:#fff;font-weight:600}.progress a{color:#ddd;text-decoration:underline}.progress span{color:#666}
+.express{height:56px}.or{display:flex;align-items:center;gap:14px;margin:0 0 24px;color:#888;font-size:10px;letter-spacing:1px}.or:before,.or:after{content:"";height:1px;background:#393939;flex:1}
+.left h1,.left h2{margin:0 0 17px;font-size:19px;font-weight:600}
+.heading{display:flex;align-items:center;justify-content:space-between;margin:0 0 16px}.heading h1{margin:0}.heading a{font-size:11px;color:#bbb;text-decoration:underline}
+.left section{margin:0 0 25px}.field-wrap{min-width:0;margin:0 0 11px}.field-wrap>label{display:block;margin:0 0 6px;color:#c4c0b8;font-size:11px}
+.left input:not([type=checkbox]),.left select{display:block;width:100%;height:43px;padding:0 12px;border:1px solid #4b4b4b;border-radius:2px;background:#111;color:#f4f4f4;font:12px Arial,sans-serif}
+.left input:focus,.left select:focus{outline:1px solid #ddd;border-color:#ddd}
+.helpwrap{position:relative}.helpwrap input{padding-right:44px!important}.help{position:absolute;right:11px;top:50%;transform:translateY(-50%);width:21px;height:21px;padding:0;border:1px solid #aaa;border-radius:50%;background:#222;color:#fff;font-size:11px;cursor:default;outline:none;box-shadow:none}.help:hover,.help:focus,.help:focus-visible{background:#222;color:#fff;border-color:#aaa;outline:none;box-shadow:none}.help::after{content:attr(aria-label);position:absolute;right:0;bottom:calc(100% + 10px);z-index:20;width:max-content;max-width:240px;padding:9px 11px;border:1px solid #777;border-radius:4px;background:#f3f0e9;color:#171717;font:12px/1.4 Arial,sans-serif;text-align:left;white-space:normal;opacity:0;visibility:hidden;transform:translateY(4px);transition:opacity .18s ease,transform .18s ease,visibility .18s}.help:hover::after,.help:focus::after,.help:focus-visible::after{opacity:1;visibility:visible;transform:translateY(0)}
+.check{display:flex!important;align-items:center;gap:8px;margin:3px 0 0!important;color:#bbb!important;cursor:pointer}.check input{width:14px;height:14px;margin:0;accent-color:#eee}.check span{font-size:11px}
+.two,.three{display:grid;gap:12px}.two{grid-template-columns:1fr 1fr}.three{grid-template-columns:1.2fr .9fr .9fr}
+.actions{display:flex;justify-content:space-between;align-items:center;gap:14px;margin:0 0 23px}.actions a,.policy-link{font-size:11px;color:#ccc;text-decoration:underline}
+.primary{min-height:45px;padding:0 20px;border:1px solid #eee;background:#eee;color:#111;font-size:11px;font-weight:700;cursor:pointer}.primary:hover{background:transparent;color:#fff}
+.policy-link{padding:0;border:0;background:none;cursor:pointer}
+.right{padding-top:92px}.items{max-height:420px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#666 #171717;padding:0 8px 0 0}
+.item{display:grid;grid-template-columns:62px minmax(0,1fr) auto;gap:13px;align-items:center;min-height:82px;padding:9px 0;border-bottom:1px solid #292929}
+.thumb{position:relative;width:62px;height:62px;overflow:visible;background:#1b1b1b}.thumb img{display:block;width:100%;height:100%;object-fit:contain}
+.qty{position:absolute;top:-7px;right:-7px;display:grid;place-items:center;min-width:19px;height:19px;padding:0 5px;border-radius:50%;background:#777;color:#fff;font-size:10px;font-style:normal}
+.iname{font-size:12px;font-weight:600;line-height:1.4}.variant{margin-top:5px;color:#999;font-size:10px}.price{font-size:11px;white-space:nowrap}
+.scrollhint{margin:9px 0 0;color:#aaa;text-align:center;font-size:10px}.right form{display:flex;gap:8px;margin:20px 0 10px}.right form input{flex:1;min-width:0;height:43px;padding:0 12px;border:1px solid #555;background:#111;color:#fff;font:11px Arial,sans-serif}.right form button{width:75px;border:1px solid #777;background:#252525;color:#fff;font-size:11px;cursor:pointer}
+.discount-message{margin:0;color:#aaa;font-size:10px}.totals{margin-top:14px;padding-top:16px;border-top:1px solid #333}.totals>div{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:15px;font-size:11px}.totals>div>span:last-child{color:#999}
+.totals #shipping{padding:0;border:0;background:none;color:#ddd;font-size:11px;cursor:pointer}.totals i{margin-left:3px;padding:1px 5px;border:1px solid #888;border-radius:50%;font-style:normal}
+.totals .total{margin-top:18px;padding-top:18px;border-top:1px solid #333;font-size:15px}.totals .total>b:last-child{white-space:nowrap}
+.checkout-footer{background:#C6BBA7;color:#171717;text-align:center;padding:24px 5% 18px}.checkout-footer .footer-links{display:flex;justify-content:center;flex-wrap:wrap;gap:12px 22px;margin-bottom:22px;font-size:10px}.checkout-footer .footer-links a,.checkout-footer .footer-links button{color:inherit;text-decoration:underline}.checkout-footer .footer-links button{padding:0;border:0;background:none;font:inherit;cursor:pointer}.checkout-footer .copyright{color:#625744;font-size:9px;letter-spacing:1px}.checkout-footer .footer-sublogo{display:block;width:180px;height:116px;max-width:100%;margin:12px auto 0;object-fit:contain}
+#modal{position:fixed;z-index:3000;inset:0;display:grid;place-items:center;padding:18px;background:#000b}#modal[hidden]{display:none}
+.modal{position:relative;width:min(800px,100%);max-height:90dvh;overflow:auto;padding:32px;border:1px solid #444;background:#111;color:#eee}.modal h2{margin:0 35px 18px 0;font-size:19px}
+.modal-close{position:absolute;top:8px;right:14px;border:0;background:none;color:#fff;font-size:26px;cursor:pointer}
+#tabs{display:flex;flex-wrap:wrap;gap:7px;padding-bottom:16px;border-bottom:1px solid #444}#tabs button{padding:8px 10px;border:1px solid #555;background:none;color:#bbb;font-size:10px;cursor:pointer}#tabs button.active{background:#eee;color:#111}
+#pcontent{padding:20px 0;color:#ccc;font-size:12px;line-height:1.8}#pcontent iframe{width:100%;height:52vh;border:0;background:#000}
+.policy-placeholder{color:#ccc}.policy-placeholder p{margin:0 0 12px}
+@media(max-width:850px){.checkout-header{min-height:80px}.checkout-main{padding:22px 20px 38px}.layout{grid-template-columns:1fr;gap:30px}.right{padding-top:0}.banner{height:32px}.express{height:40px}.items{max-height:320px}.three{grid-template-columns:1fr 1fr}.three>div:first-child{grid-column:1/-1}}
+@media(max-width:600px){.checkout-header{padding:20px 5%}.checkout-header .projects-logo{font-size:27px}.checkout-header .header-vn-logo{width:100px;height:65px}.checkout-main{padding:18px 16px 32px}.progress{gap:6px;font-size:10px}.two,.three{gap:9px}.actions{align-items:stretch;flex-direction:column-reverse}.actions .primary{width:100%}.modal{padding:27px 18px}.modal #tabs{gap:6px}.modal #tabs button{padding:7px;font-size:9px}}
+
+.vn-ac-address-control{position:relative;display:block;min-width:0;margin:0 0 12px}
+.vn-ac-address-control>span{position:absolute;z-index:1;top:7px;left:13px;font-size:10px;line-height:1.1;color:#777;pointer-events:none}
+.vn-ac-address-control>input,.vn-ac-address-control>select{box-sizing:border-box;width:100%;min-width:0;min-height:48px;padding:20px 12px 7px;border:1px solid #d7d7d7;border-radius:5px;background:#fff;color:#111;font:13px/1.3 Arial,sans-serif}
+.vn-ac-address-control>input::placeholder{color:#777;opacity:1}.vn-ac-address-control>select{padding-right:28px}
+.vn-ac-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.vn-ac-address-city-row{grid-template-columns:1fr 1fr 1fr;gap:10px}
+.vn-ac-phone-row{position:relative;display:flex;align-items:stretch;width:100%;min-width:0}
+.vn-ac-phone-dial{display:flex;align-items:center;flex:0 0 auto;padding:0 10px;border:1px solid #d7d7d7;border-right:0;border-radius:5px 0 0 5px;background:#fff;color:#222;font:13px Arial,sans-serif;white-space:nowrap}
+.vn-ac-phone-row input{flex:1;min-width:0;width:100%;height:48px;padding:14px 12px;border:1px solid #d7d7d7;border-left:0;border-right:0;border-radius:0;color:#111;font:13px Arial,sans-serif}
+.vn-ac-phone-row select{position:relative;z-index:1;flex:0 0 42px;width:42px;min-width:0;height:48px;padding:0;border:1px solid #d7d7d7;border-left:0;border-radius:0 5px 5px 0;background:transparent;color:transparent;font-size:0;cursor:pointer;appearance:none;-webkit-appearance:none}
+.vn-ac-phone-row select option{color:#111;font-size:13px}
+.vn-ac-phone-flag{position:absolute;z-index:2;right:11px;top:50%;transform:translateY(-50%);display:block;width:22px;height:16px;object-fit:cover;border:1px solid rgba(0,0,0,.12);border-radius:2px;pointer-events:none}
+.international-panel{display:flex;align-items:flex-start;gap:12px;margin:14px 0 18px;padding:15px 16px;border:1px solid #9b8060;border-left:3px solid #c7a477;border-radius:5px;background:linear-gradient(135deg,#211b14,#15120e);color:#eee1cd;box-shadow:0 8px 24px #0005;animation:panel-in .28s ease both}
+.international-panel .panel-mark{display:grid;place-items:center;flex:0 0 25px;width:25px;height:25px;border:1px solid #a98d68;border-radius:50%;color:#d7b98e;font-size:13px}
+.international-panel strong{display:block;margin:1px 0 5px;color:#f2dfc2;font-size:12px;letter-spacing:.2px}
+.international-panel p{margin:0;color:#d1c2ad;font-size:12px;line-height:1.55}
+@keyframes panel-in{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:translateY(0)}}
+.policy-link{display:flex;align-items:center;justify-content:space-between;gap:20px;width:100%;padding:15px 0;border-top:1px solid #333;border-bottom:1px solid #333;background:none;color:#ddd;font-size:13px;text-align:left;cursor:pointer;transition:color .2s,border-color .2s}
+.policy-link:hover{color:#fff;border-color:#777}
+#modal{opacity:0;transition:opacity .24s ease}#modal.is-open{opacity:1}
+.modal{transform:translateY(12px) scale(.985);opacity:0;transition:transform .28s cubic-bezier(.2,.8,.2,1),opacity .24s ease}
+#modal.is-open .modal{transform:translateY(0) scale(1);opacity:1}
+.policy-picker{position:relative;margin:0 0 8px}
+#policy-select{display:flex;align-items:center;justify-content:space-between;width:100%;padding:13px 14px;border:1px solid #555;border-radius:4px;background:#1a1a1a;color:#eee;font:13px Arial,sans-serif;text-align:left;cursor:pointer}
+#policy-select span{color:#aaa;font-size:17px;transition:transform .2s}
+#policy-select[aria-expanded=true] span{transform:rotate(180deg)}
+#policy-options{position:absolute;z-index:5;top:calc(100% + 5px);left:0;right:0;display:grid;grid-template-columns:1fr 1fr;gap:1px;padding:5px;border:1px solid #555;border-radius:4px;background:#222;box-shadow:0 12px 30px #0009}
+#policy-options[hidden]{display:none}
+#policy-options button{padding:11px 12px;border:0;background:#222;color:#ccc;font:12px Arial,sans-serif;text-align:left;cursor:pointer;transition:background .16s,color .16s}
+#policy-options button:hover,#policy-options button.active{background:#eee;color:#111}
+#pcontent{min-height:180px;transition:opacity .18s ease}#pcontent.is-changing{opacity:0}
+@media(max-width:700px){.vn-ac-address-city-row{grid-template-columns:1fr}.vn-ac-phone-row select{flex-basis:42px;width:42px}.vn-ac-form-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.checkout-main{min-height:0;padding:28px 16px 48px}.banner{height:36px}.right{padding-top:0}.vn-ac-address-city-row{grid-template-columns:1fr}.vn-ac-form-grid{grid-template-columns:1fr 1fr}.international-panel p{font-size:11px}}
+
+/* Checkout stabilization overrides */
+/* Preserve native keyboard focus; checkout-specific focus-visible styling is defined below. */
+.checkout-main{min-height:760px;padding:36px clamp(20px,4.5vw,64px) 58px}
+.layout{max-width:1220px;gap:clamp(28px,5vw,68px)}
+.banner{height:62px}.right{padding-top:110px}
+.left h1,.left h2{font-size:16px;margin-bottom:15px}
+.left input:not([type=checkbox]),.left select{height:46px;background:#fff;color:#171717;border-color:#d7d7d7;border-radius:5px;font-size:13px}
+.vn-ac-address-control>input,.vn-ac-address-control>select{height:47px;padding:19px 12px 6px}
+.vn-ac-form-grid{gap:10px}.vn-ac-address-city-row{grid-template-columns:1fr 1fr 1fr;gap:10px}
+.vn-ac-phone-row select{flex:0 0 48px;width:48px;height:47px;padding:0 4px;background:#fff;color:#171717;font-size:10px}
+.vn-ac-phone-flag{display:none}
+#modal,.checkout-dialog{position:fixed;z-index:3000;inset:0;display:grid;place-items:center;padding:18px;background:rgba(0,0,0,.78);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .2s ease,visibility .2s ease}
+#modal.is-open,.checkout-dialog.is-open{opacity:1;visibility:visible;pointer-events:auto}
+#modal[hidden],.checkout-dialog[hidden]{display:none}
+.modal,.checkout-dialog-panel{width:min(760px,100%);max-height:min(86dvh,760px);overflow:auto;padding:30px;border:1px solid #444;border-radius:5px;background:#111;color:#eee;transform:translateY(8px);transition:transform .2s ease}
+#modal.is-open .modal,.checkout-dialog.is-open .checkout-dialog-panel{transform:translateY(0)}
+.modal h2,.checkout-dialog-panel h2{font-size:17px;line-height:1.35}
+.checkout-dialog-panel{width:min(430px,100%);padding:32px;text-align:center}
+.dialog-mark{display:grid;place-items:center;width:34px;height:34px;margin:0 auto 16px;border:1px solid #9b8060;border-radius:50%;color:#d7b98e;font-size:16px}
+.checkout-dialog-panel h2{margin:0 0 10px;font-size:18px}
+.checkout-dialog-panel p{margin:0 0 24px;color:#c7c0b5;font-size:13px;line-height:1.7}
+.checkout-dialog-panel .primary{min-width:145px}
+#policy-options[hidden]{display:none}
+#policy-options button{cursor:pointer}
+#pcontent iframe{height:min(48dvh,440px)}
+.empty-cart{padding:28px 0;color:#aaa;font-size:12px;line-height:1.7}
+.empty-cart a{color:#fff;text-decoration:underline}
+@media(max-width:900px){.checkout-main{min-height:0;padding:24px 22px 42px}.right{padding-top:0}.banner{height:24px}}
+@media(max-width:600px){.checkout-main{padding:16px 15px 30px}.vn-ac-address-city-row{grid-template-columns:1fr 1fr}.modal,.checkout-dialog-panel{padding:25px 18px}#policy-options{grid-template-columns:1fr}}
+
+
+/* VN SHOP checkout refinement — floating labels, tactile controls and legal panel */
+.checkout-page .vn-ac-address-control{margin:0 0 13px;}
+.checkout-page .vn-ac-address-control>span{top:8px;left:13px;color:#8d877e;font-size:10px;letter-spacing:.025em;opacity:0;transform:translateY(3px);transition:opacity .16s ease,transform .16s ease;}
+.checkout-page .vn-ac-address-control>input,.checkout-page .vn-ac-address-control>select{height:54px;min-height:54px;padding:0 14px;border:1px solid #4b463f;border-radius:3px;background:#111;color:#f6f2ea;font-size:13px;transition:border-color .18s ease,background .18s ease,box-shadow .18s ease;}
+.checkout-page .vn-ac-address-control>input::placeholder{color:#aaa;opacity:1;text-align:center;transition:opacity .15s ease;}
+.checkout-page .vn-ac-address-control>input:focus,.checkout-page .vn-ac-address-control>input:not(:placeholder-shown){padding-top:17px;padding-bottom:5px;border-color:#c6bba7;background:#141414;}
+.checkout-page .vn-ac-address-control>input:focus::placeholder,.checkout-page .vn-ac-address-control>input:not(:placeholder-shown)::placeholder{opacity:0;}
+.checkout-page .vn-ac-address-control:focus-within>span,.checkout-page .vn-ac-address-control:has(>input:not(:placeholder-shown))>span{opacity:1;transform:translateY(0);}
+.checkout-page .vn-ac-address-control>select{padding:17px 34px 5px 14px;}
+.checkout-page .vn-ac-address-control:has(>select)>span{opacity:1;transform:none;}
+.checkout-page .checkout-email-control .helpwrap{position:relative;}
+.checkout-page .checkout-email-control .helpwrap input{height:54px;padding:0 48px 0 14px;border:1px solid #4b463f;border-radius:3px;background:#111;color:#f6f2ea;font-size:13px;}
+.checkout-page .checkout-email-control .helpwrap input::placeholder{color:#aaa;text-align:center;}
+.checkout-page .checkout-email-control .helpwrap input:focus,.checkout-page .checkout-email-control .helpwrap input:not(:placeholder-shown){padding-top:17px;padding-bottom:5px;border-color:#c6bba7;background:#141414;}
+.checkout-page .checkout-email-control .helpwrap input:focus::placeholder,.checkout-page .checkout-email-control .helpwrap input:not(:placeholder-shown)::placeholder{opacity:0;}
+.checkout-page .checkout-email-control:has(input:focus)>span,.checkout-page .checkout-email-control:has(input:not(:placeholder-shown))>span{opacity:1;transform:none;}
+.checkout-page .help{right:12px;width:22px;height:22px;border-color:#c6bba7;background:#c6bba7;color:#171717;font-weight:700;}
+.checkout-page .help::after{max-width:260px;padding:11px 13px;border-color:#c6bba7;border-radius:3px;background:#e4cea5;color:#171717;box-shadow:0 8px 24px #0007;}
+.checkout-page .vn-ac-address-city-row{grid-template-columns:1fr 1fr;gap:12px;}
+.checkout-page .check{min-height:42px;padding:9px 11px;border:1px solid #39352f;border-radius:3px;}
+.checkout-page .check input{accent-color:#c6bba7;}
+.checkout-page .primary,.checkout-page .right form button{min-height:46px;border:1px solid #c6bba7;border-radius:3px;background:#c6bba7;color:#171717;font-weight:700;letter-spacing:.035em;transition:background .18s ease,color .18s ease,border-color .18s ease,transform .18s ease;}
+.checkout-page .primary:hover,.checkout-page .right form button:hover{background:#171717;color:#f5f1e8;border-color:#c6bba7;}
+.checkout-page .primary:active,.checkout-page .right form button:active{transform:translateY(1px);}
+.checkout-page .right form input{height:46px;border:1px solid #625b50;border-radius:3px;background:#111;color:#f5f1e8;}
+.checkout-page .right form input::placeholder{color:#aaa;text-align:center;}
+.checkout-page .items{position:relative;padding:0 9px 4px 0;scrollbar-color:#c6bba7 #171717;scrollbar-width:thin;}
+.checkout-page .item{grid-template-columns:68px minmax(0,1fr) auto;gap:14px;min-height:91px;padding:12px 0;border-color:#38332d;}
+.checkout-page .thumb{width:68px;height:68px;border:1px solid #494238;background:#151515;}
+.checkout-page .thumb img{object-fit:contain;}
+.checkout-page .qty{top:-6px;right:-6px;min-width:21px;height:21px;border:1px solid #111;background:#c6bba7;color:#171717;font-weight:700;}
+.checkout-page .iname{font-size:13px;line-height:1.45;}
+.checkout-page .variant{color:#c6bba7;font-size:11px;}
+.checkout-page .price{color:#f5f1e8;font-size:12px;}
+.checkout-page .scrollhint{position:sticky;bottom:0;z-index:2;display:flex;align-items:center;justify-content:center;gap:9px;width:100%;min-height:38px;margin:-1px 0 0;padding:9px 12px;border:1px solid #74664f;border-radius:3px;background:linear-gradient(180deg,#28231c,#c6bba7);color:#171717;font-size:11px;font-weight:700;letter-spacing:.035em;cursor:pointer;box-shadow:0 -10px 22px #0008;}
+.checkout-page .scrollhint[hidden]{display:none!important;}
+.checkout-page .scrollhint span{font-size:16px;line-height:1;transition:transform .18s ease;}
+.checkout-page .scrollhint:hover span{transform:translateY(3px);}
+.checkout-page .totals{border-color:#50483c;}
+.checkout-page .totals>div{font-size:12px;}
+.checkout-page .totals .total{border-color:#50483c;}
+.checkout-page .policy-link{margin-top:34px;padding:21px 16px;border-top:1px solid #8f8069;border-bottom:1px solid #8f8069;background:rgba(198,187,167,.08);color:#e4cea5;font-size:14px;font-weight:600;letter-spacing:.025em;}
+.checkout-page .policy-link:hover,.checkout-page .policy-link:focus-visible{background:#c6bba7;color:#171717;border-color:#c6bba7;}
+.checkout-page #modal{background:rgba(0,0,0,.72);}
+.checkout-page #modal .modal{width:min(820px,100%);padding:34px;border:1px solid #8d806b;border-radius:3px;background:#e4cea5;color:#171717;}
+.checkout-page #modal .modal h2{color:#171717;font-size:20px;}
+.checkout-page #modal .modal-close{color:#171717;}
+.checkout-page #policy-select{min-height:48px;border:1px solid #75664e;border-radius:3px;background:#c6bba7;color:#171717;font-size:13px;}
+.checkout-page #policy-select span{color:#171717;}
+.checkout-page #policy-options{border-color:#75664e;border-radius:3px;background:#e4cea5;box-shadow:0 12px 30px #0005;}
+.checkout-page #policy-options button{padding:13px 14px;background:#e4cea5;color:#171717;font-size:12px;}
+.checkout-page #policy-options button:hover,.checkout-page #policy-options button.active{background:#171717;color:#f5f1e8;}
+.checkout-page #pcontent{min-height:220px;padding:18px 0 0;color:#171717;}
+.checkout-page #pcontent iframe{height:min(58dvh,560px);border:1px solid #75664e;background:#000;}
+.checkout-page .checkout-footer{background:#c6bba7;color:#171717;}
+.checkout-page .checkout-footer .footer-links a,.checkout-page .checkout-footer .footer-links button{padding:7px 2px;}
+.checkout-page .checkout-footer .footer-links a:hover,.checkout-page .checkout-footer .footer-links button:hover{opacity:.58;}
+.checkout-page :is(button,a,input,select):focus-visible{outline:2px solid #e4cea5!important;outline-offset:3px!important;box-shadow:0 0 0 4px #171717!important;}
+@media(max-width:700px){.checkout-page .vn-ac-address-city-row{grid-template-columns:1fr 1fr;}.checkout-page #modal .modal{padding:27px 18px;}.checkout-page .policy-link{margin-top:27px;padding:18px 13px;}}
+
+/* Keep the phone field's floating label visible after a value is entered and focus leaves the nested input. */
+.checkout-page .vn-ac-address-control:has(.vn-ac-phone-row input:not(:placeholder-shown))>span{opacity:1;transform:translateY(0);}
+/* At narrow widths, preserve the two-column City / Postal Code row without letting the form overflow. */
+@media(max-width:600px){.checkout-page .vn-ac-address-city-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}.checkout-page .vn-ac-address-city-row>*{min-width:0}}
+
+
+/* Checkout readability pass: improve type size, contrast and text spacing without changing layout or behavior. */
+.checkout-page{font-size:14px;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+.checkout-page .progress{font-size:12px;line-height:1.6;color:#b7b7b7}
+.checkout-page .progress span{color:#929292}
+.checkout-page .left h1,.checkout-page .left h2{font-size:18px;line-height:1.4}
+.checkout-page .heading a,.checkout-page .actions a{font-size:12px;line-height:1.6}
+.checkout-page .field-wrap>label{font-size:12px;line-height:1.5;color:#e0d9cc}
+.checkout-page .vn-ac-address-control>span{font-size:11px;line-height:1.25}
+.checkout-page .vn-ac-address-control>input,.checkout-page .vn-ac-address-control>select,
+.checkout-page .checkout-email-control .helpwrap input{font-size:14px;line-height:1.45}
+.checkout-page .vn-ac-address-control>input::placeholder,
+.checkout-page .checkout-email-control .helpwrap input::placeholder,
+.checkout-page .right form input::placeholder{color:#c2c2c2}
+.checkout-page .help::after{font-size:13px;line-height:1.55}
+.checkout-page .check span{font-size:12px;line-height:1.5;color:#e0e0e0}
+.checkout-page .or{font-size:11px;line-height:1.5;color:#b0b0b0}
+.checkout-page .iname{font-size:14px;line-height:1.5}
+.checkout-page .variant{font-size:12px;line-height:1.5;color:#d4c5a8}
+.checkout-page .price{font-size:13px;line-height:1.45}
+.checkout-page .qty{font-size:11px}
+.checkout-page .scrollhint{font-size:12px;line-height:1.5}
+.checkout-page .right form input{font-size:13px;line-height:1.45}
+.checkout-page .right form button{font-size:12px}
+.checkout-page .discount-message{font-size:12px;line-height:1.6;color:#c4c4c4}
+.checkout-page .totals>div{font-size:13px;line-height:1.55}
+.checkout-page .totals>div>span:last-child{color:#c6c6c6}
+.checkout-page .totals #shipping{font-size:13px}
+.checkout-page .totals .total{font-size:16px;line-height:1.5}
+.checkout-page .policy-link{font-size:14px;line-height:1.5}
+.checkout-page #policy-select{font-size:14px;line-height:1.5}
+.checkout-page #policy-options button{font-size:13px;line-height:1.5}
+.checkout-page #pcontent{font-size:14px;line-height:1.7}
+.checkout-page .checkout-footer .footer-links{font-size:11px;line-height:1.6}
+.checkout-page .checkout-footer .copyright{font-size:10px;line-height:1.6}
+.checkout-page .checkout-dialog-panel p{font-size:14px;line-height:1.7}
+@media(max-width:600px){
+ .checkout-page .progress{font-size:11px}
+ .checkout-page .left h1,.checkout-page .left h2{font-size:17px}
+ .checkout-page .vn-ac-address-control>input,.checkout-page .vn-ac-address-control>select,
+ .checkout-page .checkout-email-control .helpwrap input{font-size:16px}
+ .checkout-page .iname{font-size:14px}
+ .checkout-page .variant{font-size:12px}
+ .checkout-page .price{font-size:12px}
+ .checkout-page .totals>div{font-size:13px}
+ .checkout-page .checkout-footer .footer-links{gap:10px 16px}
+}
+
+
+/* Checkout information + phone control repair */
+.checkout-page .vn-ac-address-control>span{opacity:0;transform:translateY(3px);transition:opacity .12s ease,transform .12s ease}
+.checkout-page .vn-ac-address-control>input::placeholder,
+.checkout-page .checkout-email-control .helpwrap input::placeholder,
+.checkout-page .vn-ac-phone-row input::placeholder{color:transparent;opacity:0}
+.checkout-page .vn-ac-address-control>input:focus::placeholder,
+.checkout-page .checkout-email-control .helpwrap input:focus::placeholder,
+.checkout-page .vn-ac-phone-row input:focus::placeholder{color:transparent;opacity:0}
+.checkout-page .vn-ac-address-control:focus-within>span,
+.checkout-page .vn-ac-address-control:has(>input:not(:placeholder-shown))>span,
+.checkout-page .vn-ac-address-control:has(.vn-ac-phone-row input:not(:placeholder-shown))>span{opacity:1;transform:translateY(0)}
+.checkout-page .vn-ac-phone-row{height:54px;min-height:54px;overflow:hidden;border:1px solid #4b463f;border-radius:3px;background:#111;transition:border-color .15s ease}
+.checkout-page .vn-ac-phone-row:focus-within{border-color:#c6bba7}
+.checkout-page .vn-ac-phone-row .vn-ac-phone-dial{flex:0 0 auto;min-width:58px;justify-content:center;padding:0 10px;border:0;border-right:1px solid #494238;border-radius:0;background:#111;color:#e4cea5;font-size:13px}
+.checkout-page .vn-ac-phone-row input{flex:1 1 auto;width:1%;height:100%;min-width:0;padding:0 12px;border:0;border-radius:0;background:transparent;color:#f6f2ea;font:14px/1.4 Arial,sans-serif;outline:0}
+.checkout-page .vn-ac-phone-row input:focus{padding-top:0;padding-bottom:0;background:transparent;outline:0}
+.checkout-page .vn-ac-phone-row input::placeholder{text-align:left}
+.checkout-page .vn-ac-phone-row select{position:relative;inset:auto;z-index:3;flex:0 0 48px;width:48px;height:100%;padding:0;border:0;border-left:1px solid #494238;border-radius:0;background:transparent;color:transparent;font-size:0;appearance:auto;-webkit-appearance:menulist;cursor:pointer}
+.checkout-page .vn-ac-phone-row select option{background:#111;color:#f5f1e8;font-size:14px}
+.checkout-page .vn-ac-phone-flag{display:block!important;position:absolute;z-index:2;right:51px;top:50%;width:22px;height:16px;object-fit:cover;border:1px solid #777;border-radius:2px;transform:translateY(-50%);pointer-events:none}
+.checkout-page .vn-ac-phone-row:has(select:focus) .vn-ac-phone-flag{opacity:.45}
+.checkout-page .vn-ac-address-control:has(.vn-ac-phone-row input:not(:placeholder-shown))>span{opacity:1;transform:translateY(0)}
+.checkout-page .policy-link{display:inline-flex;width:auto;max-width:100%;min-height:44px;align-self:flex-start;justify-content:flex-start;margin-top:26px;padding:11px 15px;border:1px solid #8f8069;border-radius:3px;background:rgba(198,187,167,.08);white-space:nowrap}
+.checkout-page .policy-link>span:last-child{margin-left:14px}
+.checkout-page .policy-link:hover,.checkout-page .policy-link:focus-visible{background:#c6bba7;color:#171717;border-color:#c6bba7}
+@media(max-width:600px){
+ .checkout-page .vn-ac-phone-row{height:52px;min-height:52px}
+ .checkout-page .vn-ac-phone-row .vn-ac-phone-dial{min-width:54px;padding:0 8px}
+ .checkout-page .vn-ac-phone-row select{flex-basis:44px;width:44px}
+ .checkout-page .vn-ac-phone-flag{right:47px;width:20px;height:15px}
+ .checkout-page .policy-link{margin-top:22px;min-height:42px;padding:10px 13px}
+}
+
+/* Consolidated phone field alignment and reliable flag loading. */
+.checkout-page .vn-ac-address-control:has(.vn-ac-phone-row){position:relative}
+.checkout-page .vn-ac-address-control:has(.vn-ac-phone-row)>.vn-ac-phone-flag{position:absolute;right:51px;bottom:19px;top:auto;transform:none}
+.checkout-page .vn-ac-phone-row{display:flex;align-items:center;box-sizing:border-box;width:100%;min-width:0}
+.checkout-page .vn-ac-phone-row input,.checkout-page .vn-ac-phone-row select{box-sizing:border-box}
+@media(max-width:600px){.checkout-page .vn-ac-address-control:has(.vn-ac-phone-row)>.vn-ac-phone-flag{right:47px;bottom:18px}}
+
+/* Final checkout interaction refinements */
+
+/* Checkout field guidance: descriptive text becomes a compact label on interaction. */
+.checkout-page .vn-ac-address-control>span{top:50%;left:14px;opacity:1;transform:translateY(-50%);font-size:13px;line-height:1.2;color:#aaa;transition:top .14s ease,transform .14s ease,font-size .14s ease,color .14s ease}
+.checkout-page .vn-ac-address-control:focus-within>span,
+.checkout-page .vn-ac-address-control:has(>input:not(:placeholder-shown))>span,
+.checkout-page .vn-ac-address-control:has(.vn-ac-phone-row input:not(:placeholder-shown))>span,
+.checkout-page .vn-ac-address-control:has(>select)>span{top:8px;transform:none;font-size:10px;color:#d4c5a8}
+.checkout-page .vn-ac-address-control>input{padding:0 14px}
+.checkout-page .vn-ac-address-control>input:focus,
+.checkout-page .vn-ac-address-control>input:not(:placeholder-shown){padding:17px 14px 4px}
+.checkout-page .checkout-email-control>span{top:50%;left:14px;transform:translateY(-50%)}
+.checkout-page .checkout-email-control:has(input:focus)>span,
+.checkout-page .checkout-email-control:has(input:not(:placeholder-shown))>span{top:8px;transform:none}
+.checkout-page .checkout-email-control .helpwrap input{padding:0 48px 0 14px}
+.checkout-page .checkout-email-control .helpwrap input:focus,
+.checkout-page .checkout-email-control .helpwrap input:not(:placeholder-shown){padding:17px 48px 4px 14px}
+.checkout-page .vn-ac-phone-row{position:relative}
+.checkout-page .vn-ac-phone-row select{z-index:3;flex:0 0 48px;width:48px;background:#111}
+.checkout-page .vn-ac-phone-flag{position:absolute;z-index:4;right:61px;top:50%;width:22px;height:16px;transform:translateY(-50%);display:block;object-fit:cover;border:1px solid #777;border-radius:2px;pointer-events:none}
+.checkout-page .vn-ac-phone-row:has(select:focus) .vn-ac-phone-flag{opacity:1}
+.checkout-page .vn-ac-phone-row .vn-ac-phone-dial{background:#111;color:#e4cea5}
+.checkout-page .vn-ac-phone-row select option{background:#111;color:#f5f1e8}
+
+.checkout-page .policy-link{display:inline;width:auto;min-height:0;margin:25px 0 0;padding:0;border:0;border-radius:0;background:none;color:#e4cea5;font-size:13px;font-weight:600;letter-spacing:.02em;text-decoration:underline;text-underline-offset:4px;cursor:pointer}
+.checkout-page .policy-link:hover,.checkout-page .policy-link:focus-visible{border:0;background:none;color:#fff}
+.checkout-page .scrollhint{position:fixed;right:clamp(16px,3vw,34px);bottom:clamp(18px,3vh,30px);z-index:30;display:flex;align-items:center;gap:11px;width:auto;min-width:0;min-height:46px;margin:0;padding:0 17px;border:1px solid #8f8069;border-radius:999px;background:#e4cea5;color:#171717;box-shadow:0 8px 26px #0007;cursor:pointer;letter-spacing:.1em;font-size:10px;font-weight:700;transition:transform .18s ease,background .18s ease,box-shadow .18s ease}
+.checkout-page .scrollhint[hidden]{display:none!important}
+.checkout-page .scrollhint:hover{transform:translateY(-3px);background:#f0dfbd;box-shadow:0 12px 30px #0009}
+.checkout-page .scrollhint-arrow{display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#171717;color:#e4cea5;font-size:15px;line-height:1;transition:transform .18s ease}
+.checkout-page .scrollhint:hover .scrollhint-arrow{transform:translateY(3px)}
+@media(max-width:600px){
+ .checkout-page .scrollhint{right:14px;bottom:16px;min-height:42px;padding:0 14px}
+ .checkout-page .vn-ac-phone-row select{flex-basis:44px;width:44px}
+ .checkout-page .vn-ac-phone-flag{right:56px;width:20px;height:15px}
+}
+
+
+/* Final phone-field and product-list scrollhint positioning fix. */
+.checkout-page .vn-ac-address-control:has(.vn-ac-phone-row)>span{
+  top:-16px;left:0;transform:none;font-size:10px;line-height:1.2;color:#d4c5a8;opacity:1;
+}
+.checkout-page .vn-ac-phone-row{overflow:visible}
+.checkout-page .vn-ac-phone-row select{
+  flex:0 0 58px;width:58px;min-width:58px;appearance:none!important;-webkit-appearance:none!important;
+  padding:0;background-color:#111;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='m1 1 4 4 4-4' fill='none' stroke='%23e4cea5' stroke-width='1.3'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 8px center;
+  border-left:1px solid #494238;color:transparent;font-size:0;cursor:pointer;
+}
+.checkout-page .vn-ac-phone-flag{
+  right:24px!important;top:50%!important;bottom:auto!important;left:auto!important;
+  width:22px;height:16px;object-fit:cover;display:block!important;transform:translateY(-50%)!important;
+  z-index:4;border:1px solid #777;border-radius:2px;pointer-events:none;
+}
+.checkout-page .vn-ac-phone-row:has(select:focus) .vn-ac-phone-flag{opacity:1}
+.checkout-page .right{position:relative}
+.checkout-page .scrollhint{
+  position:sticky;z-index:4;display:flex;float:right;clear:both;
+  right:auto;bottom:auto;min-height:29px;height:29px;gap:6px;
+  width:auto;min-width:0;margin:-38px 8px 9px auto;padding:0 9px;
+  border:1px solid #8f8069;border-radius:999px;background:#e4cea5;color:#171717;
+  box-shadow:0 4px 12px #0006;letter-spacing:.07em;font-size:8px;line-height:1;
+}
+.checkout-page .scrollhint-arrow{width:17px;height:17px;font-size:12px}
+.checkout-page .scrollhint:hover{transform:translateY(-1px)}
+@media(max-width:600px){
+ .checkout-page .vn-ac-phone-row select{flex-basis:54px;width:54px;min-width:54px}
+ .checkout-page .vn-ac-phone-flag{right:22px!important;width:20px;height:15px}
+ .checkout-page .scrollhint{min-height:27px;height:27px;margin-top:-36px;margin-right:5px;padding:0 8px}
+}
+
+
+/* Checkout micro-adjustments: passive item indicator, compact focus and phone help. */
+.checkout-page .scrollhint{
+  position:relative;float:none;clear:both;display:flex;
+  width:max-content;min-width:0;height:27px;min-height:27px;
+  margin:-36px auto 9px;padding:0 9px;gap:6px;
+  cursor:default;pointer-events:none;box-shadow:0 4px 12px #0006;
+}
+.checkout-page .scrollhint:hover{transform:none;background:#e4cea5;box-shadow:0 4px 12px #0006}
+.checkout-page .scrollhint-arrow{transform:none!important}
+.checkout-page :is(input,select,textarea):focus-visible{
+  outline:1px solid #e4cea5!important;outline-offset:0!important;box-shadow:none!important;
+}
+.checkout-page .vn-ac-phone-row select:focus-visible{
+  outline:1px solid #e4cea5!important;outline-offset:-2px!important;box-shadow:none!important;
+}
+.checkout-page .vn-ac-phone-help{
+  position:absolute;z-index:6;right:49px;top:50%;transform:translateY(-50%);
+  width:16px;height:16px;min-width:16px;padding:0;border:1px solid #c6bba7;
+  border-radius:50%;background:#c6bba7;color:#171717;font:700 11px/14px Arial,sans-serif;
+  text-align:center;cursor:help;
+}
+.checkout-page .vn-ac-phone-help::after{
+  content:attr(title);position:absolute;right:0;bottom:calc(100% + 9px);
+  width:max-content;max-width:min(260px,70vw);padding:8px 10px;
+  border:1px solid #8f8069;border-radius:3px;background:#e4cea5;color:#171717;
+  font:11px/1.4 Arial,sans-serif;text-align:left;white-space:normal;
+  opacity:0;visibility:hidden;pointer-events:none;transition:opacity .12s ease;
+}
+.checkout-page .vn-ac-phone-help:hover::after,
+.checkout-page .vn-ac-phone-help:focus-visible::after{opacity:1;visibility:visible}
+@media(max-width:600px){
+ .checkout-page .vn-ac-phone-help{right:45px}
+ .checkout-page .scrollhint{margin-top:-34px}
+}
+
+
+/* Repair order-summary indicator placement without changing the cart layout. */
+.checkout-page .right{min-width:0}
+.checkout-page #scrollhint{
+  position:relative;float:none;clear:both;display:flex;
+  align-self:center;justify-content:center;align-items:center;
+  width:max-content;max-width:100%;height:27px;min-height:27px;
+  margin:-30px auto 8px;padding:0 9px;gap:6px;
+  cursor:default;pointer-events:none;transform:none;
+}
+.checkout-page #scrollhint:hover,
+.checkout-page #scrollhint:focus,
+.checkout-page #scrollhint:active{
+  background:#e4cea5;color:#171717;box-shadow:0 4px 12px #0006;transform:none;
+}
+.checkout-page #scrollhint .scrollhint-arrow{transform:none!important}
+.checkout-page .vn-ac-phone-help{
+  right:49px!important;top:50%!important;left:auto!important;bottom:auto!important;
+  width:16px!important;height:16px!important;min-width:16px!important;
+  padding:0!important;line-height:14px!important;font-size:11px!important;
+  transform:translateY(-50%)!important;outline:0!important;box-shadow:none!important;
+}
+.checkout-page .vn-ac-phone-help:hover,
+.checkout-page .vn-ac-phone-help:focus-visible{
+  outline:0!important;outline-offset:0!important;box-shadow:none!important;
+}
+@media(max-width:600px){
+ .checkout-page #scrollhint{margin-top:-28px;margin-bottom:8px}
+ .checkout-page .vn-ac-phone-help{right:45px!important}
+}
+
+
+/* Final narrow focus and phone help placement adjustment. */
+.checkout-page .vn-ac-address-control{margin-bottom:15px}
+.checkout-page :is(input,select,textarea):focus-visible{
+  outline:1px solid #c6bba7!important;
+  outline-offset:-2px!important;
+  box-shadow:none!important;
+}
+.checkout-page .vn-ac-phone-row input:focus,
+.checkout-page .vn-ac-phone-row select:focus{
+  outline:0!important;box-shadow:none!important;
+}
+.checkout-page .vn-ac-phone-row:focus-within{
+  border-color:#c6bba7;
+  box-shadow:inset 0 0 0 1px #c6bba7!important;
+}
+.checkout-page .vn-ac-phone-help{
+  right:55px!important;top:50%!important;left:auto!important;bottom:auto!important;
+  width:15px!important;height:15px!important;min-width:15px!important;
+  border:1px solid #8f8069!important;border-radius:50%!important;
+  background:#c6bba7!important;color:#171717!important;
+  font:700 10px/13px Arial,sans-serif!important;
+  transform:translateY(-50%)!important;
+  outline:0!important;box-shadow:none!important;
+}
+.checkout-page .vn-ac-phone-help::after{right:-4px;max-width:min(230px,65vw)}
+@media(max-width:600px){
+ .checkout-page .vn-ac-address-control{margin-bottom:14px}
+ .checkout-page .vn-ac-phone-help{right:51px!important}
+}
+
+
+/* Small checkout spacing corrections. */
+.checkout-page .vn-ac-phone-help{right:61px!important}
+.checkout-page .policy-link{margin-top:7px}
+@media(max-width:600px){
+  .checkout-page .vn-ac-phone-help{right:57px!important}
+  .checkout-page .policy-link{margin-top:7px}
+}
+
+
+/* VN SHOP banner: occupy the existing reserved slot above checkout progress. */
+.checkout-page .checkout-shop-banner{
+  height:auto;min-height:0;display:flex;align-items:center;justify-content:center;
+  margin:0 0 14px;padding:0;
+}
+.checkout-page .checkout-shop-banner img{
+  display:block;width:40%;height:81px;max-width:100%;object-fit:contain;object-position:center;
+}
+@media(max-width:900px){
+  .checkout-page .checkout-shop-banner{height:auto;min-height:0;margin-bottom:12px}
+  .checkout-page .checkout-shop-banner img{width:40%;height:81px}
+}
+@media(max-width:600px){
+  .checkout-page .checkout-shop-banner img{width:40%;height:81px}
+}
+
+
+/* MORE ITEMS: compact, centered, passive overflow cue. */
+.checkout-page #scrollhint{
+  position:relative!important;float:none!important;clear:both!important;
+  display:flex;align-items:center;justify-content:center;
+  width:max-content!important;min-width:0!important;
+  min-height:21px!important;height:21px!important;
+  margin:-25px auto 5px!important;padding:0 7px!important;gap:4px!important;
+  border:0!important;border-radius:999px!important;
+  background:transparent!important;color:#e4cea5!important;
+  box-shadow:none!important;letter-spacing:.07em!important;
+  font-size:8px!important;line-height:1!important;font-weight:600!important;
+  cursor:default!important;pointer-events:none!important;
+  opacity:1;transition:opacity .28s ease!important;
+}
+.checkout-page #scrollhint[hidden]{display:none!important}
+.checkout-page #scrollhint .scrollhint-label{font-size:8px!important}
+.checkout-page #scrollhint .scrollhint-arrow{
+  width:14px!important;height:14px!important;
+  background:transparent!important;color:#e4cea5!important;
+  font-size:12px!important;
+}
+.checkout-page #scrollhint.is-fading{opacity:0!important}
+
+
+/* VN SHOP banner enlargement: keep the checkout columns and all other layout untouched. */
+.checkout-page .checkout-shop-banner img{
+  width:90%;height:121.5px;object-fit:fill;
+}
+@media(max-width:900px){
+  .checkout-page .checkout-shop-banner img{width:90%;height:121.5px}
+}
+
+
+/* Requested checkout-only micro-adjustments: progress offset and equal help icon size. */
+.checkout-page .progress{margin-top:18px}
+.checkout-page .checkout-email-control .help{
+  width:18px!important;height:18px!important;font-size:10px!important;
+}
+.checkout-page .vn-ac-phone-help{
+  width:18px!important;height:18px!important;min-width:18px!important;
+  right:64px!important;font-size:10px!important;line-height:16px!important;
+}
+@media(max-width:600px){
+  .checkout-page .vn-ac-phone-help{right:60px!important}
+}
+
+
+/* Phone field only: remove country-selector divider and inset its label. */
+.checkout-page .vn-ac-phone-row select{
+  border-left:0!important;
+  box-shadow:none!important;
+}
+.checkout-page .vn-ac-address-control:has(.vn-ac-phone-row)>span{
+  left:12px!important;
+}
+
+
+/* Fine checkout polish: discount prompt and clean phone-flag focus area only. */
+.checkout-page #discount input[name="discount"]::placeholder{
+  color:#c6bba7;opacity:1;letter-spacing:.09em;font-size:10px;font-weight:600;
+}
+.checkout-page .vn-ac-phone-row select:focus-visible{
+  outline:0!important;outline-offset:0!important;box-shadow:none!important;
+}
+.checkout-page .vn-ac-phone-flag{
+  border:0!important;box-shadow:none!important;filter:none!important;opacity:1!important;
+}
+
+
+/* Final micro-polish: lively discount placeholder and fully even phone selector focus. */
+.checkout-page #discount input[name="discount"]::placeholder{
+  color:#e4cea5!important;opacity:.88;letter-spacing:.12em;font-size:10px;font-weight:600;
+  transition:color .18s ease,opacity .18s ease,letter-spacing .18s ease;
+}
+.checkout-page #discount input[name="discount"]:focus::placeholder{
+  color:#f4e5c8!important;opacity:1;letter-spacing:.14em;
+}
+.checkout-page .vn-ac-phone-row select,
+.checkout-page .vn-ac-phone-row select:focus,
+.checkout-page .vn-ac-phone-row select:focus-visible{
+  background-color:transparent!important;border:0!important;outline:0!important;
+  box-shadow:none!important;filter:none!important;
+}
+.checkout-page .vn-ac-phone-row:has(select:focus) .vn-ac-phone-flag{
+  opacity:1!important;filter:none!important;box-shadow:none!important;
+}
+.checkout-page .vn-ac-phone-flag{
+  border:0!important;outline:0!important;box-shadow:none!important;
+  filter:none!important;opacity:1!important;
+}
+
+
+/* Policy documents: consistent camel frame and contained scrolling for every policy. */
+.checkout-page #pcontent iframe{
+  display:block;
+  box-sizing:border-box;
+  width:100%;
+  border:1px solid #c6bba7;
+  background:#000;
+}
+.checkout-page #pcontent > .policy-placeholder{
+  box-sizing:border-box;
+  width:100%;
+  max-height:min(58dvh,560px);
+  overflow:auto;
+  padding:clamp(18px,3vw,30px);
+  border:1px solid #c6bba7;
+  background:#000;
+  color:#f5f5f5;
+  overflow-wrap:anywhere;
+}
+.checkout-page #pcontent > .policy-placeholder h1,
+.checkout-page #pcontent > .policy-placeholder h2,
+.checkout-page #pcontent > .policy-placeholder h3{
+  color:#f5f5f5;
+}
+.checkout-page #pcontent > .policy-placeholder a{color:#fff;}
+
+
+/* Phone help tooltip: use its accessible text and keep a normal pointer. */
+.checkout-page .vn-ac-phone-help{cursor:default!important}
+.checkout-page .vn-ac-phone-help::after{content:attr(aria-label)!important}
+.checkout-page .vn-ac-phone-help::after{font:inherit!important;font-family:Arial,Helvetica,sans-serif!important;font-size:12px!important;line-height:1.4!important}
+
+/* VN SHOP address autocomplete dropdown */
+.checkout-page .vn-ac-autocomplete{position:relative;margin:0 0 13px;z-index:20}
+.checkout-page .vn-ac-autocomplete>.vn-ac-address-control{display:block;margin:0}
+.checkout-page .vn-ac-address-suggestions{position:absolute;z-index:1000;top:calc(100% + 3px);left:0;right:0;max-height:280px;overflow-y:auto;border:1px solid #625747;border-radius:3px;background:#101010;color:#f5f1e8;box-shadow:0 12px 28px #000b;scrollbar-width:thin;scrollbar-color:#8f8069 #171717}
+.checkout-page .vn-ac-address-suggestions[hidden]{display:none!important}
+.checkout-page .vn-ac-address-suggestion{display:block;width:100%;min-height:0;padding:12px 14px;border:0;border-bottom:1px solid #34302a;border-radius:0;background:#101010;color:#f5f1e8;text-align:left;cursor:pointer;font:13px/1.45 Arial,Helvetica,sans-serif}
+.checkout-page .vn-ac-address-suggestion:last-child{border-bottom:0}
+.checkout-page .vn-ac-address-suggestion:hover,.checkout-page .vn-ac-address-suggestion:focus-visible,.checkout-page .vn-ac-address-suggestion[aria-selected="true"]{outline:0;background:#29241d;color:#e4cea5}
+.checkout-page .vn-ac-address-city-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr)!important}
+@media(max-width:700px){.checkout-page .vn-ac-address-city-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}.checkout-page .vn-ac-address-city-row .vn-ac-city-field{grid-column:1/-1}}
+
+.checkout-page .totals [hidden]{display:none!important}
+
+
+/* Total currency explainer: restrained camel accent, matching checkout borders. */
+.checkout-page .totals .total>.total-amount{
+  display:flex;align-items:flex-start;justify-content:flex-end;gap:12px;
+}
+.checkout-page .total-currency-info{
+  display:flex;flex-direction:column;align-items:flex-start;gap:6px;
+}
+.checkout-page .total-currency-code{
+  display:inline-block;padding-bottom:2px;border-bottom:1px solid #e4cea5;
+  color:#f5f1e8;line-height:1.25;
+}
+.checkout-page .currency-help-toggle{
+  display:inline-flex;align-items:center;gap:5px;padding:0;border:0;
+  background:transparent;color:#d4c5a8;font:600 9px/1.3 Arial,Helvetica,sans-serif;
+  letter-spacing:.055em;cursor:pointer;white-space:nowrap;
+}
+.checkout-page .currency-help-toggle:hover{color:#f5e4c2}
+.checkout-page .currency-help-arrow{
+  width:6px;height:6px;border-right:1px solid currentColor;
+  border-bottom:1px solid currentColor;transform:rotate(45deg) translateY(-2px);
+  transition:transform .18s ease;
+}
+.checkout-page .currency-help-toggle[aria-expanded="true"] .currency-help-arrow{
+  transform:rotate(225deg) translate(-1px,-1px);
+}
+.checkout-page .currency-help-message{
+  margin:-3px 0 15px;padding:12px 13px;border:1px solid #50483c;
+  border-radius:2px;background:#111;color:#d4c5a8;font-size:11px;line-height:1.6;
+}
+.checkout-page .currency-help-message[hidden]{display:none!important}
+@media(max-width:600px){
+  .checkout-page .totals .total>.total-amount{gap:9px}
+  .checkout-page .currency-help-message{font-size:10px}
+}
+
+
+/* Mobile only: keep the Phone label close to its own field, clear of the field above. */
+@media(max-width:600px){
+  .checkout-page .vn-ac-address-control:has(.vn-ac-phone-row)>span{
+    top:-4px!important;
+    left:12px!important;
+    line-height:12px;
+  }
+}
+
+
+/* Estimated Taxes tooltip: precise icon, balanced bubble and clean pointer. */
+.checkout-page .estimated-taxes-help{
+  display:inline-flex;align-items:center;gap:7px;
+}
+.checkout-page .estimated-taxes-help .help{
+  position:relative;right:auto;top:auto;flex:0 0 19px;
+  width:19px;height:19px;min-width:19px;padding:0;
+  display:inline-flex;align-items:center;justify-content:center;
+  border:1px solid #c6bba7;border-radius:50%;
+  background:#c6bba7;color:#171717;
+  font:700 10px/1 Arial,Helvetica,sans-serif;
+}
+.checkout-page .estimated-taxes-help .help::after{
+  left:0;right:auto;bottom:calc(100% + 10px);
+  z-index:30;width:260px;max-width:calc(100vw - 40px);
+  box-sizing:border-box;padding:12px 14px;
+  border:1px solid #c6bba7;border-radius:6px;
+  background:#e4cea5;color:#171717;
+  font:12px/1.55 Arial,Helvetica,sans-serif;text-align:left;
+  white-space:normal;overflow-wrap:break-word;word-break:normal;
+  box-shadow:0 8px 22px rgba(0,0,0,.3);
+  transform:translateY(4px);transform-origin:bottom left;
+}
+.checkout-page .estimated-taxes-help .help:hover::after,
+.checkout-page .estimated-taxes-help .help:focus-visible::after{
+  transform:translateY(0);
+}
+.checkout-page .estimated-taxes-help .help::before{
+  content:"";position:absolute;left:6px;bottom:calc(100% + 5px);
+  z-index:31;width:8px;height:8px;
+  background:#e4cea5;border-right:1px solid #c6bba7;
+  border-bottom:1px solid #c6bba7;transform:rotate(45deg);
+  opacity:0;visibility:hidden;transition:opacity .18s ease,visibility .18s ease;
+}
+.checkout-page .estimated-taxes-help .help:hover::before,
+.checkout-page .estimated-taxes-help .help:focus-visible::before{
+  opacity:1;visibility:visible;
+}
+@media(max-width:600px){
+  .checkout-page .estimated-taxes-help .help::after{
+    width:260px;max-width:calc(100vw - 36px);
+    padding:11px 13px;font-size:11px;line-height:1.5;
+  }
+}
+
+
+/* Shipping & Handling step — left column only. */
+.checkout-page .address-confirmation{
+  margin:16px 0 4px;padding:16px 18px;
+  border:1px solid #45413b;border-radius:4px;
+  background:#292929;color:#f5f1e8;
+}
+.checkout-page .address-confirmation[hidden],
+.checkout-page .shipping-step[hidden],
+.checkout-page .shipping-payment-notice[hidden]{display:none!important}
+.checkout-page .address-warning-title{
+  display:block;margin:0 0 7px;color:#fff;
+  font-size:12px;line-height:1.4;font-weight:700;
+}
+.checkout-page .address-warning-question{
+  display:block;margin:0 0 11px;color:#e4cea5;
+  font-size:13px;line-height:1.45;font-weight:700;
+}
+.checkout-page .address-confirmation-details{
+  margin:0 0 11px;color:#fff;font-size:12px;line-height:1.65;
+  white-space:pre-line;overflow-wrap:anywhere;
+}
+.checkout-page .address-confirmation small{
+  display:block;color:#aaa;font-size:10px;line-height:1.5;
+}
+.checkout-page .progress .is-current{color:#fff;font-weight:600}
+.checkout-page .checkout-summary-card{
+  margin:0 0 13px;padding:14px 15px;
+  border:1px solid #383838;border-radius:3px;background:#111;
+}
+.checkout-page .checkout-summary-card-heading{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  margin:0 0 8px;
+}
+.checkout-page .checkout-summary-card-heading h2{
+  margin:0!important;color:#f4f1eb;font-size:14px!important;line-height:1.4;
+}
+.checkout-page .checkout-summary-card p{
+  margin:0;color:#d7d1c7;font-size:12px;line-height:1.65;
+  overflow-wrap:anywhere;
+}
+.checkout-page .checkout-change{
+  padding:2px 0;border:0;background:none;color:#c6bba7;
+  font:12px Arial,Helvetica,sans-serif;text-decoration:underline;cursor:pointer;
+}
+.checkout-page .checkout-change:hover{color:#fff}
+.checkout-page .shipping-step-divider{
+  height:1px;margin:22px 0;border:0;background:#383838;
+}
+.checkout-page .shipping-method-section{margin:0 0 24px!important}
+.checkout-page .shipping-method-section h2{
+  margin:0 0 14px!important;color:#fff;font-size:18px!important;
+}
+.checkout-page .shipping-dispatch-date{
+  margin:0 0 14px;color:#c6bba7;font-size:12px;line-height:1.5;
+}
+.checkout-page .shipping-method-option{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:16px 15px;border:1px solid #c6bba7;border-radius:3px;
+  background:#171614;
+}
+.checkout-page .shipping-method-copy{display:flex;flex-direction:column;gap:7px;min-width:0}
+.checkout-page .shipping-method-copy strong{
+  color:#f5f1e8;font-size:11px;line-height:1.4;letter-spacing:.035em;
+}
+.checkout-page .shipping-method-copy span{
+  color:#aaa;font-size:11px;line-height:1.5;
+}
+.checkout-page .shipping-method-price{
+  flex:0 0 auto;color:#f5f1e8;font-size:13px;white-space:nowrap;
+}
+.checkout-page .shipping-step-actions{margin-top:24px}
+.checkout-page .secondary-action{
+  min-height:45px;padding:0 16px;border:1px solid #666;
+  background:transparent;color:#ddd;font-size:11px;cursor:pointer;
+}
+.checkout-page .secondary-action:hover{border-color:#c6bba7;color:#fff}
+.checkout-page .shipping-payment-notice{
+  margin:12px 0 0;color:#aaa;font-size:11px;line-height:1.5;
+}
+@media(max-width:600px){
+  .checkout-page .address-confirmation{padding:14px 15px}
+  .checkout-page .shipping-method-option{align-items:flex-start;padding:14px 12px}
+  .checkout-page .shipping-method-price{padding-top:1px}
+  .checkout-page .shipping-step-actions{gap:10px}
+  .checkout-page .shipping-step-actions .secondary-action{width:100%}
+}
+
+
+/* Address confirmation: centered message with a clearer warning heading. */
+.checkout-page .address-confirmation{
+  margin:0 0 20px;padding:24px 22px;
+  border:1px solid #514b40;border-radius:5px;
+  background:#292929;color:#f5f1e8;text-align:center;
+  box-shadow:0 9px 24px rgba(0,0,0,.22);
+}
+.checkout-page .address-warning-title{
+  display:block;margin:0 0 10px;color:#fff;
+  font-size:16px;line-height:1.4;font-weight:800;letter-spacing:.045em;
+}
+.checkout-page .address-warning-question{
+  display:block;margin:0 0 15px;color:#e4cea5;
+  font-size:15px;line-height:1.5;font-weight:700;
+}
+.checkout-page .address-confirmation-details{
+  margin:0 0 15px;font-size:13px;line-height:1.75;
+  white-space:pre-line;text-align:center;
+}
+.checkout-page .address-confirmation small{
+  display:block;color:#aaa;font-size:11px;line-height:1.55;text-align:center;
+}
+
+/* Shipping methods are selectable cards, ready for additional radio options. */
+.checkout-page .shipping-method-option{
+  display:flex;align-items:center;justify-content:flex-start;gap:14px;
+  width:100%;box-sizing:border-box;padding:17px 16px;
+  border:1px solid #555047;border-radius:4px;
+  background:linear-gradient(135deg,#1b1a17,#12110f);
+  cursor:pointer;transition:border-color .2s ease,background .2s ease,box-shadow .2s ease;
+}
+.checkout-page .shipping-method-radio{
+  appearance:auto;-webkit-appearance:radio;
+  flex:0 0 17px;width:17px;height:17px;margin:0;
+  accent-color:#e4cea5;cursor:pointer;
+}
+.checkout-page .shipping-method-option:has(.shipping-method-radio:checked){
+  border-color:#e4cea5;
+  background:linear-gradient(135deg,rgba(228,206,165,.13),#171510 72%);
+  box-shadow:inset 0 0 0 1px rgba(228,206,165,.2),0 0 0 1px rgba(228,206,165,.14),0 0 18px rgba(228,206,165,.2);
+}
+.checkout-page .shipping-method-copy{flex:1}
+.checkout-page .shipping-method-price{margin-left:auto}
+@media(max-width:600px){
+  .checkout-page .address-confirmation{padding:20px 16px;margin-bottom:18px}
+  .checkout-page .address-warning-title{font-size:15px}
+  .checkout-page .address-warning-question{font-size:14px}
+  .checkout-page .shipping-method-option{gap:11px;padding:15px 12px}
+}
+
+
+/* Shipping radio: remove the rectangular focus treatment from the native circle only. */
+.checkout-page .shipping-method-radio:focus,
+.checkout-page .shipping-method-radio:focus-visible{
+  outline:0!important;
+  outline-offset:0!important;
+  box-shadow:none!important;
+}
+
+/* Phone floating label: align it over the number-entry area, never over the dial code. */
+.checkout-page .vn-ac-address-control:has(.vn-ac-phone-row)>span{
+  top:8px!important;
+  left:70px!important;
+  z-index:2;
+  opacity:0;
+  transform:translateY(3px);
+  pointer-events:none;
+  transition:opacity .12s ease,transform .12s ease;
+}
+.checkout-page .vn-ac-address-control:has(.vn-ac-phone-row input:focus)>span,
+.checkout-page .vn-ac-address-control:has(.vn-ac-phone-row input:not(:placeholder-shown))>span{
+  opacity:1;
+  transform:translateY(0);
+}
+.checkout-page .vn-ac-phone-row input{
+  padding:0 12px!important;
+  line-height:1.4;
+}
+.checkout-page .vn-ac-phone-row input:focus,
+.checkout-page .vn-ac-phone-row input:not(:placeholder-shown){
+  padding:16px 12px 3px!important;
+}
+
+
+/* Phone field: match the Information fields' centered-to-floating label behavior. */
+.checkout-page .vn-ac-address-control:has(.vn-ac-phone-row)>span{
+  top:50%!important;
+  left:70px!important;
+  right:auto!important;
+  bottom:auto!important;
+  z-index:5;
+  opacity:1!important;
+  transform:translateY(-50%)!important;
+  font-size:13px!important;
+  line-height:1.2!important;
+  color:#aaa!important;
+  pointer-events:none;
+  transition:top .14s ease,transform .14s ease,font-size .14s ease,color .14s ease!important;
+}
+.checkout-page .vn-ac-address-control:has(.vn-ac-phone-row input:focus)>span,
+.checkout-page .vn-ac-address-control:has(.vn-ac-phone-row input:not(:placeholder-shown))>span{
+  top:8px!important;
+  transform:none!important;
+  font-size:10px!important;
+  color:#d4c5a8!important;
+}
+/* Country-selector focus must not trigger the number field's floating label. */
+.checkout-page .vn-ac-address-control:has(.vn-ac-phone-row select:focus)>span{
+  top:50%!important;
+  transform:translateY(-50%)!important;
+  font-size:13px!important;
+  color:#aaa!important;
+}
+.checkout-page .vn-ac-phone-dial{
+  box-sizing:border-box;
+  flex:0 0 58px!important;
+  width:58px!important;
+  min-width:58px!important;
+  justify-content:center;
+  padding:0 6px!important;
+  overflow:hidden;
+}
+.checkout-page .vn-ac-phone-row input{
+  height:54px!important;
+  min-height:54px!important;
+  padding:0 12px!important;
+  line-height:1.3!important;
+  border-left:0!important;
+  border-right:0!important;
+}
+.checkout-page .vn-ac-phone-row input:focus,
+.checkout-page .vn-ac-phone-row input:not(:placeholder-shown){
+  padding:17px 12px 4px!important;
+}
+@media(max-width:600px){
+  .checkout-page .vn-ac-phone-row{height:54px!important;min-height:54px!important}
+  .checkout-page .vn-ac-phone-row input{height:54px!important;min-height:54px!important}
+}
+
+
+/* Payment step — preserves the existing right-hand order summary. */
+.checkout-page .payment-step[hidden]{display:none!important}
+.checkout-page .payment-shipping-summary{margin:2px 0 0;padding:0 1px}
+.checkout-page .payment-shipping-heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.checkout-page .payment-shipping-heading strong{font-size:13px;color:#eee}
+.checkout-page .payment-shipping-line{display:flex;align-items:center;gap:8px;color:#d7d1c7;font-size:11px;letter-spacing:.035em}
+.checkout-page .payment-shipping-dot{color:#e4cea5;font-size:16px}
+.checkout-page .payment-shipping-line strong{margin-left:auto;color:#f5f1e8;font-size:12px}
+.checkout-page .payment-section h1{margin:0 0 7px;color:#fff;font-size:20px}
+.checkout-page .payment-encrypted{margin:0 0 15px;color:#aaa;font-size:11px;line-height:1.5}
+.checkout-page .payment-methods{overflow:visible;border:1px solid #555047;border-radius:4px;background:#111}
+.checkout-page .payment-method-option{position:relative;display:flex;align-items:center;gap:12px;min-height:54px;box-sizing:border-box;padding:14px 15px;border-bottom:1px solid #38342d;background:linear-gradient(135deg,#1b1a17,#12110f);cursor:pointer}
+.checkout-page .payment-method-option:last-child{border-bottom:0}
+.checkout-page .payment-method-option.is-selected{border-color:#e4cea5;background:linear-gradient(135deg,rgba(228,206,165,.13),#171510 72%);box-shadow:inset 0 0 0 1px rgba(228,206,165,.16)}
+.checkout-page .payment-method-radio{flex:0 0 17px}
+.checkout-page .payment-method-label{color:#f5f1e8;font-size:12px;font-weight:600}
+.checkout-page .card-brand-area{display:flex;align-items:center;gap:5px;margin-left:auto}
+.checkout-page .card-brand{display:inline-flex;align-items:center;justify-content:center;min-width:31px;height:19px;padding:0 4px;border:1px solid #d8d8d8;border-radius:3px;background:#f8f8f8;color:#173b73;font:bold italic 9px Arial,sans-serif;box-sizing:border-box}
+.checkout-page .card-brand.mastercard{color:#292929;font-style:normal}
+.checkout-page .card-brand.amex{color:#17619b;font-size:7px}
+.checkout-page .card-more-wrap{position:relative}
+.checkout-page .card-more{display:inline-flex;align-items:center;justify-content:center;width:27px;height:19px;border:1px solid #aaa;border-radius:3px;background:#f8f8f8;color:#222;font:700 9px Arial,sans-serif}
+.checkout-page .card-more-popover{position:absolute;z-index:20;display:none;right:0;top:calc(100% + 8px);min-width:88px;padding:7px;border:1px solid #555;border-radius:4px;background:#f8f8f8;box-shadow:0 6px 16px #0009}
+.checkout-page .card-more-popover span{display:block;padding:4px 3px;color:#222;font:700 8px Arial,sans-serif;white-space:nowrap}
+.checkout-page .card-more-wrap:hover .card-more-popover,.checkout-page .card-more-wrap:focus-within .card-more-popover{display:block}
+.checkout-page .payment-card-fields{display:grid;gap:12px;padding:15px;border-bottom:1px solid #38342d;background:#111}
+.checkout-page .payment-card-fields[hidden]{display:none!important}
+.checkout-page .payment-card-fields .vn-ac-address-control{margin:0}
+.checkout-page .payment-card-fields .vn-ac-address-control>input,.checkout-page .payment-card-number{box-sizing:border-box;width:100%;height:54px;min-height:54px}
+.checkout-page .payment-card-number{position:relative;display:flex;border:1px solid #555047;border-radius:4px;background:#101010}
+.checkout-page .payment-card-number:focus-within{border-color:#f5f1e8;box-shadow:0 0 0 1px #f5f1e8}
+.checkout-page .payment-card-number input{width:100%;min-width:0;border:0!important;background:transparent!important;padding:0 42px 0 12px!important;color:#fff;font:13px Arial,sans-serif;outline:0}
+.checkout-page .payment-card-number input:focus,.checkout-page .payment-card-number input:not(:placeholder-shown){padding-top:14px!important}
+.checkout-page .payment-lock{position:absolute;right:13px;top:50%;transform:translateY(-50%);color:#aaa;font-size:14px;pointer-events:none}
+.checkout-page .payment-field-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.checkout-page .payment-security-field{position:relative}
+.checkout-page .payment-tooltip{position:absolute;z-index:12;right:0;bottom:calc(100% + 7px);display:none;width:205px;padding:9px 11px;border:1px solid #655b49;border-radius:4px;background:#e4cea5;color:#171717;font-size:10px;line-height:1.4}
+.checkout-page .payment-security-field:hover .payment-tooltip,.checkout-page .payment-security-field:focus-within .payment-tooltip{display:block}
+.checkout-page .payment-method-note{margin-left:auto;color:#c6bba7;font-size:10px;text-align:right}
+.checkout-page .billing-section{margin:25px 0 0}
+.checkout-page .billing-section h2{margin:0 0 7px;color:#fff;font-size:18px}
+.checkout-page .billing-section>p{margin:0 0 14px;color:#aaa;font-size:11px;line-height:1.55}
+.checkout-page .billing-options{padding:0 14px;border:1px solid #555047;border-radius:4px;background:#111}
+.checkout-page .billing-option{display:flex;align-items:center;gap:10px;min-height:49px;border-bottom:1px solid #38342d;color:#eee;font-size:11px;cursor:pointer}
+.checkout-page .billing-option input,.shop-save-check input{accent-color:#e4cea5}
+.checkout-page .billing-fields{display:grid;gap:11px;padding:14px 0}
+.checkout-page .billing-fields[hidden]{display:none!important}
+.checkout-page .billing-fields .vn-ac-address-control{margin:0}
+.checkout-page .billing-fields .vn-ac-form-grid{gap:10px}
+.checkout-page .billing-fields .vn-ac-address-control>input,.checkout-page .billing-fields select{height:49px;min-height:49px;font-size:12px}
+.checkout-page .billing-city-row{grid-template-columns:1.1fr 1fr .8fr!important}
+.checkout-page .shop-save-section{margin:18px 0 0;padding:14px;border:1px solid #383838;border-radius:4px;background:#111}
+.checkout-page .shop-save-check{display:flex;align-items:center;gap:9px;color:#eee;font-size:11px;cursor:pointer}
+.checkout-page .shop-save-section p{margin:10px 0;color:#aaa;font-size:10px;line-height:1.6}
+.checkout-page .shop-save-section a{color:#d4c5a8;text-decoration:underline}
+.checkout-page .not-now-button{padding:3px 0;border:0;background:none;color:#c6bba7;font-size:9px;letter-spacing:.08em;cursor:pointer}
+.checkout-page .payment-step-actions{margin-top:23px}
 .checkout-page .payment-prototype-notice{margin:12px 0 0;color:#c6bba7;font-size:11px;line-height:1.5}
+.checkout-page .payment-prototype-notice[hidden]{display:none!important}
+@media(max-width:600px){
+ .checkout-page .payment-method-option{gap:9px;padding:13px 11px}
+ .checkout-page .payment-method-label{font-size:11px}
+ .checkout-page .card-brand{min-width:27px;height:18px;font-size:8px}
+ .checkout-page .card-brand-area{gap:3px}
+ .checkout-page .payment-card-fields{padding:12px}
+ .checkout-page .payment-field-grid{gap:9px}
+ .checkout-page .billing-options{padding:0 11px}
+ .checkout-page .billing-city-row{grid-template-columns:1fr 1fr!important}
+ .checkout-page .billing-city-row label:last-child{grid-column:1/-1}
+ .checkout-page .shop-save-section{padding:12px}
+ .checkout-page .payment-step-actions{gap:10px}
+ .checkout-page .payment-step-actions .secondary-action{width:100%}
+}
+
+
+/* Billing controls: match Information's radio alignment and floating-field treatment. */
+.checkout-page .billing-options{display:flex;flex-direction:column;gap:0;padding:0;overflow:visible}
+.checkout-page .billing-option{position:relative;display:flex;align-items:center;gap:13px;box-sizing:border-box;width:100%;min-height:54px;margin:0;padding:14px 15px;border:0;border-bottom:1px solid #38342d;background:linear-gradient(135deg,#1b1a17,#12110f);cursor:pointer}
+.checkout-page .billing-option:last-of-type{border-bottom:0}
+.checkout-page .billing-option input{appearance:none;-webkit-appearance:none;flex:0 0 17px;width:17px;height:17px;margin:0;border:1.5px solid #b8b1a5;border-radius:50%;background:#171614;cursor:pointer}
+.checkout-page .billing-option input:checked{border:5px solid #e4cea5;background:#171614;box-shadow:0 0 0 1px rgba(228,206,165,.25)}
+.checkout-page .billing-option input:focus,.checkout-page .billing-option input:focus-visible{outline:0;box-shadow:none}
+.checkout-page .billing-option:has(input:checked){background:linear-gradient(135deg,rgba(228,206,165,.13),#171510 72%);box-shadow:inset 0 0 0 1px rgba(228,206,165,.16)}
+.checkout-page .billing-option span{color:#f5f1e8;font-size:12px;line-height:1.4;font-weight:600}
+.checkout-page .billing-fields{padding:14px;border-top:1px solid #38342d}
+.checkout-page .billing-autocomplete{position:relative;min-width:0}
+.checkout-page .billing-autocomplete .vn-ac-address-suggestions{z-index:35}
+.checkout-page .billing-autocomplete .vn-ac-address-control{margin:0}
+.checkout-page .payment-tooltip{top:auto!important;left:auto!important;right:0!important;bottom:calc(100% + 7px)!important;display:none!important;width:205px;max-width:calc(100vw - 50px);padding:9px 11px;border:1px solid #655b49;border-radius:4px;background:#e4cea5;color:#171717;font-size:10px;line-height:1.4;letter-spacing:0;opacity:1!important;transform:none!important;pointer-events:none}
+.checkout-page .payment-security-field:hover .payment-tooltip,.checkout-page .payment-security-field:focus-within .payment-tooltip{display:block!important}
+.checkout-page .payment-shipping-line{justify-content:flex-start}
+.checkout-page .payment-shipping-line strong{margin-left:0}
+.checkout-page .shop-save-section{display:flex;align-items:center;gap:16px}
+.checkout-page .shop-save-copy{flex:1;min-width:0}
+.checkout-page .shop-save-copy>strong{display:block;color:#eee;font-size:11px;line-height:1.5}
+.checkout-page .shop-save-copy p{margin:5px 0 0;color:#aaa;font-size:10px;line-height:1.55}
+.checkout-page .not-now-button{flex:0 0 auto;min-width:58px;align-self:center;padding:7px 9px;border:1px solid #74664f;border-radius:3px;background:transparent;color:#e4cea5;font-size:9px;letter-spacing:.08em;white-space:nowrap}
+.checkout-page .not-now-button:hover{border-color:#e4cea5;background:rgba(228,206,165,.1);color:#fff}
+@media(max-width:600px){
+ .checkout-page .billing-option{min-height:51px;padding:13px 12px}
+ .checkout-page .billing-fields{padding:12px}
+ .checkout-page .shop-save-section{align-items:flex-start;gap:10px}
+ .checkout-page .not-now-button{margin-top:1px}
+}
+
+
+/* Payment card brands are visual acceptance marks, never controls. */
+.checkout-page .card-brand-area{pointer-events:none;gap:5px}
+.checkout-page .card-brand{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;width:43px;height:27px;min-width:43px;padding:3px;border:1px solid #d5d5d5;border-radius:4px;background:#fff;overflow:hidden}
+.checkout-page .card-brand svg{display:block;width:100%;height:100%;max-width:100%}
+.checkout-page .card-brand.mastercard,.checkout-page .card-brand.amex{width:43px}
+.checkout-page .card-more-wrap{position:relative;display:inline-flex;pointer-events:auto}
+.checkout-page .card-more{width:30px;height:27px;box-sizing:border-box;border:1px solid #bcbcbc;border-radius:4px;background:#f8f8f8;color:#252525;font:700 10px Arial,sans-serif;pointer-events:none}
+.checkout-page .card-more-popover{top:calc(100% + 6px);display:none;grid-template-columns:repeat(2,auto);gap:5px;min-width:0;padding:7px;background:#191817;border-color:#655b49}
+.checkout-page .card-more-wrap:hover .card-more-popover,.checkout-page .card-more-wrap:focus-within .card-more-popover{display:grid}
+.checkout-page .card-more-popover .card-brand{width:58px;height:27px;min-width:58px;margin:0}
+.checkout-page .billing-option input[type="radio"]{appearance:auto!important;-webkit-appearance:radio!important;flex:0 0 17px!important;width:17px!important;height:17px!important;min-width:17px!important;min-height:17px!important;margin:0 0 0 1px!important;padding:0!important;border:initial!important;border-radius:50%!important;background:initial!important;box-shadow:none!important;accent-color:#e4cea5}
+.checkout-page .billing-option input[type="radio"]:checked{border:initial!important;box-shadow:none!important}
+.checkout-page .billing-option input[type="radio"]:focus,.checkout-page .billing-option input[type="radio"]:focus-visible{outline:0!important;box-shadow:none!important}
+.checkout-page .billing-option:has(input[type="radio"]:checked){background:linear-gradient(135deg,rgba(228,206,165,.13),#171510 72%);box-shadow:inset 0 0 0 1px rgba(228,206,165,.16)}
+.checkout-page .billing-option span{display:block;flex:1;min-width:0}
+.checkout-page .billing-option input[type="radio"]+span{margin:0}
+@media(max-width:600px){.checkout-page .card-brand{width:37px;height:24px;min-width:37px}.checkout-page .card-brand.mastercard,.checkout-page .card-brand.amex{width:37px}.checkout-page .card-more{width:27px;height:24px}.checkout-page .card-more-popover .card-brand{width:53px;height:25px;min-width:53px}}
+
+
+/* Security-code help tooltip: anchored to the question mark, keyboard accessible. */
+.checkout-page .payment-security-field{position:relative}
+.checkout-page .payment-security-label{display:flex;align-items:center;gap:6px}
+.checkout-page .payment-security-help{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;box-sizing:border-box;border:1px solid #aaa;border-radius:50%;color:#d8d1c6;font:700 9px/1 Arial,sans-serif;cursor:help;user-select:none}
+.checkout-page .payment-security-help:focus{outline:1px solid #e4cea5;outline-offset:2px}
+.checkout-page .payment-security-field .payment-tooltip{position:absolute!important;z-index:50!important;top:auto!important;right:0!important;bottom:calc(100% + 8px)!important;left:auto!important;display:none!important;width:260px!important;max-width:calc(100vw - 48px)!important;box-sizing:border-box!important;padding:10px 12px!important;border:1px solid #655b49!important;border-radius:4px!important;background:#e4cea5!important;color:#171717!important;font:400 11px/1.5 Arial,sans-serif!important;letter-spacing:0!important;text-align:left!important;white-space:normal!important;opacity:1!important;visibility:visible!important;transform:none!important;pointer-events:none!important;box-shadow:0 5px 16px rgba(0,0,0,.3)!important}
+.checkout-page .payment-security-field:hover .payment-tooltip,.checkout-page .payment-security-field:focus-within .payment-tooltip{display:block!important}
+
+
+/* Compact, passive card-network marks with live BIN-based filtering. */
+.checkout-page .card-brand-area{display:flex;align-items:center;justify-content:flex-end;gap:3px;margin-left:auto;pointer-events:none;flex:0 0 auto}
+.checkout-page .card-brand-area .card-brand{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;width:31px;height:20px;min-width:31px;margin:0;padding:2px;border:1px solid #d7d7d7;border-radius:3px;background:#fff;overflow:hidden;opacity:1;transition:opacity .12s ease}
+.checkout-page .card-brand-area .card-brand svg{display:block;width:100%;height:100%;max-width:100%}
+.checkout-page .card-brand-area .card-brand[hidden]{display:none!important}
+.checkout-page .card-brand-area.has-detected-brand .card-brand{width:34px;height:22px;min-width:34px}
+.checkout-page .card-brand-area .card-brand.discover,.checkout-page .card-brand-area .card-brand.unionpay,.checkout-page .card-brand-area .card-brand.jcb{width:34px;min-width:34px}
+.checkout-page .card-brand-area .card-brand.elo{width:31px;min-width:31px}
+@media(max-width:600px){
+ .checkout-page .card-brand-area{gap:2px}
+ .checkout-page .card-brand-area .card-brand{width:27px;height:18px;min-width:27px;padding:2px}
+ .checkout-page .card-brand-area .card-brand.discover,.checkout-page .card-brand-area .card-brand.unionpay,.checkout-page .card-brand-area .card-brand.jcb{width:29px;min-width:29px}
+ .checkout-page .card-brand-area.has-detected-brand .card-brand{width:32px;height:21px;min-width:32px}
+}
+
+/* Payment shipping summary uses the exact contact/ship-to summary-card frame. */
+.checkout-page .payment-shipping-summary{
+ box-sizing:border-box;
+ width:100%;
+ margin:0;
+ padding:13px 14px;
+ border:1px solid rgba(228,206,165,.22);
+ border-radius:4px;
+ background:linear-gradient(135deg,rgba(255,255,255,.035),rgba(0,0,0,.12));
+}
+.checkout-page .payment-shipping-summary .payment-shipping-heading{
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ gap:12px;
+ margin:0 0 9px;
+}
+.checkout-page .payment-shipping-summary .payment-shipping-heading strong{
+ margin:0;
+ color:#eee;
+ font-size:12px;
+ font-weight:600;
+ line-height:1.4;
+}
+.checkout-page .payment-shipping-summary .checkout-change{
+ flex:0 0 auto;
+}
+.checkout-page .payment-shipping-summary .payment-shipping-line{
+ display:flex;
+ align-items:center;
+ justify-content:flex-start;
+ gap:7px;
+ margin:0;
+ padding:0;
+ color:#d7d1c7;
+ font-size:11px;
+ line-height:1.45;
+ letter-spacing:.035em;
+}
+.checkout-page .payment-shipping-summary .payment-shipping-dot{
+ color:#e4cea5;
+ font-size:14px;
+ line-height:1;
+}
+.checkout-page .payment-shipping-summary .payment-shipping-line strong{
+ margin:0;
+ color:#f5f1e8;
+ font-size:11px;
+ font-weight:600;
+}
+
+
+/* Keep card-network marks passive; only the +4 hover area reveals the extra brands. */
+.checkout-page .card-brand-area,
+.checkout-page .card-brand-area .card-brand,
+.checkout-page .card-brand-area .card-brand svg,
+.checkout-page .card-brand-area .card-more-wrap,
+.checkout-page .card-brand-area .card-more,
+.checkout-page .card-brand-area .card-more-popover{
+ cursor:default!important;
+}
+.checkout-page .card-brand-area{pointer-events:auto!important}
+.checkout-page .card-brand-area .card-brand{pointer-events:auto!important}
+.checkout-page .card-brand-area .card-more-wrap{position:relative;display:inline-flex;align-items:center;pointer-events:auto!important}
+.checkout-page .card-brand-area .card-more{display:inline-flex;align-items:center;justify-content:center;width:27px;height:20px;box-sizing:border-box;border:1px solid #bcbcbc;border-radius:3px;background:#f8f8f8;color:#252525;font:700 9px Arial,sans-serif;pointer-events:none}
+.checkout-page .card-brand-area .card-more-popover{
+ position:absolute;top:calc(100% + 5px);right:0;z-index:40;display:none;grid-template-columns:repeat(2,auto);gap:4px;min-width:0;padding:5px;border:1px solid #655b49;border-radius:4px;background:#191817;box-shadow:0 6px 16px #0009;
+}
+.checkout-page .card-brand-area .card-more-popover .card-brand{display:inline-flex;align-items:center;justify-content:center;width:31px;height:20px;min-width:31px;margin:0;padding:2px;border:1px solid #d7d7d7;border-radius:3px;background:#fff;overflow:hidden}
+.checkout-page .card-brand-area .card-more-popover .card-brand svg{display:block;width:100%;height:100%}
+.checkout-page .card-brand-area .card-more-popover .card-brand[hidden]{display:none!important}
+.checkout-page .card-brand-area .card-more-wrap:hover .card-more-popover{display:grid}
+.checkout-page .card-brand-area.has-detected-brand .card-more-wrap{display:none}
+.checkout-page .card-brand-area.detected-extra-brand .card-more-wrap{display:inline-flex}
+.checkout-page .card-brand-area.detected-extra-brand .card-more-popover{display:grid}
+.checkout-page .payment-card-number{transition:border-color .15s ease,box-shadow .15s ease}
+.checkout-page .payment-card-number:focus-within{border-color:#c6bba7!important;box-shadow:none!important}
+.checkout-page .payment-card-number input:focus,
+.checkout-page .payment-card-number input:focus-visible{outline:0!important;box-shadow:none!important}
+.checkout-page .payment-card-number input:focus{padding-top:17px!important;padding-bottom:5px!important}
+.checkout-page .payment-card-number input:focus::placeholder,
+.checkout-page .payment-card-number input:not(:placeholder-shown)::placeholder{opacity:0!important}
+.checkout-page .payment-field-card:focus-within>span,
+.checkout-page .payment-field-card:has(.payment-card-number input:not(:placeholder-shown))>span{opacity:1!important;transform:translateY(0)!important}
+
+
+/* Checkout progress: completed steps are one-click navigation links. */
+.checkout-page .progress a{color:#ddd;text-decoration:none;cursor:pointer}
+.checkout-page .progress a:hover{text-decoration:underline;color:#fff}
+.checkout-page .progress a.is-current{color:#fff;font-weight:600;pointer-events:none}
+.checkout-page .progress a.is-complete{color:#e4cea5;text-decoration:underline}
+.checkout-page.checkout-after-information .or{display:none!important}
+.checkout-page.checkout-after-information .express{display:none!important}
+
+
+/* Payment Shipping & Handling summary: exact same outer card standard as Contact and Ship to. */
+.checkout-page .payment-shipping-summary{
+ box-sizing:border-box;
+ width:100%;
+ margin:0 0 13px!important;
+ padding:14px 15px!important;
+ border:1px solid #383838!important;
+ border-radius:3px!important;
+ background:#111!important;
+}
+.checkout-page .payment-shipping-summary .payment-shipping-heading{
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ gap:12px;
+ margin:0 0 8px!important;
+}
+.checkout-page .payment-shipping-summary .payment-shipping-heading>strong{
+ margin:0!important;
+ color:#f4f1eb!important;
+ font-size:14px!important;
+ font-weight:600!important;
+ line-height:1.4!important;
+}
+.checkout-page .payment-shipping-summary .payment-shipping-line{
+ display:flex;
+ align-items:center;
+ justify-content:flex-start;
+ gap:7px;
+ margin:0!important;
+ padding:0!important;
+ color:#d7d1c7!important;
+ font-size:12px!important;
+ line-height:1.65!important;
+ letter-spacing:0!important;
+}
+.checkout-page .payment-shipping-summary .payment-shipping-dot{
+ color:#e4cea5;
+ font-size:14px;
+ line-height:1;
+}
+.checkout-page .payment-shipping-summary .payment-shipping-line strong{
+ margin:0!important;
+ color:#d7d1c7!important;
+ font-size:12px!important;
+ font-weight:600!important;
+}
+
+/* Payment writing fields: use the Card number focus frame consistently. */
+.checkout-page .payment-section .payment-card-fields .vn-ac-address-control>input:focus,
+.checkout-page .payment-section .payment-card-fields .vn-ac-address-control>input:focus-visible,
+.checkout-page .billing-section .billing-fields .vn-ac-address-control>input:focus,
+.checkout-page .billing-section .billing-fields .vn-ac-address-control>input:focus-visible,
+.checkout-page .billing-section .billing-fields .vn-ac-address-control>select:focus,
+.checkout-page .billing-section .billing-fields .vn-ac-address-control>select:focus-visible{
+ border-color:#c6bba7!important;
+ outline:0!important;
+ outline-offset:0!important;
+ box-shadow:none!important;
+}
+.checkout-page .payment-section .payment-card-number:focus-within{
+ border-color:#c6bba7!important;
+ box-shadow:none!important;
+}
+.checkout-page .payment-section .payment-card-number input:focus,
+.checkout-page .payment-section .payment-card-number input:focus-visible{
+ outline:0!important;
+ box-shadow:none!important;
+}
+
+/* Match every Payment text field to the Card number focus frame. */
+.checkout-page .payment-section .payment-card-number{
+ border:1px solid #4b463f!important;
+ border-radius:3px!important;
+ background:#111!important;
+ transition:border-color .18s ease,background .18s ease,box-shadow .18s ease!important;
+}
+.checkout-page .payment-section .payment-card-number:focus-within{
+ border-color:#c6bba7!important;
+ background:#141414!important;
+ box-shadow:none!important;
+}
+.checkout-page .payment-section .payment-card-fields .vn-ac-address-control>input,
+.checkout-page .billing-section .billing-fields .vn-ac-address-control>input,
+.checkout-page .billing-section .billing-fields .vn-ac-address-control>select{
+ border:1px solid #4b463f!important;
+ border-radius:3px!important;
+ background:#111!important;
+ transition:border-color .18s ease,background .18s ease,box-shadow .18s ease!important;
+}
+.checkout-page .payment-section .payment-card-fields .vn-ac-address-control>input:focus,
+.checkout-page .payment-section .payment-card-fields .vn-ac-address-control>input:focus-visible,
+.checkout-page .billing-section .billing-fields .vn-ac-address-control>input:focus,
+.checkout-page .billing-section .billing-fields .vn-ac-address-control>input:focus-visible,
+.checkout-page .billing-section .billing-fields .vn-ac-address-control>select:focus,
+.checkout-page .billing-section .billing-fields .vn-ac-address-control>select:focus-visible{
+ border-color:#c6bba7!important;
+ background:#141414!important;
+ outline:0!important;
+ outline-offset:0!important;
+ box-shadow:none!important;
+}
+.checkout-page .payment-section .payment-card-number input:focus,
+.checkout-page .payment-section .payment-card-number input:focus-visible{
+ border:0!important;
+ outline:0!important;
+ box-shadow:none!important;
+}
+
+/* Return buttons: match the Return to cart action-link typography and inline behavior. */
+.checkout-page .actions #return-to-information,
+.checkout-page .actions #return-to-shipping{
+ display:inline!important;
+ min-height:0!important;
+ margin:0!important;
+ padding:0!important;
+ border:0!important;
+ border-radius:0!important;
+ appearance:none!important;
+ -webkit-appearance:none!important;
+ background:transparent!important;
+ color:#ccc!important;
+ font:11px Arial,Helvetica,sans-serif!important;
+ line-height:normal!important;
+ letter-spacing:normal!important;
+ text-align:left!important;
+ text-decoration:underline!important;
+ text-decoration-thickness:auto!important;
+ text-underline-offset:auto!important;
+ text-transform:none!important;
+ vertical-align:baseline!important;
+ box-shadow:none!important;
+ cursor:pointer!important;
+}
+.checkout-page .actions #return-to-information:hover,
+.checkout-page .actions #return-to-information:focus,
+.checkout-page .actions #return-to-information:focus-visible,
+.checkout-page .actions #return-to-shipping:hover,
+.checkout-page .actions #return-to-shipping:focus,
+.checkout-page .actions #return-to-shipping:focus-visible{
+ border:0!important;
+ background:transparent!important;
+ color:#ccc!important;
+ outline:auto!important;
+ box-shadow:none!important;
+}
+
+/* Only completed checkout steps are available as backward navigation. */
+.checkout-page .progress a.is-locked{
+ color:#666!important;
+ text-decoration:none!important;
+ cursor:default!important;
+ pointer-events:none!important;
+}
+
+/* Use the Card number's outer-wrapper focus frame for every Payment field. */
+.checkout-page .payment-section .payment-card-fields .vn-ac-address-control:has(>input),
+.checkout-page .billing-section .billing-fields .vn-ac-address-control:has(>input),
+.checkout-page .billing-section .billing-fields .vn-ac-address-control:has(>select){
+ box-sizing:border-box;
+ border:1px solid #4b463f!important;
+ border-radius:3px!important;
+ background:#111!important;
+ transition:border-color .18s ease,background .18s ease,box-shadow .18s ease!important;
+}
+.checkout-page .payment-section .payment-card-fields .vn-ac-address-control:has(>input:focus),
+.checkout-page .billing-section .billing-fields .vn-ac-address-control:has(>input:focus),
+.checkout-page .billing-section .billing-fields .vn-ac-address-control:has(>select:focus){
+ border-color:#c6bba7!important;
+ background:#141414!important;
+ box-shadow:none!important;
+}
+.checkout-page .payment-section .payment-card-fields .vn-ac-address-control>input,
+.checkout-page .billing-section .billing-fields .vn-ac-address-control>input,
+.checkout-page .billing-section .billing-fields .vn-ac-address-control>select{
+ box-sizing:border-box!important;
+ width:100%!important;
+ height:calc(100% - 2px)!important;
+ min-height:0!important;
+ border:0!important;
+ border-radius:2px!important;
+ background:transparent!important;
+ outline:0!important;
+ box-shadow:none!important;
+}
+.checkout-page .payment-section .payment-card-fields .vn-ac-address-control>input:focus,
+.checkout-page .payment-section .payment-card-fields .vn-ac-address-control>input:focus-visible,
+.checkout-page .billing-section .billing-fields .vn-ac-address-control>input:focus,
+.checkout-page .billing-section .billing-fields .vn-ac-address-control>input:focus-visible,
+.checkout-page .billing-section .billing-fields .vn-ac-address-control>select:focus,
+.checkout-page .billing-section .billing-fields .vn-ac-address-control>select:focus-visible{
+ border:0!important;
+ background:transparent!important;
+ outline:0!important;
+ box-shadow:none!important;
+}
+
+/* Final parity pass: Payment focus frames and return navigation links. */
+.checkout-page .payment-section .payment-card-fields .vn-ac-address-control:has(>input),
+.checkout-page .billing-section .billing-fields .vn-ac-address-control:has(>input),
+.checkout-page .billing-section .billing-fields .vn-ac-address-control:has(>select){
+ height:54px!important;
+ min-height:54px!important;
+ box-sizing:border-box!important;
+ border:1px solid #4b463f!important;
+ border-radius:3px!important;
+ background:#111!important;
+ transition:border-color .18s ease,background .18s ease!important;
+}
+.checkout-page .payment-section .payment-card-fields .vn-ac-address-control:has(>input:focus),
+.checkout-page .billing-section .billing-fields .vn-ac-address-control:has(>input:focus),
+.checkout-page .billing-section .billing-fields .vn-ac-address-control:has(>select:focus){
+ border-color:#c6bba7!important;
+ background:#141414!important;
+ box-shadow:none!important;
+}
+.checkout-page .payment-section .payment-card-fields .vn-ac-address-control>input,
+.checkout-page .billing-section .billing-fields .vn-ac-address-control>input,
+.checkout-page .billing-section .billing-fields .vn-ac-address-control>select{
+ height:52px!important;
+ min-height:52px!important;
+ border:0!important;
+ border-radius:2px!important;
+ background:transparent!important;
+ outline:0!important;
+ box-shadow:none!important;
+}
+.checkout-page .payment-section .payment-card-number{
+ height:54px!important;
+ min-height:54px!important;
+ border:1px solid #4b463f!important;
+ border-radius:3px!important;
+ background:#111!important;
+}
+.checkout-page .payment-section .payment-card-number:focus-within{
+ border-color:#c6bba7!important;
+ background:#141414!important;
+ box-shadow:none!important;
+}
+
+/* Match Return to cart without adding button-only hover or focus decoration. */
+.checkout-page .actions #return-to-information,
+.checkout-page .actions #return-to-shipping{
+ display:inline!important;
+ min-height:0!important;
+ margin:0!important;
+ padding:0!important;
+ border:0!important;
+ border-radius:0!important;
+ appearance:none!important;
+ -webkit-appearance:none!important;
+ background:transparent!important;
+ color:#ccc!important;
+ font:11px Arial,Helvetica,sans-serif!important;
+ line-height:normal!important;
+ letter-spacing:normal!important;
+ text-align:left!important;
+ text-decoration:underline!important;
+ text-decoration-thickness:auto!important;
+ text-underline-offset:auto!important;
+ text-transform:none!important;
+ vertical-align:baseline!important;
+ box-shadow:none!important;
+ cursor:pointer!important;
+}
+.checkout-page .actions #return-to-information:hover,
+.checkout-page .actions #return-to-shipping:hover{
+ background:transparent!important;
+ color:#ccc!important;
+ outline:0!important;
+}
+.checkout-page .actions #return-to-information:focus-visible,
+.checkout-page .actions #return-to-shipping:focus-visible{
+ background:transparent!important;
+ color:#ccc!important;
+ outline:auto!important;
+ outline-offset:0!important;
+ box-shadow:none!important;
+}
+.checkout-page .actions #return-to-information:focus:not(:focus-visible),
+.checkout-page .actions #return-to-shipping:focus:not(:focus-visible){
+ outline:0!important;
+}
+
+/* Shared back-arrow treatment for all three checkout return actions. */
+.checkout-page .actions>a[href="merch.html#cart"],
+.checkout-page .actions #return-to-information,
+.checkout-page .actions #return-to-shipping{
+ display:inline-flex!important;
+ align-items:center!important;
+ justify-content:flex-start!important;
+ gap:6px!important;
+ min-height:0!important;
+ margin:0!important;
+ padding:0!important;
+ border:0!important;
+ border-radius:0!important;
+ appearance:none!important;
+ -webkit-appearance:none!important;
+ background:transparent!important;
+ color:#ccc!important;
+ font:12px/1.6 Arial,Helvetica,sans-serif!important;
+ letter-spacing:normal!important;
+ text-align:left!important;
+ text-decoration:underline!important;
+ text-decoration-thickness:auto!important;
+ text-underline-offset:auto!important;
+ text-transform:none!important;
+ vertical-align:baseline!important;
+ box-shadow:none!important;
+ cursor:pointer!important;
+}
+.checkout-page .actions>a[href="merch.html#cart"]::before,
+.checkout-page .actions #return-to-information::before,
+.checkout-page .actions #return-to-shipping::before{
+ content:"";
+ display:inline-block;
+ flex:0 0 9px;
+ width:9px;
+ height:9px;
+ background:currentColor;
+ clip-path:polygon(0 50%, 5px 0, 5px 3px, 9px 3px, 9px 6px, 5px 6px, 5px 9px);
+}
+.checkout-page .actions>a[href="merch.html#cart"]:hover,
+.checkout-page .actions #return-to-information:hover,
+.checkout-page .actions #return-to-shipping:hover{
+ background:transparent!important;
+ color:#ccc!important;
+ outline:0!important;
+}
+.checkout-page .actions>a[href="merch.html#cart"]:focus-visible,
+.checkout-page .actions #return-to-information:focus-visible,
+.checkout-page .actions #return-to-shipping:focus-visible{
+ background:transparent!important;
+ color:#ccc!important;
+ outline:auto!important;
+ outline-offset:0!important;
+ box-shadow:none!important;
+}
+
+{margin:12px 0 0;color:#c6bba7;font-size:11px;line-height:1.5}
 .checkout-page .payment-prototype-notice[hidden]{display:none!important}
 @media(max-width:600px){
  .checkout-page .payment-method-option{gap:9px;padding:13px 11px}

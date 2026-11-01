@@ -176,6 +176,19 @@
         </div>
         <p class="payment-prototype-notice" id="payment-prototype-notice" hidden>Payment processing is not connected yet. No payment has been taken.</p>
       </section>
+      <section class="payment-test-confirmation" id="payment-test-confirmation" hidden aria-labelledby="payment-test-title">
+        <p class="payment-test-eyebrow">TEST MODE · NOT A REAL ORDER</p>
+        <div class="payment-test-mark" aria-hidden="true">✓</div>
+        <h1 id="payment-test-title">Thank you!</h1>
+        <p class="payment-test-lead">Your test checkout is complete.</p>
+        <p class="payment-test-notice">This is a preview of the post-payment screen. No payment was processed and no order was placed.</p>
+        <div class="payment-test-summary">
+          <div><span>Contact</span><strong id="test-confirmation-contact"></strong></div>
+          <div><span>Ship to</span><strong id="test-confirmation-address"></strong></div>
+          <div><span>Shipping</span><strong id="test-confirmation-shipping"></strong></div>
+        </div>
+        <button type="button" class="secondary-action" id="return-to-payment-from-test">Return to payment</button>
+      </section>
       <button id="policies" class="policy-link" type="button">Terms and policies</button>
     </section>
     <aside class="right" aria-label="Order summary">
