@@ -1017,3 +1017,22 @@ body.checkout-page{margin:0;background:#C6BBA7;color:#f5f5f5;font:13px Arial,Hel
  .checkout-page .shop-save-section{align-items:flex-start;gap:10px}
  .checkout-page .not-now-button{margin-top:1px}
 }
+
+
+/* Payment card brands are visual acceptance marks, never controls. */
+.checkout-page .card-brand-area{pointer-events:none;gap:5px}
+.checkout-page .card-brand{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;width:43px;height:27px;min-width:43px;padding:3px;border:1px solid #d5d5d5;border-radius:4px;background:#fff;overflow:hidden}
+.checkout-page .card-brand svg{display:block;width:100%;height:100%;max-width:100%}
+.checkout-page .card-brand.mastercard,.checkout-page .card-brand.amex{width:43px}
+.checkout-page .card-more-wrap{position:relative;display:inline-flex;pointer-events:auto}
+.checkout-page .card-more{width:30px;height:27px;box-sizing:border-box;border:1px solid #bcbcbc;border-radius:4px;background:#f8f8f8;color:#252525;font:700 10px Arial,sans-serif;pointer-events:none}
+.checkout-page .card-more-popover{top:calc(100% + 6px);display:none;grid-template-columns:repeat(2,auto);gap:5px;min-width:0;padding:7px;background:#191817;border-color:#655b49}
+.checkout-page .card-more-wrap:hover .card-more-popover,.checkout-page .card-more-wrap:focus-within .card-more-popover{display:grid}
+.checkout-page .card-more-popover .card-brand{width:58px;height:27px;min-width:58px;margin:0}
+.checkout-page .billing-option input[type="radio"]{appearance:auto!important;-webkit-appearance:radio!important;flex:0 0 17px!important;width:17px!important;height:17px!important;min-width:17px!important;min-height:17px!important;margin:0 0 0 1px!important;padding:0!important;border:initial!important;border-radius:50%!important;background:initial!important;box-shadow:none!important;accent-color:#e4cea5}
+.checkout-page .billing-option input[type="radio"]:checked{border:initial!important;box-shadow:none!important}
+.checkout-page .billing-option input[type="radio"]:focus,.checkout-page .billing-option input[type="radio"]:focus-visible{outline:0!important;box-shadow:none!important}
+.checkout-page .billing-option:has(input[type="radio"]:checked){background:linear-gradient(135deg,rgba(228,206,165,.13),#171510 72%);box-shadow:inset 0 0 0 1px rgba(228,206,165,.16)}
+.checkout-page .billing-option span{display:block;flex:1;min-width:0}
+.checkout-page .billing-option input[type="radio"]+span{margin:0}
+@media(max-width:600px){.checkout-page .card-brand{width:37px;height:24px;min-width:37px}.checkout-page .card-brand.mastercard,.checkout-page .card-brand.amex{width:37px}.checkout-page .card-more{width:27px;height:24px}.checkout-page .card-more-popover .card-brand{width:53px;height:25px;min-width:53px}}
