@@ -1351,3 +1351,91 @@ body.checkout-page{margin:0;background:#C6BBA7;color:#f5f5f5;font:13px Arial,Hel
  outline:0!important;
  box-shadow:none!important;
 }
+
+/* Final parity pass: Payment focus frames and return navigation links. */
+.checkout-page .payment-section .payment-card-fields .vn-ac-address-control:has(>input),
+.checkout-page .billing-section .billing-fields .vn-ac-address-control:has(>input),
+.checkout-page .billing-section .billing-fields .vn-ac-address-control:has(>select){
+ height:54px!important;
+ min-height:54px!important;
+ box-sizing:border-box!important;
+ border:1px solid #4b463f!important;
+ border-radius:3px!important;
+ background:#111!important;
+ transition:border-color .18s ease,background .18s ease!important;
+}
+.checkout-page .payment-section .payment-card-fields .vn-ac-address-control:has(>input:focus),
+.checkout-page .billing-section .billing-fields .vn-ac-address-control:has(>input:focus),
+.checkout-page .billing-section .billing-fields .vn-ac-address-control:has(>select:focus){
+ border-color:#c6bba7!important;
+ background:#141414!important;
+ box-shadow:none!important;
+}
+.checkout-page .payment-section .payment-card-fields .vn-ac-address-control>input,
+.checkout-page .billing-section .billing-fields .vn-ac-address-control>input,
+.checkout-page .billing-section .billing-fields .vn-ac-address-control>select{
+ height:52px!important;
+ min-height:52px!important;
+ border:0!important;
+ border-radius:2px!important;
+ background:transparent!important;
+ outline:0!important;
+ box-shadow:none!important;
+}
+.checkout-page .payment-section .payment-card-number{
+ height:54px!important;
+ min-height:54px!important;
+ border:1px solid #4b463f!important;
+ border-radius:3px!important;
+ background:#111!important;
+}
+.checkout-page .payment-section .payment-card-number:focus-within{
+ border-color:#c6bba7!important;
+ background:#141414!important;
+ box-shadow:none!important;
+}
+
+/* Match Return to cart without adding button-only hover or focus decoration. */
+.checkout-page .actions #return-to-information,
+.checkout-page .actions #return-to-shipping{
+ display:inline!important;
+ min-height:0!important;
+ margin:0!important;
+ padding:0!important;
+ border:0!important;
+ border-radius:0!important;
+ appearance:none!important;
+ -webkit-appearance:none!important;
+ background:transparent!important;
+ color:#ccc!important;
+ font:11px Arial,Helvetica,sans-serif!important;
+ line-height:normal!important;
+ letter-spacing:normal!important;
+ text-align:left!important;
+ text-decoration:underline!important;
+ text-decoration-thickness:auto!important;
+ text-underline-offset:auto!important;
+ text-transform:none!important;
+ vertical-align:baseline!important;
+ box-shadow:none!important;
+ cursor:pointer!important;
+}
+.checkout-page .actions #return-to-information:hover,
+.checkout-page .actions #return-to-shipping:hover{
+ background:transparent!important;
+ color:#ccc!important;
+ outline:0!important;
+}
+.checkout-page .actions #return-to-information:focus-visible,
+.checkout-page .actions #return-to-shipping:focus-visible{
+ background:transparent!important;
+ color:#ccc!important;
+ outline:auto!important;
+ outline-offset:0!important;
+ box-shadow:none!important;
+}
+.checkout-page .actions #return-to-information:focus:not(:focus-visible),
+.checkout-page .actions #return-to-shipping:focus:not(:focus-visible){
+ outline:0!important;
+}
+
