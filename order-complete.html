@@ -221,6 +221,20 @@ a.package-card:hover{background:rgba(255,255,255,.52);transform:translateY(-3px)
 .scene--credits .created{width:100%;text-align:center;margin-inline:auto;display:block}
 html{scroll-snap-type:y proximity;scroll-behavior:smooth}
 .scene{scroll-snap-stop:normal}
+
+/* Latest interaction refinements */
+html{scroll-snap-type:none!important;scroll-behavior:auto!important;scroll-padding:0}
+.scene{scroll-snap-align:none!important;scroll-snap-stop:normal!important}
+.scene--welcome .welcome-subtitle{margin-bottom:0}
+.welcome-direction-arrows{display:flex;align-items:center;justify-content:center;gap:clamp(28px,6vw,76px);margin:18px auto 0;color:currentColor;opacity:.68;font-size:clamp(22px,3vw,34px);font-weight:300;line-height:1}
+.welcome-direction-arrows span{display:block;animation:directionPulse 2.4s ease-in-out infinite}
+.welcome-direction-arrows span:last-child{animation-delay:1.2s}
+@keyframes directionPulse{0%,100%{opacity:.35;transform:translateX(0)}50%{opacity:1;transform:translateX(5px)}}
+.sky-ad{height:min(68svh,620px)}
+.sky-ad:hover{transform:translateY(-50%) scale(1.025);background:#111}
+a.package-card:hover{background:rgba(240,237,231,.42)!important;transform:translateY(-3px)}
+a.package-card:focus-visible{outline:2px solid rgba(25,25,25,.65);outline-offset:3px}
+@media(max-width:760px){.sky-ad{height:min(62svh,540px)}}
 </style>
 </head>
 <body>
@@ -260,6 +274,7 @@ html{scroll-snap-type:y proximity;scroll-behavior:smooth}
     <p class="scene-kicker">A NEW CHAPTER BEGINS</p>
     <h2 class="welcome-title">WELCOME<br>TO VN</h2>
     <p class="welcome-subtitle">EXPLORE THE MATCHLESS UNIVERSE OF 9OJEEZ9</p>
+    <div class="welcome-direction-arrows" aria-hidden="true"><span>←</span><span>→</span></div>
   </div>
   <div class="swipe-cue"><div class="swipe-arrows" aria-hidden="true">⌄<br>⌄</div><span>SWIPE</span></div>
 </section>
@@ -412,7 +427,7 @@ if(!reduced&&matchMedia("(hover:hover) and (pointer:fine)").matches){
 $("skip-to-receipt").addEventListener("click",event=>{event.preventDefault();$("scene-4").scrollIntoView({behavior:reduced?"auto":"smooth",block:"start"})});
 const sections=[...document.querySelectorAll(".scene")];
 let blendFrame=0;
-const updateSceneBlends=()=>{blendFrame=0;const vh=innerHeight||document.documentElement.clientHeight;sections.forEach((section,index)=>{if(index>2)return;const rect=section.getBoundingClientRect();const raw=Math.max(0,Math.min(1,(vh-rect.bottom)/(vh*1.35)));const eased=raw*raw*raw*(raw*(raw*6-15)+10);section.style.setProperty("--blend-progress",String(eased));section.style.setProperty("--blend-opacity",String(eased));});};
+const updateSceneBlends=()=>{blendFrame=0;const vh=innerHeight||document.documentElement.clientHeight;sections.forEach((section,index)=>{if(index>2)return;const rect=section.getBoundingClientRect();const raw=Math.max(0,Math.min(1,(vh-rect.bottom)/(vh*2.2)));const eased=raw*raw*raw*(raw*(raw*6-15)+10);section.style.setProperty("--blend-progress",String(eased));section.style.setProperty("--blend-opacity",String(eased));});};
 window.addEventListener("scroll",()=>{if(!blendFrame)blendFrame=requestAnimationFrame(updateSceneBlends)},{passive:true});
 window.addEventListener("resize",updateSceneBlends,{passive:true});
 updateSceneBlends();
