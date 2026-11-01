@@ -71,6 +71,14 @@ button{font:inherit}
 .brief-note{position:relative;z-index:1;margin-top:12px;color:rgba(25,25,25,.6);font-size:10px;line-height:1.7}
 .package-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:14px}
 .package-card{display:flex;flex-direction:column;justify-content:space-between;min-height:0;padding:clamp(15px,2vw,26px);border:1px solid rgba(25,25,25,.22);background:rgba(240,237,231,.42);transition:background .25s ease,transform .25s ease}
+/* 02 — premium black/navy package panel */
+.package-cards>.package-card:first-child{background:linear-gradient(138deg,#07090f 0%,#101725 52%,#17243a 100%)!important;border-color:rgba(174,190,218,.3)!important;color:#f2f4f8}
+.package-cards>.package-card:first-child .package-product-intro h3,.package-cards>.package-card:first-child .package-spec-label{color:#f2f4f8}
+.package-cards>.package-card:first-child .package-product-intro p{color:rgba(226,233,244,.66)}
+.package-cards>.package-card:first-child .package-spec-item{background:linear-gradient(90deg,rgba(255,255,255,.055),rgba(255,255,255,.015));border-color:rgba(190,204,226,.16)}
+.package-cards>.package-card:first-child .package-spec-item--category{background:linear-gradient(90deg,rgba(125,151,190,.2),rgba(125,151,190,.06))}
+.package-cards>.package-card:first-child .package-spec-no{color:rgba(208,220,239,.5)}
+.package-cards>.package-card:first-child .card-link{color:rgba(226,233,244,.72)}
 a.package-card:hover{background:rgba(255,255,255,.52);transform:translateY(-3px)}
 .package-card .card-no{font-size:8px;letter-spacing:.2em;opacity:.58}
 .package-card h3{margin:24px 0 8px;font-size:clamp(15px,2vw,23px);font-weight:700;letter-spacing:-.05em}
