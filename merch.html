@@ -522,32 +522,26 @@
       const images = imageList(product);
 
       item.className = "product";
-      item.tabIndex = 0;
-      item.setAttribute("role", "button");
-      item.setAttribute("aria-label", product.name || "Product");
 
       item.innerHTML = `
-        <div class="product-image-wrap${(product.id === "gta-love-custom-printed-cd" || product.id === "igotti-standard-painted-cd" || product.id === "planetarium-original-cd") ? " product-image-wrap--gta-love-cd" : ""}">
-          <img
-            class="product-image"
-            src="${esc(images[0] || "")}"
-            alt="${esc(product.imageAlt || product.name)}"
-            loading="lazy"
-          >
-        </div>
-        <div class="product-caption">
-          <div class="product-name">${esc(product.name)}</div>
-          <div class="product-price">${esc(displayPrice(product))}</div>
-        </div>
+        <button type="button" class="product-click-area" aria-label="${esc(product.name || "Product")}">
+          <div class="product-image-wrap${(product.id === "gta-love-custom-printed-cd" || product.id === "igotti-standard-painted-cd" || product.id === "planetarium-original-cd") ? " product-image-wrap--gta-love-cd" : ""}">
+            <img
+              class="product-image"
+              src="${esc(images[0] || "")}"
+              alt="${esc(product.imageAlt || product.name)}"
+              loading="lazy"
+            >
+          </div>
+          <div class="product-caption">
+            <div class="product-name">${esc(product.name)}</div>
+          </div>
+        </button>
+        <div class="product-price">${esc(displayPrice(product))}</div>
       `;
 
-      item.addEventListener("click", () => { if (document.body.dataset.productPage !== "true") window.location.href = "/products/" + encodeURIComponent(product.id) + "/"; });
-
-      item.addEventListener("keydown", event => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          if (document.body.dataset.productPage !== "true") window.location.href = "/products/" + encodeURIComponent(product.id) + "/";
-        }
+      item.querySelector(".product-click-area").addEventListener("click", () => {
+        if (document.body.dataset.productPage !== "true") window.location.href = "/products/" + encodeURIComponent(product.id) + "/";
       });
 
       grid.append(item);
