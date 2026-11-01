@@ -319,13 +319,7 @@ const returnFromPaymentTest=()=>{
 };
 document.getElementById("return-to-payment-from-test").addEventListener("click",returnFromPaymentTest);
 document.getElementById("pay-now").addEventListener("click",()=>{
- if(!paymentTestMode){document.getElementById("payment-prototype-notice").hidden=false;return}
- document.getElementById("test-confirmation-contact").textContent=document.getElementById("payment-contact-summary").textContent;
- document.getElementById("test-confirmation-address").textContent=document.getElementById("payment-address-summary").textContent;
- document.getElementById("test-confirmation-shipping").textContent=document.getElementById("payment-shipping-price").textContent;
- paymentStep.hidden=true;paymentTestConfirmation.hidden=false;
- progressPayment.classList.remove("is-current");progressPayment.classList.add("is-complete");progressPayment.removeAttribute("aria-current");setProgressLocked(progressPayment,false);
- window.scrollTo({top:0,behavior:"smooth"});
+ window.location.href="order-complete.html";
 });
 
 document.getElementById("discount").addEventListener("submit",e=>{e.preventDefault();document.getElementById("discountmsg").textContent="Discount codes are not available yet."});
