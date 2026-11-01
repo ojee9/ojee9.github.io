@@ -135,7 +135,7 @@
         <section class="billing-section">
           <h2>Billing address</h2>
           <p>Select the address that matches your card or payment method.</p>
-          <div class="billing-options">
+          <div class="billing-options" role="radiogroup" aria-label="Billing address">
             <label class="billing-option"><input type="radio" name="billing-address-choice" value="same" checked><span>Same as shipping address</span></label>
             <label class="billing-option"><input type="radio" name="billing-address-choice" value="different"><span>Use a different billing address</span></label>
             <div class="billing-fields" id="billing-fields" hidden>
@@ -144,21 +144,23 @@
                 <label class="vn-ac-address-control"><span>First name</span><input name="billingFirstName" placeholder=" " autocomplete="billing given-name"></label>
                 <label class="vn-ac-address-control"><span>Last name</span><input name="billingLastName" placeholder=" " autocomplete="billing family-name"></label>
               </div>
-              <label class="vn-ac-address-control"><span>Address</span><input name="billingAddress" placeholder=" " autocomplete="billing street-address"></label>
+              <div class="vn-ac-autocomplete billing-autocomplete"><label class="vn-ac-address-control"><span>Address</span><input id="billing-address" name="billingAddress" placeholder=" " autocomplete="billing street-address" aria-autocomplete="list" aria-controls="billing-address-suggestions" aria-expanded="false"></label><div id="billing-address-suggestions" class="vn-ac-address-suggestions" role="listbox" aria-label="Billing address suggestions" hidden></div></div>
               <label class="vn-ac-address-control"><span>Apartment, suite, etc. (optional)</span><input name="billingApartment" placeholder=" " autocomplete="billing address-line2"></label>
               <div class="vn-ac-form-grid billing-city-row">
-                <label class="vn-ac-address-control"><span>City</span><input name="billingCity" placeholder=" " autocomplete="billing address-level2"></label>
-                <label class="vn-ac-address-control"><span>State</span><input name="billingState" placeholder=" " autocomplete="billing address-level1"></label>
-                <label class="vn-ac-address-control"><span>Zipcode</span><input name="billingPostal" placeholder=" " autocomplete="billing postal-code"></label>
+                <label class="vn-ac-address-control"><span>City</span><input id="billing-city" name="billingCity" placeholder=" " autocomplete="billing address-level2"></label>
+                <label class="vn-ac-address-control"><span>State</span><input id="billing-state" name="billingState" placeholder=" " autocomplete="billing address-level1"></label>
+                <label class="vn-ac-address-control"><span>Zipcode</span><input id="billing-postal" name="billingPostal" placeholder=" " autocomplete="billing postal-code"></label>
               </div>
               <label class="vn-ac-address-control"><span>Phone (optional)</span><input name="billingPhone" type="tel" placeholder=" " autocomplete="billing tel"></label>
             </div>
           </div>
         </section>
         <section class="shop-save-section">
-          <label class="shop-save-check"><input id="save-shop-info" type="checkbox"><span>Save my information for a faster checkout</span></label>
-          <p>By paying, you agree to create a Shop account subject to Shop’s <a href="policies/terms-of-use.html">Terms</a> and <a href="policies/privacy-policy.html">Privacy Policy</a>.</p>
-          <button type="button" id="not-now" class="not-now-button">NOT NOW</button>
+          <div class="shop-save-copy">
+            <strong>Save my information for a faster checkout</strong>
+            <p>By paying, you agree to create a Shop account subject to Shop’s <a href="policies/terms-of-use.html">Terms</a> and <a href="policies/privacy-policy.html">Privacy Policy</a>.</p>
+          </div>
+          <button type="button" id="not-now" class="not-now-button" aria-pressed="false">NOT NOW</button>
         </section>
         <div class="actions payment-step-actions">
           <button type="button" class="secondary-action" id="return-to-shipping">Return to shipping</button>

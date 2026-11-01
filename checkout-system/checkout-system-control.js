@@ -213,7 +213,62 @@ syncPaymentMethod();
 document.querySelectorAll('input[name="billing-address-choice"]').forEach(input=>input.addEventListener("change",()=>{document.getElementById("billing-fields").hidden=input.value!=="different"||!input.checked}));
 document.getElementById("billing-country").innerHTML=country.innerHTML;
 document.getElementById("billing-country").value=country.value;
-document.getElementById("not-now").addEventListener("click",()=>{document.getElementById("save-shop-info").checked=false});
+/* Billing address autocomplete mirrors the Information address suggestions. */
+const billingCountry=document.getElementById("billing-country");
+const billingAddress=document.getElementById("billing-address");
+const billingSuggestions=document.getElementById("billing-address-suggestions");
+const billingCity=document.getElementById("billing-city"),billingState=document.getElementById("billing-state"),billingPostal=document.getElementById("billing-postal");
+let billingSuggestionRequest=0,billingSearchTimer,billingCurrentSuggestions=[];
+const hideBillingSuggestions=()=>{billingSuggestions.hidden=true;billingAddress.setAttribute("aria-expanded","false");billingAddress.removeAttribute("aria-activedescendant")};
+const clearBillingSuggestions=()=>{billingSuggestionRequest++;billingCurrentSuggestions=[];billingSuggestions.replaceChildren();hideBillingSuggestions()};
+const renderBillingSuggestions=results=>{
+ billingCurrentSuggestions=results;billingSuggestions.replaceChildren();
+ results.forEach((result,index)=>{
+  const button=document.createElement("button");button.type="button";button.className="vn-ac-address-suggestion";button.id="billing-address-suggestion-"+index;button.setAttribute("role","option");button.setAttribute("aria-selected","false");
+  const label=document.createElement("span");label.textContent=addressSuggestionLabel(result);button.appendChild(label);
+  button.addEventListener("mousedown",event=>event.preventDefault());
+  button.addEventListener("click",()=>{
+   const p=geoapifyAddress(result),isTurkey=billingCountry.value==="TR",streetName=p.street||p.address_line1||p.name||"";
+   const normalizedStreet=isTurkey?streetName.replace(/\\bSokağı\\b/gi,"Sokak"):streetName;
+   billingAddress.value=[normalizedStreet,p.housenumber].filter(Boolean).join(" ")||p.formatted||"";
+   billingCity.value=isTurkey?(p.city||p.town||p.village||p.municipality||p.state||""):(p.city||p.town||p.village||p.municipality||p.state||"");
+   billingState.value=isTurkey?(p.county||p.district||p.suburb||""):(p.state||p.county||"");
+   billingPostal.value=p.postcode||"";
+   [billingAddress,billingCity,billingState,billingPostal].forEach(field=>{field.dispatchEvent(new Event("input",{bubbles:true}));field.dispatchEvent(new Event("change",{bubbles:true}))});
+   clearBillingSuggestions();billingAddress.blur();
+  });
+  billingSuggestions.appendChild(button);
+ });
+ billingSuggestions.hidden=results.length===0;billingAddress.setAttribute("aria-expanded",String(results.length>0));
+};
+const searchBillingSuggestions=async()=>{
+ const query=billingAddress.value.trim(),requestId=++billingSuggestionRequest,region=billingCountry.value.toLowerCase(),key=String(window.VN_GEOAPIFY_API_KEY||"").trim();
+ if(query.length<3||!region||!key){clearBillingSuggestions();return}
+ try{
+  const params=new URLSearchParams({text:query,apiKey:key,filter:"countrycode:"+region,format:"json",limit:"6"});
+  const response=await fetch("https://api.geoapify.com/v1/geocode/autocomplete?"+params.toString(),{headers:{Accept:"application/json"}});
+  if(!response.ok)throw new Error("Geoapify request failed: "+response.status);
+  const data=await response.json();
+  if(requestId!==billingSuggestionRequest||region!==billingCountry.value.toLowerCase()||query!==billingAddress.value.trim())return;
+  renderBillingSuggestions((data.results||[]).filter(item=>{const code=String(geoapifyAddress(item).country_code||"").toLowerCase();return !code||code===region}));
+ }catch(error){if(requestId===billingSuggestionRequest)hideBillingSuggestions();console.warn("VN billing autocomplete unavailable; manual entry remains enabled.",error)}
+};
+billingAddress.addEventListener("input",()=>{window.clearTimeout(billingSearchTimer);if(billingAddress.value.trim().length<3){clearBillingSuggestions();return}billingSearchTimer=window.setTimeout(searchBillingSuggestions,350)});
+billingAddress.addEventListener("keydown",event=>{
+ if(billingSuggestions.hidden)return;
+ if(event.key==="ArrowDown"||event.key==="ArrowUp"){event.preventDefault();const index=Number(billingAddress.getAttribute("aria-activedescendant")?.split("-").pop()||-1);const next=(index+(event.key==="ArrowDown"?1:-1)+billingCurrentSuggestions.length)%billingCurrentSuggestions.length;[...billingSuggestions.children].forEach((node,i)=>node.setAttribute("aria-selected",String(i===next)));billingAddress.setAttribute("aria-activedescendant","billing-address-suggestion-"+next)}
+ else if(event.key==="Enter"){const index=Number(billingAddress.getAttribute("aria-activedescendant")?.split("-").pop()||-1);if(index>=0){event.preventDefault();billingSuggestions.children[index]?.click()}}
+ else if(event.key==="Escape")hideBillingSuggestions();
+});
+billingCountry.addEventListener("change",clearBillingSuggestions);
+document.addEventListener("pointerdown",event=>{if(!event.target.closest(".billing-autocomplete"))hideBillingSuggestions()});
+const saveChoiceButton=document.getElementById("not-now");
+let shopSaveOptOut=false;
+saveChoiceButton.addEventListener("click",()=>{
+ shopSaveOptOut=!shopSaveOptOut;
+ saveChoiceButton.textContent=shopSaveOptOut?"SAVE":"NOT NOW";
+ saveChoiceButton.setAttribute("aria-pressed",String(shopSaveOptOut));
+});
 document.getElementById("pay-now").addEventListener("click",()=>{document.getElementById("payment-prototype-notice").hidden=false});
 
 document.getElementById("discount").addEventListener("submit",e=>{e.preventDefault();document.getElementById("discountmsg").textContent="Discount codes are not available yet."});
