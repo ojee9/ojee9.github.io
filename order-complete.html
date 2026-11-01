@@ -81,6 +81,18 @@ a{color:inherit}
 .package-card h3{margin:14px 0 8px;font-size:clamp(17px,2vw,26px);letter-spacing:-.055em}
 .package-card p{margin:0;color:rgba(25,25,25,.62);font-size:10px;line-height:1.7}
 .package-card a{margin-top:16px;font-size:8px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;text-decoration:none;border-bottom:1px solid rgba(25,25,25,.35);align-self:flex-start;padding-bottom:4px}
+.space-ad-card{isolation:isolate;overflow:hidden;position:relative;display:flex;flex-direction:column;justify-content:space-between;gap:10px;color:#211f1b;text-decoration:none;background:linear-gradient(145deg,rgba(245,241,232,.72) 0%,rgba(194,186,174,.76) 52%,rgba(157,153,146,.58) 100%);border-color:rgba(30,27,23,.34);transition:background .3s,transform .3s,box-shadow .3s}
+.space-ad-card::before{content:"";position:absolute;z-index:-1;width:76%;aspect-ratio:1;right:-24%;top:5%;border:1px solid rgba(42,39,34,.3);border-radius:50%;box-shadow:0 0 0 13px rgba(255,255,255,.1),0 0 0 27px rgba(42,39,34,.055),0 0 0 45px rgba(255,255,255,.08)}
+.space-ad-card::after{content:"";position:absolute;z-index:-1;width:52%;height:1px;right:-5%;top:47%;background:rgba(40,37,32,.22);transform:rotate(-34deg);box-shadow:0 9px 0 rgba(255,255,255,.22),0 -9px 0 rgba(40,37,32,.1)}
+.space-ad-card:hover{background:linear-gradient(145deg,rgba(250,247,239,.88),rgba(185,178,166,.78));box-shadow:0 12px 30px rgba(39,34,27,.1);transform:translateY(-2px)}
+.space-ad-card:focus-visible{outline:2px solid #211f1b;outline-offset:3px}
+.space-ad-top{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.space-ad-orbit{font-size:24px;line-height:1;color:rgba(31,29,25,.66)}
+.space-ad-main{position:relative;z-index:1;display:flex;flex-direction:column;gap:12px}
+.space-ad-main strong{font-size:clamp(20px,2.35vw,32px);font-weight:900;letter-spacing:-.075em;line-height:.91}
+.space-ad-subtitle{font-size:8px;font-weight:700;letter-spacing:.13em;line-height:1.6;color:rgba(31,29,25,.67)}
+.space-ad-link{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:10px;border-top:1px solid rgba(31,29,25,.3);font-size:8px;font-weight:800;letter-spacing:.18em}
+.space-ad-link span{font-size:17px;line-height:.8}
 .scene--receipt{color:#1c1a17;background:linear-gradient(180deg,#c6bba7 0%,#d0c5b2 18%,#c6bba7 52%,#E4CEA5 100%)}
 .receipt-inner{display:flex;flex-direction:column;align-items:center;padding-top:clamp(48px,8vh,90px);padding-bottom:0}
 .receipt-card{width:min(900px,100%);padding:clamp(22px,4vw,48px);border:1px solid rgba(25,25,25,.24);background:rgba(244,240,232,.5);box-shadow:0 22px 80px rgba(44,37,28,.08)}
@@ -197,7 +209,11 @@ a{color:inherit}
    <article class="package-card"><span class="number">02 / WHAT'S INSIDE</span><div><h3>Order contents</h3><p id="package-contents">Your selected VN SHOP pieces, gathered in one order.</p></div><a href="#scene-4">View order details ↗</a></article>
    <article class="package-card"><span class="number">03 / QUALITY DETAILS</span><div><h3>Product details</h3><p>Materials, print finishes and product specifications are item-specific and follow the details published on each product listing.</p></div><a href="merch.html">Explore product details ↗</a></article>
    <article class="package-card"><span class="number">04 / MORE FROM VN SHOP</span><div><h3>Keep exploring</h3><p>Discover more releases, physical editions and selected pieces from the VN SHOP catalogue.</p></div><a href="merch.html">Explore VN SHOP ↗</a></article>
-   <article class="package-card"><span class="number">05 / 9OJEEZ9 SPACE</span><div><h3>Enter the space</h3><p>Move beyond the shop and explore the wider 9ojeez9 universe.</p></div><a href="space.html">Visit 9ojeez9 SPACE ↗</a></article>
+   <a class="package-card space-ad-card" href="https://ojee9.github.io/space.html" target="_blank" rel="noopener noreferrer" aria-label="Enter 9ojeez9 SPACE — explore a different dimension of the universe">
+    <span class="space-ad-top"><span class="number">05 / 9OJEEZ9 SPACE</span><span class="space-ad-orbit" aria-hidden="true">◎</span></span>
+    <span class="space-ad-main"><strong>ENTER<br>9OJEEZ9 SPACE</strong><span class="space-ad-subtitle">A DIFFERENT DIMENSION<br>OF THE UNIVERSE</span></span>
+    <span class="space-ad-link">EXPLORE SPACE <span aria-hidden="true">↗</span></span>
+   </a>
   </div>
   <div class="swipe-cue" aria-hidden="true"><div class="swipe-arrows"><span>⌄</span><span>⌄</span><span>⌄</span></div><span>SWIPE</span></div>
  </div>
