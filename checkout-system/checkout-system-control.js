@@ -158,6 +158,8 @@ country.addEventListener("change",()=>{if(phoneCountry.querySelector('option[val
 document.getElementById("country-understand").addEventListener("click",hideCountry);
 countryDialog.addEventListener("click",e=>{if(e.target===countryDialog)hideCountry()});
 const addressConfirmation=document.getElementById("address-confirmation"),addressConfirmationDetails=document.getElementById("address-confirmation-details"),shippingStep=document.getElementById("shipping-step"),paymentStep=document.getElementById("payment-step"),progressInformation=document.getElementById("progress-information"),progressShipping=document.getElementById("progress-shipping"),progressPayment=document.getElementById("progress-payment"),continueShipping=document.getElementById("continue-to-shipping");
+const setProgressLocked=(link,locked)=>{link.classList.toggle("is-locked",locked);if(locked){link.setAttribute("aria-disabled","true");link.setAttribute("tabindex","-1")}else{link.removeAttribute("aria-disabled");link.removeAttribute("tabindex")}};
+setProgressLocked(progressShipping,true);setProgressLocked(progressPayment,true);
 let addressConfirmed=false;
 const collectInformation=()=>{const data=Object.fromEntries(new FormData(form));data.updates=document.getElementById("updates").checked;try{sessionStorage.setItem("vn-checkout-information",JSON.stringify(data))}catch{}return data};
 const addressLines=data=>[data.address,data.apartment,data.city,data.state,data.postal,country.selectedOptions[0]?.textContent||data.country].map(value=>String(value||"").trim()).filter(Boolean);
@@ -172,11 +174,12 @@ const showShippingStep=data=>{
  document.getElementById("shipping-method-price").textContent=estimate;
  form.hidden=true;shippingStep.hidden=false;addressConfirmation.hidden=true;document.body.classList.add("checkout-after-information");
  progressInformation.classList.remove("is-current");progressInformation.removeAttribute("aria-current");progressInformation.classList.add("is-complete");
+ setProgressLocked(progressShipping,false);setProgressLocked(progressPayment,true);
  progressShipping.classList.add("is-current");progressShipping.setAttribute("aria-current","step");
  document.getElementById("shipping-payment-notice").hidden=true;paymentStep.hidden=true;
  window.scrollTo({top:0,behavior:"smooth"});
 };
-const returnToInformation=()=>{shippingStep.hidden=true;paymentStep.hidden=true;form.hidden=false;document.body.classList.remove("checkout-after-information");progressShipping.classList.remove("is-current","is-complete");progressShipping.removeAttribute("aria-current");progressPayment.classList.remove("is-current","is-complete");progressPayment.removeAttribute("aria-current");progressInformation.classList.add("is-current");progressInformation.setAttribute("aria-current","step");window.scrollTo({top:0,behavior:"smooth"})};
+const returnToInformation=()=>{shippingStep.hidden=true;paymentStep.hidden=true;form.hidden=false;document.body.classList.remove("checkout-after-information");progressShipping.classList.remove("is-current","is-complete");progressShipping.removeAttribute("aria-current");setProgressLocked(progressShipping,true);progressPayment.classList.remove("is-current","is-complete");progressPayment.removeAttribute("aria-current");setProgressLocked(progressPayment,true);progressInformation.classList.remove("is-complete");progressInformation.classList.add("is-current");progressInformation.setAttribute("aria-current","step");window.scrollTo({top:0,behavior:"smooth"})};
 form.addEventListener("input",()=>{if(!addressConfirmation.hidden){addressConfirmation.hidden=true;addressConfirmed=false}});
 form.addEventListener("change",()=>{if(!addressConfirmation.hidden){addressConfirmation.hidden=true;addressConfirmed=false}});
 form.addEventListener("submit",e=>{e.preventDefault();if(!form.reportValidity())return;if(country.value!=="TR"){showCountry();return}if(!validEmail(document.getElementById("email").value)){document.getElementById("email").focus();return}const data=collectInformation();if(!addressConfirmed){renderAddressConfirmation(data);addressConfirmation.hidden=false;addressConfirmed=true;addressConfirmation.scrollIntoView({behavior:"smooth",block:"nearest"});return}showShippingStep(data)});
@@ -193,14 +196,15 @@ const showPaymentStep=()=>{
  document.getElementById("payment-shipping-price").textContent=document.getElementById("shipping-method-price").textContent;
  shippingStep.hidden=true;paymentStep.hidden=false;document.body.classList.add("checkout-after-information");
  progressShipping.classList.remove("is-current");progressShipping.removeAttribute("aria-current");progressShipping.classList.add("is-complete");
+ setProgressLocked(progressShipping,false);setProgressLocked(progressPayment,true);
  progressPayment.classList.add("is-current");progressPayment.setAttribute("aria-current","step");
  document.getElementById("shipping-payment-notice").hidden=true;
  window.scrollTo({top:0,behavior:"smooth"});
 };
-const returnToShipping=()=>{paymentStep.hidden=true;shippingStep.hidden=false;document.body.classList.add("checkout-after-information");progressPayment.classList.remove("is-current","is-complete");progressPayment.removeAttribute("aria-current");progressShipping.classList.add("is-current");progressShipping.setAttribute("aria-current","step");window.scrollTo({top:0,behavior:"smooth"})};
+const returnToShipping=()=>{paymentStep.hidden=true;shippingStep.hidden=false;document.body.classList.add("checkout-after-information");progressPayment.classList.remove("is-current","is-complete");progressPayment.removeAttribute("aria-current");setProgressLocked(progressPayment,true);progressShipping.classList.remove("is-complete");progressShipping.classList.add("is-current");progressShipping.setAttribute("aria-current","step");window.scrollTo({top:0,behavior:"smooth"})};
 document.getElementById("continue-to-payment").addEventListener("click",showPaymentStep);
-progressInformation.addEventListener("click",event=>{if(!form.hidden){event.preventDefault();return}event.preventDefault();returnToInformation()});
-progressShipping.addEventListener("click",event=>{if(paymentStep.hidden){event.preventDefault();return}event.preventDefault();returnToShipping()});
+progressInformation.addEventListener("click",event=>{event.preventDefault();if(!form.hidden)return;returnToInformation()});
+progressShipping.addEventListener("click",event=>{event.preventDefault();if(paymentStep.hidden||progressShipping.classList.contains("is-locked"))return;returnToShipping()});
 progressPayment.addEventListener("click",event=>event.preventDefault());
 
 document.getElementById("return-to-shipping").addEventListener("click",returnToShipping);

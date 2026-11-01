@@ -1264,31 +1264,50 @@ body.checkout-page{margin:0;background:#C6BBA7;color:#f5f5f5;font:13px Arial,Hel
  box-shadow:none!important;
 }
 
-/* Return actions: match the Information step's Return to cart link. */
-.checkout-page #return-to-information,
-.checkout-page #return-to-shipping{
+/* Return buttons: match the Return to cart action-link typography and inline behavior. */
+.checkout-page .actions #return-to-information,
+.checkout-page .actions #return-to-shipping{
+ display:inline!important;
  min-height:0!important;
+ margin:0!important;
  padding:0!important;
+ border:0!important;
+ border-radius:0!important;
+ appearance:none!important;
+ -webkit-appearance:none!important;
+ background:transparent!important;
+ color:#ccc!important;
+ font:11px Arial,Helvetica,sans-serif!important;
+ line-height:normal!important;
+ letter-spacing:normal!important;
+ text-align:left!important;
+ text-decoration:underline!important;
+ text-decoration-thickness:auto!important;
+ text-underline-offset:auto!important;
+ text-transform:none!important;
+ vertical-align:baseline!important;
+ box-shadow:none!important;
+ cursor:pointer!important;
+}
+.checkout-page .actions #return-to-information:hover,
+.checkout-page .actions #return-to-information:focus,
+.checkout-page .actions #return-to-information:focus-visible,
+.checkout-page .actions #return-to-shipping:hover,
+.checkout-page .actions #return-to-shipping:focus,
+.checkout-page .actions #return-to-shipping:focus-visible{
  border:0!important;
  background:transparent!important;
  color:#ccc!important;
- font:12px/1.6 Arial,Helvetica,sans-serif!important;
- text-decoration:underline!important;
- text-underline-offset:0!important;
+ outline:auto!important;
  box-shadow:none!important;
- border-radius:0!important;
 }
-.checkout-page #return-to-information:hover,
-.checkout-page #return-to-information:focus,
-.checkout-page #return-to-information:focus-visible,
-.checkout-page #return-to-shipping:hover,
-.checkout-page #return-to-shipping:focus,
-.checkout-page #return-to-shipping:focus-visible{
- border:0!important;
- background:transparent!important;
- color:#fff!important;
- outline:0!important;
- box-shadow:none!important;
+
+/* Only completed checkout steps are available as backward navigation. */
+.checkout-page .progress a.is-locked{
+ color:#666!important;
+ text-decoration:none!important;
+ cursor:default!important;
+ pointer-events:none!important;
 }
 
 /* Use the Card number's outer-wrapper focus frame for every Payment field. */
