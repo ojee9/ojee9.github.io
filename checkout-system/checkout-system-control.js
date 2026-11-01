@@ -339,7 +339,9 @@ document.getElementById("pay-now").addEventListener("click",()=>{
   phone:[information.phoneCountry,information.phone].filter(Boolean).join(" "),
   address:[information.address,information.apartment,information.city,information.state,information.postal,information.country].filter(Boolean).join(", ")
  };
- const orderRecord={orderNumber,vnCode,createdAt:now.toISOString(),customer,items,subtotal,status:"reference_created",paymentStatus:"not_processed"};
+ const selectedShipping=document.querySelector('input[name="shipping-method"]:checked');
+ const selectedPayment=document.querySelector('input[name="payment-method"]:checked');
+ const orderRecord={orderNumber,vnCode,createdAt:now.toISOString(),customer,items,subtotal,shippingMethod:selectedShipping?.value||"Pending confirmation",paymentMethod:selectedPayment?.value||"Not processed",orderStatus:"Pending confirmation",status:"reference_created",paymentStatus:"not_processed",paymentStatusLabel:"Not processed"};
  try{
   localStorage.setItem("vn-shop-order-complete",JSON.stringify(orderRecord));
   sessionStorage.setItem("vn-shop-order-complete",JSON.stringify(orderRecord));
