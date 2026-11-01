@@ -1,0 +1,31 @@
+name: Temporary cancel stuck GitHub Pages deployment
+
+on:
+  workflow_dispatch:
+
+permissions:
+  pages: write
+  contents: read
+
+jobs:
+  cancel-stuck-deployment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cancel stale Pages deployment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const deployment = "3bc693d6463ca4042bd6e9d84b59ae87b6d4b173";
+
+            const response = await github.request(
+              "POST /repos/{owner}/{repo}/pages/deployments/{pages_deployment_id}/cancel",
+              {
+                owner,
+                repo,
+                pages_deployment_id: deployment,
+              }
+            );
+
+            core.info(`GitHub Pages cancellation endpoint returned HTTP ${response.status}.`);
