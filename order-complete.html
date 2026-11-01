@@ -75,7 +75,7 @@ a.package-card:hover{background:rgba(255,255,255,.52);transform:translateY(-3px)
 .package-card .card-no{font-size:8px;letter-spacing:.2em;opacity:.58}
 .package-card h3{margin:24px 0 8px;font-size:clamp(15px,2vw,23px);font-weight:700;letter-spacing:-.05em}
 .package-card p{margin:0;color:rgba(25,25,25,.62);font-size:10px;line-height:1.7}
-#package-contents{white-space:pre-line}
+.package-product-intro{margin:0 0 14px}.package-product-intro h3{margin:0 0 6px}.package-product-intro p{margin:0!important}#package-contents{white-space:pre-line}
 .package-card .card-link{margin-top:20px;font-size:8px;font-weight:700;letter-spacing:.18em;text-transform:uppercase}
 /* 04 — receipt */
 .scene--receipt{color:#1c1a17;background:linear-gradient(180deg,#c6bba7 0%,#d0c5b2 18%,#c6bba7 52%,#c6bba7 100%)}
@@ -331,7 +331,7 @@ a.package-card{box-shadow:none!important;filter:none!important;transition:transf
       </article>
       <div class="package-cards">
         <article class="package-card">
-          <span class="card-no">02 / WHAT'S INSIDE</span><div><h3>PRODUCT</h3><p>Explore the specifications, materials and edition information listed with each product.</p><p id="package-contents">—</p></div><span class="card-link">YOUR SELECTION</span>
+          <span class="card-no">02 / WHAT'S INSIDE</span><div><div class="package-product-intro"><h3>PRODUCT</h3><p>Explore the specifications, materials and edition information listed with each product.</p></div><p id="package-contents">—</p></div><span class="card-link">YOUR SELECTION</span>
         </article>
         <article class="package-card">
           <span class="card-no">03 / DISCOVER MORE</span>
@@ -339,7 +339,7 @@ a.package-card{box-shadow:none!important;filter:none!important;transition:transf
             <h3>VN SHOP</h3>
             <p>Find more releases, objects and selected pieces from the VN SHOP catalog.</p>
           </div>
-          <a class="card-link" href="merch.html">VIEW PRODUCT DETAILS · EXPLORE THE SHOP ↗</a>
+          <a class="card-link" href="merch.html">EXPLORE THE SHOP ↗</a>
         </article>
         <article class="package-card space-ad-card">
           <span class="space-ad-top"><span class="card-no">04 / VNION ID</span><span class="space-ad-orbit" aria-hidden="true">◎</span></span>
@@ -453,21 +453,23 @@ if(items.length){
   return '<div class="receipt-item">'+(image?'<img src="'+safe(image)+'" alt="'+safe(name)+'">':'<span class="receipt-thumb-placeholder" aria-hidden="true"></span>')+'<div><strong>'+safe(name)+'</strong><small>'+(variant?safe(variant)+" · ":"")+'QTY '+quantity+'</small></div><span class="item-price">'+money(price*quantity)+'</span></div>';
  }).join("");
  const packageTypes=[];
- let hasGtaLoveCustomCd=false;
+ let hasCd=false;
  items.forEach(line=>{
   const p=line.product||line;
   const id=String(p.id||line.id||p.productId||line.productId||p.sku||line.sku||"").toLowerCase();
   const name=String(p.name||p.title||line.name||"").toLowerCase();
-  const category=String(p.category||line.category||p.type||line.type||"MERCHANDISE").trim().toUpperCase();
+  const rawCategory=String(p.category||line.category||p.type||line.type||"MERCHANDISE").trim().toUpperCase();
+  const isCd=rawCategory==="CD"||rawCategory.includes("CD")||name.includes(" cd")||name.endsWith("cd")||id.includes("cd");
+  const category=isCd?"CD":rawCategory;
   if(category&&!packageTypes.includes(category))packageTypes.push(category);
-  if(id.includes("gta-love-custom-printed-cd")||(name.includes("gta love")&&category==="CD"))hasGtaLoveCustomCd=true;
+  if(isCd)hasCd=true;
  });
- if(hasGtaLoveCustomCd){
+ if(hasCd){
   ["CD BOX WITH CUSTOM TRAY CARD","VN SUITE BOX","PRESENTATION CARD","BONUSES"].forEach(label=>{
    if(!packageTypes.includes(label))packageTypes.push(label);
   });
  }
- $("package-contents").textContent=packageTypes.join("\\n");
+ $("package-contents").textContent=packageTypes.join("\n");
 }
 const shipping=order?.shipping??order?.shippingTotal??order?.shipping_total;
 const taxes=order?.taxes??order?.tax??order?.tax_total;
