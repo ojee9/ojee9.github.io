@@ -75,6 +75,7 @@ a.package-card:hover{background:rgba(255,255,255,.52);transform:translateY(-3px)
 .package-card .card-no{font-size:8px;letter-spacing:.2em;opacity:.58}
 .package-card h3{margin:24px 0 8px;font-size:clamp(15px,2vw,23px);font-weight:700;letter-spacing:-.05em}
 .package-card p{margin:0;color:rgba(25,25,25,.62);font-size:10px;line-height:1.7}
+#package-contents{white-space:pre-line}
 .package-card .card-link{margin-top:20px;font-size:8px;font-weight:700;letter-spacing:.18em;text-transform:uppercase}
 /* 04 — receipt */
 .scene--receipt{color:#1c1a17;background:linear-gradient(180deg,#c6bba7 0%,#d0c5b2 18%,#c6bba7 52%,#c6bba7 100%)}
@@ -330,7 +331,7 @@ a.package-card{box-shadow:none!important;filter:none!important;transition:transf
       </article>
       <div class="package-cards">
         <article class="package-card">
-          <span class="card-no">02 / WHAT'S INSIDE</span><div><h3>THE CONTENTS</h3><p id="package-contents">Your selected VN SHOP pieces, prepared as part of one order.</p></div><span class="card-link">YOUR SELECTION</span>
+          <span class="card-no">02 / WHAT'S INSIDE</span><div><p id="package-contents">—</p></div><span class="card-link">YOUR SELECTION</span>
         </article>
         <article class="package-card">
           <span class="card-no">03 / DISCOVER MORE</span>
@@ -453,7 +454,19 @@ if(items.length){
   const price=Number(String(product.price??line.price??0).replace(/[^0-9.-]/g,""))||0;
   return '<div class="receipt-item">'+(image?'<img src="'+safe(image)+'" alt="'+safe(name)+'">':'<span class="receipt-thumb-placeholder" aria-hidden="true"></span>')+'<div><strong>'+safe(name)+'</strong><small>'+(variant?safe(variant)+" · ":"")+'QTY '+quantity+'</small></div><span class="item-price">'+money(price*quantity)+'</span></div>';
  }).join("");
- $("package-contents").textContent=items.map(line=>{const p=line.product||line;return(p.name||p.title||line.name||"Product")+" × "+Math.max(1,Number(line.quantity||line.qty||1))}).join(" · ");
+ const packageTypes=[];
+ items.forEach(line=>{
+  const p=line.product||line;
+  const id=String(p.id||line.id||"").toLowerCase();
+  const category=String(p.category||line.category||p.type||line.type||"MERCHANDISE").trim().toUpperCase();
+  if(category&&!packageTypes.includes(category))packageTypes.push(category);
+  if(id==="gta-love-custom-printed-cd"){
+   ["CD BOX WITH CUSTOM TRAY CARD","VN SUITE BOX","PRESENTATION CARD","BONUSES"].forEach(label=>{
+    if(!packageTypes.includes(label))packageTypes.push(label);
+   });
+  }
+ });
+ $("package-contents").textContent=packageTypes.join("\n");
 }
 const shipping=order?.shipping??order?.shippingTotal??order?.shipping_total;
 const taxes=order?.taxes??order?.tax??order?.tax_total;
