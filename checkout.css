@@ -1263,3 +1263,30 @@ body.checkout-page{margin:0;background:#C6BBA7;color:#f5f5f5;font:13px Arial,Hel
  outline:0!important;
  box-shadow:none!important;
 }
+
+/* Return actions: match the Information step's Return to cart link. */
+.checkout-page #return-to-information,
+.checkout-page #return-to-shipping{
+ min-height:0!important;
+ padding:0!important;
+ border:0!important;
+ background:transparent!important;
+ color:#ccc!important;
+ font:12px/1.6 Arial,Helvetica,sans-serif!important;
+ text-decoration:underline!important;
+ text-underline-offset:0!important;
+ box-shadow:none!important;
+ border-radius:0!important;
+}
+.checkout-page #return-to-information:hover,
+.checkout-page #return-to-information:focus,
+.checkout-page #return-to-information:focus-visible,
+.checkout-page #return-to-shipping:hover,
+.checkout-page #return-to-shipping:focus,
+.checkout-page #return-to-shipping:focus-visible{
+ border:0!important;
+ background:transparent!important;
+ color:#fff!important;
+ outline:0!important;
+ box-shadow:none!important;
+}
