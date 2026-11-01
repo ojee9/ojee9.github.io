@@ -235,6 +235,7 @@ paymentCardNumber.addEventListener("input",()=>{
   mark.hidden=Boolean(brand)&&mark.dataset.cardBrand!==brand;
  });
  acceptedCardBrands.classList.toggle("has-detected-brand",Boolean(brand));
+ acceptedCardBrands.classList.toggle("detected-extra-brand",Boolean(brand)&&["discover","elo","unionpay","jcb"].includes(brand));
 });
 
 syncPaymentMethod();
