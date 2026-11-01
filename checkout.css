@@ -1202,3 +1202,25 @@ body.checkout-page{margin:0;background:#C6BBA7;color:#f5f5f5;font:13px Arial,Hel
  font-size:12px!important;
  font-weight:600!important;
 }
+
+/* Payment writing fields: use the Card number focus frame consistently. */
+.checkout-page .payment-section .payment-card-fields .vn-ac-address-control>input:focus,
+.checkout-page .payment-section .payment-card-fields .vn-ac-address-control>input:focus-visible,
+.checkout-page .billing-section .billing-fields .vn-ac-address-control>input:focus,
+.checkout-page .billing-section .billing-fields .vn-ac-address-control>input:focus-visible,
+.checkout-page .billing-section .billing-fields .vn-ac-address-control>select:focus,
+.checkout-page .billing-section .billing-fields .vn-ac-address-control>select:focus-visible{
+ border-color:#c6bba7!important;
+ outline:0!important;
+ outline-offset:0!important;
+ box-shadow:none!important;
+}
+.checkout-page .payment-section .payment-card-number:focus-within{
+ border-color:#c6bba7!important;
+ box-shadow:none!important;
+}
+.checkout-page .payment-section .payment-card-number input:focus,
+.checkout-page .payment-section .payment-card-number input:focus-visible{
+ outline:0!important;
+ box-shadow:none!important;
+}
