@@ -220,6 +220,10 @@ document.querySelectorAll('input[name="payment-method"]').forEach(input=>input.a
 
 const paymentCardNumber=document.getElementById("payment-card-number");
 const acceptedCardBrands=document.getElementById("accepted-card-brands");
+acceptedCardBrands.addEventListener("click",event=>{
+ event.preventDefault();
+ event.stopPropagation();
+});
 const detectPaymentCardBrand=value=>{
  const digits=value.replace(/\\D/g,"");
  if(!digits)return null;
