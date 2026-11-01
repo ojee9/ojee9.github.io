@@ -215,6 +215,12 @@ a.package-card:hover{background:rgba(255,255,255,.52);transform:translateY(-3px)
  .ad-flash{font-size:6px;letter-spacing:.06em}
 }
 @media(prefers-reduced-motion:reduce){.ad-flash{animation:none}}
+
+/* Fine alignment and non-magnetic scrolling */
+.scene--credits .credits-bottom{width:100%;align-items:center;text-align:center}
+.scene--credits .created{width:100%;text-align:center;margin-inline:auto;display:block}
+html{scroll-snap-type:y proximity;scroll-behavior:smooth}
+.scene{scroll-snap-stop:normal}
 </style>
 </head>
 <body>
@@ -406,7 +412,7 @@ if(!reduced&&matchMedia("(hover:hover) and (pointer:fine)").matches){
 $("skip-to-receipt").addEventListener("click",event=>{event.preventDefault();$("scene-4").scrollIntoView({behavior:reduced?"auto":"smooth",block:"start"})});
 const sections=[...document.querySelectorAll(".scene")];
 let blendFrame=0;
-const updateSceneBlends=()=>{blendFrame=0;const vh=innerHeight||document.documentElement.clientHeight;sections.forEach((section,index)=>{if(index>2)return;const rect=section.getBoundingClientRect();const progress=Math.max(0,Math.min(1,(vh-rect.bottom)/(vh*.28)));section.style.setProperty("--blend-progress",String(progress));section.style.setProperty("--blend-opacity",String(progress));});};
+const updateSceneBlends=()=>{blendFrame=0;const vh=innerHeight||document.documentElement.clientHeight;sections.forEach((section,index)=>{if(index>2)return;const rect=section.getBoundingClientRect();const raw=Math.max(0,Math.min(1,(vh-rect.bottom)/(vh*1.35)));const eased=raw*raw*raw*(raw*(raw*6-15)+10);section.style.setProperty("--blend-progress",String(eased));section.style.setProperty("--blend-opacity",String(eased));});};
 window.addEventListener("scroll",()=>{if(!blendFrame)blendFrame=requestAnimationFrame(updateSceneBlends)},{passive:true});
 window.addEventListener("resize",updateSceneBlends,{passive:true});
 updateSceneBlends();
