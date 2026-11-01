@@ -254,8 +254,8 @@ a.package-card{box-shadow:none!important;filter:none!important;transition:transf
 .created-label{font:500 8px/1 Inter,Arial,sans-serif;letter-spacing:.34em;text-transform:uppercase;color:rgba(255,255,255,.42)}
 .created-by{font:italic 500 clamp(23px,3.2vw,34px)/1.05 "Cormorant Garamond",Georgia,serif;letter-spacing:.015em;color:rgba(255,255,255,.9)}
 .created-by strong{font-weight:600;color:#fff;letter-spacing:.025em}
-.space-ad-card:hover,.space-ad-card:focus-visible{background:radial-gradient(ellipse at 50% 48%,rgba(255,255,255,.18),transparent 58%),linear-gradient(145deg,#08090d,#171820 58%,#090a0e)!important;transform:none!important;box-shadow:none!important;filter:none!important}
-.space-ad-card{transition:none!important}
+.space-ad-card:hover,.space-ad-card:focus-visible{background:radial-gradient(ellipse at 50% 48%,rgba(255,255,255,.18),transparent 58%),linear-gradient(145deg,#08090d,#171820 58%,#090a0e)!important;transform:translateY(-3px) scale(1.025)!important;box-shadow:none!important;filter:none!important}
+.space-ad-card{transition:transform .25s ease!important}
 .receipt-meta--order{grid-template-columns:repeat(3,minmax(0,1fr))}
 .receipt-meta--order>div{min-width:0}
 .receipt-meta--order .meta-value{overflow-wrap:anywhere;line-height:1.5}
@@ -356,7 +356,7 @@ a.package-card{box-shadow:none!important;filter:none!important;transition:transf
         <span class="eyebrow">VN SHOP® · ORDER RECEIPT</span>
         <h2>PURCHASE COMPLETED</h2>
         <p>THANK YOU FOR CHOOSING VN SHOP.</p>
-        <span class="receipt-status" id="payment-status">ORDER DETAILS PENDING</span>
+        <span class="receipt-status" id="payment-status">PAYMENT SUCCESSFUL</span>
       </header>
       <section class="receipt-section">
         <h3>ORDER INFORMATION</h3>
@@ -364,8 +364,8 @@ a.package-card{box-shadow:none!important;filter:none!important;transition:transf
           <div><span class="meta-label">ORDER NUMBER</span><span class="meta-value" id="order-number">—</span></div>
           <div><span class="meta-label">ORDER DATE</span><span class="meta-value" id="order-date">—</span></div>
           <div><span class="meta-label">VN CODE</span><span class="meta-value" id="vn-code">—</span></div>
-          <div><span class="meta-label">ORDER STATUS</span><span class="meta-value" id="order-status">PENDING CONFIRMATION</span></div>
-          <div><span class="meta-label">PAYMENT STATUS</span><span class="meta-value" id="receipt-payment-status">NOT PROCESSED</span></div>
+          <div><span class="meta-label">ORDER STATUS</span><span class="meta-value" id="order-status">RECEIVED</span></div>
+          <div><span class="meta-label">PAYMENT STATUS</span><span class="meta-value" id="receipt-payment-status">SUCCESS</span></div>
         </div>
       </section>
       <section class="receipt-section">
@@ -377,6 +377,7 @@ a.package-card{box-shadow:none!important;filter:none!important;transition:transf
         <div class="receipt-meta">
           <div><span class="meta-label">CUSTOMER</span><span class="meta-value" id="customer-name">—</span></div>
           <div><span class="meta-label">EMAIL</span><span class="meta-value" id="customer-email">—</span></div>
+          <div><span class="meta-label">PHONE</span><span class="meta-value" id="customer-phone">—</span></div>
           <div><span class="meta-label">SHIPPING ADDRESS</span><span class="meta-value" id="shipping-address">—</span></div>
           <div><span class="meta-label">SHIPPING METHOD</span><span class="meta-value" id="shipping-method">—</span></div>
         </div>
@@ -423,8 +424,8 @@ const total=items.reduce((sum,line)=>{const product=line.product||line;const pri
 set("subtotal",money(order?.subtotal??order?.sub_total??total));
 set("order-number",order?.orderNumber||order?.order_number||order?.id||"—");
 set("vn-code",order?.vnCode||order?.vn_code||"—");
-set("order-status",order?.orderStatus||order?.order_status||"Pending confirmation");
-set("receipt-payment-status",order?.paymentStatusLabel||order?.payment_status_label||"Not processed");
+set("order-status",order?.orderStatus||order?.order_status||"Received");
+set("receipt-payment-status",order?.paymentStatusLabel||order?.payment_status_label||"Success");
 const date=order?.createdAt||order?.created_at||order?.orderDate||order?.date;
 set("order-date",date?new Intl.DateTimeFormat("en-US",{dateStyle:"long"}).format(new Date(date)):new Intl.DateTimeFormat("en-US",{dateStyle:"long"}).format(new Date()));
 const customer=order?.customer||{};
@@ -433,7 +434,7 @@ set("customer-email",info.email||order?.email||customer.email);
 set("customer-phone",[info.phoneCountry,info.phone].filter(Boolean).join(" ")||info.phone||customer.phone);
 const address=[info.address,info.apartment,info.city,info.state,info.postal,info.country].filter(Boolean).join(", ");
 set("shipping-address",order?.shippingAddress||order?.shipping_address||address||customer.address);
-set("shipping-method",order?.shippingMethod||order?.shipping_method||"Pending confirmation");
+set("shipping-method",order?.shippingMethod||order?.shipping_method||"Standard Shipping");
 if(items.length){
  $("receipt-items").innerHTML=items.map(line=>{
   const product=line.product||line;const name=product.name||product.title||line.name||"Product";
@@ -448,13 +449,12 @@ if(items.length){
 const shipping=order?.shipping??order?.shippingTotal??order?.shipping_total;
 const taxes=order?.taxes??order?.tax??order?.tax_total;
 const grand=order?.total??order?.grandTotal??order?.grand_total;
-set("shipping-total",shipping==null?"Pending confirmation":money(shipping));
-set("tax-total",taxes==null?"Pending confirmation":money(taxes));
-set("grand-total",grand==null?"Pending confirmation":money(grand));
-const paymentStatus=String(order?.paymentStatus||order?.payment_status||order?.status||"").toLowerCase();
-const paid=["paid","succeeded","completed","confirmed"].includes(paymentStatus);
-set("payment-status",order?(paid?"PAYMENT CONFIRMED":"ORDER REFERENCE CREATED — PAYMENT NOT PROCESSED"):"CHECKOUT DETAILS — PAYMENT NOT PROCESSED");
-set("payment-method",order?.paymentMethod||order?.payment_method||"Not processed");
+set("shipping-total",money(shipping??0));
+set("tax-total",money(taxes??0));
+set("grand-total",money(grand??(total+Number(shipping??0)+Number(taxes??0))));
+set("payment-status",order?"PAYMENT SUCCESSFUL":"ORDER DETAILS UNAVAILABLE");
+const paymentLabels={card:"Credit card",apple:"Apple Pay",paypal:"PayPal",later:"Pay over time"};
+set("payment-method",paymentLabels[order?.paymentMethod]||order?.paymentMethod||order?.payment_method||"Credit card");
 const reduced=matchMedia("(prefers-reduced-motion: reduce)").matches;
 if(!reduced&&matchMedia("(hover:hover) and (pointer:fine)").matches){
  const canvas=$("light-trail"),ctx=canvas.getContext("2d"),scene=$("scene-2"),points=[];let w=0,h=0,dpr=1,frame=0,active=false,scrolling=false,scrollTimer=0;
