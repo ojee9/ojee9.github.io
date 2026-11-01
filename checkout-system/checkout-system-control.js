@@ -170,7 +170,7 @@ const showShippingStep=data=>{
  document.getElementById("shipping-dispatch-date").textContent="Ships by "+new Intl.DateTimeFormat("en-US",{month:"long",day:"numeric",year:"numeric"}).format(dispatchDate);
  const estimate=document.getElementById("shipping-estimate").textContent.trim();
  document.getElementById("shipping-method-price").textContent=estimate;
- form.hidden=true;shippingStep.hidden=false;addressConfirmation.hidden=true;
+ form.hidden=true;shippingStep.hidden=false;addressConfirmation.hidden=true;document.body.classList.add("checkout-after-information");
  progressInformation.classList.remove("is-current");progressInformation.removeAttribute("aria-current");progressInformation.classList.add("is-complete");
  progressShipping.classList.add("is-current");progressShipping.setAttribute("aria-current","step");
  document.getElementById("shipping-payment-notice").hidden=true;paymentStep.hidden=true;
