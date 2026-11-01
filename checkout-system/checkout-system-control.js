@@ -341,7 +341,12 @@ document.getElementById("pay-now").addEventListener("click",()=>{
  };
  const selectedShipping=document.querySelector('input[name="shipping-method"]:checked');
  const selectedPayment=document.querySelector('input[name="payment-method"]:checked');
- const orderRecord={orderNumber,vnCode,createdAt:now.toISOString(),customer,items,subtotal,shippingMethod:selectedShipping?.value||"Pending confirmation",paymentMethod:selectedPayment?.value||"Not processed",orderStatus:"Pending confirmation",status:"reference_created",paymentStatus:"not_processed",paymentStatusLabel:"Not processed"};
+ const amountFrom=(...ids)=>{for(const id of ids){const raw=document.getElementById(id)?.textContent||"";const value=Number(raw.replace(/[^0-9,.-]/g,"").replace(/,/g,""));if(raw.trim()&&Number.isFinite(value))return value}return null};
+ const shipping=amountFrom("shipping-method-price","shipping-estimate");
+ const taxes=amountFrom("estimated-taxes");
+ const total=amountFrom("total");
+ const paymentLabels={card:"Credit card",apple:"Apple Pay",paypal:"PayPal",later:"Pay over time"};
+ const orderRecord={orderNumber,vnCode,createdAt:now.toISOString(),customer,items,subtotal,shipping:shipping??0,taxes:taxes??0,total:total??(subtotal+(shipping??0)+(taxes??0)),shippingMethod:selectedShipping?.value==="standard"?"Standard Shipping":selectedShipping?.value||"Standard Shipping",paymentMethod:paymentLabels[selectedPayment?.value]||"Credit card",orderStatus:"Received",status:"success",paymentStatus:"Success",paymentStatusLabel:"Success"};
  try{
   localStorage.setItem("vn-shop-order-complete",JSON.stringify(orderRecord));
   sessionStorage.setItem("vn-shop-order-complete",JSON.stringify(orderRecord));
