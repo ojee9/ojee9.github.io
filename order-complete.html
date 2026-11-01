@@ -10,19 +10,19 @@
 <link rel="icon" type="image/png" href="images/vn-logo-official.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
 <style>
 :root{--black:#050505;--silver:#E4E3E1;--smoke:#BFC5C8;--camel:#C6BBA7;--ink:#171717;--line:rgba(23,23,23,.22);--muted:#625e58}
 *{box-sizing:border-box}
-html{scroll-behavior:smooth;scroll-snap-type:y proximity;scrollbar-gutter:stable}
+html{scroll-behavior:smooth;scroll-snap-type:y mandatory;scroll-snap-stop:always;scroll-padding:0;scrollbar-gutter:stable;-webkit-overflow-scrolling:touch}
 body{margin:0;background:var(--black);color:#f5f5f5;font-family:Inter,Arial,sans-serif;overflow-x:hidden}
 a{color:inherit;text-decoration:none}
 button{font:inherit}
-.scene{position:relative;isolation:isolate;min-height:100svh;scroll-snap-align:start;overflow:hidden}
+.scene{position:relative;isolation:isolate;min-height:100svh;scroll-snap-align:start;scroll-snap-stop:always;overflow:hidden;backface-visibility:hidden}
 .scene-inner{position:relative;z-index:2;width:min(1440px,100%);min-height:100svh;margin:auto;padding:clamp(28px,5vw,76px)}
 .scene-kicker{font-size:10px;letter-spacing:.24em;text-transform:uppercase;opacity:.62}
-.swipe-cue{position:absolute;z-index:4;left:50%;bottom:28px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:7px;font-size:10px;letter-spacing:.3em;text-transform:uppercase;opacity:.82;white-space:nowrap;pointer-events:none}
-.swipe-arrows{display:flex;flex-direction:column;align-items:center;line-height:.58;font-size:30px;font-weight:300;animation:arrowFloat 1.7s ease-in-out infinite}
+.swipe-cue{position:absolute;z-index:4;left:50%;bottom:22px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px;font-size:9px;letter-spacing:.28em;text-transform:uppercase;opacity:.82;white-space:nowrap;pointer-events:none}
+.swipe-arrows{display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:.72;font-size:24px;font-weight:300;height:30px;animation:arrowFloat 1.7s ease-in-out infinite}
 @keyframes arrowFloat{0%,100%{transform:translateY(0);opacity:.55}50%{transform:translateY(7px);opacity:1}}
 /* 01 — end credits */
 .scene--credits{background:#000;color:#f4f4f4}
@@ -157,11 +157,67 @@ a.package-card:hover{background:rgba(255,255,255,.52);transform:translateY(-3px)
 .space-ad-main strong{font-size:clamp(15px,1.8vw,23px);line-height:.95;letter-spacing:-.06em}
 .space-ad-subtitle{font-size:8px;line-height:1.55;letter-spacing:.12em;opacity:.72}
 .space-ad-link{font-size:8px;letter-spacing:.18em}
+
+/* Requested scene refinements */
+.creator-logo{display:block;width:clamp(150px,22vw,250px);max-height:92px;object-fit:contain;margin:8px auto 0}
+.scene--welcome{min-height:112svh}
+.scene--welcome .welcome-inner{min-height:112svh;padding-left:clamp(220px,23vw,330px);padding-right:clamp(220px,23vw,330px);padding-bottom:74px}
+.scene--welcome .welcome-title,.scene--welcome .welcome-subtitle,.scene--welcome .scene-kicker{position:relative;left:0;right:0;margin-left:auto;margin-right:auto;text-align:center}
+.sky-ad{top:50%;width:clamp(150px,16vw,220px);height:min(64svh,590px);padding:14px 12px;overflow:hidden;isolation:isolate;justify-content:space-between;border:1px solid rgba(20,20,20,.48);background:#111;box-shadow:0 16px 46px rgba(20,20,20,.2);color:#fff;text-align:center;transform:translateY(-50%);transition:transform .28s ease,box-shadow .28s ease}
+.sky-ad:hover{transform:translateY(-50%) scale(1.025);box-shadow:0 20px 56px rgba(20,20,20,.28)}
+.sky-ad--left{left:clamp(20px,4vw,64px)}
+.sky-ad--right{right:clamp(20px,4vw,64px)}
+.sky-ad-image,.sky-ad-shade{position:absolute;inset:0;width:100%;height:100%}
+.sky-ad-image{z-index:-2;object-fit:cover;object-position:center}
+.sky-ad-shade{z-index:-1;background:linear-gradient(180deg,rgba(0,0,0,.56) 0%,rgba(0,0,0,.08) 35%,rgba(0,0,0,.18) 54%,rgba(0,0,0,.88) 100%)}
+.sky-ad .ad-index{font-size:8px;letter-spacing:.16em;color:#fff;opacity:.9}
+.sky-ad-copy{display:block;max-width:100%;margin:auto 0 12px;font-size:clamp(12px,1.2vw,16px);font-weight:900;line-height:1.15;letter-spacing:-.035em;text-transform:uppercase;text-shadow:0 2px 12px rgba(0,0,0,.7)}
+.ad-flash{display:inline-flex;align-items:center;justify-content:center;align-self:center;min-height:32px;padding:0 13px;border:1px solid #fff;background:#f5ef00;color:#111;font-size:9px;font-weight:900;letter-spacing:.12em;box-shadow:0 0 0 2px rgba(255,255,255,.28);animation:adFlash .78s steps(2,end) infinite}
+@keyframes adFlash{0%,49%{background:#fff500;color:#111;box-shadow:0 0 0 2px rgba(255,255,255,.55),0 0 18px rgba(255,245,0,.55)}50%,100%{background:#f01828;color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.32),0 0 18px rgba(240,24,40,.5)}}
+.light-trail{position:absolute;inset:0;z-index:5;width:100%;height:100%;pointer-events:none;mix-blend-mode:screen;opacity:1}
+.scene--credits::after,.scene--welcome::after,.scene--package::after{opacity:var(--blend-opacity,0);transition:none}
+.scene--credits::after{background:linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(0,0,0,.12) 18%,rgba(228,227,225,.42) 66%,#E4E3E1 100%)}
+.scene--welcome::after{background:linear-gradient(180deg,rgba(228,227,225,0) 0%,rgba(228,227,225,.12) 18%,rgba(191,197,200,.58) 76%,#BFC5C8 100%)}
+.scene--package::after{background:linear-gradient(180deg,rgba(191,197,200,0) 0%,rgba(191,197,200,.14) 35%,rgba(198,187,167,.72) 78%,#C6BBA7 100%)}
+/* Printed receipt treatment */
+.receipt-card{position:relative;width:min(700px,100%);padding:clamp(28px,4vw,48px);border:0;background:#fffdf6;color:#24211c;box-shadow:0 18px 55px rgba(40,32,20,.2);font-family:"Courier Prime",Courier,monospace}
+.receipt-card::before,.receipt-card::after{content:"";position:absolute;left:0;right:0;height:1px;background:repeating-linear-gradient(90deg,rgba(36,33,28,.36) 0 5px,transparent 5px 10px)}
+.receipt-card::before{top:12px}.receipt-card::after{bottom:12px}
+.receipt-top{text-align:center;padding:12px 0 24px;border-bottom:1px dashed rgba(36,33,28,.4)}
+.receipt-top .eyebrow,.receipt-section h3,.meta-label{font-family:Inter,Arial,sans-serif}
+.receipt-top h2{font-family:"Courier Prime",Courier,monospace;font-size:clamp(25px,4vw,42px);letter-spacing:-.055em}
+.receipt-top p{font-size:11px;letter-spacing:.04em}
+.receipt-status{border:1px dashed rgba(36,33,28,.48);font-family:Inter,Arial,sans-serif}
+.receipt-section{padding:19px 0;border-bottom:1px dashed rgba(36,33,28,.36)}
+.receipt-section h3{font-size:9px;letter-spacing:.17em}
+.meta-label{font-size:8px;letter-spacing:.12em}
+.meta-value,.receipt-item strong,.receipt-item .item-price,.total-row{font-family:"Courier Prime",Courier,monospace}
+.receipt-item{padding:5px 0;border-bottom:1px dotted rgba(36,33,28,.16)}
+.receipt-item img{background:#f2efe6}
+.receipt-total{max-width:none}
+.total-row--grand{border-top:1px dashed rgba(36,33,28,.5);font-size:16px}
+.receipt-actions{margin:24px 0 38px}
+.footer{font-family:Inter,Arial,sans-serif}
+@media(max-width:760px){
+ .scene--welcome{min-height:112svh}
+ .scene--welcome .welcome-inner{min-height:112svh;padding:30px 118px 100px}
+ .sky-ad{width:clamp(104px,19vw,142px);height:min(55svh,470px);padding:10px 8px}
+ .sky-ad--left{left:7px}.sky-ad--right{right:7px}
+ .sky-ad-copy{font-size:clamp(9px,2.3vw,12px);line-height:1.12}
+ .sky-ad .ad-index{font-size:6px;letter-spacing:.1em}
+ .ad-flash{min-height:26px;padding:0 7px;font-size:7px}
+ .receipt-card{padding:30px 18px}
+}
+@media(max-width:420px){
+ .scene--welcome .welcome-inner{padding-left:108px;padding-right:108px}
+ .sky-ad{width:96px;height:48svh;padding:8px 6px}
+ .sky-ad-copy{font-size:8px}
+ .ad-flash{font-size:6px;letter-spacing:.06em}
+}
+@media(prefers-reduced-motion:reduce){.ad-flash{animation:none}}
 </style>
 </head>
 <body>
-<canvas class="light-trail" id="light-trail" aria-hidden="true"></canvas>
-
 <section class="scene scene--credits" id="scene-1" aria-label="Purchase completed credits">
   <div class="scene-inner credits-content">
     <img class="vn-mark" src="images/vn-logo-black-transparent.png" alt="VN">
@@ -172,18 +228,27 @@ a.package-card:hover{background:rgba(255,255,255,.52);transform:translateY(-3px)
     <div class="credits-bottom">
       <div class="created">Created by 9ojeez9</div>
       <div class="copyright-line">© 2026 VN RECORDS. ALL RIGHTS RESERVED.</div>
-      <div class="creator-mark">9ojeez9<span>®</span></div>
+      <img class="creator-logo" src="images/9ojeez9-logo-banner-white.png" alt="9ojeez9" loading="eager">
     </div>
   </div>
   <div class="swipe-cue"><div class="swipe-arrows" aria-hidden="true">⌄<br>⌄</div><span>SWIPE</span></div>
 </section>
 
 <section class="scene scene--welcome" id="scene-2" aria-label="Welcome to VN">
-  <a class="sky-ad sky-ad--left" href="projects.html" aria-label="Explore 9ojeez9 projects">
-    <span class="ad-index">VN / 001</span><span class="ad-wordmark">9OJEEZ9</span><span class="ad-label">PROJECTS · EXPLORE THE ARCHIVE</span><span class="ad-index">OPEN ↗</span>
+  <canvas class="light-trail" id="light-trail" aria-hidden="true"></canvas>
+  <a class="sky-ad sky-ad--left" href="projects.html" aria-label="News, events, projects and more">
+    <img class="sky-ad-image" src="assets/visuals/event-ojee-kash-gta-love-qa-2314-poster.png" alt="" loading="eager">
+    <span class="sky-ad-shade"></span>
+    <span class="ad-index">VN / 001 · PROJECTS</span>
+    <span class="sky-ad-copy">CHECK OUT NEWS, EVENTS, PROJECTS AND MORE</span>
+    <span class="ad-flash">CLICK NOW ↗</span>
   </a>
-  <a class="sky-ad sky-ad--right" href="music.html" aria-label="Explore 9ojeez9 music">
-    <span class="ad-index">VN / 002</span><span class="ad-wordmark">9OJEEZ9</span><span class="ad-label">MUSIC · LISTEN TO THE CATALOG</span><span class="ad-index">OPEN ↗</span>
+  <a class="sky-ad sky-ad--right" href="music.html" aria-label="Check out 9ojeez9's freshest hits">
+    <img class="sky-ad-image" src="assets/officials/planetarium-official-cover.png" alt="" loading="eager">
+    <span class="sky-ad-shade"></span>
+    <span class="ad-index">VN / 002 · MUSIC</span>
+    <span class="sky-ad-copy">CHECK OUT 9OJEEZ9'S FRESHEST HITS</span>
+    <span class="ad-flash">CLICK NOW ↗</span>
   </a>
   <div class="scene-inner welcome-inner">
     <p class="scene-kicker">A NEW CHAPTER BEGINS</p>
@@ -329,17 +394,22 @@ set("payment-status",order?(paid?"PAYMENT CONFIRMED":"ORDER RECEIVED — PAYMENT
 set("payment-method",order?.paymentMethod||order?.payment_method||"Not processed");
 const reduced=matchMedia("(prefers-reduced-motion: reduce)").matches;
 if(!reduced&&matchMedia("(hover:hover) and (pointer:fine)").matches){
- const canvas=$("light-trail"),ctx=canvas.getContext("2d"),scene=$("scene-2"),points=[];let w=0,h=0,dpr=1,frame=0,active=false;
+ const canvas=$("light-trail"),ctx=canvas.getContext("2d"),scene=$("scene-2"),points=[];let w=0,h=0,dpr=1,frame=0,active=false,scrolling=false,scrollTimer=0;
  const resize=()=>{const rect=scene.getBoundingClientRect();dpr=Math.min(devicePixelRatio||1,2);w=rect.width;h=rect.height;canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);ctx.setTransform(dpr,0,0,dpr,0,0)};
  const draw=()=>{frame=0;if(!active){ctx.clearRect(0,0,w,h);return}const now=performance.now();while(points.length&&now-points[0].time>620)points.shift();ctx.clearRect(0,0,w,h);if(points.length>1){const path=new Path2D();path.moveTo(points[0].x,points[0].y);for(let i=1;i<points.length-1;i++){const p=points[i],n=points[i+1];path.quadraticCurveTo(p.x,p.y,(p.x+n.x)/2,(p.y+n.y)/2)}const last=points[points.length-1];path.lineTo(last.x,last.y);const life=Math.max(0,1-(now-last.time)/620);ctx.globalCompositeOperation="screen";ctx.lineCap="round";ctx.lineJoin="round";[[19,"rgba(150,205,255,",.25,"rgba(130,155,255,",18],[10.5,"rgba(255,145,220,",.3,"rgba(255,92,205,",16],[6.5,"rgba(105,205,255,",.52,"rgba(75,190,255,",5],[3.2,"rgba(255,238,252,",.66,"rgba(255,170,235,",3]].forEach(([width,color,alpha,shadow,blur])=>{ctx.strokeStyle=color+(life*alpha)+")";ctx.lineWidth=width*life;ctx.shadowColor=shadow+(life*.62)+")";ctx.shadowBlur=blur*life;ctx.stroke(path)})}ctx.shadowBlur=0;if(points.length>1)frame=requestAnimationFrame(draw)};
  const observer=new IntersectionObserver(entries=>{active=entries.some(e=>e.isIntersecting&&e.intersectionRatio>.35);if(!active){points.length=0;if(frame)cancelAnimationFrame(frame);frame=0;ctx.clearRect(0,0,w,h)}else resize()},{threshold:[0,.35,.7]});observer.observe(scene);
- scene.addEventListener("pointermove",event=>{if(!active||event.pointerType==="touch")return;const rect=scene.getBoundingClientRect();points.push({x:event.clientX-rect.left,y:event.clientY-rect.top,time:performance.now()});if(points.length>18)points.shift();if(!frame)frame=requestAnimationFrame(draw)},{passive:true});
+ const clearTrail=()=>{points.length=0;if(frame)cancelAnimationFrame(frame);frame=0;ctx.clearRect(0,0,w,h)};
+ window.addEventListener("scroll",()=>{scrolling=true;canvas.style.opacity="0";clearTrail();clearTimeout(scrollTimer);scrollTimer=setTimeout(()=>{scrolling=false;const rect=scene.getBoundingClientRect();active=rect.bottom>0&&rect.top<innerHeight&&Math.min(rect.bottom,innerHeight)-Math.max(rect.top,0)>innerHeight*.35;canvas.style.opacity=active?"1":"0";},220)},{passive:true});
+ scene.addEventListener("pointermove",event=>{if(!active||scrolling||event.pointerType==="touch")return;const rect=scene.getBoundingClientRect();points.push({x:event.clientX-rect.left,y:event.clientY-rect.top,time:performance.now()});if(points.length>18)points.shift();if(!frame)frame=requestAnimationFrame(draw)},{passive:true});
  window.addEventListener("resize",resize,{passive:true});
 }
 $("skip-to-receipt").addEventListener("click",event=>{event.preventDefault();$("scene-4").scrollIntoView({behavior:reduced?"auto":"smooth",block:"start"})});
-const sections=[...document.querySelectorAll(".scene")];let last=0;
-const transitionObserver=new IntersectionObserver(entries=>{for(const entry of entries)if(entry.isIntersecting){const index=sections.indexOf(entry.target);if(index>=0){document.documentElement.style.setProperty("--active-scene",index);last=index}}},{threshold:.55});
-sections.forEach(section=>transitionObserver.observe(section));
+const sections=[...document.querySelectorAll(".scene")];
+let blendFrame=0;
+const updateSceneBlends=()=>{blendFrame=0;const vh=innerHeight||document.documentElement.clientHeight;sections.forEach((section,index)=>{if(index>2)return;const rect=section.getBoundingClientRect();const progress=Math.max(0,Math.min(1,(vh-rect.bottom)/(vh*.28)));section.style.setProperty("--blend-progress",String(progress));section.style.setProperty("--blend-opacity",String(progress));});};
+window.addEventListener("scroll",()=>{if(!blendFrame)blendFrame=requestAnimationFrame(updateSceneBlends)},{passive:true});
+window.addEventListener("resize",updateSceneBlends,{passive:true});
+updateSceneBlends();
 })();
 </script>
 </body>
