@@ -331,13 +331,11 @@ a.package-card{box-shadow:none!important;filter:none!important;transition:transf
       </article>
       <div class="package-cards">
         <article class="package-card">
-          <span class="card-no">02 / WHAT'S INSIDE</span><div><p id="package-contents">—</p></div><span class="card-link">YOUR SELECTION</span>
+          <span class="card-no">02 / WHAT'S INSIDE</span><div><h3>PRODUCT</h3><p>Explore the specifications, materials and edition information listed with each product.</p><p id="package-contents">—</p></div><span class="card-link">YOUR SELECTION</span>
         </article>
         <article class="package-card">
           <span class="card-no">03 / DISCOVER MORE</span>
           <div>
-            <h3>PRODUCT DETAILS</h3>
-            <p>Explore the specifications, materials and edition information listed with each product.</p>
             <h3>VN SHOP</h3>
             <p>Find more releases, objects and selected pieces from the VN SHOP catalog.</p>
           </div>
@@ -455,18 +453,21 @@ if(items.length){
   return '<div class="receipt-item">'+(image?'<img src="'+safe(image)+'" alt="'+safe(name)+'">':'<span class="receipt-thumb-placeholder" aria-hidden="true"></span>')+'<div><strong>'+safe(name)+'</strong><small>'+(variant?safe(variant)+" · ":"")+'QTY '+quantity+'</small></div><span class="item-price">'+money(price*quantity)+'</span></div>';
  }).join("");
  const packageTypes=[];
+ let hasGtaLoveCustomCd=false;
  items.forEach(line=>{
   const p=line.product||line;
-  const id=String(p.id||line.id||"").toLowerCase();
+  const id=String(p.id||line.id||p.productId||line.productId||p.sku||line.sku||"").toLowerCase();
+  const name=String(p.name||p.title||line.name||"").toLowerCase();
   const category=String(p.category||line.category||p.type||line.type||"MERCHANDISE").trim().toUpperCase();
   if(category&&!packageTypes.includes(category))packageTypes.push(category);
-  if(id==="gta-love-custom-printed-cd"){
-   ["CD BOX WITH CUSTOM TRAY CARD","VN SUITE BOX","PRESENTATION CARD","BONUSES"].forEach(label=>{
-    if(!packageTypes.includes(label))packageTypes.push(label);
-   });
-  }
+  if(id.includes("gta-love-custom-printed-cd")||(name.includes("gta love")&&category==="CD"))hasGtaLoveCustomCd=true;
  });
- $("package-contents").textContent=packageTypes.join("\n");
+ if(hasGtaLoveCustomCd){
+  ["CD BOX WITH CUSTOM TRAY CARD","VN SUITE BOX","PRESENTATION CARD","BONUSES"].forEach(label=>{
+   if(!packageTypes.includes(label))packageTypes.push(label);
+  });
+ }
+ $("package-contents").textContent=packageTypes.join("\\n");
 }
 const shipping=order?.shipping??order?.shippingTotal??order?.shipping_total;
 const taxes=order?.taxes??order?.tax??order?.tax_total;
