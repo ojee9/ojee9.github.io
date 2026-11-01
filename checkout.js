@@ -8,7 +8,6 @@
   const CONFIG = {
     currency: "USD",
     supportEmail: "9ojeez9@gmail.com",
-    demoShipDate: "Ships on October 30, 2026",
     shippingRates: {
       US: { together: 0, separate: 0 },
       TR: { together: 0, separate: 0 },
@@ -459,10 +458,6 @@
         <div class="vn-co-section-title">
           <h2>Shipping &amp; Handling</h2>
         </div>
-
-        <p class="vn-co-hint">
-          ${CONFIG.demoShipDate} · Example date
-        </p>
 
         <p>Choose a shipping method</p>
 
