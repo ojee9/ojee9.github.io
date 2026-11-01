@@ -2994,3 +2994,8 @@ body.checkout-page{margin:0;background:#C6BBA7;color:#f5f5f5;font:13px Arial,Hel
  box-shadow:none!important;
 }
 
+/* Keep the Estimated Taxes help icon aligned with its label. */
+.checkout-page .estimated-taxes-help .help{
+  transform:none!important;
+  align-self:center;
+}
