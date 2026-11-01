@@ -26,7 +26,7 @@
   <div class="layout">
     <section class="left">
       <div class="banner checkout-shop-banner"><img src="images/vn-shop-banner-original.png" alt="VN SHOP"></div>
-      <nav class="progress" aria-label="Checkout progress"><a href="merch.html#cart">Cart</a><span>›</span><b id="progress-information" aria-current="step">Information</b><span>›</span><span id="progress-shipping">Shipping &amp; Handling</span><span>›</span><span>Payment</span></nav>
+      <nav class="progress" aria-label="Checkout progress"><a href="merch.html#cart">Cart</a><span>›</span><b id="progress-information" aria-current="step">Information</b><span>›</span><span id="progress-shipping">Shipping &amp; Handling</span><span>›</span><span id="progress-payment">Payment</span></nav>
       <div class="express" aria-label="Reserved express payment space"></div>
       <div class="or"><span>OR</span></div>
       <form id="info">
@@ -79,6 +79,92 @@
           <button type="button" class="primary" id="continue-to-payment">Continue to payment</button>
         </div>
         <p class="shipping-payment-notice" id="shipping-payment-notice" hidden>Payment selection is not connected yet.</p>
+      </section>
+
+      <section class="payment-step" id="payment-step" hidden aria-labelledby="payment-title">
+        <div class="checkout-summary-card">
+          <div class="checkout-summary-card-heading"><h2>Contact</h2><button type="button" class="checkout-change" data-return-information>change</button></div>
+          <p id="payment-contact-summary"></p>
+        </div>
+        <div class="checkout-summary-card">
+          <div class="checkout-summary-card-heading"><h2>Ship to</h2><button type="button" class="checkout-change" data-return-information>change</button></div>
+          <p id="payment-address-summary"></p>
+        </div>
+        <div class="payment-shipping-summary">
+          <div class="payment-shipping-heading"><strong>Shipping &amp; Handling</strong><button type="button" class="checkout-change" id="change-shipping">change</button></div>
+          <div class="payment-shipping-line"><span>STANDARD SHIPPING</span><span class="payment-shipping-dot">·</span><strong id="payment-shipping-price"></strong></div>
+        </div>
+        <div class="shipping-step-divider"></div>
+        <section class="payment-section">
+          <h1 id="payment-title">Payment</h1>
+          <p class="payment-encrypted">All transactions are secure and encrypted.</p>
+          <div class="payment-methods" role="radiogroup" aria-label="Payment method">
+            <label class="payment-method-option is-selected" data-payment-option="card">
+              <input class="shipping-method-radio payment-method-radio" type="radio" name="payment-method" value="card" checked>
+              <span class="payment-method-label">Credit card</span>
+              <span class="card-brand-area" aria-label="Accepted card types">
+                <span class="card-brand">VISA</span><span class="card-brand mastercard">MC</span><span class="card-brand amex">AMEX</span>
+                <span class="card-more-wrap"><span class="card-more">+4</span><span class="card-more-popover"><span>DISCOVER</span><span>ELO</span><span>UNIONPAY</span><span>JCB</span></span></span>
+              </span>
+            </label>
+            <div class="payment-card-fields" id="payment-card-fields">
+              <label class="vn-ac-address-control payment-field-card"><span>Card number</span><div class="payment-card-number"><input id="payment-card-number" name="paymentCardNumber" type="text" inputmode="numeric" autocomplete="cc-number" placeholder=" " aria-label="Card number"><span class="payment-lock" aria-hidden="true">♙</span></div></label>
+              <div class="payment-field-grid">
+                <label class="vn-ac-address-control"><span>Expiration date</span><input id="payment-expiry" name="paymentExpiry" type="text" inputmode="numeric" autocomplete="cc-exp" placeholder=" " aria-label="Expiration date"></label>
+                <label class="vn-ac-address-control payment-security-field"><span>Security code</span><input id="payment-security" name="paymentSecurity" type="text" inputmode="numeric" autocomplete="cc-csc" placeholder=" " aria-label="Security code"><span class="payment-tooltip">3-digit security code on the back of your card</span></label>
+              </div>
+              <label class="vn-ac-address-control"><span>Name on card</span><input id="payment-card-name" name="paymentCardName" type="text" autocomplete="cc-name" placeholder=" " aria-label="Name on card"></label>
+            </div>
+            <label class="payment-method-option" data-payment-option="apple">
+              <input class="shipping-method-radio payment-method-radio" type="radio" name="payment-method" value="apple">
+              <span class="payment-method-label">Apple Pay</span>
+              <span class="payment-method-note" hidden>We working on that</span>
+            </label>
+            <label class="payment-method-option" data-payment-option="paypal">
+              <input class="shipping-method-radio payment-method-radio" type="radio" name="payment-method" value="paypal">
+              <span class="payment-method-label">PayPal</span>
+              <span class="payment-method-note" hidden>Not available in your country</span>
+            </label>
+            <label class="payment-method-option" data-payment-option="later">
+              <input class="shipping-method-radio payment-method-radio" type="radio" name="payment-method" value="later">
+              <span class="payment-method-label">Pay over time</span>
+              <span class="payment-method-note" hidden>We working on that</span>
+            </label>
+          </div>
+        </section>
+        <section class="billing-section">
+          <h2>Billing address</h2>
+          <p>Select the address that matches your card or payment method.</p>
+          <div class="billing-options">
+            <label class="billing-option"><input type="radio" name="billing-address-choice" value="same" checked><span>Same as shipping address</span></label>
+            <label class="billing-option"><input type="radio" name="billing-address-choice" value="different"><span>Use a different billing address</span></label>
+            <div class="billing-fields" id="billing-fields" hidden>
+              <label class="vn-ac-address-control"><span>Country / Region</span><select id="billing-country" name="billingCountry" autocomplete="billing country-name"></select></label>
+              <div class="vn-ac-form-grid">
+                <label class="vn-ac-address-control"><span>First name</span><input name="billingFirstName" placeholder=" " autocomplete="billing given-name"></label>
+                <label class="vn-ac-address-control"><span>Last name</span><input name="billingLastName" placeholder=" " autocomplete="billing family-name"></label>
+              </div>
+              <label class="vn-ac-address-control"><span>Address</span><input name="billingAddress" placeholder=" " autocomplete="billing street-address"></label>
+              <label class="vn-ac-address-control"><span>Apartment, suite, etc. (optional)</span><input name="billingApartment" placeholder=" " autocomplete="billing address-line2"></label>
+              <div class="vn-ac-form-grid billing-city-row">
+                <label class="vn-ac-address-control"><span>City</span><input name="billingCity" placeholder=" " autocomplete="billing address-level2"></label>
+                <label class="vn-ac-address-control"><span>State</span><input name="billingState" placeholder=" " autocomplete="billing address-level1"></label>
+                <label class="vn-ac-address-control"><span>Zipcode</span><input name="billingPostal" placeholder=" " autocomplete="billing postal-code"></label>
+              </div>
+              <label class="vn-ac-address-control"><span>Phone (optional)</span><input name="billingPhone" type="tel" placeholder=" " autocomplete="billing tel"></label>
+            </div>
+          </div>
+        </section>
+        <section class="shop-save-section">
+          <label class="shop-save-check"><input id="save-shop-info" type="checkbox"><span>Save my information for a faster checkout</span></label>
+          <p>By paying, you agree to create a Shop account subject to Shop’s <a href="policies/terms-of-use.html">Terms</a> and <a href="policies/privacy-policy.html">Privacy Policy</a>.</p>
+          <button type="button" id="not-now" class="not-now-button">NOT NOW</button>
+        </section>
+        <div class="actions payment-step-actions">
+          <button type="button" class="secondary-action" id="return-to-shipping">Return to shipping</button>
+          <button type="button" class="primary" id="pay-now">Pay now</button>
+        </div>
+        <p class="payment-prototype-notice" id="payment-prototype-notice" hidden>Payment processing is not connected yet. No payment has been taken.</p>
       </section>
       <button id="policies" class="policy-link" type="button">Terms and policies</button>
     </section>
