@@ -298,15 +298,17 @@ a.package-card{box-shadow:none!important;filter:none!important;transition:transf
 @media(max-width:600px){.receipt-meta--order{grid-template-columns:1fr}}
 
 
-/* 03 — weekly VN SHOP homepage preview */
+/* 03 — full-card VN SHOP preview, blended into the stone/camel surface */
+.package-cards>.package-card--shop-preview{position:relative;isolation:isolate;overflow:hidden;text-decoration:none;color:#0E0C0A;transition:transform .3s ease!important}
+.package-cards>.package-card--shop-preview:hover,.package-cards>.package-card--shop-preview:focus-visible{transform:translateY(-3px) scale(1.0125)!important;box-shadow:none!important;filter:none!important}
+.package-cards>.package-card--shop-preview>:not(.vn-shop-preview){position:relative;z-index:1}
 .package-cards>.package-card--shop-preview .package-product-intro{display:flex;flex-direction:column;min-height:0;flex:1;margin:0 0 12px}
 .package-cards>.package-card--shop-preview .package-product-intro h3{margin:0 0 6px}
 .package-cards>.package-card--shop-preview .package-product-intro p{width:100%;margin:0!important;text-align:left;align-self:flex-start}
-.vn-shop-preview{display:block;position:relative;flex:1;min-height:74px;max-height:clamp(78px,10vw,124px);aspect-ratio:16/9;overflow:hidden;margin-top:12px;border:1px solid rgba(14,12,10,.24);background:linear-gradient(135deg,#D2C9BA,#E4CEA5);text-decoration:none}
-.vn-shop-preview img{display:block;width:100%;height:100%;object-fit:cover;object-position:top center}
+.vn-shop-preview{position:absolute;inset:0;z-index:0;display:block;overflow:hidden;pointer-events:none;opacity:.22;mix-blend-mode:multiply;mask-image:linear-gradient(180deg,transparent 0%,#000 19%,#000 80%,transparent 100%)}
+.vn-shop-preview img{display:block;width:100%;height:100%;object-fit:cover;object-position:top center;filter:saturate(.72) contrast(.92)}
 .vn-shop-preview-fallback{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#0E0C0A;font-size:clamp(14px,2vw,22px);font-weight:800;letter-spacing:.12em;text-align:center}
 .vn-shop-preview-fallback small{margin-top:5px;font-size:7px;letter-spacing:.2em;font-weight:600}
-@media(max-width:760px){.package-cards>.package-card--shop-preview .package-product-intro{margin-bottom:8px}.vn-shop-preview{min-height:58px;max-height:90px;margin-top:8px}}
 </style>
 </head>
 <body>
@@ -369,18 +371,18 @@ a.package-card{box-shadow:none!important;filter:none!important;transition:transf
         <article class="package-card">
           <span class="card-no">02 / WHAT'S INSIDE</span><div><div class="package-product-intro"><h3>PRODUCT</h3><p>Explore the specifications, materials and edition information listed with each product.</p></div><p id="package-contents">—</p></div><span class="card-link">YOUR SELECTION</span>
         </article>
-        <article class="package-card package-card--shop-preview">
+        <a class="package-card package-card--shop-preview" href="merch.html" aria-label="Explore VN SHOP">
           <span class="card-no">03 / DISCOVER MORE</span>
+          <span class="vn-shop-preview" aria-hidden="true">
+            <img src="images/vn-shop-weekly.png" alt="" onerror="this.hidden=true;this.nextElementSibling.hidden=false">
+            <span class="vn-shop-preview-fallback" hidden>VN SHOP<br><small>WEEKLY STORE PREVIEW</small></span>
+          </span>
           <div class="package-product-intro">
             <h3>VN SHOP</h3>
             <p>Find more releases, objects and selected pieces from the VN SHOP catalog.</p>
-            <a class="vn-shop-preview" href="merch.html" aria-label="Open VN SHOP">
-              <img src="images/vn-shop-weekly.png" alt="Weekly preview of the VN SHOP homepage" onerror="this.hidden=true;this.nextElementSibling.hidden=false">
-              <span class="vn-shop-preview-fallback" hidden>VN SHOP<br><small>WEEKLY STORE PREVIEW</small></span>
-            </a>
           </div>
-          <a class="card-link" href="merch.html">EXPLORE THE SHOP ↗</a>
-        </article>
+          <span class="card-link">EXPLORE THE SHOP ↗</span>
+        </a>
         <article class="package-card space-ad-card">
           <span class="space-ad-top"><span class="card-no">04 / VNION ID</span><span class="space-ad-orbit" aria-hidden="true">◎</span></span>
           <span class="space-ad-main"><strong>EXPLORE<br>VNION ID REWARDS</strong><span class="space-ad-subtitle">LEARN MORE ABOUT VN REWARD SYSTEM</span></span>
