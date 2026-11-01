@@ -1,6 +1,5 @@
 import{cart,money}from"./checkout-data.js";import{state}from"./checkout-state.js";import{validEmail}from"./checkout-engine.js";import{render,updateShippingSummary,policy,close}from"./checkout-view.js";import{calculateCheckout}from"./shipping-calculator.js";
 state.cart=cart();render(state.cart);
-const paymentTestMode=new URLSearchParams(window.location.search).get("payment-test")==="1";
 const form=document.getElementById("info"),country=document.getElementById("country"),phoneCountry=document.getElementById("phoneCountry"),countryDialog=document.getElementById("country-modal"),policyDialog=document.getElementById("modal"),policyOptions=document.getElementById("policy-options"),policySelect=document.getElementById("policy-select");
 const dial=()=>{const m=phoneCountry.selectedOptions[0]?.textContent.match(/\+(\d{1,4})/);return m?"+"+m[1]:""};
 const updatePhone=()=>{const option=phoneCountry.selectedOptions[0],code=phoneCountry.value.toLowerCase();document.querySelector("[data-phone-dial]").textContent=dial();const flag=document.querySelector(".vn-ac-phone-flag");if(flag){flag.onerror=()=>{flag.hidden=true};flag.onload=()=>{flag.hidden=false};flag.src="https://flagcdn.com/24x18/"+code+".png";flag.alt="Country flag";flag.hidden=false;phoneCountry.setAttribute("aria-label","Phone country: "+(option?.textContent||phoneCountry.value))}};
@@ -311,13 +310,6 @@ saveChoiceButton.addEventListener("click",()=>{
  saveChoiceButton.textContent=shopSaveOptOut?"SAVE":"NOT NOW";
  saveChoiceButton.setAttribute("aria-pressed",String(shopSaveOptOut));
 });
-const paymentTestConfirmation=document.getElementById("payment-test-confirmation");
-const returnFromPaymentTest=()=>{
- paymentTestConfirmation.hidden=true;paymentStep.hidden=false;
- progressPayment.classList.remove("is-complete");progressPayment.classList.add("is-current");progressPayment.setAttribute("aria-current","step");
- window.scrollTo({top:0,behavior:"smooth"});
-};
-document.getElementById("return-to-payment-from-test").addEventListener("click",returnFromPaymentTest);
 document.getElementById("pay-now").addEventListener("click",()=>{
  const information=collectInformation();
  const readCart=(storage,key)=>{try{const value=JSON.parse(storage.getItem(key)||"[]");return Array.isArray(value)?value:[]}catch{return[]}};

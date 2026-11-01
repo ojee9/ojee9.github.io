@@ -971,18 +971,6 @@ body.checkout-page{margin:0;background:#C6BBA7;color:#f5f5f5;font:13px Arial,Hel
 .checkout-page .not-now-button{padding:3px 0;border:0;background:none;color:#c6bba7;font-size:9px;letter-spacing:.08em;cursor:pointer}
 .checkout-page .payment-step-actions{margin-top:23px}
 
-.checkout-page .payment-test-confirmation{max-width:620px;margin:30px auto 0;padding:34px 28px;border:1px solid #50483c;border-radius:3px;background:#111;text-align:center}
-.checkout-page .payment-test-confirmation[hidden]{display:none}
-.checkout-page .payment-test-eyebrow{margin:0 0 20px;color:#c6bba7;font-size:9px;font-weight:700;letter-spacing:.16em}
-.checkout-page .payment-test-mark{display:grid;place-items:center;width:42px;height:42px;margin:0 auto 18px;border:1px solid #c6bba7;border-radius:50%;color:#e4cea5;font-size:21px}
-.checkout-page .payment-test-confirmation h1{margin:0 0 8px;color:#f5f1e8;font-size:25px;font-weight:500}
-.checkout-page .payment-test-lead{margin:0 0 14px;color:#e4cea5;font-size:14px}
-.checkout-page .payment-test-notice{max-width:420px;margin:0 auto 26px;color:#aaa;font-size:11px;line-height:1.65}
-.checkout-page .payment-test-summary{margin:0 0 24px;border-top:1px solid #38332d;text-align:left}
-.checkout-page .payment-test-summary>div{display:grid;grid-template-columns:100px minmax(0,1fr);gap:12px;padding:13px 0;border-bottom:1px solid #38332d;font-size:11px}
-.checkout-page .payment-test-summary span{color:#999}
-.checkout-page .payment-test-summary strong{color:#eee;font-weight:400;white-space:pre-line;overflow-wrap:anywhere}
-.checkout-page .payment-test-confirmation .secondary-action{margin-top:4px}
 
 *{box-sizing:border-box}
 html{min-height:100%;background:#C6BBA7}
