@@ -1,5 +1,8 @@
 import{cart,money}from"./checkout-data.js";import{state}from"./checkout-state.js";import{validEmail}from"./checkout-engine.js";import{render,updateShippingSummary,policy,close}from"./checkout-view.js";import{calculateCheckout}from"./shipping-calculator.js";
 state.cart=cart();render(state.cart);
+const roundCurrency=value=>Math.round((Number(value)+Number.EPSILON)*100)/100;
+const formatTRY=value=>new Intl.NumberFormat("tr-TR",{style:"currency",currency:"TRY"}).format(roundCurrency(value));
+let checkoutAmounts={subtotalUSD:Number(document.getElementById("subtotal")?.dataset.amount||0),shippingTRY:null,taxesUSD:null,fxRate:null,fxUpdatedAt:null,subtotalTRY:null,taxesTRY:null,totalTRY:null};
 const form=document.getElementById("info"),country=document.getElementById("country"),phoneCountry=document.getElementById("phoneCountry"),countryDialog=document.getElementById("country-modal"),policyDialog=document.getElementById("modal"),policyOptions=document.getElementById("policy-options"),policySelect=document.getElementById("policy-select");
 const dial=()=>{const m=phoneCountry.selectedOptions[0]?.textContent.match(/\+(\d{1,4})/);return m?"+"+m[1]:""};
 const updatePhone=()=>{const option=phoneCountry.selectedOptions[0],code=phoneCountry.value.toLowerCase();document.querySelector("[data-phone-dial]").textContent=dial();const flag=document.querySelector(".vn-ac-phone-flag");if(flag){flag.onerror=()=>{flag.hidden=true};flag.onload=()=>{flag.hidden=false};flag.src="https://flagcdn.com/24x18/"+code+".png";flag.alt="Country flag";flag.hidden=false;phoneCountry.setAttribute("aria-label","Phone country: "+(option?.textContent||phoneCountry.value))}};
@@ -51,10 +54,12 @@ const calculateOrderSummary=()=>{
  const city=normalizeShippingCity(cityInput.value);
  const province=resolveTurkishProvince(cityInput.value,stateInput.value);
  if(country.value!=="TR"||!city){
+  checkoutAmounts={...checkoutAmounts,shippingTRY:null,taxesUSD:null};
   updateShippingSummary({shippingAndHandling:null,estimatedTaxes:null});
   return;
  }
  if(!state.cart.length){
+  checkoutAmounts={...checkoutAmounts,shippingTRY:null,taxesUSD:null};
   updateShippingSummary({shippingAndHandling:null,estimatedTaxes:null,shippingLabel:"Unavailable"});
   return;
  }
@@ -63,9 +68,13 @@ const calculateOrderSummary=()=>{
  const destinationType=province==="ankara"?"intracity":"intercity";
  try{
   const result=calculateCheckout(prepareShippingCart(state.cart),{destinationType});
-  const estimatedTaxes=Number.isFinite(Number(result.estimatedTaxes?.amount))?Number(result.estimatedTaxes.amount):null;
-  const shippingAndHandling=Number.isFinite(Number(result.shipping?.amount))&&Number.isFinite(Number(result.handling?.amount))
-   ?Number(result.shipping.amount)+Number(result.handling.amount):null;
+  const estimatedTaxes=result?.estimatedTaxes?.amount!=null&&Number.isFinite(Number(result.estimatedTaxes.amount))
+   ?Number(result.estimatedTaxes.amount):null;
+  const carrierShipping=result?.status==="ok"&&result.shipping?.amount!=null?Number(result.shipping.amount):null;
+  const handling=result?.handling?.amount!=null?Number(result.handling.amount):null;
+  const shippingAndHandling=Number.isFinite(carrierShipping)&&Number.isFinite(handling)
+   ?carrierShipping+handling:null;
+  checkoutAmounts={...checkoutAmounts,subtotalUSD:Number(document.getElementById("subtotal")?.dataset.amount||0),shippingTRY:shippingAndHandling,taxesUSD:estimatedTaxes};
   updateShippingSummary({
    shippingAndHandling,
    estimatedTaxes,
@@ -73,6 +82,7 @@ const calculateOrderSummary=()=>{
   });
  }catch(error){
   console.error("VN shipping calculation failed:",error);
+  checkoutAmounts={...checkoutAmounts,shippingTRY:null,taxesUSD:null};
   updateShippingSummary({shippingAndHandling:null,estimatedTaxes:null,shippingLabel:"Unable to calculate"});
  }
 };
@@ -179,29 +189,100 @@ const showShippingStep=data=>{
  document.getElementById("shipping-payment-notice").hidden=true;paymentStep.hidden=true;
  window.scrollTo({top:0,behavior:"smooth"});
 };
-const returnToInformation=()=>{shippingStep.hidden=true;paymentStep.hidden=true;form.hidden=false;document.body.classList.remove("checkout-after-information");progressShipping.classList.remove("is-current","is-complete");progressShipping.removeAttribute("aria-current");setProgressLocked(progressShipping,true);progressPayment.classList.remove("is-current","is-complete");progressPayment.removeAttribute("aria-current");setProgressLocked(progressPayment,true);progressInformation.classList.remove("is-complete");progressInformation.classList.add("is-current");progressInformation.setAttribute("aria-current","step");window.scrollTo({top:0,behavior:"smooth"})};
+const returnToInformation=()=>{restoreShippingCurrencySummary();shippingStep.hidden=true;paymentStep.hidden=true;form.hidden=false;document.body.classList.remove("checkout-after-information");progressShipping.classList.remove("is-current","is-complete");progressShipping.removeAttribute("aria-current");setProgressLocked(progressShipping,true);progressPayment.classList.remove("is-current","is-complete");progressPayment.removeAttribute("aria-current");setProgressLocked(progressPayment,true);progressInformation.classList.remove("is-complete");progressInformation.classList.add("is-current");progressInformation.setAttribute("aria-current","step");window.scrollTo({top:0,behavior:"smooth"})};
 form.addEventListener("input",()=>{if(!addressConfirmation.hidden){addressConfirmation.hidden=true;addressConfirmed=false}});
 form.addEventListener("change",()=>{if(!addressConfirmation.hidden){addressConfirmation.hidden=true;addressConfirmed=false}});
 form.addEventListener("submit",e=>{e.preventDefault();if(!form.reportValidity())return;if(country.value!=="TR"){showCountry();return}if(!validEmail(document.getElementById("email").value)){document.getElementById("email").focus();return}const data=collectInformation();if(!addressConfirmed){renderAddressConfirmation(data);addressConfirmation.hidden=false;addressConfirmed=true;addressConfirmation.scrollIntoView({behavior:"smooth",block:"nearest"});return}showShippingStep(data)});
 document.querySelectorAll("[data-return-information]").forEach(button=>button.addEventListener("click",returnToInformation));
 document.getElementById("return-to-information").addEventListener("click",returnToInformation);
 
-const showPaymentStep=()=>{
- const selectedShipping=document.querySelector('input[name="shipping-method"]:checked');
- if(!selectedShipping){document.getElementById("shipping-payment-notice").textContent="Please select a shipping method to continue.";document.getElementById("shipping-payment-notice").hidden=false;return}
- const contact=document.getElementById("shipping-contact-summary").textContent;
- const address=document.getElementById("shipping-address-summary").textContent;
- document.getElementById("payment-contact-summary").textContent=contact;
- document.getElementById("payment-address-summary").textContent=address;
- document.getElementById("payment-shipping-price").textContent=document.getElementById("shipping-method-price").textContent;
- shippingStep.hidden=true;paymentStep.hidden=false;document.body.classList.add("checkout-after-information");
- progressShipping.classList.remove("is-current");progressShipping.removeAttribute("aria-current");progressShipping.classList.add("is-complete");
- setProgressLocked(progressShipping,false);setProgressLocked(progressPayment,true);
- progressPayment.classList.add("is-current");progressPayment.setAttribute("aria-current","step");
- document.getElementById("shipping-payment-notice").hidden=true;
- window.scrollTo({top:0,behavior:"smooth"});
+const FX_CACHE_KEY="vn-shop-usd-try-reference-rate";
+const isFreshFxRate=value=>{
+ const updatedAt=Number(value?.updatedAt);
+ return Number.isFinite(Number(value?.rate))&&Number(value.rate)>0&&Number.isFinite(updatedAt)&&updatedAt<=Date.now()+5*60*1000&&Date.now()-updatedAt<=48*60*60*1000;
 };
-const returnToShipping=()=>{paymentStep.hidden=true;shippingStep.hidden=false;document.body.classList.add("checkout-after-information");progressPayment.classList.remove("is-current","is-complete");progressPayment.removeAttribute("aria-current");setProgressLocked(progressPayment,true);progressShipping.classList.remove("is-complete");progressShipping.classList.add("is-current");progressShipping.setAttribute("aria-current","step");window.scrollTo({top:0,behavior:"smooth"})};
+const getUsdTryRate=async()=>{
+ let cached=null;
+ try{cached=JSON.parse(sessionStorage.getItem(FX_CACHE_KEY)||"null")}catch{}
+ const controller=new AbortController();
+ const timeout=window.setTimeout(()=>controller.abort(),12000);
+ try{
+  const response=await fetch("https://open.er-api.com/v6/latest/USD",{cache:"no-store",signal:controller.signal,headers:{Accept:"application/json"}});
+  if(!response.ok)throw new Error("Exchange-rate service returned HTTP "+response.status);
+  const data=await response.json();
+  const updatedAt=Number(data.time_last_update_unix)*1000;
+  const rate=Number(data.conversion_rates?.TRY);
+  const result={rate,updatedAt,updatedAtUTC:data.time_last_update_utc||""};
+  if(data.result!=="success"||data.base_code!=="USD"||!isFreshFxRate(result))throw new Error("Exchange-rate response was invalid or out of date.");
+  try{sessionStorage.setItem(FX_CACHE_KEY,JSON.stringify(result))}catch{}
+  return result;
+ }catch(error){
+  if(isFreshFxRate(cached))return cached;
+  throw error;
+ }finally{window.clearTimeout(timeout)}
+};
+const restoreShippingCurrencySummary=()=>{
+ document.getElementById("subtotal").textContent=money(checkoutAmounts.subtotalUSD);
+ document.getElementById("shipping-estimate").textContent=checkoutAmounts.shippingTRY===null?"Calculated at next step":formatTRY(checkoutAmounts.shippingTRY);
+ const taxRow=document.getElementById("estimated-taxes-row");
+ taxRow.hidden=checkoutAmounts.taxesUSD===null;
+ if(checkoutAmounts.taxesUSD!==null)document.getElementById("estimated-taxes").textContent=money(checkoutAmounts.taxesUSD);
+ document.getElementById("total").textContent=checkoutAmounts.shippingTRY===null?money(checkoutAmounts.subtotalUSD+(checkoutAmounts.taxesUSD||0)):"Calculated at payment";
+ document.querySelector(".total-currency-code").textContent=checkoutAmounts.shippingTRY===null?"USD":"";
+ const currencyHelpToggle=document.getElementById("currency-help-toggle");
+ if(currencyHelpToggle.lastChild)currencyHelpToggle.lastChild.textContent="WHY USD?";
+ document.getElementById("fx-attribution").hidden=true;
+};
+const showPaymentStep=async()=>{
+ const selectedShipping=document.querySelector('input[name="shipping-method"]:checked');
+ const notice=document.getElementById("shipping-payment-notice");
+ if(!selectedShipping){notice.textContent="Please select a shipping method to continue.";notice.hidden=false;return}
+ if(!Number.isFinite(checkoutAmounts.shippingTRY)||!Number.isFinite(checkoutAmounts.taxesUSD)||!Number.isFinite(checkoutAmounts.subtotalUSD)){
+  notice.textContent="The order totals are not ready yet. Please check the shipping estimate and try again.";notice.hidden=false;return;
+ }
+ const continueButton=document.getElementById("continue-to-payment");
+ if(continueButton.disabled)return;
+ continueButton.disabled=true;
+ continueButton.textContent="Checking exchange rate…";
+ try{
+  const fx=await getUsdTryRate();
+  const subtotalTRY=roundCurrency(checkoutAmounts.subtotalUSD*fx.rate);
+  const taxesTRY=roundCurrency(checkoutAmounts.taxesUSD*fx.rate);
+  const shippingTRY=roundCurrency(checkoutAmounts.shippingTRY);
+  const totalTRY=roundCurrency(subtotalTRY+shippingTRY+taxesTRY);
+  checkoutAmounts={...checkoutAmounts,fxRate:fx.rate,fxUpdatedAt:fx.updatedAt,subtotalTRY,taxesTRY,totalTRY};
+  const contact=document.getElementById("shipping-contact-summary").textContent;
+  const address=document.getElementById("shipping-address-summary").textContent;
+  document.getElementById("payment-contact-summary").textContent=contact;
+  document.getElementById("payment-address-summary").textContent=address;
+  document.getElementById("payment-shipping-price").textContent=formatTRY(shippingTRY);
+  document.getElementById("subtotal").textContent=formatTRY(subtotalTRY);
+  document.getElementById("shipping-estimate").textContent=formatTRY(shippingTRY);
+  document.getElementById("estimated-taxes").textContent=formatTRY(taxesTRY);
+  document.getElementById("estimated-taxes-row").hidden=false;
+  document.getElementById("total").textContent=formatTRY(totalTRY);
+  document.querySelector(".total-currency-code").textContent="TRY";
+  const currencyHelpToggle=document.getElementById("currency-help-toggle");
+  if(currencyHelpToggle.lastChild)currencyHelpToggle.lastChild.textContent="WHY TRY?";
+  const updated=new Date(fx.updatedAt);
+  document.getElementById("fx-updated-at").textContent=new Intl.DateTimeFormat("en-GB",{dateStyle:"medium",timeStyle:"short",timeZone:"Europe/Istanbul"}).format(updated)+" (Türkiye time)";
+  document.getElementById("fx-attribution").hidden=false;
+  shippingStep.hidden=true;paymentStep.hidden=false;document.body.classList.add("checkout-after-information");
+  progressShipping.classList.remove("is-current");progressShipping.removeAttribute("aria-current");progressShipping.classList.add("is-complete");
+  setProgressLocked(progressShipping,false);setProgressLocked(progressPayment,true);
+  progressPayment.classList.add("is-current");progressPayment.setAttribute("aria-current","step");
+  notice.hidden=true;
+  window.scrollTo({top:0,behavior:"smooth"});
+ }catch(error){
+  console.error("VN SHOP USD/TRY conversion failed:",error);
+  notice.textContent="We couldn't verify the current USD/TRY reference rate. Please try again in a moment.";
+  notice.hidden=false;
+ }finally{
+  continueButton.disabled=false;
+  continueButton.textContent="Continue to payment";
+ }
+};
+const returnToShipping=()=>{restoreShippingCurrencySummary();paymentStep.hidden=true;shippingStep.hidden=false;document.body.classList.add("checkout-after-information");progressPayment.classList.remove("is-current","is-complete");progressPayment.removeAttribute("aria-current");setProgressLocked(progressPayment,true);progressShipping.classList.remove("is-complete");progressShipping.classList.add("is-current");progressShipping.setAttribute("aria-current","step");window.scrollTo({top:0,behavior:"smooth"})};
 document.getElementById("continue-to-payment").addEventListener("click",showPaymentStep);
 progressInformation.addEventListener("click",event=>{event.preventDefault();if(!form.hidden)return;returnToInformation()});
 progressShipping.addEventListener("click",event=>{event.preventDefault();if(paymentStep.hidden||progressShipping.classList.contains("is-locked"))return;returnToShipping()});
@@ -320,7 +401,7 @@ document.getElementById("pay-now").addEventListener("click",()=>{
  const randomInteger=(min,max)=>{const range=max-min+1,limit=Math.floor(0x100000000/range)*range,buffer=new Uint32Array(1);let value;do{crypto.getRandomValues(buffer);value=buffer[0]}while(value>=limit);return min+(value%range)};
  const orderNumber=String(randomInteger(10000000,99999999));
  const vnCode="VN-"+String(randomInteger(1,999)).padStart(3,"0");
- const subtotal=items.reduce((sum,line)=>{const product=line.product||line;const price=Number(String(product.price??line.price??0).replace(/[^0-9.-]/g,""))||0;return sum+price*Math.max(1,Number(line.quantity||line.qty||1))},0);
+ const cartSubtotalUSD=items.reduce((sum,line)=>{const product=line.product||line;const price=Number(String(product.price??line.price??0).replace(/[^0-9.-]/g,""))||0;return sum+price*Math.max(1,Number(line.quantity||line.qty||1))},0);
  const customer={
   firstName:information.firstName||"",
   lastName:information.lastName||"",
@@ -330,12 +411,20 @@ document.getElementById("pay-now").addEventListener("click",()=>{
  };
  const selectedShipping=document.querySelector('input[name="shipping-method"]:checked');
  const selectedPayment=document.querySelector('input[name="payment-method"]:checked');
- const amountFrom=(...ids)=>{for(const id of ids){const raw=document.getElementById(id)?.textContent||"";const value=Number(raw.replace(/[^0-9,.-]/g,"").replace(/,/g,""));if(raw.trim()&&Number.isFinite(value))return value}return null};
- const shipping=amountFrom("shipping-method-price","shipping-estimate");
- const taxes=amountFrom("estimated-taxes");
- const total=amountFrom("total");
+ if(Math.abs(cartSubtotalUSD-checkoutAmounts.subtotalUSD)>0.01){
+  alert("Your cart changed after the totals were calculated. Please return to shipping and refresh the estimate.");
+  return;
+ }
+ if(!Number.isFinite(checkoutAmounts.fxRate)||!Number.isFinite(checkoutAmounts.subtotalTRY)||!Number.isFinite(checkoutAmounts.shippingTRY)||!Number.isFinite(checkoutAmounts.taxesTRY)||!Number.isFinite(checkoutAmounts.totalTRY)){
+  alert("The verified TRY order total is unavailable. Please return to shipping and try again.");
+  return;
+ }
+ const subtotal=checkoutAmounts.subtotalTRY;
+ const shipping=checkoutAmounts.shippingTRY;
+ const taxes=checkoutAmounts.taxesTRY;
+ const total=checkoutAmounts.totalTRY;
  const paymentLabels={card:"Credit card",apple:"Apple Pay",paypal:"PayPal",later:"Pay over time"};
- const orderRecord={orderNumber,vnCode,createdAt:now.toISOString(),customer,items,subtotal,shipping:shipping??0,taxes:taxes??0,total:total??(subtotal+(shipping??0)+(taxes??0)),shippingMethod:selectedShipping?.value==="standard"?"Standard Shipping":selectedShipping?.value||"Standard Shipping",paymentMethod:paymentLabels[selectedPayment?.value]||"Credit card",orderStatus:"Received",status:"success",paymentStatus:"Success",paymentStatusLabel:"Success"};
+ const orderRecord={orderNumber,vnCode,createdAt:now.toISOString(),customer,items,subtotal,shipping,taxes,total,currency:"TRY",countryCode:"TR",originalSubtotalUSD:checkoutAmounts.subtotalUSD,originalTaxesUSD:checkoutAmounts.taxesUSD,exchangeRateTRYPerUSD:checkoutAmounts.fxRate,exchangeRateUpdatedAt:new Date(checkoutAmounts.fxUpdatedAt).toISOString(),shippingMethod:selectedShipping?.value==="standard"?"Standard Shipping":selectedShipping?.value||"Standard Shipping",paymentMethod:paymentLabels[selectedPayment?.value]||"Credit card",orderStatus:"Received",status:"success",paymentStatus:"Success",paymentStatusLabel:"Success"};
  try{
   localStorage.setItem("vn-shop-order-complete",JSON.stringify(orderRecord));
   sessionStorage.setItem("vn-shop-order-complete",JSON.stringify(orderRecord));
