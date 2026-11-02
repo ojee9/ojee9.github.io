@@ -1,10 +1,9 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#e4e3e1">
-<title>VN — Procedural Glitter Material Test</title>
+<title>VN — Procedural Glitter Material Test 02</title>
 <style>
 *{box-sizing:border-box}html,body{width:100%;height:100%;margin:0}
 body{overflow:hidden;color:#17151a;background-color:#e4e3e1;background-image:radial-gradient(ellipse at 26% 28%,rgba(177,218,255,.34),transparent 43%),radial-gradient(ellipse at 76% 72%,rgba(255,190,226,.38),transparent 46%),radial-gradient(ellipse at 52% 48%,rgba(255,255,255,.56),transparent 54%);font-family:Arial,Helvetica,sans-serif}
@@ -16,8 +15,8 @@ body{overflow:hidden;color:#17151a;background-color:#e4e3e1;background-image:rad
 </style>
 </head>
 <body>
-<canvas id="glitter" aria-label="Procedural glitter material preview"></canvas>
-<div class="meta"><strong>Procedural glitter · material study 01</strong>Mixed hex cuts: 100–150 / 200 / 400 µm<br>22–25 µm film-thickness reference · 4× macro display</div>
+<canvas id="glitter" aria-label="Faceted procedural glitter material preview"></canvas>
+<div class="meta"><strong>Procedural glitter · material study 02</strong>Faceted hex film · 100–400 µm size family<br>Approx. 22–25 µm film reference · 8× macro view</div>
 <div class="hint">Move pointer to shift the light</div>
 <script>
 (() => {
@@ -26,42 +25,40 @@ const gl=canvas.getContext('webgl2',{alpha:true,antialias:true,premultipliedAlph
 if(!gl){document.querySelector('.meta').innerHTML='<strong>WebGL 2 unavailable</strong>This browser or device cannot display the material preview.';return;}
 const vertexSource="#version 300 es\nvoid main(){vec2 p=vec2((gl_VertexID << 1) & 2,gl_VertexID & 2);gl_Position=vec4(p*2.0-1.0,0.0,1.0);}";
 const fragmentSource="#version 300 es\n"+
-"precision highp float;\n"+
-"uniform vec2 uResolution;uniform vec2 uPointer;uniform float uTime;out vec4 outColor;\n"+
+"precision highp float;uniform vec2 uResolution;uniform vec2 uPointer;uniform float uDpr;out vec4 outColor;\n"+
 "float hash12(vec2 p){vec3 p3=fract(vec3(p.xyx)*0.1031);p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}\n"+
 "vec2 hash22(vec2 p){float n=hash12(p);return vec2(n,hash12(p+n+17.17));}\n"+
-"float sdHex(vec2 p,float r){p=abs(p);return max(p.x*0.8660254+p.y*0.5,p.y)-r*0.8660254;}\n"+
-"vec3 iridescent(float hue,float angle){vec3 a=vec3(0.52,0.53,0.57);vec3 b=vec3(0.28,0.27,0.31);vec3 c=vec3(1.0);vec3 d=vec3(0.00,0.18,0.38);return a+b*cos(6.2831853*(c*hue+d+angle*0.10));}\n"+
+"float hexDist(vec2 p,float r){p=abs(p);return max(p.x*0.8660254+p.y*0.5,p.y)-r*0.8660254;}\n"+
+"vec3 spectrum(float h){return 0.52+0.43*cos(6.2831853*(h+vec3(0.00,0.34,0.67)));}\n"+
 "void main(){\n"+
-"vec2 frag=gl_FragCoord.xy;vec2 uv=frag/uResolution;\n"+
-"// 0.4 mm reference cut at 4x macro: 0.4 * 96/25.4 * 4 ~= 6.05 CSS px.\n"+
-"float cellSize=6.05;vec2 grid=frag/cellSize;vec2 id=floor(grid);vec2 local=fract(grid)-0.5;\n"+
-"float seed=hash12(id);vec2 jitter=(hash22(id+4.7)-0.5)*0.30;float cut;\n"+
-"if(seed>0.83)cut=0.46;else if(seed<0.22)cut=0.17;else cut=0.31;\n"+
-"float radius=cut*0.93;float rotation=(hash12(id+9.2)-0.5)*1.0472;mat2 rot=mat2(cos(rotation),-sin(rotation),sin(rotation),cos(rotation));\n"+
-"vec2 p=rot*(local-jitter);float d=sdHex(p,radius);float aa=max(fwidth(d),0.012);float body=1.0-smoothstep(-aa,aa,d);\n"+
-"float bevel=1.0-smoothstep(0.015,0.16,abs(d));float inner=1.0-smoothstep(-radius*0.80,-radius*0.35,d);\n"+
-"vec2 tilt=(hash22(id+21.0)-0.5)*1.05;vec3 normal=normalize(vec3(tilt,0.78+hash12(id+31.0)*0.22));\n"+
-"vec2 pointer=uPointer/uResolution;vec2 ld=(uv-pointer)*vec2(uResolution.x/uResolution.y,1.0);float movingLight=exp(-dot(ld,ld)*2.2);\n"+
-"vec3 lightA=normalize(vec3(-0.34+(pointer.x-0.5)*0.5,0.48,0.82));vec3 lightB=normalize(vec3(0.56,-0.32,0.76));vec3 viewDir=vec3(0.0,0.0,1.0);\n"+
-"float specA=pow(max(dot(normal,normalize(lightA+viewDir)),0.0),34.0);float specB=pow(max(dot(normal,normalize(lightB+viewDir)),0.0),48.0);float flash=specA*(0.52+movingLight*1.55)+specB*0.34;\n"+
-"float hue=fract(hash12(id+44.0)+dot(normal.xy,vec2(0.12,0.17))+movingLight*0.10);vec3 spectral=iridescent(hue,rotation);\n"+
-"float metal=0.48+hash12(id+53.0)*0.25;vec3 base=mix(vec3(metal),spectral,0.28+movingLight*0.22);float edgeShade=smoothstep(-radius*0.2,radius*0.7,d);\n"+
-"vec3 color=base*(0.72+inner*0.18);color*=0.78+bevel*0.20;color+=vec3(1.0,0.96,0.92)*flash*0.92;color+=spectral*flash*0.34;color*=1.0-edgeShade*0.18;\n"+
-"float micro=hash12(id+71.0);float alpha=body*(0.52+metal*0.22+min(flash,1.0)*0.30);alpha*=0.88+micro*0.12;\n"+
-"float grain=hash12(floor(frag*0.72));float grainMask=step(0.9975,grain)*(1.0-body)*0.11;vec3 grainColor=vec3(0.82,0.88,0.96)*(0.35+movingLight*0.5);\n"+
-"outColor=vec4(clamp(color,0.0,1.65)*alpha+grainColor*grainMask,clamp(alpha+grainMask,0.0,0.96));\n"+
+"vec2 px=gl_FragCoord.xy;vec2 uv=px/uResolution;float cell=12.1*uDpr;vec2 grid=px/cell;vec2 id=floor(grid);vec2 local=fract(grid)-0.5;\n"+
+"float seed=hash12(id);vec2 jitter=(hash22(id+2.3)-0.5)*0.18;float rot=(hash12(id+8.1)-0.5)*1.0472;mat2 R=mat2(cos(rot),-sin(rot),sin(rot),cos(rot));vec2 p=R*(local-jitter);\n"+
+"float sizeMix=seed>0.86?0.34:(seed<0.20?0.23:0.43);float radius=sizeMix;float d=hexDist(p,radius);float aa=max(fwidth(d),0.006);float inside=1.0-smoothstep(-aa,aa,d);\n"+
+"float edge=1.0-smoothstep(0.008,0.055,abs(d));float inner=1.0-smoothstep(-radius*0.78,-radius*0.42,d);\n"+
+"float angle=atan(p.y,p.x);float facet=floor((angle+3.14159265)/1.04719755);float facetSeed=hash12(id+facet*13.7+5.0);\n"+
+"float facetAngle=facet*1.04719755+rot;vec2 facetTilt=vec2(cos(facetAngle),sin(facetAngle))*(0.20+facetSeed*0.30);vec3 N=normalize(vec3(facetTilt,0.82+facetSeed*0.16));\n"+
+"vec2 pointer=uPointer/uResolution;vec3 L=normalize(vec3((pointer.x-0.5)*1.1,0.42+(pointer.y-0.5)*0.45,0.88));vec3 V=vec3(0.0,0.0,1.0);vec3 H=normalize(L+V);\n"+
+"float spec=pow(max(dot(N,H),0.0),26.0);float sharp=pow(max(dot(N,H),0.0),100.0);float side=pow(max(dot(N,normalize(vec3(-0.7,0.5,0.8))),0.0),38.0);\n"+
+"float hue=fract(seed*0.71+facetSeed*0.37+dot(N.xy,vec2(0.17,0.11)));vec3 irid=spectrum(hue);\n"+
+"float metallic=0.54+facetSeed*0.25;vec3 face=mix(vec3(metallic*0.68),irid,0.72);face*=0.68+inner*0.28;\n"+
+"face+=irid*spec*0.58+vec3(1.0,0.98,0.94)*sharp*1.35+vec3(0.70,0.86,1.0)*side*0.28;\n"+
+"float rim=1.0-smoothstep(0.035,0.095,abs(d));face=mix(face,face*0.52,edge*0.40);face+=vec3(0.94,0.96,1.0)*rim*0.13;\n"+
+"float shadow=1.0-smoothstep(-0.08,0.02,d);float alpha=inside*(0.88+spec*0.10);vec3 color=clamp(face,0.0,1.7);\n"+
+"// Small, irregular secondary flakes add a fine-cut population between the main hexes.\n"+
+"float micro=hash12(floor(px/(2.7*uDpr))+vec2(41.0,9.0));float microMask=step(0.994,micro)*(1.0-inside)*0.38;\n"+
+"vec3 microColor=spectrum(fract(micro*7.0+uv.x*0.13))*0.9;float finalAlpha=clamp(alpha+microMask,0.0,0.98);\n"+
+"outColor=vec4(color*alpha+microColor*microMask,finalAlpha);\n"+
 "}";
 function compile(type,source){const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){const m=gl.getShaderInfoLog(s);gl.deleteShader(s);throw new Error(m);}return s;}
 try{
 const program=gl.createProgram();gl.attachShader(program,compile(gl.VERTEX_SHADER,vertexSource));gl.attachShader(program,compile(gl.FRAGMENT_SHADER,fragmentSource));gl.linkProgram(program);
 if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(program));
-gl.useProgram(program);const resLoc=gl.getUniformLocation(program,'uResolution');const ptrLoc=gl.getUniformLocation(program,'uPointer');const timeLoc=gl.getUniformLocation(program,'uTime');
+gl.useProgram(program);const resLoc=gl.getUniformLocation(program,'uResolution');const ptrLoc=gl.getUniformLocation(program,'uPointer');const dprLoc=gl.getUniformLocation(program,'uDpr');
 let pointer=[innerWidth*.5,innerHeight*.5];
-function resize(){const dpr=Math.min(devicePixelRatio||1,2);const w=Math.max(1,Math.floor(innerWidth*dpr));const h=Math.max(1,Math.floor(innerHeight*dpr));if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;gl.viewport(0,0,w,h);}}
+function resize(){const dpr=Math.min(devicePixelRatio||1,2);const w=Math.max(1,Math.floor(innerWidth*dpr));const h=Math.max(1,Math.floor(innerHeight*dpr));if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;gl.viewport(0,0,w,h);}gl.uniform1f(dprLoc,dpr);}
 addEventListener('resize',resize);addEventListener('pointermove',e=>{pointer=[e.clientX,innerHeight-e.clientY];},{passive:true});resize();
 gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
-function draw(now){resize();gl.uniform2f(resLoc,canvas.width,canvas.height);gl.uniform2f(ptrLoc,pointer[0]*canvas.width/innerWidth,pointer[1]*canvas.height/innerHeight);gl.uniform1f(timeLoc,now*.001);gl.drawArrays(gl.TRIANGLES,0,3);requestAnimationFrame(draw);}
+function draw(){resize();gl.uniform2f(resLoc,canvas.width,canvas.height);gl.uniform2f(ptrLoc,pointer[0]*canvas.width/innerWidth,pointer[1]*canvas.height/innerHeight);gl.drawArrays(gl.TRIANGLES,0,3);requestAnimationFrame(draw);}
 requestAnimationFrame(draw);
 }catch(error){document.querySelector('.meta').innerHTML='<strong>Material preview could not start</strong>'+String(error.message).replace(/[<>&"]/g,'');}
 })();
