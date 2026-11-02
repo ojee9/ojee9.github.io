@@ -2,7 +2,7 @@ import{cart,money}from"./checkout-data.js";import{state}from"./checkout-state.js
 state.cart=cart();render(state.cart);
 const roundCurrency=value=>Math.round((Number(value)+Number.EPSILON)*100)/100;
 const formatTRY=value=>new Intl.NumberFormat("tr-TR",{style:"currency",currency:"TRY"}).format(roundCurrency(value));
-let checkoutAmounts={subtotalUSD:Number(document.getElementById("subtotal")?.dataset.amount||0),shippingTRY:null,taxesUSD:null,fxRate:null,fxUpdatedAt:null,subtotalTRY:null,taxesTRY:null,totalTRY:null};
+let checkoutAmounts={subtotalUSD:Number(document.getElementById("subtotal")?.dataset.amount||0),shippingTRY:null,shippingUSD:null,shippingDisplayTRY:null,shippingPaymentTRY:null,taxesUSD:null,fxRate:null,fxUpdatedAt:null,fxProvider:null,subtotalTRY:null,taxesTRY:null,totalTRY:null};
 const form=document.getElementById("info"),country=document.getElementById("country"),phoneCountry=document.getElementById("phoneCountry"),countryDialog=document.getElementById("country-modal"),policyDialog=document.getElementById("modal"),policyOptions=document.getElementById("policy-options"),policySelect=document.getElementById("policy-select");
 const dial=()=>{const m=phoneCountry.selectedOptions[0]?.textContent.match(/\+(\d{1,4})/);return m?"+"+m[1]:""};
 const updatePhone=()=>{const option=phoneCountry.selectedOptions[0],code=phoneCountry.value.toLowerCase();document.querySelector("[data-phone-dial]").textContent=dial();const flag=document.querySelector(".vn-ac-phone-flag");if(flag){flag.onerror=()=>{flag.hidden=true};flag.onload=()=>{flag.hidden=false};flag.src="https://flagcdn.com/24x18/"+code+".png";flag.alt="Country flag";flag.hidden=false;phoneCountry.setAttribute("aria-label","Phone country: "+(option?.textContent||phoneCountry.value))}};
@@ -37,7 +37,7 @@ const prepareShippingCart=items=>items.map(line=>{
  else if(type==="POSTER"||String(product.name||"").toUpperCase().includes("POSTER"))shippingProfile=profileForPoster(product,variant);
  return{...line,shippingProfile};
 });
-let shippingCalculationTimer;
+let shippingCalculationTimer,shippingCalculationRequest=0;
 const resolveTurkishProvince=(...values)=>{
  const candidates=values.map(normalizeShippingCity).filter(Boolean);
  for(const candidate of candidates){
@@ -50,17 +50,18 @@ const resolveTurkishProvince=(...values)=>{
  }
  return null;
 };
-const calculateOrderSummary=()=>{
+const calculateOrderSummary=async()=>{
+ const request=++shippingCalculationRequest;
  const city=normalizeShippingCity(cityInput.value);
  const province=resolveTurkishProvince(cityInput.value,stateInput.value);
  if(country.value!=="TR"||!city){
-  checkoutAmounts={...checkoutAmounts,shippingTRY:null,taxesUSD:null};
-  updateShippingSummary({shippingAndHandling:null,estimatedTaxes:null});
+  checkoutAmounts={...checkoutAmounts,shippingTRY:null,shippingUSD:null,shippingDisplayTRY:null,shippingPaymentTRY:null,taxesUSD:null,fxRate:null,fxUpdatedAt:null,fxProvider:null};
+  updateShippingSummary({shippingAndHandlingUSD:null,estimatedTaxes:null});
   return;
  }
  if(!state.cart.length){
-  checkoutAmounts={...checkoutAmounts,shippingTRY:null,taxesUSD:null};
-  updateShippingSummary({shippingAndHandling:null,estimatedTaxes:null,shippingLabel:"Unavailable"});
+  checkoutAmounts={...checkoutAmounts,shippingTRY:null,shippingUSD:null,shippingDisplayTRY:null,shippingPaymentTRY:null,taxesUSD:null};
+  updateShippingSummary({shippingAndHandlingUSD:null,estimatedTaxes:null,shippingLabel:"Unavailable"});
   return;
  }
  // City is sufficient to estimate. Resolve province from City or State when available;
@@ -74,16 +75,22 @@ const calculateOrderSummary=()=>{
   const handling=result?.handling?.amount!=null?Number(result.handling.amount):null;
   const shippingAndHandling=Number.isFinite(carrierShipping)&&Number.isFinite(handling)
    ?carrierShipping+handling:null;
-  checkoutAmounts={...checkoutAmounts,subtotalUSD:Number(document.getElementById("subtotal")?.dataset.amount||0),shippingTRY:shippingAndHandling,taxesUSD:estimatedTaxes};
-  updateShippingSummary({
-   shippingAndHandling,
-   estimatedTaxes,
-   shippingLabel:shippingAndHandling===null?"Manual quote required":undefined
-  });
+  if(shippingAndHandling===null){
+   checkoutAmounts={...checkoutAmounts,subtotalUSD:Number(document.getElementById("subtotal")?.dataset.amount||0),shippingTRY:null,shippingUSD:null,shippingDisplayTRY:null,shippingPaymentTRY:null,taxesUSD:estimatedTaxes};
+   updateShippingSummary({shippingAndHandlingUSD:null,estimatedTaxes,shippingLabel:"Manual quote required"});
+   return;
+  }
+  const fx=await getUsdTryRate();
+  if(request!==shippingCalculationRequest)return;
+  const shippingUSD=roundCurrency(shippingAndHandling/fx.rate);
+  const shippingDisplayTRY=roundCurrency(shippingUSD*fx.rate);
+  checkoutAmounts={...checkoutAmounts,subtotalUSD:Number(document.getElementById("subtotal")?.dataset.amount||0),shippingTRY:shippingAndHandling,shippingUSD,shippingDisplayTRY,shippingPaymentTRY:null,taxesUSD:estimatedTaxes,fxRate:fx.rate,fxUpdatedAt:fx.updatedAt,fxProvider:fx.provider};
+  updateShippingSummary({shippingAndHandlingUSD:shippingUSD,estimatedTaxes});
  }catch(error){
-  console.error("VN shipping calculation failed:",error);
-  checkoutAmounts={...checkoutAmounts,shippingTRY:null,taxesUSD:null};
-  updateShippingSummary({shippingAndHandling:null,estimatedTaxes:null,shippingLabel:"Unable to calculate"});
+  if(request!==shippingCalculationRequest)return;
+  console.error("VN shipping / USD-TRY estimate failed:",error);
+  checkoutAmounts={...checkoutAmounts,shippingTRY:null,shippingUSD:null,shippingDisplayTRY:null,shippingPaymentTRY:null,taxesUSD:null,fxRate:null,fxUpdatedAt:null,fxProvider:null};
+  updateShippingSummary({shippingAndHandlingUSD:null,estimatedTaxes:null,shippingLabel:"Unable to calculate"});
  }
 };
 const scheduleShippingCalculation=()=>{
@@ -175,13 +182,17 @@ const collectInformation=()=>{const data=Object.fromEntries(new FormData(form));
 const addressLines=data=>[data.address,data.apartment,data.city,data.state,data.postal,country.selectedOptions[0]?.textContent||data.country].map(value=>String(value||"").trim()).filter(Boolean);
 const renderAddressConfirmation=data=>{addressConfirmationDetails.textContent=addressLines(data).join("\n")};
 const addBusinessDays=(date,count)=>{const result=new Date(date);let added=0;while(added<count){result.setDate(result.getDate()+1);if(result.getDay()!==0&&result.getDay()!==6)added++}return result};
-const showShippingStep=data=>{
+const showShippingStep=async data=>{
+ await calculateOrderSummary();
+ if(!Number.isFinite(checkoutAmounts.shippingUSD)||!Number.isFinite(checkoutAmounts.fxRate)){
+  alert("We couldn't calculate the USD shipping estimate with a verified exchange rate. Please check your address and try again.");
+  return;
+ }
  document.getElementById("shipping-contact-summary").textContent=data.email||"";
  document.getElementById("shipping-address-summary").textContent=[data.firstName,data.lastName].filter(Boolean).join(" ")+"\n"+addressLines(data).join("\n");
  const dispatchDate=addBusinessDays(new Date(),3);
  document.getElementById("shipping-dispatch-date").textContent="Ships by "+new Intl.DateTimeFormat("en-US",{month:"long",day:"numeric",year:"numeric"}).format(dispatchDate);
- const estimate=document.getElementById("shipping-estimate").textContent.trim();
- document.getElementById("shipping-method-price").textContent=estimate;
+ document.getElementById("shipping-method-price").textContent=formatTRY(checkoutAmounts.shippingDisplayTRY);
  form.hidden=true;shippingStep.hidden=false;addressConfirmation.hidden=true;document.body.classList.add("checkout-after-information");
  progressInformation.classList.remove("is-current");progressInformation.removeAttribute("aria-current");progressInformation.classList.add("is-complete");
  setProgressLocked(progressShipping,false);setProgressLocked(progressPayment,true);
@@ -201,34 +212,56 @@ const isFreshFxRate=value=>{
  const updatedAt=Number(value?.updatedAt);
  return Number.isFinite(Number(value?.rate))&&Number(value.rate)>0&&Number.isFinite(updatedAt)&&updatedAt<=Date.now()+5*60*1000&&Date.now()-updatedAt<=48*60*60*1000;
 };
+let fxRatePromise=null;
 const getUsdTryRate=async()=>{
- let cached=null;
- try{cached=JSON.parse(sessionStorage.getItem(FX_CACHE_KEY)||"null")}catch{}
- const controller=new AbortController();
- const timeout=window.setTimeout(()=>controller.abort(),12000);
- try{
-  const response=await fetch("https://open.er-api.com/v6/latest/USD",{cache:"no-store",signal:controller.signal,headers:{Accept:"application/json"}});
-  if(!response.ok)throw new Error("Exchange-rate service returned HTTP "+response.status);
-  const data=await response.json();
-  const updatedAt=Number(data.time_last_update_unix)*1000;
-  const rate=Number(data.conversion_rates?.TRY);
-  const result={rate,updatedAt,updatedAtUTC:data.time_last_update_utc||""};
-  if(data.result!=="success"||data.base_code!=="USD"||!isFreshFxRate(result))throw new Error("Exchange-rate response was invalid or out of date.");
-  try{sessionStorage.setItem(FX_CACHE_KEY,JSON.stringify(result))}catch{}
-  return result;
- }catch(error){
-  if(isFreshFxRate(cached))return cached;
-  throw error;
- }finally{window.clearTimeout(timeout)}
+ if(fxRatePromise)return fxRatePromise;
+ fxRatePromise=(async()=>{
+  let cached=null;
+  try{cached=JSON.parse(sessionStorage.getItem(FX_CACHE_KEY)||"null")}catch{}
+  if(isFreshFxRate(cached)&&Date.now()-Number(cached.updatedAt)<20*60*60*1000)return cached;
+  const fetchJson=async url=>{
+   const controller=new AbortController();
+   const timeout=window.setTimeout(()=>controller.abort(),10000);
+   try{
+    const response=await fetch(url,{cache:"no-store",signal:controller.signal,headers:{Accept:"application/json"}});
+    if(!response.ok)throw new Error("Exchange-rate service returned HTTP "+response.status);
+    return await response.json();
+   }finally{window.clearTimeout(timeout)}
+  };
+  try{
+   const data=await fetchJson("https://open.er-api.com/v6/latest/USD");
+   const updatedAt=Number(data.time_last_update_unix)*1000;
+   const rate=Number(data.rates?.TRY??data.conversion_rates?.TRY);
+   const result={rate,updatedAt,updatedAtUTC:data.time_last_update_utc||"",provider:"ExchangeRate-API"};
+   if(data.result!=="success"||data.base_code!=="USD"||!isFreshFxRate(result))throw new Error("ExchangeRate-API returned an invalid USD/TRY rate.");
+   try{sessionStorage.setItem(FX_CACHE_KEY,JSON.stringify(result))}catch{}
+   return result;
+  }catch(primaryError){
+   try{
+    const data=await fetchJson("https://api.frankfurter.dev/v2/rate/usd/try");
+    const rate=Number(data.rate);
+    const updatedAt=Date.parse(String(data.date||"")+"T12:00:00Z");
+    const result={rate,updatedAt,updatedAtUTC:data.date||"",provider:"Frankfurter"};
+    if(!isFreshFxRate(result)||String(data.base||"").toUpperCase()!=="USD"||String(data.quote||"").toUpperCase()!=="TRY")throw new Error("Frankfurter returned an invalid USD/TRY rate.");
+    try{sessionStorage.setItem(FX_CACHE_KEY,JSON.stringify(result))}catch{}
+    return result;
+   }catch(fallbackError){
+    if(isFreshFxRate(cached))return cached;
+    throw new Error("USD/TRY rate unavailable from primary and fallback services.",{cause:fallbackError||primaryError});
+   }
+  }
+ })().finally(()=>{fxRatePromise=null});
+ return fxRatePromise;
 };
 const restoreShippingCurrencySummary=()=>{
  document.getElementById("subtotal").textContent=money(checkoutAmounts.subtotalUSD);
- document.getElementById("shipping-estimate").textContent=checkoutAmounts.shippingTRY===null?"Calculated at next step":formatTRY(checkoutAmounts.shippingTRY);
+ document.getElementById("shipping-estimate").textContent=checkoutAmounts.shippingUSD===null?"Calculated at next step":money(checkoutAmounts.shippingUSD);
+ document.getElementById("shipping-method-price").textContent=Number.isFinite(checkoutAmounts.shippingDisplayTRY)?formatTRY(checkoutAmounts.shippingDisplayTRY):"Manual quote required";
  const taxRow=document.getElementById("estimated-taxes-row");
  taxRow.hidden=checkoutAmounts.taxesUSD===null;
  if(checkoutAmounts.taxesUSD!==null)document.getElementById("estimated-taxes").textContent=money(checkoutAmounts.taxesUSD);
- document.getElementById("total").textContent=checkoutAmounts.shippingTRY===null?money(checkoutAmounts.subtotalUSD+(checkoutAmounts.taxesUSD||0)):"Calculated at payment";
- document.querySelector(".total-currency-code").textContent=checkoutAmounts.shippingTRY===null?"USD":"";
+ document.getElementById("total").textContent=money(checkoutAmounts.subtotalUSD+(checkoutAmounts.shippingUSD||0)+(checkoutAmounts.taxesUSD||0));
+ document.querySelector(".total-currency-code").textContent="USD";
  const currencyHelpToggle=document.getElementById("currency-help-toggle");
  if(currencyHelpToggle.lastChild)currencyHelpToggle.lastChild.textContent="WHY USD?";
  document.getElementById("fx-attribution").hidden=true;
@@ -237,7 +270,7 @@ const showPaymentStep=async()=>{
  const selectedShipping=document.querySelector('input[name="shipping-method"]:checked');
  const notice=document.getElementById("shipping-payment-notice");
  if(!selectedShipping){notice.textContent="Please select a shipping method to continue.";notice.hidden=false;return}
- if(!Number.isFinite(checkoutAmounts.shippingTRY)||!Number.isFinite(checkoutAmounts.taxesUSD)||!Number.isFinite(checkoutAmounts.subtotalUSD)){
+ if(!Number.isFinite(checkoutAmounts.shippingUSD)||!Number.isFinite(checkoutAmounts.fxRate)||!Number.isFinite(checkoutAmounts.taxesUSD)||!Number.isFinite(checkoutAmounts.subtotalUSD)){
   notice.textContent="The order totals are not ready yet. Please check the shipping estimate and try again.";notice.hidden=false;return;
  }
  const continueButton=document.getElementById("continue-to-payment");
@@ -245,12 +278,12 @@ const showPaymentStep=async()=>{
  continueButton.disabled=true;
  continueButton.textContent="Checking exchange rate…";
  try{
-  const fx=await getUsdTryRate();
+  const fx={rate:checkoutAmounts.fxRate,updatedAt:checkoutAmounts.fxUpdatedAt,provider:checkoutAmounts.fxProvider};
   const subtotalTRY=roundCurrency(checkoutAmounts.subtotalUSD*fx.rate);
+  const shippingTRY=roundCurrency(checkoutAmounts.shippingUSD*fx.rate);
   const taxesTRY=roundCurrency(checkoutAmounts.taxesUSD*fx.rate);
-  const shippingTRY=roundCurrency(checkoutAmounts.shippingTRY);
   const totalTRY=roundCurrency(subtotalTRY+shippingTRY+taxesTRY);
-  checkoutAmounts={...checkoutAmounts,fxRate:fx.rate,fxUpdatedAt:fx.updatedAt,subtotalTRY,taxesTRY,totalTRY};
+  checkoutAmounts={...checkoutAmounts,shippingPaymentTRY:shippingTRY,subtotalTRY,taxesTRY,totalTRY};
   const contact=document.getElementById("shipping-contact-summary").textContent;
   const address=document.getElementById("shipping-address-summary").textContent;
   document.getElementById("payment-contact-summary").textContent=contact;
@@ -266,6 +299,9 @@ const showPaymentStep=async()=>{
   if(currencyHelpToggle.lastChild)currencyHelpToggle.lastChild.textContent="WHY TRY?";
   const updated=new Date(fx.updatedAt);
   document.getElementById("fx-updated-at").textContent=new Intl.DateTimeFormat("en-GB",{dateStyle:"medium",timeStyle:"short",timeZone:"Europe/Istanbul"}).format(updated)+" (Türkiye time)";
+  const providerLink=document.getElementById("fx-provider-link");
+  if(fx.provider==="Frankfurter"){providerLink.href="https://frankfurter.dev/";providerLink.textContent="Frankfurter"}
+  else{providerLink.href="https://www.exchangerate-api.com";providerLink.textContent="Rates By Exchange Rate API"}
   document.getElementById("fx-attribution").hidden=false;
   shippingStep.hidden=true;paymentStep.hidden=false;document.body.classList.add("checkout-after-information");
   progressShipping.classList.remove("is-current");progressShipping.removeAttribute("aria-current");progressShipping.classList.add("is-complete");
@@ -420,11 +456,11 @@ document.getElementById("pay-now").addEventListener("click",()=>{
   return;
  }
  const subtotal=checkoutAmounts.subtotalTRY;
- const shipping=checkoutAmounts.shippingTRY;
+ const shipping=checkoutAmounts.shippingPaymentTRY;
  const taxes=checkoutAmounts.taxesTRY;
  const total=checkoutAmounts.totalTRY;
  const paymentLabels={card:"Credit card",apple:"Apple Pay",paypal:"PayPal",later:"Pay over time"};
- const orderRecord={orderNumber,vnCode,createdAt:now.toISOString(),customer,items,subtotal,shipping,taxes,total,currency:"TRY",countryCode:"TR",originalSubtotalUSD:checkoutAmounts.subtotalUSD,originalTaxesUSD:checkoutAmounts.taxesUSD,exchangeRateTRYPerUSD:checkoutAmounts.fxRate,exchangeRateUpdatedAt:new Date(checkoutAmounts.fxUpdatedAt).toISOString(),shippingMethod:selectedShipping?.value==="standard"?"Standard Shipping":selectedShipping?.value||"Standard Shipping",paymentMethod:paymentLabels[selectedPayment?.value]||"Credit card",orderStatus:"Received",status:"success",paymentStatus:"Success",paymentStatusLabel:"Success"};
+ const orderRecord={orderNumber,vnCode,createdAt:now.toISOString(),customer,items,subtotal,shipping,taxes,total,currency:"TRY",countryCode:"TR",originalSubtotalUSD:checkoutAmounts.subtotalUSD,originalShippingUSD:checkoutAmounts.shippingUSD,originalTaxesUSD:checkoutAmounts.taxesUSD,exchangeRateProvider:checkoutAmounts.fxProvider,exchangeRateTRYPerUSD:checkoutAmounts.fxRate,exchangeRateUpdatedAt:new Date(checkoutAmounts.fxUpdatedAt).toISOString(),shippingMethod:selectedShipping?.value==="standard"?"Standard Shipping":selectedShipping?.value||"Standard Shipping",paymentMethod:paymentLabels[selectedPayment?.value]||"Credit card",orderStatus:"Received",status:"success",paymentStatus:"Success",paymentStatusLabel:"Success"};
  try{
   localStorage.setItem("vn-shop-order-complete",JSON.stringify(orderRecord));
   sessionStorage.setItem("vn-shop-order-complete",JSON.stringify(orderRecord));
