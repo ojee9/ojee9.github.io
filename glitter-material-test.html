@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#e4e3e1">
-<title>VN — Procedural Glitter Material Test 02</title>
+<title>Glitter Material Study 03 — Flat Film</title>
 <style>
 *{box-sizing:border-box}html,body{width:100%;height:100%;margin:0}
 body{overflow:hidden;color:#17151a;background-color:#e4e3e1;background-image:radial-gradient(ellipse at 26% 28%,rgba(177,218,255,.34),transparent 43%),radial-gradient(ellipse at 76% 72%,rgba(255,190,226,.38),transparent 46%),radial-gradient(ellipse at 52% 48%,rgba(255,255,255,.56),transparent 54%);font-family:Arial,Helvetica,sans-serif}
@@ -15,9 +15,9 @@ body{overflow:hidden;color:#17151a;background-color:#e4e3e1;background-image:rad
 </style>
 </head>
 <body>
-<canvas id="glitter" aria-label="Faceted procedural glitter material preview"></canvas>
-<div class="meta"><strong>Procedural glitter · material study 02</strong>Faceted hex film · 100–400 µm size family<br>Approx. 22–25 µm film reference · 8× macro view</div>
-<div class="hint">Move pointer to shift the light</div>
+<canvas id="glitter" aria-label="Flat-film fine-cut iridescent glitter material study"></canvas>
+<div class="meta"><strong>Glitter material · study 03</strong>Flat PET-film flakes · fine / medium / sparse coarse cuts<br>100–400 µm reference family · visual macro study, not screen-calibrated</div>
+<div class="hint">Move pointer to shift reflection angle</div>
 <script>
 (() => {
 const canvas=document.getElementById('glitter');
@@ -26,28 +26,44 @@ if(!gl){document.querySelector('.meta').innerHTML='<strong>WebGL 2 unavailable</
 const vertexSource="#version 300 es\nvoid main(){vec2 p=vec2((gl_VertexID << 1) & 2,gl_VertexID & 2);gl_Position=vec4(p*2.0-1.0,0.0,1.0);}";
 const fragmentSource="#version 300 es\n"+
 "precision highp float;uniform vec2 uResolution;uniform vec2 uPointer;uniform float uDpr;out vec4 outColor;\n"+
-"float hash12(vec2 p){vec3 p3=fract(vec3(p.xyx)*0.1031);p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}\n"+
-"vec2 hash22(vec2 p){float n=hash12(p);return vec2(n,hash12(p+n+17.17));}\n"+
-"float hexDist(vec2 p,float r){p=abs(p);return max(p.x*0.8660254+p.y*0.5,p.y)-r*0.8660254;}\n"+
-"vec3 spectrum(float h){return 0.52+0.43*cos(6.2831853*(h+vec3(0.00,0.34,0.67)));}\n"+
+"float hash12(vec2 p){vec3 q=fract(vec3(p.xyx)*0.1031);q+=dot(q,q.yzx+33.33);return fract((q.x+q.y)*q.z);}\n"+
+"vec2 hash22(vec2 p){float n=hash12(p);return vec2(n,hash12(p+n+19.19));}\n"+
+"float hexD(vec2 p){p=abs(p);return max(p.x*0.8660254+p.y*0.5,p.y)-0.365;}\n"+
+"vec3 spectral(float h){return 0.55+0.42*cos(6.2831853*(h+vec3(0.00,0.34,0.67)));}\n"+
+"vec4 overLayer(vec4 a,vec4 b){float alpha=b.a+a.a*(1.0-b.a);vec3 rgb=(b.rgb*b.a+a.rgb*a.a*(1.0-b.a))/max(alpha,0.0001);return vec4(rgb,alpha);}\n"+
+"vec4 flakeLayer(vec2 frag,float cellSize,float population,float seedOffset,vec3 L,vec2 lightShift){\n"+
+" vec2 grid=frag/cellSize;vec2 id=floor(grid);vec2 f=fract(grid)-0.5;vec2 rnd=hash22(id+seedOffset);\n"+
+" vec2 jitter=(rnd-0.5)*0.24;float rotation=(hash12(id+seedOffset+7.7)-0.5)*1.0472;\n"+
+" float radius=mix(0.315,0.445,hash12(id+seedOffset+3.1));\n"+
+" mat2 R=mat2(cos(rotation),-sin(rotation),sin(rotation),cos(rotation));vec2 p=R*(f-jitter);\n"+
+" float d=(max(abs(p.x)*0.8660254+abs(p.y)*0.5,abs(p.y))-radius*0.8660254);\n"+
+" float aa=max(fwidth(d)*1.15,0.003);float mask=1.0-smoothstep(-aa,aa,d);\n"+
+" float alive=step(1.0-population,hash12(id+seedOffset+11.3));mask*=alive;\n"+
+" float sector=floor((atan(p.y,p.x)+3.14159265)/1.04719755);float facetRnd=hash12(id+sector*4.71+seedOffset+29.0);\n"+
+" float tiltAngle=hash12(id+seedOffset+41.0)*6.2831853;float tilt=mix(0.055,0.235,hash12(id+seedOffset+43.0));\n"+
+" vec2 tiltVec=vec2(cos(tiltAngle),sin(tiltAngle))*tilt;\n"+
+" vec2 facetVec=vec2(cos(sector*1.04719755+rotation),sin(sector*1.04719755+rotation))*(facetRnd-0.5)*0.055;\n"+
+" vec3 N=normalize(vec3(tiltVec+facetVec,0.985));vec3 V=vec3(0.0,0.0,1.0);vec3 H=normalize(L+V);\n"+
+" float ndh=max(dot(N,H),0.0);float glint=pow(ndh,145.0);float soft=pow(ndh,34.0);\n"+
+" float incidence=1.0-max(dot(N,L),0.0);float hue=fract(hash12(id+seedOffset+61.0)*0.48+incidence*0.72+facetRnd*0.12);\n"+
+" vec3 irid=spectral(hue);float silver=mix(0.48,0.84,hash12(id+seedOffset+71.0));\n"+
+" vec3 base=mix(vec3(silver),irid,0.34+incidence*0.30);base*=0.82+facetRnd*0.12;\n"+
+" vec3 color=base+irid*soft*0.30+vec3(1.0,0.985,0.97)*glint*1.85;\n"+
+" float edge=1.0-smoothstep(0.0,aa*2.4,abs(d));color*=1.0-edge*0.20;\n"+
+" float opacity=mix(0.38,0.78,hash12(id+seedOffset+83.0));float alpha=mask*opacity;\n"+
+" return vec4(clamp(color,0.0,2.0),alpha);\n"+
+"}\n"+
 "void main(){\n"+
-"vec2 px=gl_FragCoord.xy;vec2 uv=px/uResolution;float cell=12.1*uDpr;vec2 grid=px/cell;vec2 id=floor(grid);vec2 local=fract(grid)-0.5;\n"+
-"float seed=hash12(id);vec2 jitter=(hash22(id+2.3)-0.5)*0.18;float rot=(hash12(id+8.1)-0.5)*1.0472;mat2 R=mat2(cos(rot),-sin(rot),sin(rot),cos(rot));vec2 p=R*(local-jitter);\n"+
-"float sizeMix=seed>0.86?0.34:(seed<0.20?0.23:0.43);float radius=sizeMix;float d=hexDist(p,radius);float aa=max(fwidth(d),0.006);float inside=1.0-smoothstep(-aa,aa,d);\n"+
-"float edge=1.0-smoothstep(0.008,0.055,abs(d));float inner=1.0-smoothstep(-radius*0.78,-radius*0.42,d);\n"+
-"float angle=atan(p.y,p.x);float facet=floor((angle+3.14159265)/1.04719755);float facetSeed=hash12(id+facet*13.7+5.0);\n"+
-"float facetAngle=facet*1.04719755+rot;vec2 facetTilt=vec2(cos(facetAngle),sin(facetAngle))*(0.20+facetSeed*0.30);vec3 N=normalize(vec3(facetTilt,0.82+facetSeed*0.16));\n"+
-"vec2 pointer=uPointer/uResolution;vec3 L=normalize(vec3((pointer.x-0.5)*1.1,0.42+(pointer.y-0.5)*0.45,0.88));vec3 V=vec3(0.0,0.0,1.0);vec3 H=normalize(L+V);\n"+
-"float spec=pow(max(dot(N,H),0.0),26.0);float sharp=pow(max(dot(N,H),0.0),100.0);float side=pow(max(dot(N,normalize(vec3(-0.7,0.5,0.8))),0.0),38.0);\n"+
-"float hue=fract(seed*0.71+facetSeed*0.37+dot(N.xy,vec2(0.17,0.11)));vec3 irid=spectrum(hue);\n"+
-"float metallic=0.54+facetSeed*0.25;vec3 face=mix(vec3(metallic*0.68),irid,0.72);face*=0.68+inner*0.28;\n"+
-"face+=irid*spec*0.58+vec3(1.0,0.98,0.94)*sharp*1.35+vec3(0.70,0.86,1.0)*side*0.28;\n"+
-"float rim=1.0-smoothstep(0.035,0.095,abs(d));face=mix(face,face*0.52,edge*0.40);face+=vec3(0.94,0.96,1.0)*rim*0.13;\n"+
-"float shadow=1.0-smoothstep(-0.08,0.02,d);float alpha=inside*(0.88+spec*0.10);vec3 color=clamp(face,0.0,1.7);\n"+
-"// Small, irregular secondary flakes add a fine-cut population between the main hexes.\n"+
-"float micro=hash12(floor(px/(2.7*uDpr))+vec2(41.0,9.0));float microMask=step(0.994,micro)*(1.0-inside)*0.38;\n"+
-"vec3 microColor=spectrum(fract(micro*7.0+uv.x*0.13))*0.9;float finalAlpha=clamp(alpha+microMask,0.0,0.98);\n"+
-"outColor=vec4(color*alpha+microColor*microMask,finalAlpha);\n"+
+" vec2 frag=gl_FragCoord.xy;vec2 pointer=uPointer/uResolution;vec2 shift=(pointer-0.5);\n"+
+" vec3 L=normalize(vec3(0.10+shift.x*0.62,0.28-shift.y*0.42,0.92));\n"+
+" vec4 fine=flakeLayer(frag,5.2*uDpr,0.94,3.0,L,shift);\n"+
+" vec4 mid=flakeLayer(frag,10.8*uDpr,0.30,117.0,L,shift);\n"+
+" vec4 coarse=flakeLayer(frag,20.5*uDpr,0.055,251.0,L,shift);\n"+
+" vec4 material=overLayer(overLayer(fine,mid),coarse);\n"+
+" float microNoise=hash12(floor(frag/(1.45*uDpr))+vec2(83.0,17.0));\n"+
+" float pin=step(0.9992,microNoise)*(1.0-material.a);vec3 pinColor=spectral(fract(microNoise*8.0+pointer.x*0.17));\n"+
+" float alpha=clamp(material.a+pin*0.32,0.0,0.92);vec3 rgb=mix(material.rgb,pinColor,pin*0.8);\n"+
+" outColor=vec4(rgb,alpha);\n"+
 "}";
 function compile(type,source){const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){const m=gl.getShaderInfoLog(s);gl.deleteShader(s);throw new Error(m);}return s;}
 try{
