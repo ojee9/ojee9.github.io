@@ -912,7 +912,7 @@
     {
       "id": "jeep-callin-poster-01",
       "sku": "JEEP-CALLIN-POSTER-01",
-      "name": "JEEP CALLIN' POSTER 01",
+      "name": "JEEP CALLIN' Poster 01",
       "price": "20.00",
       "currency": "USD",
       "type": "POSTER",
@@ -930,7 +930,7 @@
       "brand": "VN SHOP",
       "availability": "https://schema.org/InStock",
       "active": true,
-      "seoDescription": "JEEP CALLIN' POSTER 01 by Ojee Ka$h, available through VN Shop. Discover limited editions, artwork, exclusives, and more."
+      "seoDescription": "JEEP CALLIN' Poster 01 by Ojee Ka$h, available through VN Shop. Discover limited editions, artwork, exclusives, and more."
     }
   ]
 }
