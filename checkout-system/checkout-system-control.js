@@ -317,12 +317,9 @@ document.getElementById("pay-now").addEventListener("click",()=>{
  const fallbackCart=readCart(localStorage,"vn-shop-cart");
  const items=orderCart.length?orderCart:fallbackCart;
  const now=new Date();
- const pad=value=>String(value).padStart(2,"0");
- const stamp=now.getFullYear()+pad(now.getMonth()+1)+pad(now.getDate());
- const alphabet="0123456789ABCDEFGHJKLMNPQRSTUVWXYZ";
- const random=length=>{const bytes=crypto.getRandomValues(new Uint8Array(length));return Array.from(bytes,value=>alphabet[value%alphabet.length]).join("")};
- const orderNumber="VN-"+stamp+"-"+random(6);
- const vnCode="VN-"+random(4)+"-"+random(4);
+ const randomInteger=(min,max)=>{const range=max-min+1,limit=Math.floor(0x100000000/range)*range,buffer=new Uint32Array(1);let value;do{crypto.getRandomValues(buffer);value=buffer[0]}while(value>=limit);return min+(value%range)};
+ const orderNumber=String(randomInteger(10000000,99999999));
+ const vnCode="VN-"+String(randomInteger(1,999)).padStart(3,"0");
  const subtotal=items.reduce((sum,line)=>{const product=line.product||line;const price=Number(String(product.price??line.price??0).replace(/[^0-9.-]/g,""))||0;return sum+price*Math.max(1,Number(line.quantity||line.qty||1))},0);
  const customer={
   firstName:information.firstName||"",
