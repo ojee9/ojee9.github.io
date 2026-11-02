@@ -1,9 +1,5 @@
 {
   "version": 2,
-  "supabase": {
-    "url": "https://lzihjhmccdvniditnubf.supabase.co",
-    "publishableKey": "sb_publishable_D438U6YN0w0gZ3yrg4SPBQ_RBMJ_ymO"
-  },
   "site": {
     "brand": "VN SHOP",
     "updatesBrand": "9ojeez9",
@@ -159,13 +155,13 @@
         {
           "id": "sign-out",
           "label": "SIGN OUT",
-          "operation": "supabase.auth.signOut",
+          "operation": "Clerk.auth.signOut",
           "scope": "local"
         },
         {
           "id": "sign-out-all",
           "label": "SIGN OUT FROM ALL DEVICES",
-          "operation": "supabase.auth.signOut",
+          "operation": "Clerk.auth.signOut",
           "scope": "global"
         }
       ],
@@ -250,6 +246,10 @@
       "saveChanges": "SAVE CHANGES",
       "genericError": "Something went wrong. Please try again.",
       "sessionExpired": "Your session has expired. Please sign in again."
+    },
+    "authentication": {
+      "provider": "clerk",
+      "method": "email_otp"
     }
   },
   "checkout": {
@@ -317,23 +317,6 @@
   "orders": {
     "enabled": true,
     "requiresAuthenticatedUser": true,
-    "persistence": {
-      "provider": "supabase",
-      "table": "orders",
-      "itemsTable": "order_items",
-      "createOnlyOnServer": true,
-      "updatePaymentStatusOnlyOnServer": true,
-      "updateFulfillmentStatusOnlyOnServer": true,
-      "immutablePriceSnapshot": true,
-      "persistOrderNumber": true,
-      "persistCurrency": true,
-      "persistItems": true,
-      "persistShippingAddressSnapshot": true,
-      "persistPaymentReference": true,
-      "persistTrackingNumber": true,
-      "persistCreatedAt": true,
-      "persistUpdatedAt": true
-    },
     "fields": [
       "id",
       "order_number",
@@ -453,16 +436,6 @@
   "returns": {
     "enabled": true,
     "requiresAuthenticatedUser": true,
-    "persistence": {
-      "provider": "supabase",
-      "table": "returns",
-      "itemsTable": "return_items",
-      "createOnlyForOwnedOrders": true,
-      "validateEligibilityOnServer": true,
-      "approveOnlyOnServer": true,
-      "refundOnlyThroughPaymentProvider": true,
-      "persistStatusHistory": true
-    },
     "fields": [
       "id",
       "return_number",
@@ -543,44 +516,6 @@
         "error": "Your return request could not be saved. Please try again."
       }
     }
-  },
-  "database": {
-    "provider": "supabase",
-    "requiredTables": [
-      "profiles",
-      "addresses",
-      "orders",
-      "order_items",
-      "returns",
-      "return_items",
-      "return_status_history"
-    ],
-    "requiredFunctions": [
-      "create-checkout-session",
-      "verify-payment-webhook",
-      "create-order",
-      "request-return",
-      "cancel-return",
-      "process-refund"
-    ],
-    "security": {
-      "enableRowLevelSecurity": true,
-      "usersCanReadOwnProfile": true,
-      "usersCanUpdateOwnProfile": true,
-      "usersCanReadOwnAddresses": true,
-      "usersCanManageOwnAddresses": true,
-      "usersCanReadOwnOrders": true,
-      "usersCanReadOwnOrderItems": true,
-      "usersCanReadOwnReturns": true,
-      "usersCanReadOwnReturnItems": true,
-      "usersCanCreateReturnRequestsForOwnEligibleOrders": true,
-      "usersCanSetPaymentStatus": false,
-      "usersCanSetRefundStatus": false,
-      "usersCanSetOrderTotal": false,
-      "usersCanSetFulfillmentStatus": false,
-      "serviceRoleKeyInBrowser": false
-    },
-    "note": "This JSON declares the required schema and security behavior. It does not create database tables, policies, triggers, or Edge Functions automatically."
   },
   "cookies": {
     "storageKey": "vn-cookie-preferences",
@@ -673,7 +608,7 @@
         },
         {
           "heading": "Authentication",
-          "text": "Account authentication is provided by Supabase. Your email address, verification requests, and authentication session are processed as needed to provide sign-in functionality. Never share a verification code with anyone."
+          "text": "Account authentication is provided by Clerk. Your email address, verification requests, and authentication session are processed as needed to provide sign-in functionality. Never share a verification code with anyone."
         },
         {
           "heading": "Cookies and preferences",

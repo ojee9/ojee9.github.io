@@ -1,8 +1,7 @@
 
 /* VN SHOP — ACCOUNT
    Email OTP, dashboard, profile, addresses, orders, returns, legal panels.
-   Requires Supabase JS v2 and merch.json.
-   Persistent account data requires matching Supabase tables and RLS policies.
+   Uses ClerkJS for email OTP authentication. Account data features without a secure backend remain session-only.
 */
 (() => {
   "use strict";
@@ -17,7 +16,10 @@
 
   const state = {
     config: null,
-    supabase: null,
+    clerk: null,
+    clerkUser: null,
+    authAttempt: null,
+    authMode: "",
     user: null,
     email: "",
     screen: "email",
@@ -74,14 +76,9 @@
       try {
         if (configPromise) await configPromise;
 
-        if (state.supabase) {
-          const { data, error } = await state.supabase.auth.getSession();
-          if (error) throw error;
-
-          const sessionUser = data?.session?.user || null;
-          state.user = sessionUser;
-          state.email = sessionUser?.email || "";
-          state.screen = sessionUser ? "account" : "email";
+        if (state.clerk) {
+          syncClerkUser(state.clerk.user || null);
+          state.screen = state.user ? "account" : "email";
         }
 
         if (state.user) {
@@ -127,67 +124,23 @@
       state.config = {};
     }
 
-    const supabaseConfig = state.config?.supabase;
+    const clerk = window.Clerk;
+    if (!clerk || typeof clerk.load !== "function") {
+      console.error("[VN ACCOUNT] ClerkJS did not load. Check the Clerk CDN script and publishable key.");
+      return;
+    }
 
-    if (
-      supabaseConfig?.url &&
-      supabaseConfig?.publishableKey &&
-      window.supabase?.createClient
-    ) {
-      state.supabase = window.supabase.createClient(
-        supabaseConfig.url,
-        supabaseConfig.publishableKey,
-        {
-          auth: {
-            persistSession: true,
-            autoRefreshToken: true,
-            detectSessionInUrl: true
-          }
-        }
-      );
+    try {
+      await clerk.load();
+      state.clerk = clerk;
+      syncClerkUser(clerk.user || null);
 
-      window.supabaseClient = state.supabase;
-
-      try {
-        const { data, error } = await state.supabase.auth.getSession();
-        if (error) throw error;
-
-        if (data?.session?.user) {
-          state.user = data.session.user;
-          state.email = data.session.user.email || "";
-          state.screen = "account";
-
-          // Do not delay initialization of the auth listener on account queries.
-          loadAccountData().catch(error => {
-            console.error("[VN ACCOUNT] Initial account data error:", error);
-          });
-        }
-      } catch (error) {
-        console.error("[VN ACCOUNT] Session error:", error);
-      }
-
-      state.supabase.auth.onAuthStateChange((event, session) => {
-        if (session?.user) {
-          const sameUser = state.user?.id === session.user.id;
-          state.user = session.user;
-          const metadata = session.user.user_metadata || {};
-          state.profile = {
-            ...state.profile,
-            first_name: state.profile.first_name || metadata.first_name || "",
-            last_name: state.profile.last_name || metadata.last_name || ""
-          };
-          updateAccountAvatar();
-
-          if (sameUser) return;
-
-          state.email = session.user.email || state.email;
-          state.screen = "account";
-
-          setTimeout(() => {
-            loadAccountData().finally(render);
-          }, 0);
-        } else if (event === "SIGNED_OUT") {
-          state.user = null;
+      clerk.addListener(({ user }) => {
+        if (user === undefined) return;
+        syncClerkUser(user || null);
+        if (user) {
+          loadAccountData().finally(render);
+        } else {
           state.profile = {};
           state.addresses = [];
           state.orders = [];
@@ -197,99 +150,63 @@
           render();
         }
       });
-    } else {
-      console.error(
-        "[VN ACCOUNT] Supabase client or credentials are missing. " +
-        "Check the Supabase CDN script and merch.json."
-      );
+
+      if (state.user) await loadAccountData();
+    } catch (error) {
+      console.error("[VN ACCOUNT] Clerk initialization failed:", error);
+      state.clerk = null;
     }
+  }
+
+  function syncClerkUser(clerkUser) {
+    state.clerkUser = clerkUser || null;
+    if (!clerkUser) {
+      state.user = null;
+      state.email = "";
+      return;
+    }
+
+    const email = clerkUser.primaryEmailAddress?.emailAddress ||
+      clerkUser.emailAddresses?.[0]?.emailAddress || "";
+    state.user = {
+      id: clerkUser.id,
+      email,
+      user_metadata: {
+        first_name: clerkUser.firstName || "",
+        last_name: clerkUser.lastName || ""
+      }
+    };
+    state.email = email;
+    state.profile = {
+      ...state.profile,
+      first_name: clerkUser.firstName || "",
+      last_name: clerkUser.lastName || ""
+    };
+    state.screen = "account";
+    updateAccountAvatar();
   }
 
   function userCountry() {
     const locale = navigator.language || "";
     const region = locale.split("-")[1]?.toUpperCase();
-
     if (region && region.length === 2) return region;
-
     return CONFIG.defaultCountry;
   }
 
   async function loadAccountData() {
-    if (!state.user || !state.supabase) return;
-
+    if (!state.user || !state.clerkUser) return;
     state.loadingData = true;
-
     try {
-      const userId = state.user.id;
-
-      const profileResult = await state.supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .maybeSingle();
-
-      const metadata = state.user.user_metadata || {};
-      if (!profileResult.error && profileResult.data) {
-        state.profile = profileResult.data;
-      } else {
-        state.profile = {
-          first_name: metadata.first_name || "",
-          last_name: metadata.last_name || "",
-          marketing_updates: metadata.marketing_updates,
-          country: metadata.country
-        };
-        if (profileResult.error) console.warn("[VN ACCOUNT] profiles table unavailable; using account metadata:", profileResult.error.message);
-      }
-      state.marketingUpdates = state.profile.marketing_updates !== false;
+      state.profile = {
+        ...state.profile,
+        first_name: state.clerkUser.firstName || "",
+        last_name: state.clerkUser.lastName || ""
+      };
       state.country = state.profile.country || userCountry();
+      state.marketingUpdates = state.profile.marketing_updates !== false;
+      state.orders = [];
+      state.returns = [];
       updateAccountAvatar();
-
-      const addressResult = await state.supabase
-        .from("customer_addresses")
-        .select("*")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false });
-
-      if (!addressResult.error && Array.isArray(addressResult.data)) {
-        state.addresses = addressResult.data;
-      } else if (addressResult.error) {
-        console.warn(
-          "[VN ACCOUNT] Addresses could not be loaded:",
-          addressResult.error.message
-        );
-      }
-
-      const ordersResult = await state.supabase
-        .from("orders")
-        .select("*")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false });
-
-      if (!ordersResult.error && Array.isArray(ordersResult.data)) {
-        state.orders = ordersResult.data;
-      } else if (ordersResult.error) {
-        console.warn(
-          "[VN ACCOUNT] Orders could not be loaded:",
-          ordersResult.error.message
-        );
-      }
-
-      const returnsResult = await state.supabase
-        .from("returns")
-        .select("*")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false });
-
-      if (!returnsResult.error && Array.isArray(returnsResult.data)) {
-        state.returns = returnsResult.data;
-      } else if (returnsResult.error) {
-        console.warn(
-          "[VN ACCOUNT] Returns could not be loaded:",
-          returnsResult.error.message
-        );
-      }
-    } catch (error) {
-      console.error("[VN ACCOUNT] Data loading failed:", error);
     } finally {
       state.loadingData = false;
     }
@@ -775,9 +692,9 @@
           <div class="vn-ac-policy-body">
             <p>VN SHOP respects your privacy. This notice explains the main types of information that may be processed when you use the website.</p>
             <h3>Information you provide</h3>
-            <p>If you use account sign-in, your email address is processed to send a verification code and establish your account session. If you choose to receive updates from 9ojeez9, that preference may also be associated with the account sign-up request.</p>
+            <p>If you use account sign-in, your email address is processed to send a verification code and establish your account session. If you choose to receive updates from 9ojeez9, that preference is held only in the current account-panel session and is not persistently stored at this stage.</p>
             <h3>Authentication</h3>
-            <p>Account authentication is provided by Supabase. Your email address, verification requests, and authentication session are processed as needed to provide sign-in functionality. Never share a verification code with anyone.</p>
+            <p>Account authentication is provided by Clerk. Your email address, verification requests, and authentication session are processed as needed to provide sign-in functionality. Never share a verification code with anyone.</p>
             <h3>Cookies and preferences</h3>
             <p>The website stores your cookie preferences in your browser so that your selections can be remembered. You can review those choices using the Cookie Choices control in the website footer.</p>
             <h3>How information is used</h3>
@@ -1122,7 +1039,7 @@
               <label class="vn-ac-field"><span>First name</span><input name="first_name" value="${escapeHTML(state.profile.first_name || "")}" autocomplete="given-name"></label>
               <label class="vn-ac-field"><span>Last name</span><input name="last_name" value="${escapeHTML(state.profile.last_name || "")}" autocomplete="family-name"></label>
             </div>
-            <label class="vn-ac-field"><span>Email</span><input name="email" type="email" value="${escapeHTML(email)}" autocomplete="email" required></label>
+            <label class="vn-ac-field"><span>Email</span><input name="email" type="email" value="${escapeHTML(email)}" autocomplete="email" readonly required></label>
             <div class="vn-ac-actions">
               <button class="vn-ac-button" type="submit">Save changes</button>
               <button class="vn-ac-button secondary" type="button" data-ac-section="profile">Cancel</button>
@@ -1490,15 +1407,17 @@
   }
 
   /*
-   * OTP FLOW:
-   * - Switch to verification immediately.
-   * - Start the Supabase request only after the screen is rendered.
-   * - Never wait for the email request before showing the OTP inputs.
-   * - Keep errors and resend controls on the verification screen.
+   * Clerk email OTP flow. Keep the existing custom VN SHOP interface and
+   * render the verification screen before starting the network request.
    */
+  function isUnknownClerkUser(error) {
+    const errors = Array.isArray(error?.errors) ? error.errors : [];
+    return errors.some(item => item.code === "form_identifier_not_found") ||
+      /identifier.*not found|no account.*found|could not find.*user/i.test(String(error?.message || ""));
+  }
+
   function sendCode(email) {
     const normalizedEmail = String(email || "").trim();
-
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
       state.messageType = "error";
       state.message = "Enter a valid email address.";
@@ -1507,57 +1426,44 @@
       return;
     }
 
-    // Invalidate any earlier send response so it cannot overwrite the current screen.
     const requestId = ++state.sendRequestId;
-
     state.email = normalizedEmail;
     state.screen = "verify";
     state.messageType = "info";
     state.message = "";
     state.sendingCode = true;
     state.resendAt = Date.now() + CONFIG.resendDelay * 1000;
-
-    // Render synchronously before making any network request.
+    state.otpCode = "";
+    state.authAttempt = null;
+    state.authMode = "";
     render();
     startResendTimer();
     window.setTimeout(focusOtp, 0);
 
-    // The network request starts after the verification screen is already visible.
     Promise.resolve().then(async () => {
       try {
-        // Configuration may still be loading; keep the verification screen visible meanwhile.
         if (configPromise) await configPromise;
-
-        if (!state.supabase) {
-          throw new Error("Sign-in is unavailable because the Supabase client is not configured.");
+        if (!state.clerk?.loaded || !state.clerk.client) {
+          throw new Error("Sign-in is unavailable because Clerk could not be initialized.");
         }
 
-        let result;
-        for (let attempt = 0; attempt < 2; attempt += 1) {
-          try {
-            result = await state.supabase.auth.signInWithOtp({
-              email: normalizedEmail,
-              options: {
-                shouldCreateUser: true,
-                data: { marketing_updates: state.signupMarketing }
-              }
-            });
-            break;
-          } catch (networkError) {
-            const networkFailure = /failed to fetch|fetch failed|networkerror|network request failed|load failed|timed out|timeout/i.test(String(networkError?.message || networkError));
-            if (!networkFailure || attempt === 1) throw networkError;
-            await new Promise(resolve => window.setTimeout(resolve, 700));
-          }
+        try {
+          state.authAttempt = await state.clerk.client.signIn.create({
+            identifier: normalizedEmail,
+            strategy: "email_code"
+          });
+          state.authMode = "signin";
+        } catch (signInError) {
+          if (!isUnknownClerkUser(signInError)) throw signInError;
+          const signUp = state.clerk.client.signUp;
+          await signUp.create({ emailAddress: normalizedEmail });
+          await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+          state.authAttempt = signUp;
+          state.authMode = "signup";
         }
-
-        if (result?.error) throw result.error;
-
-        // Success needs no redraw; preserve any digits the user has already entered.
       } catch (error) {
-        console.error("[VN ACCOUNT] OTP send failed:", error);
-
+        console.error("[VN ACCOUNT] Clerk OTP send failed:", error);
         if (requestId !== state.sendRequestId) return;
-
         state.resendAt = 0;
         state.messageType = "error";
         state.message = explainAuthError(error);
@@ -1573,32 +1479,48 @@
     });
   }
 
-  function explainAuthError(error) {
-    const message = String(error?.message || "").toLowerCase();
+  async function resendCode() {
+    if (Date.now() < state.resendAt || state.sendingCode || !state.authAttempt) return;
+    state.sendingCode = true;
+    state.resendAt = Date.now() + CONFIG.resendDelay * 1000;
+    state.message = "";
+    render();
+    startResendTimer();
 
-    if (/failed to fetch|fetch failed|networkerror|network request failed|load failed|timed out|timeout/i.test(message)) {
-      return "A network error interrupted the request. Check your connection and try again. If it continues, the email provider or Supabase endpoint may be temporarily unavailable.";
+    try {
+      if (state.authMode === "signup") {
+        await state.authAttempt.prepareEmailAddressVerification({ strategy: "email_code" });
+      } else {
+        const emailFactor = state.authAttempt.firstFactorVerification;
+        const emailAddressId = emailFactor?.emailAddressId ||
+          state.authAttempt.supportedFirstFactors?.find(factor => factor.strategy === "email_code")?.emailAddressId;
+        if (!emailAddressId) throw new Error("Clerk could not identify the email verification method for this sign-in.");
+        await state.authAttempt.prepareFirstFactor({ strategy: "email_code", emailAddressId });
+      }
+    } catch (error) {
+      state.resendAt = 0;
+      state.messageType = "error";
+      state.message = explainAuthError(error);
+      render();
+    } finally {
+      state.sendingCode = false;
+      updateResendButton();
     }
+  }
 
-    if (message.includes("rate limit") || message.includes("too many requests")) {
+  function explainAuthError(error) {
+    const message = String(error?.errors?.[0]?.longMessage || error?.errors?.[0]?.message || error?.message || "");
+    const lower = message.toLowerCase();
+    if (/network|failed to fetch|timeout|timed out/.test(lower)) {
+      return "A network error interrupted the request. Check your connection and try again.";
+    }
+    if (/rate limit|too many requests/.test(lower)) {
       return "Too many verification requests. Wait a little before trying again.";
     }
-
-    if (message.includes("invalid email")) {
+    if (/invalid.*email|email.*invalid/.test(lower)) {
       return "This email address is invalid. Change the address and try again.";
     }
-
-    if (message.includes("email") && message.includes("disabled")) {
-      return "Email sign-in is disabled in the authentication settings.";
-    }
-
-    if (message.includes("smtp") || message.includes("sending") || message.includes("email")) {
-      return "The verification email could not be sent. Check the Supabase email provider / SMTP configuration, then try resending.";
-    }
-
-    return error?.message
-      ? `Could not send the verification code: ${error.message}`
-      : "Could not send the verification email. Please try again.";
+    return message || "Could not send the verification code. Please try again.";
   }
 
   function updateResendButton() {
@@ -1643,62 +1565,62 @@
   }
 
   async function verifyCode(code) {
-    if (!state.supabase) {
+    if (!state.clerk || !state.authAttempt) {
       state.messageType = "error";
-      state.message = "Sign-in is unavailable because the Supabase client is not configured.";
+      state.message = "Sign-in is unavailable. Please return to the email step and try again.";
       render();
       return;
     }
 
-    if (!new RegExp(`^\\d{${CONFIG.otpLength}}$`).test(code)) {
+    if (!new RegExp("^\\d{" + CONFIG.otpLength + "}$").test(code)) {
       state.messageType = "error";
-      state.message = `Enter the complete ${CONFIG.otpLength}-digit code.`;
+      state.message = "Enter the complete " + CONFIG.otpLength + "-digit code.";
       render();
       focusOtp();
       return;
     }
 
     if (state.busy) return;
-
     state.busy = true;
     state.otpCode = code;
     state.message = "";
     render();
 
     try {
-      const { data, error } = await state.supabase.auth.verifyOtp({
-        email: state.email,
-        token: code,
-        type: "email"
-      });
-
-      if (error) throw error;
-
-      state.user = data.user || data.session?.user || null;
-
-      if (!state.user) {
-        throw new Error("Verification did not return a user session.");
+      let result;
+      if (state.authMode === "signup") {
+        result = await state.authAttempt.attemptEmailAddressVerification({ code });
+      } else {
+        result = await state.authAttempt.attemptFirstFactor({ strategy: "email_code", code });
       }
+
+      if (result.status !== "complete" || !result.createdSessionId) {
+        throw new Error(result.status === "needs_second_factor"
+          ? "Additional verification is required by the Clerk account settings. Complete the required second factor in Clerk before using this sign-in flow."
+          : "Email verification is not complete. Check the code and try again.");
+      }
+
+      await state.clerk.setActive({ session: result.createdSessionId });
+      syncClerkUser(state.clerk.user || null);
+      if (!state.user) throw new Error("Clerk verified the code but did not return an active user session.");
 
       state.screen = "account";
       state.section = "dashboard";
       state.message = "";
-
-      // Account queries start only after successful code verification.
+      state.authAttempt = null;
+      state.authMode = "";
       await loadAccountData();
       render();
     } catch (error) {
-      console.error("[VN ACCOUNT] OTP verification failed:", error);
+      console.error("[VN ACCOUNT] Clerk OTP verification failed:", error);
       state.messageType = "error";
       state.message = explainAuthError(error);
-      state.busy = false;
       render();
       focusOtp();
     } finally {
       state.busy = false;
     }
   }
-
   function focusEntry() {
     const root = $("#vnAccountOverlay");
     if (!root || root.hidden || state.user) return;
@@ -1717,11 +1639,10 @@
   }
 
   async function saveProfile(form) {
-    if (!state.supabase || !state.user) return;
-
+    if (!state.clerkUser || !state.user) return;
     const data = new FormData(form);
     const email = String(data.get("email") || "").trim();
-    if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       state.messageType = "error";
       state.message = "Enter a valid email address.";
       render();
@@ -1729,52 +1650,36 @@
     }
 
     const currentEmail = String(state.user.email || state.email || "").trim().toLowerCase();
-    const emailChanged = email.toLowerCase() !== currentEmail;
-    const profile = {
-      id: state.user.id,
-      first_name: String(data.get("first_name") || "").trim(),
-      last_name: String(data.get("last_name") || "").trim(),
-      updated_at: new Date().toISOString()
-    };
-
-    const { error } = await state.supabase.from("profiles").upsert(profile, { onConflict: "id" });
-    const metadataResult = await state.supabase.auth.updateUser({ data: {
-      first_name: profile.first_name, last_name: profile.last_name
-    }});
-    if (error && metadataResult.error) {
+    if (email.toLowerCase() !== currentEmail) {
+      state.section = "edit-contact";
       state.messageType = "error";
-      state.message = `Could not save your profile: ${metadataResult.error.message}`;
+      state.message = "To change the sign-in email, use the email verification flow. Email changes are not available in this profile form yet.";
       render();
       return;
     }
 
-    state.profile = { ...state.profile, ...profile };
-    if (emailChanged) {
-      const emailResult = await state.supabase.auth.updateUser({ email });
-      if (emailResult.error) {
-        state.section = "edit-contact";
-        state.messageType = "error";
-        state.message = `Your name was saved, but the email could not be updated: ${emailResult.error.message}`;
-        render();
-        return;
-      }
-      state.section = "profile";
-      state.messageType = "success";
-      state.message = "Profile updated. Check your new email address for a confirmation link to finish changing your email.";
-    } else {
+    const firstName = String(data.get("first_name") || "").trim();
+    const lastName = String(data.get("last_name") || "").trim();
+    try {
+      await state.clerkUser.update({ firstName, lastName });
+      state.profile = { ...state.profile, first_name: firstName, last_name: lastName };
+      syncClerkUser(state.clerk.user || state.clerkUser);
       state.section = "profile";
       state.messageType = "success";
       state.message = "Profile updated.";
+    } catch (error) {
+      state.messageType = "error";
+      state.message = "Could not save your profile: " +
+        (error?.errors?.[0]?.message || error.message || "Please try again.");
     }
     render();
   }
 
   async function saveAddress(form) {
-    if (!state.supabase || !state.user) return;
-
+    if (!state.user) return;
     const data = new FormData(form);
     const address = {
-      user_id: state.user.id,
+      id: "session-" + Date.now(),
       first_name: String(data.get("first_name") || "").trim(),
       last_name: String(data.get("last_name") || "").trim(),
       address: String(data.get("address") || "").trim(),
@@ -1785,142 +1690,55 @@
       phone: String(data.get("phone") || "").trim(),
       is_default: data.get("is_default") === "on"
     };
-
     if (address.is_default) {
-      const { error: resetError } = await state.supabase
-        .from("customer_addresses")
-        .update({ is_default: false })
-        .eq("user_id", state.user.id);
-
-      if (resetError) {
-        state.messageType = "error";
-        state.message = `Could not update default address: ${resetError.message}`;
-        render();
-        return;
-      }
+      state.addresses = state.addresses.map(item => ({ ...item, is_default: false }));
     }
-
-    const { error } = await state.supabase.from("customer_addresses").insert(address);
-
-    if (error) {
-      console.error("[VN ACCOUNT] Address save failed:", error);
-      state.messageType = "error";
-      state.message = `Could not save the address: ${error.message}`;
-      render();
-      return;
-    }
-
-    await loadAccountData();
+    state.addresses.unshift(address);
     state.section = "addresses";
-    state.messageType = "success";
-    state.message = "Address saved.";
+    state.messageType = "info";
+    state.message = "Address added for this session only. Secure cross-device address storage is not connected yet.";
     render();
   }
 
   async function deleteAddress(id) {
-    if (!state.supabase || !state.user) return;
     if (!confirm("Delete this saved address?")) return;
-
-    const { error } = await state.supabase
-      .from("customer_addresses")
-      .delete()
-      .eq("id", id)
-      .eq("user_id", state.user.id);
-
-    if (error) {
-      state.messageType = "error";
-      state.message = `Could not delete the address: ${error.message}`;
-    } else {
-      state.messageType = "success";
-      state.message = "Address deleted.";
-      await loadAccountData();
-    }
-
+    state.addresses = state.addresses.filter(item => String(item.id) !== String(id));
+    state.messageType = "success";
+    state.message = "Address deleted from this session.";
     render();
   }
 
   async function saveMarketingPreference(enabled) {
-    if (!state.supabase || !state.user) return;
-
+    if (!state.user) return;
     state.marketingUpdates = enabled;
-
-    const { error } = await state.supabase.from("profiles").upsert({
-      id: state.user.id, marketing_updates: enabled, updated_at: new Date().toISOString()
-    }, { onConflict: "id" });
-    const metadataResult = await state.supabase.auth.updateUser({ data: { marketing_updates: enabled } });
     state.profile = { ...state.profile, marketing_updates: enabled };
-    if (error && metadataResult.error) {
-      state.messageType = "error";
-      state.message = `Could not save this preference: ${metadataResult.error.message}`;
-      await loadAccountData();
-    } else {
-      state.messageType = "success";
-      state.message = "Marketing preference saved.";
-    }
-
+    state.messageType = "info";
+    state.message = "Marketing preference updated for this session only. Persistent preference storage is not connected yet.";
     render();
   }
 
   async function signOut(allDevices = false) {
-    if (!state.supabase) return;
-
-    const { error } = await state.supabase.auth.signOut({
-      scope: allDevices ? "global" : "local"
-    });
-
-    if (error) {
-      state.messageType = "error";
-      state.message = `Could not sign out: ${error.message}`;
-      render();
-    } else if (!allDevices) {
+    if (!state.clerk) return;
+    try {
+      if (allDevices) {
+        await state.clerk.signOut();
+      } else if (state.clerk.session?.id) {
+        await state.clerk.signOut({ sessionId: state.clerk.session.id });
+      } else {
+        await state.clerk.signOut();
+      }
       closePanel();
+    } catch (error) {
+      state.messageType = "error";
+      state.message = "Could not sign out: " +
+        (error?.errors?.[0]?.message || error.message || "Please try again.");
+      render();
     }
   }
 
   async function createReturn(form) {
-    if (!state.supabase || !state.user) return;
-
-    const data = new FormData(form);
-    const orderId = String(data.get("order_id") || "");
-    const reason = String(data.get("reason") || "");
-    const note = String(data.get("customer_note") || "").trim();
-
-    if (!orderId || !reason) {
-      state.messageType = "error";
-      state.message = "Select an order and a reason for the return.";
-      render();
-      return;
-    }
-
-    const order = state.orders.find(item => String(item.id) === orderId);
-
-    if (!order) {
-      state.messageType = "error";
-      state.message = "The selected order was not found in your account.";
-      render();
-      return;
-    }
-
-    const { error } = await state.supabase.from("returns").insert({
-      user_id: state.user.id,
-      order_id: orderId,
-      reason,
-      customer_note: note,
-      status: "requested"
-    });
-
-    if (error) {
-      console.error("[VN ACCOUNT] Return request failed:", error);
-      state.messageType = "error";
-      state.message = `Could not submit the return request: ${error.message}`;
-      render();
-      return;
-    }
-
-    await loadAccountData();
-    state.section = "returns";
-    state.messageType = "success";
-    state.message = "Return request submitted. Refund approval is not automatic.";
+    state.messageType = "error";
+    state.message = "Return requests are not available yet because order storage and secure return processing have not been connected.";
     render();
   }
 
@@ -2049,7 +1867,7 @@
 
           case "resend":
             if (Date.now() < state.resendAt || state.sendingCode) return;
-            sendCode(state.email);
+            resendCode();
             break;
 
           case "edit-contact":
@@ -2260,21 +2078,11 @@
     if (country) {
       state.country = country.value;
 
-      if (!state.supabase || !state.user) return;
-
-      const { error } = await state.supabase.from("profiles").upsert({
-        id: state.user.id, country: state.country, updated_at: new Date().toISOString()
-      }, { onConflict: "id" });
-      const metadataResult = await state.supabase.auth.updateUser({ data: { country: state.country } });
       state.profile = { ...state.profile, country: state.country };
-      state.messageType = error && metadataResult.error ? "error" : "";
-      state.message = error && metadataResult.error
-        ? `Could not save country: ${metadataResult.error.message}`
-        : "";
-      if (!state.message) {
-        const current = document.querySelector("#vnAccountOverlay [data-ac-country]");
-        if (current) current.blur();
-      }
+      state.messageType = "info";
+      state.message = "Country preference updated for this session only.";
+      const current = document.querySelector("#vnAccountOverlay [data-ac-country]");
+      if (current) current.blur();
       render();
     }
   });
