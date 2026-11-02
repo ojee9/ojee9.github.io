@@ -28,43 +28,50 @@ const fragmentSource="#version 300 es\n"+
 "precision highp float;uniform vec2 uResolution;uniform vec2 uPointer;uniform float uDpr;out vec4 outColor;\n"+
 "float hash12(vec2 p){vec3 q=fract(vec3(p.xyx)*0.1031);q+=dot(q,q.yzx+33.33);return fract((q.x+q.y)*q.z);}\n"+
 "vec2 hash22(vec2 p){float n=hash12(p);return vec2(n,hash12(p+n+19.19));}\n"+
-"float hexD(vec2 p){p=abs(p);return max(p.x*0.8660254+p.y*0.5,p.y)-0.365;}\n"+
 "vec3 spectral(float h){return 0.55+0.42*cos(6.2831853*(h+vec3(0.00,0.34,0.67)));}\n"+
+"float polygonD(vec2 p,float radius,float stretch,float sides,float rotation,float irregular){\n"+
+" float a=atan(p.y,p.x)-rotation;float sector=6.2831853/sides;float nearest=round(a/sector)*sector;float local=mod(a+0.5*sector,sector)-0.5*sector;\n"+
+" float r=radius*(1.0+irregular*cos(nearest*3.0+1.7));float boundary=cos(3.14159265/sides)/cos(local)*r;\n"+
+" return length(p)-boundary;\n"+
+"}\n"+
 "vec4 overLayer(vec4 a,vec4 b){float alpha=b.a+a.a*(1.0-b.a);vec3 rgb=(b.rgb*b.a+a.rgb*a.a*(1.0-b.a))/max(alpha,0.0001);return vec4(rgb,alpha);}\n"+
-"vec4 flakeLayer(vec2 frag,float cellSize,float population,float seedOffset,vec3 L,vec2 lightShift){\n"+
+"vec4 flakeLayer(vec2 frag,float cellSize,float population,float seedOffset,vec3 L){\n"+
 " vec2 grid=frag/cellSize;vec2 id=floor(grid);vec2 f=fract(grid)-0.5;vec2 rnd=hash22(id+seedOffset);\n"+
-" vec2 jitter=(rnd-0.5)*0.24;float rotation=(hash12(id+seedOffset+7.7)-0.5)*1.0472;\n"+
-" float radius=mix(0.315,0.445,hash12(id+seedOffset+3.1));\n"+
-" mat2 R=mat2(cos(rotation),-sin(rotation),sin(rotation),cos(rotation));vec2 p=R*(f-jitter);\n"+
-" float d=(max(abs(p.x)*0.8660254+abs(p.y)*0.5,abs(p.y))-radius*0.8660254);\n"+
-" float aa=max(fwidth(d)*1.15,0.003);float mask=1.0-smoothstep(-aa,aa,d);\n"+
+" vec2 jitter=(rnd-0.5)*0.34;float rotation=hash12(id+seedOffset+7.7)*6.2831853;\n"+
+" float size=mix(0.78,1.08,hash12(id+seedOffset+3.1));float stretch=mix(0.78,1.42,hash12(id+seedOffset+5.4));\n"+
+" mat2 R=mat2(cos(rotation),-sin(rotation),sin(rotation),cos(rotation));vec2 p=R*(f-jitter);p.x/=stretch;\n"+
+" float sides=hash12(id+seedOffset+9.2)>0.68?5.0:6.0;float d=polygonD(p,0.385*size,stretch,sides,rotation,0.075);\n"+
+" float aa=max(fwidth(d)*1.05,0.0025);float mask=1.0-smoothstep(-aa,aa,d);\n"+
 " float alive=step(1.0-population,hash12(id+seedOffset+11.3));mask*=alive;\n"+
 " float sector=floor((atan(p.y,p.x)+3.14159265)/1.04719755);float facetRnd=hash12(id+sector*4.71+seedOffset+29.0);\n"+
-" float tiltAngle=hash12(id+seedOffset+41.0)*6.2831853;float tilt=mix(0.055,0.235,hash12(id+seedOffset+43.0));\n"+
-" vec2 tiltVec=vec2(cos(tiltAngle),sin(tiltAngle))*tilt;\n"+
-" vec2 facetVec=vec2(cos(sector*1.04719755+rotation),sin(sector*1.04719755+rotation))*(facetRnd-0.5)*0.055;\n"+
-" vec3 N=normalize(vec3(tiltVec+facetVec,0.985));vec3 V=vec3(0.0,0.0,1.0);vec3 H=normalize(L+V);\n"+
-" float ndh=max(dot(N,H),0.0);float glint=pow(ndh,145.0);float soft=pow(ndh,34.0);\n"+
-" float incidence=1.0-max(dot(N,L),0.0);float hue=fract(hash12(id+seedOffset+61.0)*0.48+incidence*0.72+facetRnd*0.12);\n"+
-" vec3 irid=spectral(hue);float silver=mix(0.48,0.84,hash12(id+seedOffset+71.0));\n"+
-" vec3 base=mix(vec3(silver),irid,0.34+incidence*0.30);base*=0.82+facetRnd*0.12;\n"+
-" vec3 color=base+irid*soft*0.30+vec3(1.0,0.985,0.97)*glint*1.85;\n"+
-" float edge=1.0-smoothstep(0.0,aa*2.4,abs(d));color*=1.0-edge*0.20;\n"+
-" float opacity=mix(0.38,0.78,hash12(id+seedOffset+83.0));float alpha=mask*opacity;\n"+
-" return vec4(clamp(color,0.0,2.0),alpha);\n"+
+" float facetAngle=rotation+sector*1.04719755;vec2 facetAxis=vec2(cos(facetAngle),sin(facetAngle));\n"+
+" float plane=dot(p,facetAxis);float facetLine=abs(fract(plane*2.2+facetRnd*0.42)-0.5);\n"+
+" float facetBand=1.0-smoothstep(0.035,0.095,facetLine);\n"+
+" float tiltAngle=hash12(id+seedOffset+41.0)*6.2831853;float tilt=mix(0.035,0.16,hash12(id+seedOffset+43.0));\n"+
+" vec2 tiltVec=vec2(cos(tiltAngle),sin(tiltAngle))*tilt;vec3 N=normalize(vec3(tiltVec,0.992));\n"+
+" vec3 V=vec3(0.0,0.0,1.0);vec3 H=normalize(L+V);float ndh=max(dot(N,H),0.0);\n"+
+" float glint=pow(ndh,92.0);float sheen=pow(ndh,20.0);\n"+
+" float hue=fract(hash12(id+seedOffset+61.0)*0.48+(1.0-max(dot(N,L),0.0))*0.72+facetRnd*0.12);\n"+
+" vec3 irid=spectral(hue);float silver=mix(0.52,0.82,hash12(id+seedOffset+71.0));\n"+
+" vec3 base=mix(vec3(silver),irid,0.38+facetRnd*0.16);base*=0.82+facetBand*0.12;\n"+
+" vec3 color=base+irid*sheen*0.24+vec3(1.0,0.99,0.96)*glint*1.15;\n"+
+" color=mix(color,color*(0.72+facetRnd*0.22)+irid*0.12,facetBand*0.34);\n"+
+" float edge=1.0-smoothstep(0.0,aa*2.2,abs(d));color*=1.0-edge*0.16;\n"+
+" float opacity=mix(0.52,0.78,hash12(id+seedOffset+83.0));float alpha=mask*opacity;\n"+
+" return vec4(clamp(color,0.0,1.8),alpha);\n"+
 "}\n"+
 "void main(){\n"+
-" vec2 frag=gl_FragCoord.xy;vec2 pointer=uPointer/uResolution;vec2 shift=(pointer-0.5);\n"+
+" vec2 frag=gl_FragCoord.xy;vec2 pointer=uPointer/uResolution;vec2 shift=pointer-0.5;\n"+
 " vec3 L=normalize(vec3(0.10+shift.x*0.62,0.28-shift.y*0.42,0.92));\n"+
-" vec4 fine=flakeLayer(frag,5.2*uDpr,0.94,3.0,L,shift);\n"+
-" vec4 mid=flakeLayer(frag,10.8*uDpr,0.30,117.0,L,shift);\n"+
-" vec4 coarse=flakeLayer(frag,20.5*uDpr,0.055,251.0,L,shift);\n"+
+" vec4 fine=flakeLayer(frag,8.2*uDpr,0.88,3.0,L);\n"+
+" vec4 mid=flakeLayer(frag,9.7*uDpr,0.17,117.0,L);\n"+
+" vec4 coarse=flakeLayer(frag,11.6*uDpr,0.025,251.0,L);\n"+
 " vec4 material=overLayer(overLayer(fine,mid),coarse);\n"+
-" float microNoise=hash12(floor(frag/(1.45*uDpr))+vec2(83.0,17.0));\n"+
-" float pin=step(0.9992,microNoise)*(1.0-material.a);vec3 pinColor=spectral(fract(microNoise*8.0+pointer.x*0.17));\n"+
-" float alpha=clamp(material.a+pin*0.32,0.0,0.92);vec3 rgb=mix(material.rgb,pinColor,pin*0.8);\n"+
-" outColor=vec4(rgb,alpha);\n"+
+" float microNoise=hash12(floor(frag/(2.1*uDpr))+vec2(83.0,17.0));float pin=step(0.9995,microNoise)*(1.0-material.a);\n"+
+" vec3 pinColor=spectral(fract(microNoise*8.0+pointer.x*0.17));float alpha=clamp(material.a+pin*0.20,0.0,0.90);\n"+
+" vec3 rgb=mix(material.rgb,pinColor,pin*0.72);outColor=vec4(rgb,alpha);\n"+
 "}";
+
 function compile(type,source){const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){const m=gl.getShaderInfoLog(s);gl.deleteShader(s);throw new Error(m);}return s;}
 try{
 const program=gl.createProgram();gl.attachShader(program,compile(gl.VERTEX_SHADER,vertexSource));gl.attachShader(program,compile(gl.FRAGMENT_SHADER,fragmentSource));gl.linkProgram(program);
