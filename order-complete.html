@@ -334,8 +334,14 @@ a.package-card{box-shadow:none!important;filter:none!important;transition:transf
 
 /* Scene 02 — use the standalone Study 12 material without additional glitter or tint overlays. */
 .scene--welcome{background:#e4e3e1!important;background-image:none!important}
-.scene--welcome::before,.scene--welcome::after{content:none!important;display:none!important}
+.scene--welcome::before{content:none!important;display:none!important}
 .scene--welcome .study12-background{opacity:1!important}
+
+/* Scene 01 → 02: keep the credits black; reveal a restrained silver blend only at the lower edge. */
+.scene--credits::after{content:"";display:block;z-index:1;left:0;right:0;bottom:0;height:clamp(170px,25vh,280px);filter:none;transform:none;pointer-events:none;opacity:var(--blend-opacity,0);background:linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(191,197,200,.07) 36%,rgba(191,197,200,.34) 72%,#BFC5C8 100%)}
+
+/* Scene 02 → 03: a narrow lower-edge blend only; the Study 12 material stays clear everywhere else. */
+.scene--welcome::after{content:"";display:block;position:absolute;z-index:1;left:0;right:0;bottom:0;height:clamp(150px,23vh,250px);filter:none;transform:none;pointer-events:none;opacity:var(--blend-opacity,0);background:linear-gradient(180deg,rgba(191,197,200,0) 0%,rgba(191,197,200,.08) 38%,rgba(191,197,200,.42) 76%,#BFC5C8 100%)}
 
 </style>
 </head>
@@ -569,7 +575,7 @@ if(!reduced&&matchMedia("(hover:hover) and (pointer:fine)").matches){
 $("skip-to-receipt").addEventListener("click",event=>{event.preventDefault();$("scene-4").scrollIntoView({behavior:reduced?"auto":"smooth",block:"start"})});
 const sections=[...document.querySelectorAll(".scene")];
 let blendFrame=0;
-const updateSceneBlends=()=>{blendFrame=0;const vh=innerHeight||document.documentElement.clientHeight;sections.forEach((section,index)=>{if(index>2)return;const rect=section.getBoundingClientRect();const raw=Math.max(0,Math.min(1,(vh-rect.bottom)/(vh*3.4)));const eased=raw*raw*raw*(raw*(raw*6-15)+10);section.style.setProperty("--blend-progress",String(eased));section.style.setProperty("--blend-opacity",String(eased));});};
+const updateSceneBlends=()=>{blendFrame=0;const vh=innerHeight||document.documentElement.clientHeight;sections.forEach((section,index)=>{if(index>2)return;const rect=section.getBoundingClientRect();const range=index<2?vh:vh*3.4;const raw=Math.max(0,Math.min(1,(vh-rect.bottom)/range));const eased=raw*raw*raw*(raw*(raw*6-15)+10);section.style.setProperty("--blend-progress",String(eased));section.style.setProperty("--blend-opacity",String(eased));});};
 window.addEventListener("scroll",()=>{if(!blendFrame)blendFrame=requestAnimationFrame(updateSceneBlends)},{passive:true});
 window.addEventListener("resize",updateSceneBlends,{passive:true});
 updateSceneBlends();
