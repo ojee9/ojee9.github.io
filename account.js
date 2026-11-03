@@ -508,6 +508,7 @@
         flex-direction:column !important;
         flex:0 0 auto;
       }
+      .vn-ac-dashboard-background{display:none}
       .vn-ac-shell.vn-ac-dashboard-open .vn-ac-dashboard-background{
         display:block;
         position:absolute;
