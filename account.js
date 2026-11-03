@@ -71,10 +71,12 @@
     }
 
     // Resolve saved authentication in the background, then show the dashboard.
-    // The panel is already visible even if the network/auth check is slow.
+    // Do not let this refresh overwrite an authentication flow started after the panel opened.
+    const authRequestAtOpen = state.sendRequestId;
     (async () => {
       try {
         if (configPromise) await configPromise;
+        if (authRequestAtOpen !== state.sendRequestId) return;
 
         if (state.clerk) {
           syncClerkUser(state.clerk.user || null);
