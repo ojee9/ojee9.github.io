@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#e4e3e1">
+<title>Glitter Material Study 12 — Diffraction Grating</title>
+<style>
+*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0}
+body{overflow:hidden;color:#17151a;background:#e4e3e1;font-family:Arial,Helvetica,sans-serif}
+#glitter{position:fixed;inset:0;width:100%;height:100%;display:block}
+.meta{position:fixed;left:22px;bottom:20px;z-index:2;padding:10px 13px;border:1px solid rgba(30,25,35,.16);border-radius:8px;background:rgba(255,255,255,.34);backdrop-filter:blur(10px);font-size:11px;line-height:1.55;letter-spacing:.035em;color:rgba(20,18,24,.76)}
+.meta strong{display:block;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#17151a}
+.hint{position:fixed;right:22px;bottom:24px;z-index:2;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:rgba(20,18,24,.58)}
+@media(max-width:600px){.meta{left:12px;bottom:12px}.hint{right:12px;bottom:16px;font-size:9px}}
+</style>
+</head>
+<body>
+<canvas id="glitter" aria-label="Diffraction-structured glitter with angle-dependent spectral dispersion"></canvas>
+<div class="meta"><strong>Glitter material · study 12</strong>Micro-structured diffraction · spectral dispersion<br>Directional rainbow flashes from grating-like facets</div>
+<div class="hint">Move pointer to shift reflection angle</div>
+<script>
+(() => {
+const canvas=document.getElementById('glitter');
+const gl=canvas.getContext('webgl2',{alpha:false,antialias:true,powerPreference:'high-performance'});
+if(!gl){document.querySelector('.meta').innerHTML='<strong>WebGL 2 unavailable</strong>This browser or device cannot display the material preview.';return;}
+const vertexSource=`#version 300 es
+void main(){vec2 p=vec2(float((gl_VertexID<<1)&2),float(gl_VertexID&2));gl_Position=vec4(p*2.0-1.0,0.0,1.0);}`;
+const fragmentSource=`#version 300 es
+precision highp float;
+uniform vec2 uResolution;
+uniform vec2 uPointer;
+out vec4 outColor;
+float hash12(vec2 p){vec3 p3=fract(vec3(p.xyx)*0.1031);p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}
+vec2 hash22(vec2 p){float n=hash12(p);return vec2(n,hash12(p+n+17.17));}
+vec3 thinFilm(float cosTheta,float thicknessNm,float phaseOffset){
+ vec3 wavelengths=vec3(650.0,510.0,455.0);
+ vec3 phase=6.2831853*(2.0*1.38*thicknessNm*cosTheta/wavelengths)+phaseOffset;
+ return 0.5+0.5*cos(phase);
+}
+// Approximate visible-spectrum colour for a wavelength in nanometres.
+vec3 wavelengthRGB(float w){
+ float r=0.0,g=0.0,b=0.0;
+ if(w>=380.0&&w<440.0){r=-(w-440.0)/60.0;b=1.0;}
+ else if(w<490.0){g=(w-440.0)/50.0;b=1.0;}
+ else if(w<510.0){g=1.0;b=-(w-510.0)/20.0;}
+ else if(w<580.0){r=(w-510.0)/70.0;g=1.0;}
+ else if(w<645.0){r=1.0;g=-(w-645.0)/65.0;}
+ else if(w<=780.0){r=1.0;}
+ float attenuation=1.0;
+ if(w<420.0)attenuation=0.3+0.7*(w-380.0)/40.0;
+ else if(w>700.0)attenuation=0.3+0.7*(780.0-w)/80.0;
+ return pow(max(vec3(r,g,b)*attenuation,vec3(0.0)),vec3(0.8));
+}
+vec3 facetLayer(vec2 pixel,float cellSize,float seed,float density,vec3 L,vec3 H){
+ vec2 cell=floor(pixel/cellSize);vec2 local=fract(pixel/cellSize);vec2 rnd=hash22(cell+seed);
+ vec2 center=0.16+0.68*rnd;float angle=hash12(cell+seed+5.3)*6.2831853;
+ mat2 rot=mat2(cos(angle),-sin(angle),sin(angle),cos(angle));vec2 q=rot*(local-center);
+ float aspect=mix(0.42,0.92,hash12(cell+seed+8.1));float radius=mix(0.22,0.39,hash12(cell+seed+11.7));
+ float shape=length(vec2(q.x,q.y/aspect));float edge=1.0-smoothstep(radius-0.055,radius+0.025,shape);
+ float mask=edge*step(1.0-density,hash12(cell+seed+13.9));
+ float xi=clamp(hash12(cell+seed+19.1),0.015,0.985);
+ float alpha=mix(0.20,0.52,hash12(cell+seed+23.4));
+ float tanTheta=alpha*sqrt(xi/(1.0-xi));float azimuth=hash12(cell+seed+29.8)*6.2831853;
+ vec3 N=normalize(vec3(tanTheta*cos(azimuth),tanTheta*sin(azimuth),1.0));
+ float ndh=max(dot(N,H),0.0);float alignment=pow(ndh,mix(90.0,230.0,hash12(cell+seed+31.2)));
+ float glint=mask*alignment;float broad=mask*pow(ndh,24.0)*0.12;
+ float thickness=mix(260.0,720.0,hash12(cell+seed+37.6));
+ vec3 film=thinFilm(clamp(dot(N,L),0.08,1.0),thickness,hash12(cell+seed+41.0)*1.4);
+ vec3 reflected=mix(vec3(0.88,0.91,0.96),film,0.74);
+ // Each flake carries a microscopic groove direction. The groove disperses
+ // reflected light into wavelength-dependent colour rather than only tinting it.
+ float grooveAngle=hash12(cell+seed+47.2)*6.2831853;
+ vec2 groove=vec2(cos(grooveAngle),sin(grooveAngle));
+ vec2 angularShift=L.xy-H.xy;
+ float dispersion=dot(angularShift,groove);
+ float wavelength=clamp(560.0+dispersion*920.0,390.0,730.0);
+ vec3 diffracted=wavelengthRGB(wavelength);
+ float diffractionLobe=exp(-pow(dispersion*5.5,2.0));
+ vec3 spectralFlash=mix(reflected,diffracted,0.88);
+ vec3 sparkle=reflected*(glint*1.7+broad*0.8);
+ sparkle+=spectralFlash*(glint*2.5*diffractionLobe);
+ sparkle+=vec3(1.0,0.985,0.97)*pow(ndh,320.0)*mask*1.3;
+ return sparkle;
+}
+void main(){
+ vec2 pixel=gl_FragCoord.xy;vec2 pointer=uPointer/uResolution;
+ vec3 L=normalize(vec3((pointer.x-0.5)*0.9,(0.5-pointer.y)*0.72,0.94));
+ vec3 H=normalize(L+vec3(0.0,0.0,1.0));
+ float globalAngle=clamp(L.z,0.0,1.0);
+ vec3 baseFilm=thinFilm(globalAngle,470.0,0.0);
+ vec3 base=mix(vec3(0.78,0.80,0.84),baseFilm,0.13);
+ vec3 fine=facetLayer(pixel,2.25,4.0,0.92,L,H);
+ vec3 medium=facetLayer(pixel,4.8,91.0,0.54,L,H);
+ vec3 micro=facetLayer(pixel,1.18,217.0,0.68,L,H)*0.48;
+ vec3 color=base+fine+medium+micro;
+ outColor=vec4(clamp(color,0.0,1.0),1.0);
+}`;
+function compile(type,source){const shader=gl.createShader(type);gl.shaderSource(shader,source);gl.compileShader(shader);if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS)){const message=gl.getShaderInfoLog(shader);gl.deleteShader(shader);throw new Error(message);}return shader;}
+try{
+ const program=gl.createProgram();gl.attachShader(program,compile(gl.VERTEX_SHADER,vertexSource));gl.attachShader(program,compile(gl.FRAGMENT_SHADER,fragmentSource));gl.linkProgram(program);
+ if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(program));
+ gl.useProgram(program);const resolutionLoc=gl.getUniformLocation(program,'uResolution');const pointerLoc=gl.getUniformLocation(program,'uPointer');
+ let pointer=[innerWidth*0.5,innerHeight*0.5];
+ function resize(){const dpr=Math.min(devicePixelRatio||1,1.5);const width=Math.max(1,Math.floor(innerWidth*dpr));const height=Math.max(1,Math.floor(innerHeight*dpr));if(canvas.width!==width||canvas.height!==height){canvas.width=width;canvas.height=height;gl.viewport(0,0,width,height);}}
+ addEventListener('resize',resize);addEventListener('pointermove',event=>{pointer=[event.clientX,innerHeight-event.clientY];},{passive:true});resize();
+ function draw(){resize();gl.uniform2f(resolutionLoc,canvas.width,canvas.height);gl.uniform2f(pointerLoc,pointer[0]*canvas.width/innerWidth,pointer[1]*canvas.height/innerHeight);gl.drawArrays(gl.TRIANGLES,0,3);requestAnimationFrame(draw);}
+ requestAnimationFrame(draw);
+}catch(error){document.querySelector('.meta').innerHTML='<strong>Material preview could not start</strong>'+String(error.message).replace(/[<>&"]/g,'');}
+})();
+</script>
+</body>
+</html>
