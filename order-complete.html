@@ -337,11 +337,51 @@ a.package-card{box-shadow:none!important;filter:none!important;transition:transf
 .scene--welcome::before{content:"";position:absolute;top:0;left:0;right:0;height:clamp(240px,32vh,380px);z-index:1;pointer-events:none;background:linear-gradient(180deg,rgba(199,204,214,var(--incoming-blend-opacity,0)) 0%,rgba(199,204,214,0) 100%)}
 .scene--welcome .study12-background{opacity:1!important}
 
-/* Scene 01 → 02: keep the credits black; reveal a restrained silver blend only at the lower edge. */
-.scene--credits::after{content:"";display:block;z-index:1;left:0;right:0;bottom:0;height:clamp(240px,32vh,380px);filter:none;transform:none;pointer-events:none;opacity:var(--blend-opacity,0);background:linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(199,204,214,.07) 36%,rgba(199,204,214,.34) 72%,#C7CCD6 100%)}
-
-/* Scene 02 → 03: a narrow lower-edge blend only; the Study 12 material stays clear everywhere else. */
-.scene--welcome::after{content:"";display:block;position:absolute;z-index:1;left:0;right:0;bottom:0;height:clamp(240px,32vh,380px);filter:none;transform:none;pointer-events:none;opacity:var(--blend-opacity,0);background:linear-gradient(180deg,rgba(199,204,214,0) 0%,rgba(199,204,214,.10) 38%,rgba(199,204,214,.48) 76%,#C7CCD6 100%)}
+/* 01 → 02 — dissolve the seam by blending sampled tones from both scenes.
+   The black scene stays black; the silver is introduced as a soft, irregular light field,
+   not as a white strip growing upward from the bottom edge. */
+.scene--credits::after{
+  content:"";display:block;position:absolute;z-index:1;left:-8%;right:-8%;bottom:-13%;
+  height:clamp(390px,66vh,760px);pointer-events:none;
+  opacity:var(--blend-opacity,0);filter:blur(48px);transform:translateY(5%);
+  background:
+    radial-gradient(ellipse 76% 58% at 50% 100%,rgba(228,227,225,.72) 0%,rgba(199,204,214,.42) 42%,rgba(199,204,214,.12) 70%,transparent 100%),
+    radial-gradient(ellipse 48% 34% at 24% 76%,rgba(177,218,255,.15),transparent 78%),
+    radial-gradient(ellipse 54% 38% at 78% 72%,rgba(255,190,226,.13),transparent 80%);
+  -webkit-mask-image:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.22) 20%,#000 58%,#000 100%);
+  mask-image:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.22) 20%,#000 58%,#000 100%);
+}
+/* The receiving silver scene samples the black edge back into its own surface.
+   This two-sided overlap removes the visible cut before the colors fully exchange. */
+.scene--welcome::before{
+  background:
+    radial-gradient(ellipse 88% 68% at 50% 0%,rgba(5,5,5,.52) 0%,rgba(5,5,5,.25) 36%,rgba(5,5,5,.08) 62%,transparent 100%),
+    radial-gradient(ellipse at 26% 28%,rgba(177,218,255,.16),transparent 43%),
+    radial-gradient(ellipse at 76% 72%,rgba(255,190,226,.17),transparent 46%),
+    radial-gradient(ellipse at 52% 48%,rgba(255,255,255,.2),transparent 54%);
+  opacity:var(--incoming-blend-opacity,0);
+  filter:blur(26px);
+}
+/* 02 → 03 — a separate silver-to-stone material dissolve.
+   Silver and smoky-grey samples spread through a wide feathered band; no hard gradient edge. */
+.scene--welcome::after{
+  content:"";display:block;position:absolute;z-index:1;left:-10%;right:-10%;bottom:-15%;
+  height:clamp(420px,70vh,800px);pointer-events:none;
+  opacity:var(--blend-opacity,0);filter:blur(54px);transform:translateY(6%);
+  background:
+    radial-gradient(ellipse 82% 60% at 50% 100%,rgba(191,197,200,.78) 0%,rgba(201,197,191,.48) 42%,rgba(183,179,173,.2) 68%,transparent 100%),
+    radial-gradient(ellipse 52% 34% at 18% 78%,rgba(228,227,225,.52),transparent 78%),
+    radial-gradient(ellipse 58% 38% at 82% 72%,rgba(212,206,195,.42),transparent 80%);
+  -webkit-mask-image:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.18) 18%,#000 58%,#000 100%);
+  mask-image:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.18) 18%,#000 58%,#000 100%);
+}
+/* The incoming package scene samples Stardust Silver at its upper edge. */
+.scene--package::before{
+  background:
+    linear-gradient(180deg,rgba(228,227,225,var(--incoming-blend-opacity,0)) 0%,rgba(191,197,200,calc(var(--incoming-blend-opacity,0)*.62)) 42%,transparent 82%),
+    radial-gradient(ellipse at 20% 18%,rgba(255,255,255,.42),transparent 42%),
+    radial-gradient(ellipse at 85% 78%,rgba(70,67,62,.1),transparent 46%);
+}
 
 </style>
 </head>
