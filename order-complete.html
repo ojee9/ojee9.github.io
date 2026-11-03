@@ -383,9 +383,32 @@ a.package-card{box-shadow:none!important;filter:none!important;transition:transf
     radial-gradient(ellipse at 85% 78%,rgba(70,67,62,.1),transparent 46%);
 }
 
+/* True seam dissolve for 01→02 and 02→03.
+   backdrop-filter samples the actual rendered pixels from both adjacent scenes,
+   smearing the hard boundary instead of painting a white gradient over it. */
+#scene-transition-seam{
+  position:fixed;z-index:100;left:0;right:0;top:0;height:240px;
+  pointer-events:none;opacity:0;will-change:top,opacity;
+  -webkit-backdrop-filter:blur(34px) saturate(1.12);
+  backdrop-filter:blur(34px) saturate(1.12);
+  -webkit-mask-image:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.28) 16%,#000 42%,#000 58%,rgba(0,0,0,.28) 84%,transparent 100%);
+  mask-image:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.28) 16%,#000 42%,#000 58%,rgba(0,0,0,.28) 84%,transparent 100%);
+}
+#scene-transition-seam[data-transition="one-two"]{
+  background:
+    radial-gradient(ellipse 74% 78% at 50% 50%,rgba(199,204,214,.24),transparent 72%),
+    linear-gradient(180deg,transparent 0%,rgba(10,11,14,.16) 34%,rgba(199,204,214,.18) 66%,transparent 100%);
+}
+#scene-transition-seam[data-transition="two-three"]{
+  background:
+    radial-gradient(ellipse 76% 82% at 50% 50%,rgba(198,187,167,.25),transparent 72%),
+    linear-gradient(180deg,transparent 0%,rgba(191,197,200,.14) 32%,rgba(183,179,173,.2) 68%,transparent 100%);
+}
+@media(prefers-reduced-motion:reduce){#scene-transition-seam{-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}}
 </style>
 </head>
 <body>
+<div id="scene-transition-seam" aria-hidden="true"></div>
 <section class="scene scene--credits" id="scene-1" aria-label="Purchase completed credits">
   <div class="scene-inner credits-content">
     <img class="vn-mark" src="images/vn-logo-black-transparent.png" alt="VN">
@@ -615,7 +638,8 @@ if(!reduced&&matchMedia("(hover:hover) and (pointer:fine)").matches){
 $("skip-to-receipt").addEventListener("click",event=>{event.preventDefault();$("scene-4").scrollIntoView({behavior:reduced?"auto":"smooth",block:"start"})});
 const sections=[...document.querySelectorAll(".scene")];
 let blendFrame=0;
-const updateSceneBlends=()=>{blendFrame=0;const vh=innerHeight||document.documentElement.clientHeight;const ease=value=>{const t=Math.max(0,Math.min(1,value));return t*t*t*(t*(t*6-15)+10);};sections.forEach((section,index)=>{if(index>2)return;const rect=section.getBoundingClientRect();const range=index<2?vh:vh*3.4;const outgoing=ease((vh-rect.bottom)/range);const incoming=index===0?0:ease((vh-rect.top)/vh);section.style.setProperty("--blend-progress",String(outgoing));section.style.setProperty("--blend-opacity",String(outgoing));section.style.setProperty("--incoming-blend-opacity",String(incoming));});};
+const seamLayer=document.getElementById("scene-transition-seam");
+const updateSceneBlends=()=>{blendFrame=0;const vh=innerHeight||document.documentElement.clientHeight;const ease=value=>{const t=Math.max(0,Math.min(1,value));return t*t*t*(t*(t*6-15)+10);};let activeSeam=null;sections.forEach((section,index)=>{if(index>2)return;const rect=section.getBoundingClientRect();const range=index<2?vh:vh*3.4;const outgoing=ease((vh-rect.bottom)/range);const incoming=index===0?0:ease((vh-rect.top)/vh);section.style.setProperty("--blend-progress",String(outgoing));section.style.setProperty("--blend-opacity",String(outgoing));section.style.setProperty("--incoming-blend-opacity",String(incoming));if(index<2){const seamY=rect.bottom;if(seamY>0&&seamY<vh){const progress=seamY/vh;const strength=Math.sin(Math.PI*progress);if(!activeSeam||strength>activeSeam.strength)activeSeam={index,seamY,strength};}}});if(activeSeam){seamLayer.dataset.transition=activeSeam.index===0?"one-two":"two-three";seamLayer.style.top=(activeSeam.seamY-120)+"px";seamLayer.style.opacity=String(Math.pow(activeSeam.strength,.72));}else{seamLayer.style.opacity="0";}};
 window.addEventListener("scroll",()=>{if(!blendFrame)blendFrame=requestAnimationFrame(updateSceneBlends)},{passive:true});
 window.addEventListener("resize",updateSceneBlends,{passive:true});
 updateSceneBlends();
