@@ -327,6 +327,10 @@ a.package-card{box-shadow:none!important;filter:none!important;transition:transf
   filter:saturate(.82) contrast(1.08);
 }
 
+
+/* Study 12 material layer — background only; scene content and existing overlays remain above it. */
+.scene--welcome .study12-background{position:absolute;inset:0;z-index:0;width:100%;height:100%;border:0;pointer-events:none;opacity:.86}
+
 </style>
 </head>
 <body>
@@ -347,6 +351,7 @@ a.package-card{box-shadow:none!important;filter:none!important;transition:transf
 </section>
 
 <section class="scene scene--welcome" id="scene-2" aria-label="Welcome to VN">
+  <iframe class="study12-background" src="glitter-material-study-12.html?embed=1" title="" aria-hidden="true" tabindex="-1" loading="eager"></iframe>
   <canvas class="light-trail" id="light-trail" aria-hidden="true"></canvas>
   <a class="sky-ad sky-ad--left" href="projects.html" aria-label="News, events, projects and more">
     <img class="sky-ad-image" src="assets/visuals/event-ojee-kash-gta-love-qa-2314-poster.png" alt="" loading="eager">

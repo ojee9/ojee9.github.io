@@ -12,6 +12,8 @@ body{overflow:hidden;color:#17151a;background:#e4e3e1;font-family:Arial,Helvetic
 .meta strong{display:block;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#17151a}
 .hint{position:fixed;right:22px;bottom:24px;z-index:2;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:rgba(20,18,24,.58)}
 @media(max-width:600px){.meta{left:12px;bottom:12px}.hint{right:12px;bottom:16px;font-size:9px}}
+html.is-embedded,html.is-embedded body{overflow:hidden;background:#e4e3e1}
+html.is-embedded .meta,html.is-embedded .hint{display:none!important}
 </style>
 </head>
 <body>
@@ -20,6 +22,7 @@ body{overflow:hidden;color:#17151a;background:#e4e3e1;font-family:Arial,Helvetic
 <div class="hint">Move pointer to shift reflection angle</div>
 <script>
 (() => {
+if(new URLSearchParams(location.search).has('embed'))document.documentElement.classList.add('is-embedded');
 const canvas=document.getElementById('glitter');
 const gl=canvas.getContext('webgl2',{alpha:false,antialias:true,powerPreference:'high-performance'});
 if(!gl){document.querySelector('.meta').innerHTML='<strong>WebGL 2 unavailable</strong>This browser or device cannot display the material preview.';return;}
