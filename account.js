@@ -242,7 +242,7 @@
       .vn-ac-email-form-wrap{width:min(100%,420px);margin:0 auto}
       .vn-ac-shop-space{height:42px;flex:none;display:flex;align-items:center;justify-content:center}
       .vn-ac-continue-shop{display:flex;align-items:center;justify-content:center;width:100%;max-width:420px;height:42px;padding:0 16px;border:1px solid #555;border-radius:2px;background:#101010;color:#f5f5f5;font:600 12px/1 Arial,sans-serif;letter-spacing:1.1px;text-align:center;cursor:pointer;transition:border-color .18s ease,background .18s ease}
-      .vn-ac-continue-shop:hover{border-color:#888;background:#1b1b1b}
+      .vn-ac-continue-shop:hover{border-color:#888;background:#1b1b1b}.vn-ac-continue-shop{text-decoration:none}
       .vn-ac-consent-note{margin:5px auto 0!important;max-width:420px;text-align:center;color:#8d8d8d;font-size:11px;line-height:1.5}
       .vn-ac-consent-note a{color:#fff;text-decoration:underline;text-underline-offset:2px}
       .vn-ac-or-divider{display:flex;align-items:center;gap:13px;width:min(100%,420px);margin:0 auto 18px;color:#8d8794;font-size:11px;line-height:1;letter-spacing:1.5px}
@@ -672,21 +672,139 @@
           <button type="button" class="vn-ac-policy-close" data-ac-action="policy-close" aria-label="Close Terms of Use">×</button>
           <p class="vn-ac-policy-kicker">VN SHOP · LEGAL</p>
           <h2>Terms of Use</h2>
-          <div class="vn-ac-policy-body">
-            <p>By accessing or using VN SHOP, you agree to these Terms of Use. If you do not agree, please discontinue use of the website.</p>
-            <h3>Website use</h3>
-            <p>You agree to use this website lawfully and not to interfere with its operation, security, availability, or content. You must not attempt to gain unauthorized access to accounts or systems.</p>
-            <h3>Products and availability</h3>
-            <p>Product descriptions, images, prices, and availability may change without notice. A product displayed on the website is not a guarantee that it is currently available for purchase.</p>
-            <h3>Accounts and security</h3>
-            <p>You are responsible for providing accurate information and keeping access to your email account secure. Verification codes are intended for your use only and should not be shared with others.</p>
-            <h3>Intellectual property</h3>
-            <p>Website content, brand assets, logos, and original materials remain the property of their respective owners. They may not be copied, redistributed, or used commercially without permission.</p>
-            <h3>Changes to these terms</h3>
-            <p>These terms may be updated when necessary. The current version published on this website applies to your use of the service.</p>
-            <h3>Contact</h3>
-            <p>For questions about these terms, visit <a href="help.html">Help &amp; Support</a>.</p>
-          </div>
+          <div class="vn-ac-policy-body vn-ac-full-terms">
+    <h1>TERMS AND CONDITIONS OF SALE</h1>
+    <p><strong>VN SHOP® — powered by 9ojeez9</strong></p>
+    <p class="updated"><em>Last updated: October 29, 2026</em></p>
+    <h2>I. GENERAL</h2>
+    <p>These Terms and Conditions of Sale (“Terms”) govern purchases made through VN SHOP® (“VN SHOP,” “we,” “us,” or “our”).</p>
+    <p>VN SHOP offers physical products, including merchandise, apparel, posters, and other items displayed on the website (“Products”).</p>
+    <p>By placing an order through VN SHOP, you agree to these Terms. Please read them carefully before making a purchase.</p>
+    <p>These Terms must be read together with the applicable Product descriptions, checkout information, Privacy Policy, Return Policy, and other policies published on the website.</p>
+    <h2>II. CHANGES TO THESE TERMS</h2>
+    <p>We may update these Terms from time to time to reflect changes to our business, Products, website, or applicable law.</p>
+    <p>The “Last updated” date indicates when these Terms were most recently revised. The version applicable to an order will be determined in accordance with applicable law.</p>
+    <p>Changes will not retroactively remove rights that customers have already acquired.</p>
+    <h2>III. INTELLECTUAL PROPERTY</h2>
+    <p>Unless otherwise stated, the website and its content, including text, graphics, logos, photographs, artwork, Product imagery, designs, and other materials, are owned by or used with permission by VN SHOP or the relevant rights holders.</p>
+    <p>You may not reproduce, distribute, modify, publish, or commercially exploit website content or Product designs without authorization from the applicable rights holder, except where permitted by law.</p>
+    <p>Purchasing a Product does not transfer ownership of any copyright, trademark, design right, or other intellectual property associated with it.</p>
+    <p>Third-party names, trademarks, and other rights remain the property of their respective owners.</p>
+    <h2>IV. ACCEPTABLE USE</h2>
+    <p>You agree to use the website lawfully and not to:</p>
+    <ul>
+      <li>Use the website for fraudulent or unlawful purposes.</li>
+      <li>Interfere with the website’s operation, security, or availability.</li>
+      <li>Attempt unauthorized access to accounts, systems, or data.</li>
+      <li>Submit false or misleading order information.</li>
+      <li>Copy, scrape, or commercially exploit website content without authorization.</li>
+    </ul>
+    <p>We may take reasonable measures to protect the website and its users from misuse, subject to applicable law.</p>
+    <h2>V. PRODUCT INFORMATION AND AVAILABILITY</h2>
+    <p>We make reasonable efforts to display Product descriptions, photographs, sizes, colors, prices, and other information accurately.</p>
+    <p>Actual colors and appearance may vary depending on display settings, lighting, production processes, and other factors. Product images are intended to represent the Products but may not reproduce every detail exactly.</p>
+    <p>Product availability may change. A Product displayed on the website is not guaranteed to remain available until an order has been accepted.</p>
+    <p>If a Product becomes unavailable after payment has been taken and the order cannot be fulfilled, we will notify the customer and provide any refund required by applicable law.</p>
+    <p>Nothing in these Terms excludes statutory rights relating to inaccurate descriptions, defective Products, or failure to deliver as agreed.</p>
+    <h2>VI. CUSTOMER INFORMATION AND ELIGIBILITY</h2>
+    <p>By placing an order, you confirm that you are legally capable of entering into a binding purchase agreement under the laws applicable to you.</p>
+    <p>You agree to provide accurate and complete information necessary to process and deliver your order, including your name, email address, shipping address, and any other information required during checkout.</p>
+    <p>You are responsible for correcting inaccurate information as soon as possible. Changes may not be possible after an order has entered processing or shipment.</p>
+    <h2>VII. ORDERS AND ACCEPTANCE</h2>
+    <p>When you submit an order, you are making an offer to purchase the selected Products at the displayed price and under the applicable terms.</p>
+    <p>An order confirmation acknowledging receipt does not necessarily mean that the order has been accepted or dispatched.</p>
+    <p>We may contact you to resolve issues involving payment, availability, delivery information, or suspected fraud. If an order cannot be fulfilled, we will inform you and refund any amount that must be returned under applicable law.</p>
+    <p>Orders will not be cancelled arbitrarily after acceptance. Any cancellation, refusal, or refund will be handled in accordance with these Terms and applicable law.</p>
+    <p>Before submitting an order, please review the Products, quantities, prices, delivery charges, and shipping information.</p>
+    <h2>VIII. PRICES AND PAYMENT</h2>
+    <p>Product prices and applicable shipping charges will be displayed during the purchase process.</p>
+    <p>The total amount payable, including applicable taxes and additional charges, must be presented before the customer confirms the order.</p>
+    <p>We may correct genuine pricing or listing errors before accepting an order. If an error is discovered after payment, we will contact the customer and handle the matter in accordance with applicable law.</p>
+    <p>Payment must be completed using the payment methods made available at checkout. Orders may not be processed until payment authorization or confirmation has been received.</p>
+    <p>Payment details may be processed by third-party payment service providers under their applicable terms and privacy practices.</p>
+    <p>We will not knowingly charge undisclosed fees that were not properly presented before the order was placed.</p>
+    <h2>IX. SHIPPING AND DELIVERY</h2>
+    <p>Products will be shipped to the address provided by the customer, subject to the delivery options available at checkout.</p>
+    <p>Available shipping methods, estimated delivery periods, and shipping charges will be shown during the purchase process where applicable.</p>
+    <p>Delivery estimates are not guarantees unless expressly stated otherwise. Orders must nevertheless be delivered within the period required by applicable law.</p>
+    <p>The customer is responsible for providing a complete and accurate delivery address. Any additional costs arising from incorrect information will be handled as permitted by law.</p>
+    <p>Responsibility for loss or damage during delivery will be determined in accordance with applicable law. Nothing in these Terms transfers statutory delivery risks to the customer where the law places those risks on the seller.</p>
+    <p>If delivery becomes impossible, we will notify the customer and return payments as required by applicable law.</p>
+    <h2>X. CANCELLATION AND RIGHT OF WITHDRAWAL</h2>
+    <p>For consumer distance sales covered by Turkish law, consumers generally have the right to withdraw from the contract within fourteen (14) days without giving a reason and without paying a penalty, subject to statutory exceptions.</p>
+    <p>For Products, the withdrawal period generally begins on the date the consumer or a designated third party receives the Product. Applicable law may also permit withdrawal before delivery.</p>
+    <p>To exercise the right of withdrawal, customers may send a clear written notice to:</p>
+    <p><strong>Email:</strong> <a href="mailto:recordsvunion@gmail.com">recordsvunion@gmail.com</a></p>
+    <p>The notice should include the order number, the Product concerned, and a clear statement that the customer wishes to withdraw from the purchase. Customers should retain a copy of their notice.</p>
+    <p>A customer does not need to provide a reason where the statutory right of withdrawal applies.</p>
+    <p>The right of withdrawal may be subject to statutory exceptions. For example, certain Products made to the consumer’s specifications or clearly personalized may be excluded where the applicable legal conditions are met.</p>
+    <p>Any exception will be applied only where permitted by applicable law. This section does not limit mandatory consumer rights.</p>
+    <h2>XI. RETURNS AND REFUNDS</h2>
+    <p>Return and refund requests will be handled in accordance with applicable law and any additional Return Policy published on the website.</p>
+    <p>Where a statutory right of withdrawal applies, the customer must return the Product within the period prescribed by applicable law following the withdrawal notice, unless we agree to collect it or another statutory arrangement applies.</p>
+    <p>Products should be handled with reasonable care while in the customer’s possession. Any permitted deduction or liability for diminished value will be determined under applicable law. Customers will not be deprived of statutory rights merely because they inspected a Product as reasonably necessary.</p>
+    <p>Where a refund is legally due following withdrawal, it will include the payments that must be refunded under applicable law, including qualifying delivery charges. Refunds will be made within the applicable statutory period and, where required, using the original payment method without imposing an additional refund fee on the customer.</p>
+    <p>Return shipping costs will be allocated in accordance with applicable legal requirements and the return information properly provided to the customer before purchase. No return cost will be charged where the law prohibits it.</p>
+    <p>For defective, damaged, incorrect, or materially misdescribed Products, customers may exercise the remedies available under applicable consumer law. These remedies are separate from, and are not restricted by, any voluntary return policy.</p>
+    <p>To begin a return or refund request, contact:</p>
+    <p><strong>Email:</strong> <a href="mailto:recordsvunion@gmail.com">recordsvunion@gmail.com</a></p>
+    <p>Please include your order number and a description of the issue. We may request reasonable information needed to identify the order and process the request, without limiting statutory rights.</p>
+    <h2>XII. PRE-ORDERS AND LIMITED EDITIONS</h2>
+    <p>If VN SHOP offers pre-orders, limited-edition items, or Products with a stated release date, the relevant listing will provide the available details, including any applicable estimated dispatch or delivery information.</p>
+    <p>Estimated release, production, or shipping dates may change where circumstances beyond our reasonable control affect fulfilment. We will provide material updates where appropriate.</p>
+    <p>A pre-order does not remove any applicable consumer rights. If an order cannot be fulfilled, or delivery does not occur as legally required, the customer retains the remedies available under applicable law.</p>
+    <p>Any quantity limits or special purchase conditions will be disclosed on the relevant Product page or during checkout.</p>
+    <h2>XIII. PRIVACY AND PERSONAL INFORMATION</h2>
+    <p>Personal information submitted when using VN SHOP will be handled in accordance with the applicable Privacy Policy and other privacy notices published on the website.</p>
+    <p>Information may be used where necessary to process orders, arrange delivery, provide customer support, prevent fraud, comply with legal obligations, and carry out other purposes disclosed in the applicable privacy notice.</p>
+    <p>Personal information will not be sold or shared for purposes prohibited by applicable law. Where consent or another legal basis is required for a particular use, the relevant requirements will apply.</p>
+    <p>Customers should consult the website’s Privacy Policy and <strong>Do Not Sell or Share My Personal Information</strong> notice for additional information about data practices and available privacy choices.</p>
+    <p>Privacy requests may be sent to:</p>
+    <p><strong>Email:</strong> <a href="mailto:recordsvunion@gmail.com">recordsvunion@gmail.com</a></p>
+    <h2>XIV. THIRD-PARTY SERVICES AND LINKS</h2>
+    <p>The website may rely on third-party services for functions such as payment processing, hosting, analytics, or delivery.</p>
+    <p>Third-party services may be governed by their own terms and privacy notices. VN SHOP is not responsible for independent third-party content or services except to the extent responsibility cannot lawfully be excluded.</p>
+    <p>A link to a third-party website does not necessarily mean that VN SHOP endorses that website or its content.</p>
+    <p>Nothing in this section limits any responsibility imposed on VN SHOP by applicable law.</p>
+    <h2>XV. WARRANTIES AND STATUTORY RIGHTS</h2>
+    <p>Products are subject to any applicable express warranties and mandatory statutory protections.</p>
+    <p>Nothing in these Terms excludes or limits a consumer’s legal rights concerning defective, damaged, incorrect, or non-conforming Products where such exclusion or limitation is prohibited by law.</p>
+    <p>Where a Product does not conform to the applicable contract or legal requirements, the customer may be entitled to remedies provided by law.</p>
+    <p>Any voluntary warranty offered for a Product applies in addition to mandatory statutory rights, unless the law expressly permits otherwise.</p>
+    <h2>XVI. LIMITATION OF LIABILITY</h2>
+    <p>To the extent permitted by applicable law, VN SHOP will not be responsible for indirect or unforeseeable losses that do not arise from a breach of an applicable legal duty.</p>
+    <p>Nothing in these Terms excludes or limits liability for fraud, intentional misconduct, death or personal injury where such exclusion is prohibited, or any other liability that cannot lawfully be excluded or limited.</p>
+    <p>These Terms do not limit mandatory consumer rights or remedies.</p>
+    <h2>XVII. COMPLAINTS AND DISPUTE RESOLUTION</h2>
+    <p>Customers may contact VN SHOP about an order, Product, delivery, return, or refund using:</p>
+    <p><strong>Email:</strong> <a href="mailto:recordsvunion@gmail.com">recordsvunion@gmail.com</a></p>
+    <p>Please include the order number and sufficient details for us to understand the issue.</p>
+    <p>For consumer transactions governed by Turkish law, the applicable provisions of Law No. 6502 on the Protection of Consumers and the relevant distance-contract regulations apply where relevant.</p>
+    <p>Consumers may apply to the competent Consumer Arbitration Committee or Consumer Court, as appropriate, subject to applicable rules, monetary limits, and procedural requirements.</p>
+    <p>Nothing in these Terms prevents a consumer from exercising any right to seek legal or administrative remedies available under applicable law.</p>
+    <h2>XVIII. GOVERNING LAW</h2>
+    <p>These Terms will be interpreted in accordance with the laws applicable to the relevant transaction.</p>
+    <p>For consumer transactions governed by Turkish law, applicable Turkish consumer-protection legislation, including Law No. 6502 and the relevant regulations on distance contracts, will apply.</p>
+    <p>Where mandatory consumer-protection law grants a customer rights that cannot be waived by contract, those rights remain unaffected.</p>
+    <h2>XIX. COMMUNICATIONS</h2>
+    <p>Order confirmations, shipping updates, and other order-related communications may be sent electronically to the email address provided by the customer.</p>
+    <p>Customers are responsible for providing a valid email address and checking communications relevant to their orders.</p>
+    <p>For customer support, complaints, withdrawal notices, and other order-related requests, contact:</p>
+    <p><strong><a href="mailto:recordsvunion@gmail.com">recordsvunion@gmail.com</a></strong></p>
+    <h2>XX. SEVERABILITY</h2>
+    <p>If any provision of these Terms is found to be unlawful, invalid, or unenforceable, that provision will be applied only to the extent permitted by law or treated as severable where appropriate.</p>
+    <p>The remaining provisions will continue to apply to the extent that they remain lawful and enforceable.</p>
+    <p>No provision will be interpreted to remove a mandatory consumer right.</p>
+    <h2>XXI. ENTIRE AGREEMENT AND ASSIGNMENT</h2>
+    <p>These Terms, together with the applicable Product listing, checkout information, order confirmation, Privacy Policy, Return Policy, and any other terms expressly incorporated into the purchase, govern the relevant transaction.</p>
+    <p>If there is a conflict between these Terms and a mandatory legal requirement, the mandatory legal requirement will prevail.</p>
+    <p>Any assignment of rights or obligations under these Terms will be subject to applicable law and will not reduce the customer’s mandatory statutory protections.</p>
+    <h2>XXII. CONTACT</h2>
+    <p>For questions about these Terms, orders, Products, shipping, returns, or refunds, contact:</p>
+    <p><strong>VN SHOP® — powered by 9ojeez9</strong></p>
+    <p><strong>Email:</strong> <a href="mailto:recordsvunion@gmail.com">recordsvunion@gmail.com</a></p>
+    <p>© 2026 VN RECORDS. ALL RIGHTS RESERVED.</p>
+  </div>
         </section>
       </div>
 
@@ -850,7 +968,7 @@
         </div>
 
         <div class="vn-ac-shop-space">
-          <button type="button" class="vn-ac-continue-shop" data-ac-action="continue-shop">CONTINUE WITH SHOP</button>
+          <a class="vn-ac-continue-shop" href="https://shop.app/accounts/login">CONTINUE WITH SHOP</a>
         </div>
         <div class="vn-ac-or-divider" aria-hidden="true"><span>OR</span></div>
 
