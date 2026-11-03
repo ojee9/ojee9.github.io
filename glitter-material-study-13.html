@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#e4e3e1">
+<title>Glitter Material Study 13 — Polarization Optics</title>
+<style>
+*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0}
+body{overflow:hidden;color:#17151a;background:#e4e3e1;font-family:Arial,Helvetica,sans-serif}
+#glitter{position:fixed;inset:0;width:100%;height:100%;display:block}
+.meta{position:fixed;left:22px;bottom:20px;z-index:2;padding:10px 13px;border:1px solid rgba(30,25,35,.16);border-radius:8px;background:rgba(255,255,255,.34);backdrop-filter:blur(10px);font-size:11px;line-height:1.55;letter-spacing:.035em;color:rgba(20,18,24,.76)}
+.meta strong{display:block;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#17151a}
+.hint{position:fixed;right:22px;bottom:24px;z-index:2;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:rgba(20,18,24,.58)}
+@media(max-width:600px){.meta{left:12px;bottom:12px}.hint{right:12px;bottom:16px;font-size:9px}}
+</style>
+</head>
+<body>
+<canvas id="glitter" aria-label="Polarization-dependent glitter material with thin-film iridescence"></canvas>
+<div class="meta"><strong>Glitter material · study 13</strong>Polarization-dependent Fresnel reflection · thin-film color<br>S/P response changes with the incidence plane</div>
+<div class="hint">Move pointer to shift light and incidence angle</div>
+<script>
+(() => {
+const canvas=document.getElementById('glitter');
+const gl=canvas.getContext('webgl2',{alpha:false,antialias:true,powerPreference:'high-performance'});
+if(!gl){document.querySelector('.meta').innerHTML='<strong>WebGL 2 unavailable</strong>This browser or device cannot display the material preview.';return;}
+const vertexSource=`#version 300 es
+void main(){vec2 p=vec2(float((gl_VertexID<<1)&2),float(gl_VertexID&2));gl_Position=vec4(p*2.0-1.0,0.0,1.0);}`;
+const fragmentSource=`#version 300 es
+precision highp float;
+uniform vec2 uResolution;
+uniform vec2 uPointer;
+out vec4 outColor;
+float hash12(vec2 p){vec3 p3=fract(vec3(p.xyx)*0.1031);p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}
+vec2 hash22(vec2 p){float n=hash12(p);return vec2(n,hash12(p+n+17.17));}
+vec3 thinFilm(float cosTheta,float thicknessNm,float phaseOffset){
+ vec3 wavelengths=vec3(650.0,510.0,455.0);
+ vec3 phase=6.2831853*(2.0*1.38*thicknessNm*cosTheta/wavelengths)+phaseOffset;
+ return 0.5+0.5*cos(phase);
+}
+// Dielectric Fresnel reflectance for s- and p-polarized incident light.
+vec2 fresnelSP(float cosI){
+ const float n1=1.0;
+ const float n2=1.38;
+ cosI=clamp(abs(cosI),0.0001,1.0);
+ float sinT2=(n1*n1/(n2*n2))*(1.0-cosI*cosI);
+ if(sinT2>=1.0)return vec2(1.0);
+ float cosT=sqrt(1.0-sinT2);
+ float rs=(n1*cosI-n2*cosT)/(n1*cosI+n2*cosT);
+ float rp=(n1*cosT-n2*cosI)/(n1*cosT+n2*cosI);
+ return vec2(rs*rs,rp*rp);
+}
+vec3 facetLayer(vec2 pixel,float cellSize,float seed,float density,vec3 L,vec3 H){
+ vec2 cell=floor(pixel/cellSize);vec2 local=fract(pixel/cellSize);vec2 rnd=hash22(cell+seed);
+ vec2 center=0.16+0.68*rnd;float angle=hash12(cell+seed+5.3)*6.2831853;
+ mat2 rot=mat2(cos(angle),-sin(angle),sin(angle),cos(angle));vec2 q=rot*(local-center);
+ float aspect=mix(0.42,0.92,hash12(cell+seed+8.1));float radius=mix(0.22,0.39,hash12(cell+seed+11.7));
+ float shape=length(vec2(q.x,q.y/aspect));float edge=1.0-smoothstep(radius-0.055,radius+0.025,shape);
+ float mask=edge*step(1.0-density,hash12(cell+seed+13.9));
+ float xi=clamp(hash12(cell+seed+19.1),0.015,0.985);
+ float alpha=mix(0.20,0.52,hash12(cell+seed+23.4));
+ float tanTheta=alpha*sqrt(xi/(1.0-xi));float azimuth=hash12(cell+seed+29.8)*6.2831853;
+ vec3 N=normalize(vec3(tanTheta*cos(azimuth),tanTheta*sin(azimuth),1.0));
+ float ndh=max(dot(N,H),0.0);float alignment=pow(ndh,mix(90.0,230.0,hash12(cell+seed+31.2)));
+ float glint=mask*alignment;float broad=mask*pow(ndh,24.0)*0.12;
+ float cosI=clamp(dot(N,L),0.0001,1.0);
+ vec3 sAxis=normalize(cross(L,N)+vec3(0.00001,0.0,0.0));
+ vec3 pAxis=normalize(cross(sAxis,L));
+ // Fixed linearly polarized illumination, projected perpendicular to the incoming ray.
+ vec3 electric=normalize(vec3(1.0,0.0,0.0)-L*dot(vec3(1.0,0.0,0.0),L)+vec3(0.00001,0.0,0.0));
+ float sWeight=pow(dot(electric,sAxis),2.0);
+ float pWeight=pow(dot(electric,pAxis),2.0);
+ vec2 fresnel=fresnelSP(cosI);
+ float polarizedReflectance=fresnel.x*sWeight+fresnel.y*pWeight;
+ float opticalGain=clamp(polarizedReflectance/0.055,0.42,1.8);
+ float thickness=mix(260.0,720.0,hash12(cell+seed+37.6));
+ vec3 film=thinFilm(cosI,thickness,hash12(cell+seed+41.0)*1.4);
+ vec3 reflected=mix(vec3(0.88,0.91,0.96),film,0.74);
+ vec3 sparkle=reflected*(glint*2.8+broad*0.8)*opticalGain;
+ sparkle+=vec3(1.0,0.985,0.97)*pow(ndh,320.0)*mask*1.3*opticalGain;
+ return sparkle;
+}
+void main(){
+ vec2 pixel=gl_FragCoord.xy;vec2 pointer=uPointer/uResolution;
+ vec3 L=normalize(vec3((pointer.x-0.5)*0.9,(0.5-pointer.y)*0.72,0.94));
+ vec3 H=normalize(L+vec3(0.0,0.0,1.0));
+ float globalAngle=clamp(L.z,0.0,1.0);
+ vec3 baseFilm=thinFilm(globalAngle,470.0,0.0);
+ vec3 base=mix(vec3(0.78,0.80,0.84),baseFilm,0.13);
+ vec3 fine=facetLayer(pixel,2.25,4.0,0.92,L,H);
+ vec3 medium=facetLayer(pixel,4.8,91.0,0.54,L,H);
+ vec3 micro=facetLayer(pixel,1.18,217.0,0.68,L,H)*0.48;
+ vec3 color=base+fine+medium+micro;
+ outColor=vec4(clamp(color,0.0,1.0),1.0);
+}`;
+function compile(type,source){const shader=gl.createShader(type);gl.shaderSource(shader,source);gl.compileShader(shader);if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS)){const message=gl.getShaderInfoLog(shader);gl.deleteShader(shader);throw new Error(message);}return shader;}
+try{
+ const program=gl.createProgram();gl.attachShader(program,compile(gl.VERTEX_SHADER,vertexSource));gl.attachShader(program,compile(gl.FRAGMENT_SHADER,fragmentSource));gl.linkProgram(program);
+ if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(program));
+ gl.useProgram(program);const resolutionLoc=gl.getUniformLocation(program,'uResolution');const pointerLoc=gl.getUniformLocation(program,'uPointer');
+ let pointer=[innerWidth*0.5,innerHeight*0.5];
+ function resize(){const dpr=Math.min(devicePixelRatio||1,1.5);const width=Math.max(1,Math.floor(innerWidth*dpr));const height=Math.max(1,Math.floor(innerHeight*dpr));if(canvas.width!==width||canvas.height!==height){canvas.width=width;canvas.height=height;gl.viewport(0,0,width,height);}}
+ addEventListener('resize',resize);addEventListener('pointermove',event=>{pointer=[event.clientX,innerHeight-event.clientY];},{passive:true});resize();
+ function draw(){resize();gl.uniform2f(resolutionLoc,canvas.width,canvas.height);gl.uniform2f(pointerLoc,pointer[0]*canvas.width/innerWidth,pointer[1]*canvas.height/innerHeight);gl.drawArrays(gl.TRIANGLES,0,3);requestAnimationFrame(draw);}
+ requestAnimationFrame(draw);
+}catch(error){document.querySelector('.meta').innerHTML='<strong>Material preview could not start</strong>'+String(error.message).replace(/[<>&"]/g,'');}
+})();
+</script>
+</body>
+</html>
