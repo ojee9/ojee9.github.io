@@ -142,6 +142,13 @@
 
       clerk.addListener(({ user }) => {
         if (user === undefined) return;
+
+        // Clerk can emit a signed-out state while a passwordless attempt is
+        // being prepared. Do not replace the active OTP screen during that flow.
+        if (!user && (state.screen === "verify" || state.sendingCode || state.authAttempt)) {
+          return;
+        }
+
         syncClerkUser(user || null);
         if (user) {
           loadAccountData().finally(render);
@@ -246,7 +253,8 @@
       .vn-ac-email-main{display:flex;flex-direction:column;align-items:stretch;width:100%;max-width:480px;margin-inline:auto}
       .vn-ac-email-form-wrap{width:100%;max-width:480px;margin:0 auto}.vn-ac-email-form-wrap form{display:flex;flex-direction:column;width:100%}
       .vn-ac-shop-space{display:flex;align-items:center;justify-content:center;width:100%;min-height:54px;flex:none;margin:0 auto 18px}.vn-ac-shop-space[hidden]{display:none!important}
-      #vnAcShopLogin{display:flex;align-items:center;justify-content:center;width:100%;max-width:480px;min-height:50px;margin:0 auto}.vn-ac-shop-sdk-host{position:relative;display:flex;align-items:center;justify-content:center;width:100%;min-height:48px}#vnAcShopLogin>*{width:100%;max-width:100%}
+      .vn-ac-shop-button{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:52px;padding:0 18px;border:1px solid #f5f5f5;border-radius:3px;background:#f5f5f5;color:#171717;font:600 14px/1 Arial,sans-serif;letter-spacing:.1px;cursor:pointer;transition:background .18s ease,border-color .18s ease,transform .18s ease}.vn-ac-shop-button:hover{background:#e8e8e8;border-color:#e8e8e8}.vn-ac-shop-button:active{transform:translateY(1px)}.vn-ac-shop-button:focus-visible{outline:2px solid #fff;outline-offset:3px}
+      #vnAcShopLogin{position:absolute!important;width:1px!important;height:1px!important;min-height:0!important;overflow:hidden!important;clip-path:inset(50%)!important;white-space:nowrap!important}.vn-ac-shop-sdk-host{position:relative;display:flex;align-items:center;justify-content:center;width:100%;min-height:48px}#vnAcShopLogin>*{width:100%;max-width:100%}
       .vn-ac-consent-note{margin:24px auto 0!important;max-width:480px;text-align:center;color:#a4a4a4;font-size:12px;line-height:1.75}
       .vn-ac-consent-note a{color:#fff;text-decoration:underline;text-underline-offset:2px}
       .vn-ac-or-divider{display:flex;align-items:center;gap:13px;width:min(100%,480px);margin:0 auto 18px;color:#8d8794;font-size:11px;line-height:1;letter-spacing:1.5px}
@@ -995,8 +1003,9 @@
           <p>Sign in or create an account</p>
         </div>
 
-        <div class="vn-ac-shop-space" hidden>
-          <div id="vnAcShopLogin" class="vn-ac-shop-sdk-host" aria-label="Continue with Shop"></div>
+        <div class="vn-ac-shop-space">
+          <button type="button" class="vn-ac-shop-button" data-ac-action="shop-login">Continue with Shop</button>
+          <div id="vnAcShopLogin" class="vn-ac-shop-sdk-host" aria-hidden="true"></div>
         </div>
         <div class="vn-ac-or-divider" aria-hidden="true"><span>OR</span></div>
 
@@ -1052,7 +1061,13 @@
               apiKey: "90292cd96f43b8299e5b541fbe400d11",
               locale: "en",
               features: { login: true },
-              appearance: { variables: { "--buttons-radius": "2px" } }
+              appearance: { variables: { "--buttons-radius": "2px" } },
+              onEligibleForSignInWithShop(eligible, context) {
+                console.info("[VN ACCOUNT] Shop sign-in eligibility:", eligible, context);
+              },
+              onError(event) {
+                console.error("[VN ACCOUNT] Shop SDK error:", event?.feature, event?.message, event?.cause);
+              }
             });
           })();
         }
@@ -1068,10 +1083,7 @@
             returnTo: "same-page"
           },
           onLoad(event) {
-            const shopSpace = mount.closest(".vn-ac-shop-space");
-            if (sequence === shopMountSequence && shopSpace) {
-              shopSpace.hidden = !event?.userFound;
-            }
+            console.info("[VN ACCOUNT] Shop login component ready:", { userFound: Boolean(event?.userFound) });
           },
           onComplete(event) {
             if (event?.signedIn && event?.emailVerified && event?.email) {
@@ -1085,12 +1097,10 @@
           onError(event) {
             console.error("[VN ACCOUNT] Shop sign-in failed:", event?.code, event?.message);
             state.messageType = "error";
-            state.message = "Shop sign-in could not be started. Please try again or continue with email.";
-            const message = $(".vn-ac-message", mount.closest(".vn-ac-main"));
-            if (message) {
-              message.textContent = state.message;
-              message.classList.add("error");
-            }
+            state.message = event?.message
+              ? "Shop sign-in failed: " + event.message
+              : "Shop sign-in could not be completed. Please try again or continue with email.";
+            if (state.screen !== "verify") render();
           }
         });
 
@@ -1689,18 +1699,44 @@
         }
 
         try {
-          state.authAttempt = await state.clerk.client.signIn.create({
-            identifier: normalizedEmail,
-            strategy: "email_code"
+          // Create the sign-in attempt first, then explicitly prepare its
+          // email-code factor. This keeps the code and the active attempt paired.
+          const signInAttempt = await state.clerk.client.signIn.create({
+            identifier: normalizedEmail
           });
+          const emailFactor = signInAttempt.supportedFirstFactors?.find(
+            factor => factor.strategy === "email_code"
+          );
+
+          if (!emailFactor?.emailAddressId) {
+            throw new Error("Email verification is not enabled as a sign-in method for this Clerk account.");
+          }
+
+          await signInAttempt.prepareFirstFactor({
+            strategy: "email_code",
+            emailAddressId: emailFactor.emailAddressId
+          });
+
+          state.authAttempt = signInAttempt;
           state.authMode = "signin";
         } catch (signInError) {
           if (!isUnknownClerkUser(signInError)) throw signInError;
+
           const signUp = state.clerk.client.signUp;
           await signUp.create({ emailAddress: normalizedEmail });
           await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
           state.authAttempt = signUp;
           state.authMode = "signup";
+        }
+
+        if (requestId === state.sendRequestId) {
+          state.messageType = "info";
+          state.message = "";
+          if (state.screen !== "verify") {
+            state.screen = "verify";
+            render();
+          }
+          window.setTimeout(focusOtp, 0);
         }
       } catch (error) {
         console.error("[VN ACCOUNT] Clerk OTP send failed:", error);
@@ -1708,6 +1744,7 @@
         state.resendAt = 0;
         state.messageType = "error";
         state.message = explainAuthError(error);
+        state.screen = "verify";
         render();
         startResendTimer();
         focusOtp();
@@ -2075,6 +2112,7 @@
 
           case "shop-login":
             if (shopLoginInstance && typeof shopLoginInstance.start === "function") {
+              state.message = "";
               shopLoginInstance.start(state.email || undefined);
             } else {
               state.messageType = "info";
