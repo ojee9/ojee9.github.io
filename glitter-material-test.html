@@ -28,40 +28,28 @@ const fragmentSource="#version 300 es\n"+
 "precision highp float;uniform vec2 uResolution;uniform vec2 uPointer;uniform float uDpr;out vec4 outColor;\n"+
 "float hash12(vec2 p){vec3 q=fract(vec3(p.xyx)*0.1031);q+=dot(q,q.yzx+33.33);return fract((q.x+q.y)*q.z);}\n"+
 "vec2 hash22(vec2 p){float n=hash12(p);return vec2(n,hash12(p+n+19.19));}\n"+
-"vec3 spectral(float h){return 0.56+0.40*cos(6.2831853*(h+vec3(0.00,0.34,0.67)));}\n"+
-"float flakeShape(vec2 p,float r,float sides,float rot,float irregular){\n"+
-" float a=atan(p.y,p.x)-rot;float sector=6.2831853/sides;float local=mod(a+0.5*sector,sector)-0.5*sector;\n"+
-" float wobble=1.0+irregular*sin(a*3.0+1.3)+irregular*0.45*cos(a*5.0+2.1);\n"+
-" return length(p)-r*wobble*cos(3.14159265/sides)/cos(local);\n"+
-"}\n"+
+"vec3 spectral(float h){return 0.58+0.38*cos(6.2831853*(h+vec3(0.00,0.34,0.67)));}\n"+
+"float flakeD(vec2 p,float r,float sides,float rot,float wobble){float a=atan(p.y,p.x)-rot;float sector=6.2831853/sides;float local=mod(a+0.5*sector,sector)-0.5*sector;float radial=r*(1.0+wobble*sin(a*3.0+1.4));return length(p)-radial*cos(3.14159265/sides)/cos(local);}\n"+
 "vec4 overLayer(vec4 a,vec4 b){float alpha=b.a+a.a*(1.0-b.a);vec3 rgb=(b.rgb*b.a+a.rgb*a.a*(1.0-b.a))/max(alpha,0.0001);return vec4(rgb,alpha);}\n"+
-"vec4 particleField(vec2 frag,float cellSize,float density,float seedOffset,vec3 L){\n"+
+"vec4 glitterPass(vec2 frag,float cellSize,float density,float seedOffset,vec3 L){\n"+
 " vec2 grid=frag/cellSize;vec2 id=floor(grid);vec2 f=fract(grid)-0.5;vec2 rnd=hash22(id+seedOffset);\n"+
-" vec2 jitter=(rnd-0.5)*0.46;float rotation=hash12(id+seedOffset+7.7)*6.2831853;\n"+
-" float r=mix(0.255,0.385,hash12(id+seedOffset+3.1));float aspect=mix(0.88,1.14,hash12(id+seedOffset+5.4));\n"+
-" mat2 R=mat2(cos(rotation),-sin(rotation),sin(rotation),cos(rotation));vec2 p=R*(f-jitter);p.x/=aspect;\n"+
-" float sides=mix(5.0,7.0,floor(hash12(id+seedOffset+9.2)*3.0));float d=flakeShape(p,r,sides,rotation,0.045);\n"+
-" float aa=max(fwidth(d)*0.9,0.0018);float mask=1.0-smoothstep(-aa,aa,d);mask*=step(1.0-density,hash12(id+seedOffset+11.3));\n"+
-" float orient=hash12(id+seedOffset+29.0)*6.2831853;float tilt=mix(0.025,0.20,hash12(id+seedOffset+41.0));\n"+
-" vec3 N=normalize(vec3(cos(orient)*tilt,sin(orient)*tilt,0.99));vec3 H=normalize(L+vec3(0.0,0.0,1.0));\n"+
-" float ndh=max(dot(N,H),0.0);float glint=pow(ndh,105.0);float sheen=pow(ndh,24.0);\n"+
-" float hue=fract(hash12(id+seedOffset+53.0)*0.58+(1.0-max(dot(N,L),0.0))*0.60);\n"+
-" vec3 irid=spectral(hue);float metal=mix(0.54,0.88,hash12(id+seedOffset+61.0));\n"+
-" vec3 base=mix(vec3(metal),irid,0.34+0.28*(1.0-max(dot(N,L),0.0)));\n"+
-" float tinyFacet=hash12(id+seedOffset+73.0);base*=0.88+tinyFacet*0.16;\n"+
-" vec3 color=base+irid*sheen*0.20+vec3(1.0,0.99,0.97)*glint*1.30;\n"+
-" float alpha=mask*mix(0.46,0.76,hash12(id+seedOffset+83.0));return vec4(clamp(color,0.0,1.9),alpha);\n"+
+" vec2 jitter=(rnd-0.5)*0.30;float rot=hash12(id+seedOffset+7.7)*6.2831853;\n"+
+" float r=mix(0.39,0.47,hash12(id+seedOffset+3.1));float sides=hash12(id+seedOffset+9.2)>0.52?6.0:5.0;\n"+
+" mat2 R=mat2(cos(rot),-sin(rot),sin(rot),cos(rot));vec2 p=R*(f-jitter);\n"+
+" float d=flakeD(p,r,sides,rot,0.025);float aa=max(fwidth(d)*0.8,0.0015);float mask=(1.0-smoothstep(-aa,aa,d))*step(1.0-density,hash12(id+seedOffset+11.3));\n"+
+" float orient=hash12(id+seedOffset+29.0)*6.2831853;float tilt=mix(0.04,0.26,hash12(id+seedOffset+41.0));vec3 N=normalize(vec3(cos(orient)*tilt,sin(orient)*tilt,0.985));\n"+
+" vec3 H=normalize(L+vec3(0.0,0.0,1.0));float ndh=max(dot(N,H),0.0);float flash=pow(ndh,115.0);float sheen=pow(ndh,18.0);\n"+
+" float hue=fract(hash12(id+seedOffset+53.0)*0.62+(1.0-max(dot(N,L),0.0))*0.55);vec3 irid=spectral(hue);\n"+
+" float silver=mix(0.55,0.90,hash12(id+seedOffset+61.0));vec3 base=mix(vec3(silver),irid,0.32+0.32*(1.0-max(dot(N,L),0.0)));\n"+
+" float facet=hash12(id+seedOffset+73.0);base*=0.88+facet*0.18;\n"+
+" vec3 color=base+irid*sheen*0.18+vec3(1.0,0.99,0.97)*flash*1.45;\n"+
+" float alpha=mask*mix(0.50,0.82,hash12(id+seedOffset+83.0));return vec4(clamp(color,0.0,1.9),alpha);\n"+
 "}\n"+
-"void main(){\n"+
-" vec2 frag=gl_FragCoord.xy;vec2 pointer=uPointer/uResolution;vec2 shift=pointer-0.5;\n"+
-" vec3 L=normalize(vec3(0.10+shift.x*0.62,0.28-shift.y*0.42,0.92));\n"+
-" vec4 fine=particleField(frag,3.25*uDpr,0.91,3.0,L);\n"+
-" vec4 secondary=particleField(frag,4.15*uDpr,0.22,117.0,L);\n"+
-" vec4 rare=particleField(frag,6.4*uDpr,0.035,251.0,L);\n"+
-" vec4 material=overLayer(overLayer(fine,secondary),rare);\n"+
-" float grain=hash12(floor(frag/(1.25*uDpr))+vec2(83.0,17.0));float pin=step(0.9997,grain)*(1.0-material.a);\n"+
-" vec3 pinColor=spectral(fract(grain*8.0+pointer.x*0.17));float alpha=clamp(material.a+pin*0.18,0.0,0.88);\n"+
-" vec3 rgb=mix(material.rgb,pinColor,pin*0.68);outColor=vec4(rgb,alpha);\n"+
+"void main(){vec2 frag=gl_FragCoord.xy;vec2 pointer=uPointer/uResolution;vec2 shift=pointer-0.5;vec3 L=normalize(vec3(0.08+shift.x*0.62,0.30-shift.y*0.42,0.92));\n"+
+" vec4 mainFlakes=glitterPass(frag,5.6*uDpr,0.66,3.0,L);\n"+
+" vec4 secondary=glitterPass(frag,7.8*uDpr,0.12,117.0,L);\n"+
+" vec4 material=overLayer(mainFlakes,secondary);\n"+
+" outColor=vec4(material.rgb,material.a*0.94);\n"+
 "}";
 
 function compile(type,source){const s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){const m=gl.getShaderInfoLog(s);gl.deleteShader(s);throw new Error(m);}return s;}
