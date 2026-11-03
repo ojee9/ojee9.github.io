@@ -988,16 +988,16 @@
             <button type="submit" class="vn-ac-email-submit" aria-label="Continue" title="Continue"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12h14M12 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
           </div>
 
-          <p class="vn-ac-muted vn-ac-email-terms">
-            <a href="#" data-ac-action="privacy-open" data-ac-policy="privacy">Privacy Policy</a>
-          </p>
-          <p class="vn-ac-consent-note">
-            By continuing, you agree to our <a href="/policies/terms-of-use.html">Terms of use</a>
-          </p>
           <label class="vn-ac-updates">
             <input type="checkbox" name="updates" ${state.signupMarketing ? "checked" : ""}>
             <span>Sign up to receive updates from 9ojeez9</span>
           </label>
+          <p class="vn-ac-consent-note">
+            By continuing, you agree to our <a href="#" data-ac-action="policy-open" data-ac-policy="terms">Terms of use</a>
+          </p>
+          <p class="vn-ac-muted vn-ac-email-terms">
+            <a href="#" data-ac-action="policy-open" data-ac-policy="privacy">Privacy Policy</a>
+          </p>
         </form>
         </div>
       </main>
