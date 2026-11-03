@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VN — Continuous Atmosphere Study</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;background:#090a0c;color:#f4f3f0;font-family:Arial,Helvetica,sans-serif}
+#atmosphere{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.journey{height:820svh;position:relative;z-index:1}.viewport{height:100svh;position:sticky;top:0;overflow:hidden;isolation:isolate}
+.stage{position:absolute;inset:0;display:grid;align-items:center;padding:clamp(24px,6vw,100px);opacity:0;pointer-events:none;isolation:isolate}
+.stage:after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,rgba(0,0,0,.28),transparent 72%),linear-gradient(0deg,rgba(0,0,0,.18),transparent 34%)}
+.copy{max-width:720px;width:80vw;will-change:opacity,transform}.kicker{font-size:10px;letter-spacing:.22em;color:#aaa;text-transform:uppercase;margin:0 0 22px}
+h1,h2{font-weight:400;letter-spacing:-.065em;line-height:.88;margin:0;font-size:clamp(56px,10vw,150px)}
+.desc{max-width:430px;font-size:14px;line-height:1.65;color:#bbb;margin-top:26px}
+.index{position:absolute;left:clamp(24px,6vw,100px);bottom:32px;font-size:9px;letter-spacing:.2em;color:#999}
+.skip{position:absolute;right:clamp(24px,6vw,100px);bottom:24px;padding:13px 17px;border:1px solid #555;background:#17181b;color:#fff;font-size:9px;letter-spacing:.16em;cursor:pointer}
+.hud{position:fixed;z-index:5;top:16px;left:18px;font-size:9px;letter-spacing:.15em;color:#aaa}
+.progress{position:fixed;z-index:5;top:0;left:0;right:0;height:2px;background:#ffffff20}.progress span{display:block;height:100%;background:#eee;transform:scaleX(0);transform-origin:left}
+@media(max-width:700px){.stage{padding:24px}.copy{width:100%}.index{left:24px;bottom:24px}.skip{right:24px;bottom:18px}}
+</style>
+</head>
+<body>
+<canvas id="atmosphere" aria-label="One continuous procedural atmosphere"></canvas>
+<div class="progress"><span id="fill"></span></div><div class="hud">VN / CONTINUOUS ATMOSPHERE · MATERIAL STUDY</div>
+<main class="journey"><div class="viewport">
+<section class="stage"><div class="copy"><p class="kicker">01 / ENTRY</p><h1>ENTER<br>THE<br>ATMOSPHERE</h1><p class="desc">A long entrance. The dark field does not turn white; the silver material reveals itself layer by layer.</p></div><span class="index">01 — DARK FIELD</span><button class="skip" id="skip">SKIP EXPERIENCE ↗</button></section>
+<section class="stage"><div class="copy"><p class="kicker">02 / SILVER DIFFRACTION</p><h2>A SURFACE<br>EMERGES</h2><p class="desc">The existing diffraction material continues on the same rendering surface as the content changes.</p></div><span class="index">02 — SILVER / DIFFRACTION</span></section>
+<section class="stage"><div class="copy"><p class="kicker">03 / MINERAL HABITAT</p><h2>THE<br>MECHANIC<br>CHANGES</h2><p class="desc">The atmosphere stays in place. Reflection becomes broader and quieter; the material behaviour changes instead of replacing the background.</p></div><span class="index">03 — MINERAL / DEPTH</span></section>
+<section class="stage"><div class="copy"><p class="kicker">04 / RECEIPT</p><h2>ONE WORLD.<br>NEW STATE.</h2><p class="desc">A warmer, paper-like response develops inside the same persistent atmosphere.</p></div><span class="index">04 — WARM / RESIDUAL LIGHT</span></section>
+</div></main>
+<script>
+(function(){
+'use strict';
+var canvas=document.getElementById('atmosphere'),gl=canvas.getContext('webgl2',{alpha:false,antialias:true,powerPreference:'high-performance'});
+var stages=Array.prototype.slice.call(document.querySelectorAll('.stage')),fill=document.getElementById('fill'),progress=0,pointer=[innerWidth/2,innerHeight/2],loc={};
+if(!gl){document.querySelector('.hud').textContent='WEBGL2 UNAVAILABLE';return;}
+function smooth(a,b,x){var t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t);}
+function compile(type,src){var s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s;}
+function resize(){var d=Math.min(devicePixelRatio||1,1.5),w=Math.max(1,Math.floor(innerWidth*d)),h=Math.max(1,Math.floor(innerHeight*d));if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;gl.viewport(0,0,w,h);}}
+function draw(){resize();var d=Math.min(devicePixelRatio||1,1.5);gl.uniform2f(loc.res,canvas.width,canvas.height);gl.uniform2f(loc.pointer,pointer[0]*d,(innerHeight-pointer[1])*d);gl.uniform1f(loc.progress,progress);gl.uniform4f(loc.weights,1,0,0,0);gl.drawArrays(gl.TRIANGLES,0,3);requestAnimationFrame(draw);}
+function update(){var max=Math.max(1,document.documentElement.scrollHeight-innerHeight),y=Math.max(0,Math.min(1,scrollY/max));progress=y;fill.style.transform='scaleX('+y+')';var ranges=[[0,.36],[.46,.63],[.69,.87],[.92,1.2]];stages.forEach(function(s,i){var a=ranges[i][0],b=ranges[i][1],o=i===0?1-smooth(b-.025,b+.025,y):smooth(a-.035,a+.025,y)*(1-smooth(b-.025,b+.025,y));s.style.opacity=o;s.style.pointerEvents=o>.52?'auto':'none';var c=s.querySelector('.copy');c.style.opacity=o;c.style.transform='translateY('+((1-o)*22)+'px)';});}
+async function init(){try{
+var source=await(await fetch('glitter-material-study-12.html',{cache:'no-cache'})).text();
+var vertex=source.match(new RegExp('const vertexSource=\\x60([\\s\\S]*?)\\x60;'))[1];
+var fragment=source.match(new RegExp('const fragmentSource=\\x60([\\s\\S]*?)\\x60;'))[1];
+fragment=fragment.replace('uniform vec2 uPointer;','uniform vec2 uPointer;'+String.fromCharCode(10)+'uniform float uProgress;'+String.fromCharCode(10)+'uniform vec4 uMaterialWeights;');
+fragment=fragment.replace('vec3 base=mix(vec3(0.78,0.80,0.84),baseFilm,0.13);','float p=clamp(uProgress,0.0,1.0);float glitter=smoothstep(0.105,0.30,p);float silver=smoothstep(0.27,0.49,p);float mineral=smoothstep(0.61,0.75,p);float warm=smoothstep(0.855,0.985,p);float rough=max(smoothstep(0.62,0.76,p),smoothstep(0.87,0.99,p));vec3 base=mix(vec3(0.012,0.014,0.018),vec3(0.76,0.785,0.82),silver);base=mix(base,vec3(0.47,0.49,0.50),mineral*0.94);base=mix(base,vec3(0.68,0.63,0.54),warm);');
+fragment=fragment.replace('vec3 color=base+fine+medium+micro;','vec3 color=base+(fine*0.70+medium+micro)*glitter*(1.0-rough*0.76)*uMaterialWeights.x;color+=vec3(0.10,0.11,0.13)*smoothstep(0.38,0.54,p)*(1.0-smoothstep(0.60,0.76,p))*silver;');
+var program=gl.createProgram();gl.attachShader(program,compile(gl.VERTEX_SHADER,vertex));gl.attachShader(program,compile(gl.FRAGMENT_SHADER,fragment));gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw Error(gl.getProgramInfoLog(program));gl.useProgram(program);
+loc.res=gl.getUniformLocation(program,'uResolution');loc.pointer=gl.getUniformLocation(program,'uPointer');loc.progress=gl.getUniformLocation(program,'uProgress');loc.weights=gl.getUniformLocation(program,'uMaterialWeights');draw();
+}catch(e){document.querySelector('.hud').textContent='MATERIAL LOAD ERROR — '+e.message;}}
+addEventListener('resize',resize,{passive:true});addEventListener('pointermove',function(e){pointer=[e.clientX,e.clientY];},{passive:true});addEventListener('scroll',update,{passive:true});
+document.getElementById('skip').addEventListener('click',function(){scrollTo({top:document.documentElement.scrollHeight-innerHeight,behavior:'smooth'});});
+update();init();
+})();
+</script>
+</body>
+</html>
