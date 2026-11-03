@@ -45,6 +45,9 @@
   };
 
   let configPromise = null;
+  let shopSdkPromise = null;
+  let shopLoginInstance = null;
+  let shopMountSequence = 0;
 
   const $ = (selector, root = document) => root.querySelector(selector);
 
@@ -225,7 +228,7 @@
       #vnAccountOverlay[hidden]{display:none!important}
       #vnAccountOverlay *{box-sizing:border-box}
       .vn-ac-shell{width:min(100%,980px);max-height:calc(100dvh - 48px);overflow:auto;margin:auto;padding:28px;background:#BFC5C8;border:1px solid #d8d8d8;box-shadow:0 24px 80px rgba(0,0,0,.25)}
-      .vn-ac-shell.vn-ac-auth-shell{display:flex;flex-direction:column;width:min(100%,640px);min-height:480px;max-height:calc(100dvh - 28px);padding:44px 56px 38px;background:#171717;color:#f5f5f5;border:0;box-shadow:0 28px 90px rgba(0,0,0,.42)}
+      .vn-ac-shell.vn-ac-auth-shell{display:flex;flex-direction:column;width:min(100%,640px);min-height:520px;max-height:calc(100dvh - 28px);padding:44px 56px 38px;background:#171717;color:#f5f5f5;border:0;box-shadow:0 28px 90px rgba(0,0,0,.42)}
       .vn-ac-header{position:relative;display:flex;justify-content:center;align-items:center;padding-bottom:24px;border-bottom:1px solid #e5e5e5}
       .vn-ac-auth-shell .vn-ac-header{padding:0 32px 22px;border:0}
       .vn-ac-brand{display:flex;align-items:center;justify-content:center;width:164px;height:80px;color:inherit;text-decoration:none;user-select:none;-webkit-user-select:none;pointer-events:none}
@@ -240,9 +243,8 @@
       .vn-ac-signin-heading h1{margin:0;font-size:30px;font-weight:700;line-height:1.2;letter-spacing:-.65px;color:#f5f5f5}
       .vn-ac-signin-heading p{margin:9px 0 0;font-size:14px;line-height:1.5;color:#a9a5ad}
       .vn-ac-email-form-wrap{width:min(100%,420px);margin:0 auto}
-      .vn-ac-shop-space{height:42px;flex:none;display:flex;align-items:center;justify-content:center}
-      .vn-ac-continue-shop{display:flex;align-items:center;justify-content:center;width:100%;max-width:420px;height:42px;padding:0 16px;border:1px solid #555;border-radius:2px;background:#101010;color:#f5f5f5;font:600 12px/1 Arial,sans-serif;letter-spacing:1.1px;text-align:center;cursor:pointer;transition:border-color .18s ease,background .18s ease}
-      .vn-ac-continue-shop:hover{border-color:#888;background:#1b1b1b}.vn-ac-continue-shop{text-decoration:none}
+      .vn-ac-shop-space{min-height:48px;flex:none;display:flex;align-items:center;justify-content:center}
+      #vnAcShopLogin{display:flex;align-items:center;justify-content:center;width:100%;max-width:420px;min-height:44px;margin:0 auto}
       .vn-ac-consent-note{margin:5px auto 0!important;max-width:420px;text-align:center;color:#8d8d8d;font-size:11px;line-height:1.5}
       .vn-ac-consent-note a{color:#fff;text-decoration:underline;text-underline-offset:2px}
       .vn-ac-or-divider{display:flex;align-items:center;gap:13px;width:min(100%,420px);margin:0 auto 18px;color:#8d8794;font-size:11px;line-height:1;letter-spacing:1.5px}
@@ -259,7 +261,7 @@
       .vn-ac-email-terms{margin:22px auto 0!important;max-width:420px;text-align:center;color:#8d8d8d;font-size:12px;line-height:1.6}
       .vn-ac-email-terms a,.vn-ac-email-terms button{padding:0;border:0;background:transparent;color:#fff;font:inherit;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
       .vn-ac-auth-shell .vn-ac-message{margin:0 0 12px}
-      @media(max-width:600px){.vn-ac-shell.vn-ac-auth-shell{width:min(100%,540px);min-height:420px;padding:30px 24px 26px}.vn-ac-auth-shell .vn-ac-close{right:-10px}.vn-ac-auth-shell .vn-ac-brand{width:158px;height:74px}.vn-ac-signin-heading h1{font-size:27px}.vn-ac-signin-heading p{font-size:13px}.vn-ac-email-form-wrap,.vn-ac-or-divider{width:100%;max-width:420px}.vn-ac-email-bar{min-height:56px;padding-left:14px}.vn-ac-email-bar input{height:42px;font-size:16px}.vn-ac-email-submit{width:42px;height:42px}.vn-ac-email-submit svg{display:block;width:20px;height:20px}.vn-ac-shop-space{height:32px}.vn-ac-updates{font-size:12px}}
+      @media(max-width:600px){.vn-ac-shell.vn-ac-auth-shell{width:min(100%,540px);min-height:460px;padding:30px 24px 26px}.vn-ac-auth-shell .vn-ac-close{right:-10px}.vn-ac-auth-shell .vn-ac-brand{width:158px;height:74px}.vn-ac-signin-heading h1{font-size:27px}.vn-ac-signin-heading p{font-size:13px}.vn-ac-email-form-wrap,.vn-ac-or-divider{width:100%;max-width:420px}.vn-ac-email-bar{min-height:56px;padding-left:14px}.vn-ac-email-bar input{height:42px;font-size:16px}.vn-ac-email-submit{width:42px;height:42px}.vn-ac-email-submit svg{display:block;width:20px;height:20px}.vn-ac-shop-space{min-height:46px}#vnAcShopLogin{min-height:44px}.vn-ac-updates{font-size:12px}}
       .vn-ac-layout{display:grid;grid-template-columns:200px minmax(0,1fr);gap:48px;padding-top:32px}
       .vn-ac-sidebar{display:flex;flex-direction:column;gap:8px}
       .vn-ac-nav{border:0;background:none;color:#666;text-align:left;padding:12px 10px;font:inherit;cursor:pointer;border-radius:4px;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
@@ -989,7 +991,7 @@
         </div>
 
         <div class="vn-ac-shop-space">
-          <a class="vn-ac-continue-shop" href="https://shop.app/accounts/login">CONTINUE WITH SHOP</a>
+          <div id="vnAcShopLogin" aria-label="Continue with Shop"></div>
         </div>
         <div class="vn-ac-or-divider" aria-hidden="true"><span>OR</span></div>
 
@@ -1023,6 +1025,77 @@
         </div>
       </main>
     `;
+  }
+
+  function mountShopLogin() {
+    const mount = $("#vnAcShopLogin");
+    if (!mount) return;
+
+    const sequence = ++shopMountSequence;
+    if (shopLoginInstance) {
+      shopLoginInstance.destroy();
+      shopLoginInstance = null;
+    }
+
+    (async () => {
+      try {
+        if (!shopSdkPromise) {
+          shopSdkPromise = (async () => {
+            await import("https://cdn.shopify.com/shopifycloud/shop-js/modules/v2/loader.sdk.esm.js");
+            if (!window.ShopSDK) throw new Error("Shop SDK did not initialize.");
+            return window.ShopSDK.initialize({
+              apiKey: "90292cd96f43b8299e5b541fbe400d11",
+              locale: "en",
+              features: { login: true },
+              appearance: { variables: { "--buttons-radius": "2px" } }
+            });
+          })();
+        }
+
+        const sdk = await shopSdkPromise;
+        if (sequence !== shopMountSequence || !mount.isConnected) return;
+
+        const login = await sdk.create("login", {
+          attributes: {
+            buttonType: "continue",
+            buttonLayout: "standalone",
+            scope: "shop_app:oauth",
+            returnTo: "same-page"
+          },
+          onComplete(event) {
+            if (event?.signedIn && event?.emailVerified && event?.email) {
+              sendCode(event.email);
+            } else {
+              state.messageType = "error";
+              state.message = "Shop sign-in did not return a verified email address.";
+              render();
+            }
+          },
+          onError(event) {
+            console.error("[VN ACCOUNT] Shop sign-in failed:", event?.code, event?.message);
+          }
+        });
+
+        if (sequence !== shopMountSequence || !mount.isConnected) {
+          login.destroy();
+          return;
+        }
+
+        shopLoginInstance = login;
+        mount.appendChild(login.element);
+      } catch (error) {
+        console.error("[VN ACCOUNT] Shop SDK could not be loaded:", error);
+        if (sequence === shopMountSequence && mount.isConnected) {
+          state.messageType = "error";
+          state.message = "Continue with Shop is temporarily unavailable. Please use email sign-in.";
+          const message = $(".vn-ac-message", mount.closest(".vn-ac-main"));
+          if (message) {
+            message.textContent = state.message;
+            message.classList.add("error");
+          }
+        }
+      }
+    })();
   }
 
   function renderVerify() {
@@ -1536,6 +1609,7 @@
 
     if (!state.user) {
       content.innerHTML = state.screen === "verify" ? renderVerify() : renderEmail();
+      if (state.screen !== "verify") mountShopLogin();
       return;
     }
 
