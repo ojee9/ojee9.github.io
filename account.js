@@ -228,44 +228,44 @@
       #vnAccountOverlay[hidden]{display:none!important}
       #vnAccountOverlay *{box-sizing:border-box}
       .vn-ac-shell{width:min(100%,980px);max-height:calc(100dvh - 48px);overflow:auto;margin:auto;padding:28px;background:#BFC5C8;border:1px solid #d8d8d8;box-shadow:0 24px 80px rgba(0,0,0,.25)}
-      .vn-ac-shell.vn-ac-auth-shell{position:relative;isolation:isolate;display:flex;flex-direction:column;align-items:center;width:min(100%,680px);height:auto;min-height:min(720px,calc(100dvh - 32px));max-height:calc(100dvh - 32px);overflow-y:auto;padding:46px 64px 48px;background:#171717;color:#f5f5f5;border:0;box-shadow:0 28px 90px rgba(0,0,0,.42)}
+      .vn-ac-shell.vn-ac-auth-shell{position:relative;isolation:isolate;display:flex;flex-direction:column;align-items:stretch;width:min(100%,760px);height:auto;min-height:min(620px,calc(100dvh - 32px));max-height:calc(100dvh - 32px);overflow-y:auto;padding:36px 72px 28px;background:#171717;color:#f5f5f5;border:0;box-shadow:0 28px 90px rgba(0,0,0,.42)}
       .vn-ac-header{position:relative;display:flex;justify-content:center;align-items:center;padding-bottom:24px;border-bottom:1px solid #e5e5e5}
-      .vn-ac-auth-shell .vn-ac-header{width:100%;padding:0 28px 24px;border:0;flex:0 0 auto}
+      .vn-ac-auth-shell .vn-ac-header{position:static;width:100%;padding:0 0 16px;border:0;flex:0 0 auto}
       .vn-ac-brand{display:flex;align-items:center;justify-content:center;width:164px;height:80px;color:inherit;text-decoration:none;user-select:none;-webkit-user-select:none;pointer-events:none}
       .vn-ac-brand img{display:block;width:100%;height:100%;object-fit:contain;filter:invert(1);user-select:none;-webkit-user-select:none;-webkit-user-drag:none}
       .vn-ac-close{position:absolute;right:0;top:50%;transform:translateY(-50%);border:0;background:none;font-size:23px;cursor:pointer;color:inherit}
-      .vn-ac-auth-shell .vn-ac-close{top:12px;right:12px;transform:none;display:flex;align-items:center;justify-content:center;width:30px;height:30px;padding:0;color:#f5f5f5;font-size:28px;line-height:1}
-      .vn-ac-auth-shell #vnAcContent{width:100%;flex:1 0 auto;display:flex;flex-direction:column;align-items:center}
-      .vn-ac-auth-shell .vn-ac-main{flex:1 0 auto;width:min(100%,480px);max-width:480px;margin:0 auto!important}
-      .vn-ac-auth-shell .vn-ac-header{padding:0 28px 24px}
-      .vn-ac-auth-shell .vn-ac-brand{width:168px;height:76px;pointer-events:none;user-select:none}
+      .vn-ac-auth-shell .vn-ac-close{top:18px;right:20px;transform:none;display:flex;align-items:center;justify-content:center;width:44px;height:44px;padding:0;border-radius:50%;color:#f5f5f5;font-size:34px;line-height:1;transition:background .16s ease}.vn-ac-auth-shell .vn-ac-close:hover{background:rgba(255,255,255,.09)}
+      .vn-ac-auth-shell #vnAcContent{width:100%;min-height:0;flex:1 1 auto;display:flex;flex-direction:column;align-items:center;justify-content:center}
+      .vn-ac-auth-shell .vn-ac-main{flex:0 0 auto;width:min(100%,480px);max-width:480px;margin:0 auto!important}
+      .vn-ac-auth-shell .vn-ac-header{padding:0 0 16px}
+      .vn-ac-auth-shell .vn-ac-brand{width:194px;height:92px;pointer-events:none;user-select:none}
       .vn-ac-auth-shell .vn-ac-brand img{filter:brightness(0) invert(1)}
-      .vn-ac-signin-heading{margin:0 0 32px;text-align:center}
-      .vn-ac-signin-heading h1{margin:0;font-size:30px;font-weight:700;line-height:1.2;letter-spacing:-.65px;color:#f5f5f5}
-      .vn-ac-signin-heading p{margin:9px 0 0;font-size:14px;line-height:1.5;color:#a9a5ad}
+      .vn-ac-signin-heading{margin:0 0 24px;text-align:center}
+      .vn-ac-signin-heading h1{margin:0;font-size:32px;font-weight:700;line-height:1.2;letter-spacing:-.7px;color:#f5f5f5}
+      .vn-ac-signin-heading p{margin:9px 0 0;font-size:15px;line-height:1.5;color:#a9a5ad}
       .vn-ac-email-main{display:flex;flex-direction:column;align-items:stretch;width:100%;max-width:480px;margin-inline:auto}
       .vn-ac-email-form-wrap{width:100%;max-width:480px;margin:0 auto}.vn-ac-email-form-wrap form{display:flex;flex-direction:column;width:100%}
-      .vn-ac-shop-space{display:flex;align-items:center;justify-content:center;width:100%;min-height:52px;flex:none;margin:0 auto 20px}.vn-ac-shop-space[hidden]{display:none!important}
-      #vnAcShopLogin{display:flex;align-items:center;justify-content:center;width:100%;max-width:480px;min-height:48px;margin:0 auto}.vn-ac-shop-sdk-host{position:relative;display:flex;align-items:center;justify-content:center;width:100%;min-height:48px}#vnAcShopLogin>*{width:100%;max-width:100%}
+      .vn-ac-shop-space{display:flex;align-items:center;justify-content:center;width:100%;min-height:54px;flex:none;margin:0 auto 18px}.vn-ac-shop-space[hidden]{display:none!important}
+      #vnAcShopLogin{display:flex;align-items:center;justify-content:center;width:100%;max-width:480px;min-height:50px;margin:0 auto}.vn-ac-shop-sdk-host{position:relative;display:flex;align-items:center;justify-content:center;width:100%;min-height:48px}#vnAcShopLogin>*{width:100%;max-width:100%}
       .vn-ac-consent-note{margin:24px auto 0!important;max-width:480px;text-align:center;color:#a4a4a4;font-size:12px;line-height:1.75}
       .vn-ac-consent-note a{color:#fff;text-decoration:underline;text-underline-offset:2px}
-      .vn-ac-or-divider{display:flex;align-items:center;gap:13px;width:min(100%,480px);margin:0 auto 22px;color:#8d8794;font-size:11px;line-height:1;letter-spacing:1.5px}
+      .vn-ac-or-divider{display:flex;align-items:center;gap:13px;width:min(100%,480px);margin:0 auto 18px;color:#8d8794;font-size:11px;line-height:1;letter-spacing:1.5px}
       .vn-ac-or-divider:before,.vn-ac-or-divider:after{content:"";height:1px;flex:1;background:#39343e}
-      .vn-ac-email-bar{display:flex;align-items:center;gap:4px;width:100%;min-height:58px;padding:6px 7px 6px 17px;border:1px solid #555;border-radius:2px;overflow:hidden;background:#101010;transition:border-color .18s ease,background .18s ease}
+      .vn-ac-email-bar{display:flex;align-items:center;gap:4px;width:100%;min-height:60px;padding:6px 7px 6px 17px;border:1px solid #555;border-radius:2px;overflow:hidden;background:#101010;transition:border-color .18s ease,background .18s ease}
       .vn-ac-email-bar input{flex:1;min-width:0;height:44px;padding:0;border:0;outline:0;background:transparent;color:#f5f5f5;font:16px/1.45 Arial,sans-serif}
       .vn-ac-email-bar input::placeholder{color:#a4a4a4;opacity:1}
       .vn-ac-email-bar input:-webkit-autofill,.vn-ac-email-bar input:-webkit-autofill:hover,.vn-ac-email-bar input:-webkit-autofill:focus,.vn-ac-email-bar input:-webkit-autofill:active{-webkit-text-fill-color:#f5f5f5!important;caret-color:#f5f5f5;-webkit-box-shadow:0 0 0 1000px #101010 inset!important;box-shadow:0 0 0 1000px #101010 inset!important;transition:background-color 999999s ease-out 0s}
       .vn-ac-email-bar:focus-within{border-color:#100E13;background:#111;box-shadow:0 0 5px rgba(151,82,255,.34),0 0 12px rgba(151,82,255,.20)}
-      .vn-ac-email-submit{display:flex;align-items:center;justify-content:center;width:44px;height:44px;flex:none;padding:0;border:0;border-radius:0;background:transparent;color:#f5f5f5;cursor:pointer;transition:color .16s ease,background .16s ease}
+      .vn-ac-email-submit{display:flex;align-items:center;justify-content:center;width:46px;height:46px;flex:none;padding:0;border:0;border-radius:0;background:transparent;color:#f5f5f5;cursor:pointer;transition:color .16s ease,background .16s ease}
       .vn-ac-email-submit:hover{background:#242424;color:#fff}.vn-ac-email-submit svg{display:block;width:20px;height:20px}
-      .vn-ac-updates{display:flex;align-items:flex-start;justify-content:flex-start;gap:9px;margin:16px 0 0;padding-left:0;color:#c5c1ca;font-size:13px;line-height:1.5}
+      .vn-ac-updates{display:flex;align-items:flex-start;justify-content:flex-start;gap:10px;margin:15px 0 0;padding-left:0;color:#c5c1ca;font-size:13px;line-height:1.5}
       .vn-ac-updates input{width:15px;height:15px;flex:none;margin:0;accent-color:#f5f5f5;cursor:pointer}
-      .vn-ac-email-terms{margin:32px auto 0!important;max-width:440px;text-align:center;color:#a4a4a4;font-size:12px;line-height:1.7}
+      .vn-ac-email-terms{margin:18px auto 0!important;max-width:480px;text-align:center;color:#a4a4a4;font-size:12px;line-height:1.7}
       .vn-ac-email-terms a,.vn-ac-email-terms button{padding:0;border:0;background:transparent;color:#fff;font:inherit;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
-      .vn-ac-auth-shell .vn-ac-message{margin:0 0 16px}
+      .vn-ac-auth-shell .vn-ac-message{width:100%;max-width:480px;margin:0 auto 16px}
       .vn-ac-shell.vn-ac-auth-shell:not(.vn-ac-dashboard-open)::before{content:none!important;background:none!important}
       .vn-ac-shell.vn-ac-auth-shell .vn-ac-dashboard-background,.vn-ac-shell.vn-ac-auth-shell .vn-ac-dashboard-trail{display:none!important}
-      @media(max-width:600px){.vn-ac-shell.vn-ac-auth-shell{width:min(100%,540px);min-height:min(620px,calc(100dvh - 24px));max-height:calc(100dvh - 24px);padding:34px 24px 36px}.vn-ac-auth-shell .vn-ac-close{right:4px;top:8px}.vn-ac-auth-shell .vn-ac-header{padding:0 24px 22px}.vn-ac-auth-shell .vn-ac-brand{width:154px;height:70px}.vn-ac-auth-shell #vnAcContent{width:100%}.vn-ac-auth-shell .vn-ac-main{width:100%;max-width:480px}.vn-ac-signin-heading{margin-bottom:30px}.vn-ac-signin-heading h1{font-size:27px}.vn-ac-signin-heading p{font-size:14px}.vn-ac-email-form-wrap,.vn-ac-or-divider,.vn-ac-shop-space{width:100%;max-width:480px}.vn-ac-email-bar{min-height:58px;padding-left:14px}.vn-ac-email-bar input{height:44px;font-size:16px}.vn-ac-email-submit{width:44px;height:44px}.vn-ac-email-submit svg{display:block;width:20px;height:20px}.vn-ac-shop-space{min-height:52px;margin-bottom:20px}.vn-ac-updates{font-size:13px;line-height:1.5}.vn-ac-consent-note{margin-top:24px!important}.vn-ac-email-terms{margin-top:30px!important}}
+      @media(max-width:600px){.vn-ac-shell.vn-ac-auth-shell{width:min(100%,560px);min-height:min(600px,calc(100dvh - 24px));max-height:calc(100dvh - 24px);padding:30px 24px 24px}.vn-ac-auth-shell .vn-ac-close{right:14px;top:14px;width:40px;height:40px;font-size:32px}.vn-ac-auth-shell .vn-ac-header{padding:0 0 14px}.vn-ac-auth-shell .vn-ac-brand{width:174px;height:82px}.vn-ac-auth-shell #vnAcContent{width:100%;justify-content:center}.vn-ac-auth-shell .vn-ac-main{width:100%;max-width:480px}.vn-ac-signin-heading{margin-bottom:22px}.vn-ac-signin-heading h1{font-size:28px}.vn-ac-signin-heading p{font-size:14px}.vn-ac-email-form-wrap,.vn-ac-or-divider,.vn-ac-shop-space{width:100%;max-width:480px}.vn-ac-email-bar{min-height:58px;padding-left:14px}.vn-ac-email-bar input{height:44px;font-size:16px}.vn-ac-email-submit{width:44px;height:44px}.vn-ac-email-submit svg{display:block;width:20px;height:20px}.vn-ac-shop-space{min-height:52px;margin-bottom:18px}.vn-ac-updates{font-size:13px;line-height:1.5}.vn-ac-consent-note{margin-top:20px!important}.vn-ac-email-terms{margin-top:18px!important}.vn-ac-auth-shell .vn-ac-policy-footer-row{margin-top:14px}}
       .vn-ac-layout{display:grid;grid-template-columns:200px minmax(0,1fr);gap:48px;padding-top:32px}
       .vn-ac-sidebar{display:flex;flex-direction:column;gap:8px}
       .vn-ac-nav{border:0;background:none;color:#666;text-align:left;padding:12px 10px;font:inherit;cursor:pointer;border-radius:4px;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
