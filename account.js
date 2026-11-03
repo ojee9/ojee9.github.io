@@ -244,8 +244,8 @@
       .vn-ac-signin-heading p{margin:9px 0 0;font-size:14px;line-height:1.5;color:#a9a5ad}
       .vn-ac-email-main{display:flex;flex-direction:column;align-items:stretch;width:100%;max-width:440px;margin-inline:auto}
       .vn-ac-email-form-wrap{width:100%;max-width:440px;margin:0 auto}.vn-ac-email-form-wrap form{display:flex;flex-direction:column;width:100%}
-      .vn-ac-shop-space{display:flex;align-items:center;justify-content:center;width:100%;min-height:52px;flex:none;margin:0 auto 18px}
-      #vnAcShopLogin{display:flex;align-items:center;justify-content:center;width:100%;max-width:440px;min-height:48px;margin:0 auto}.vn-ac-shop-continue{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:52px;padding:0 20px;border:1px solid #e8e8e8;border-radius:2px;background:#f5f5f5;color:#111;font:700 13px/1 Arial,sans-serif;letter-spacing:1.1px;text-align:center;cursor:pointer;transition:background .16s ease,color .16s ease,border-color .16s ease}.vn-ac-shop-continue:hover{background:#fff;border-color:#fff}.vn-ac-shop-continue:focus-visible{outline:2px solid #a98aff;outline-offset:3px}.vn-ac-shop-continue svg{width:19px;height:19px;flex:none}.vn-ac-shop-sdk-host{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+      .vn-ac-shop-space{display:flex;align-items:center;justify-content:center;width:100%;min-height:52px;flex:none;margin:0 auto 18px}.vn-ac-shop-space[hidden]{display:none!important}
+      #vnAcShopLogin{display:flex;align-items:center;justify-content:center;width:100%;max-width:440px;min-height:48px;margin:0 auto}.vn-ac-shop-sdk-host{position:relative;display:flex;align-items:center;justify-content:center;width:100%;min-height:48px}#vnAcShopLogin>*{width:100%;max-width:100%}
       .vn-ac-consent-note{margin:22px auto 0!important;max-width:440px;text-align:center;color:#a4a4a4;font-size:12px;line-height:1.75}
       .vn-ac-consent-note a{color:#fff;text-decoration:underline;text-underline-offset:2px}
       .vn-ac-or-divider{display:flex;align-items:center;gap:13px;width:min(100%,440px);margin:0 auto 20px;color:#8d8794;font-size:11px;line-height:1;letter-spacing:1.5px}
@@ -994,12 +994,8 @@
           <p>Sign in or create an account</p>
         </div>
 
-        <div class="vn-ac-shop-space">
-          <button type="button" class="vn-ac-shop-continue" data-ac-action="shop-login" aria-label="Continue with Shop">
-            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6.5 8.5h11l1.2 11h-13.4l1.2-11Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M9 9V6.8a3 3 0 0 1 6 0V9" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-            <span>CONTINUE WITH SHOP</span>
-          </button>
-          <div id="vnAcShopLogin" class="vn-ac-shop-sdk-host" aria-hidden="true"></div>
+        <div class="vn-ac-shop-space" hidden>
+          <div id="vnAcShopLogin" class="vn-ac-shop-sdk-host" aria-label="Continue with Shop"></div>
         </div>
         <div class="vn-ac-or-divider" aria-hidden="true"><span>OR</span></div>
 
@@ -1069,6 +1065,12 @@
             buttonLayout: "standalone",
             scope: "shop_app:oauth",
             returnTo: "same-page"
+          },
+          onLoad(event) {
+            const shopSpace = mount.closest(".vn-ac-shop-space");
+            if (sequence === shopMountSequence && shopSpace) {
+              shopSpace.hidden = !event?.userFound;
+            }
           },
           onComplete(event) {
             if (event?.signedIn && event?.emailVerified && event?.email) {
