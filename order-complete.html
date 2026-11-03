@@ -295,7 +295,7 @@ a.package-card{box-shadow:none!important;filter:none!important;transition:transf
 .scene--package{background:radial-gradient(ellipse 84% 58% at 50% 0%,rgba(191,197,200,.95) 0%,rgba(191,197,200,.48) 52%,rgba(191,197,200,0) 100%),radial-gradient(ellipse 90% 58% at 50% 100%,rgba(198,187,167,.96) 0%,rgba(198,187,167,.55) 50%,rgba(198,187,167,0) 100%),linear-gradient(135deg,#c9c5bf 0%,#b7b3ad 42%,#d4cec3 100%)}
 .scene--package::after{height:82vh;filter:blur(84px);opacity:1;background:radial-gradient(ellipse 84% 56% at 50% 100%,rgba(198,187,167,.98) 0%,rgba(198,187,167,.58) 48%,rgba(198,187,167,0) 100%)}
 .scene--receipt{background:radial-gradient(ellipse 90% 36% at 50% 0%,rgba(198,187,167,.9) 0%,rgba(198,187,167,0) 100%),linear-gradient(180deg,#c6bba7 0%,#d0c5b2 18%,#c6bba7 52%,#E4CEA5 100%)}
-.scene--credits::after,.scene--welcome::after,.scene--package::after{--blend-opacity:1}
+/* Blend opacity is driven by updateSceneBlends; do not force it to 1. */
 @media(max-width:600px){.receipt-meta--order{grid-template-columns:1fr}}
 
 
@@ -338,7 +338,7 @@ a.package-card{box-shadow:none!important;filter:none!important;transition:transf
 .scene--welcome .study12-background{opacity:1!important}
 
 /* Scene 01 → 02: keep the credits black; reveal a restrained silver blend only at the lower edge. */
-.scene--credits::after{content:"";display:block;z-index:1;left:0;right:0;bottom:0;height:clamp(170px,25vh,280px);filter:none;transform:none;pointer-events:none;opacity:var(--blend-opacity,0);background:linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(191,197,200,.07) 36%,rgba(191,197,200,.34) 72%,#BFC5C8 100%)}
+.scene--credits::after{content:"";display:block;z-index:1;left:0;right:0;bottom:0;height:clamp(170px,25vh,280px);filter:none;transform:none;pointer-events:none;opacity:var(--blend-opacity,0);background:linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(199,204,214,.07) 36%,rgba(199,204,214,.34) 72%,#C7CCD6 100%)}
 
 /* Scene 02 → 03: a narrow lower-edge blend only; the Study 12 material stays clear everywhere else. */
 .scene--welcome::after{content:"";display:block;position:absolute;z-index:1;left:0;right:0;bottom:0;height:clamp(150px,23vh,250px);filter:none;transform:none;pointer-events:none;opacity:var(--blend-opacity,0);background:linear-gradient(180deg,rgba(191,197,200,0) 0%,rgba(191,197,200,.08) 38%,rgba(191,197,200,.42) 76%,#BFC5C8 100%)}
