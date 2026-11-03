@@ -53,7 +53,7 @@ button{font:inherit}
 .light-trail{position:fixed;inset:0;z-index:20;width:100%;height:100%;pointer-events:none;mix-blend-mode:screen}
 /* 03 — editorial package brief */
 .scene--package{color:#222;background:linear-gradient(135deg,#c9c5bf 0%,#b7b3ad 42%,#d4cec3 100%)}
-.scene--package::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse at 20% 18%,rgba(255,255,255,.42),transparent 42%),radial-gradient(ellipse at 85% 78%,rgba(70,67,62,.1),transparent 46%)}
+.scene--package::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background:linear-gradient(180deg,rgba(199,204,214,var(--incoming-blend-opacity,0)) 0%,rgba(199,204,214,0) 26%),radial-gradient(ellipse at 20% 18%,rgba(255,255,255,.42),transparent 42%),radial-gradient(ellipse at 85% 78%,rgba(70,67,62,.1),transparent 46%)}
 .package-inner{display:flex;flex-direction:column;justify-content:center;padding-bottom:100px}
 .package-heading{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:22px}
 .package-heading h2{margin:8px 0 0;font-size:clamp(30px,5vw,62px);font-weight:800;letter-spacing:-.07em;line-height:.95}
@@ -334,14 +334,14 @@ a.package-card{box-shadow:none!important;filter:none!important;transition:transf
 
 /* Scene 02 — use the standalone Study 12 material without additional glitter or tint overlays. */
 .scene--welcome{background:#e4e3e1!important;background-image:none!important}
-.scene--welcome::before{content:none!important;display:none!important}
+.scene--welcome::before{content:"";position:absolute;top:0;left:0;right:0;height:clamp(240px,32vh,380px);z-index:1;pointer-events:none;background:linear-gradient(180deg,rgba(199,204,214,var(--incoming-blend-opacity,0)) 0%,rgba(199,204,214,0) 100%)}
 .scene--welcome .study12-background{opacity:1!important}
 
 /* Scene 01 → 02: keep the credits black; reveal a restrained silver blend only at the lower edge. */
-.scene--credits::after{content:"";display:block;z-index:1;left:0;right:0;bottom:0;height:clamp(170px,25vh,280px);filter:none;transform:none;pointer-events:none;opacity:var(--blend-opacity,0);background:linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(199,204,214,.07) 36%,rgba(199,204,214,.34) 72%,#C7CCD6 100%)}
+.scene--credits::after{content:"";display:block;z-index:1;left:0;right:0;bottom:0;height:clamp(240px,32vh,380px);filter:none;transform:none;pointer-events:none;opacity:var(--blend-opacity,0);background:linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(199,204,214,.07) 36%,rgba(199,204,214,.34) 72%,#C7CCD6 100%)}
 
 /* Scene 02 → 03: a narrow lower-edge blend only; the Study 12 material stays clear everywhere else. */
-.scene--welcome::after{content:"";display:block;position:absolute;z-index:1;left:0;right:0;bottom:0;height:clamp(150px,23vh,250px);filter:none;transform:none;pointer-events:none;opacity:var(--blend-opacity,0);background:linear-gradient(180deg,rgba(191,197,200,0) 0%,rgba(191,197,200,.08) 38%,rgba(191,197,200,.42) 76%,#BFC5C8 100%)}
+.scene--welcome::after{content:"";display:block;position:absolute;z-index:1;left:0;right:0;bottom:0;height:clamp(240px,32vh,380px);filter:none;transform:none;pointer-events:none;opacity:var(--blend-opacity,0);background:linear-gradient(180deg,rgba(199,204,214,0) 0%,rgba(199,204,214,.10) 38%,rgba(199,204,214,.48) 76%,#C7CCD6 100%)}
 
 </style>
 </head>
@@ -575,7 +575,7 @@ if(!reduced&&matchMedia("(hover:hover) and (pointer:fine)").matches){
 $("skip-to-receipt").addEventListener("click",event=>{event.preventDefault();$("scene-4").scrollIntoView({behavior:reduced?"auto":"smooth",block:"start"})});
 const sections=[...document.querySelectorAll(".scene")];
 let blendFrame=0;
-const updateSceneBlends=()=>{blendFrame=0;const vh=innerHeight||document.documentElement.clientHeight;sections.forEach((section,index)=>{if(index>2)return;const rect=section.getBoundingClientRect();const range=index<2?vh:vh*3.4;const raw=Math.max(0,Math.min(1,(vh-rect.bottom)/range));const eased=raw*raw*raw*(raw*(raw*6-15)+10);section.style.setProperty("--blend-progress",String(eased));section.style.setProperty("--blend-opacity",String(eased));});};
+const updateSceneBlends=()=>{blendFrame=0;const vh=innerHeight||document.documentElement.clientHeight;const ease=value=>{const t=Math.max(0,Math.min(1,value));return t*t*t*(t*(t*6-15)+10);};sections.forEach((section,index)=>{if(index>2)return;const rect=section.getBoundingClientRect();const range=index<2?vh:vh*3.4;const outgoing=ease((vh-rect.bottom)/range);const incoming=index===0?0:ease((vh-rect.top)/vh);section.style.setProperty("--blend-progress",String(outgoing));section.style.setProperty("--blend-opacity",String(outgoing));section.style.setProperty("--incoming-blend-opacity",String(incoming));});};
 window.addEventListener("scroll",()=>{if(!blendFrame)blendFrame=requestAnimationFrame(updateSceneBlends)},{passive:true});
 window.addEventListener("resize",updateSceneBlends,{passive:true});
 updateSceneBlends();
