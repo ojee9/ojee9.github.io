@@ -240,7 +240,11 @@
       .vn-ac-signin-heading h1{margin:0;font-size:30px;font-weight:700;line-height:1.2;letter-spacing:-.65px;color:#f5f5f5}
       .vn-ac-signin-heading p{margin:9px 0 0;font-size:14px;line-height:1.5;color:#a9a5ad}
       .vn-ac-email-form-wrap{width:min(100%,420px);margin:0 auto}
-      .vn-ac-shop-space{height:42px;flex:none}
+      .vn-ac-shop-space{height:42px;flex:none;display:flex;align-items:center;justify-content:center}
+      .vn-ac-continue-shop{display:flex;align-items:center;justify-content:center;width:100%;max-width:420px;height:42px;padding:0 16px;border:1px solid #555;border-radius:2px;background:#101010;color:#f5f5f5;font:600 12px/1 Arial,sans-serif;letter-spacing:1.1px;text-align:center;cursor:pointer;transition:border-color .18s ease,background .18s ease}
+      .vn-ac-continue-shop:hover{border-color:#888;background:#1b1b1b}
+      .vn-ac-consent-note{margin:5px auto 0!important;max-width:420px;text-align:center;color:#8d8d8d;font-size:11px;line-height:1.5}
+      .vn-ac-consent-note a{color:#fff;text-decoration:underline;text-underline-offset:2px}
       .vn-ac-or-divider{display:flex;align-items:center;gap:13px;width:min(100%,420px);margin:0 auto 18px;color:#8d8794;font-size:11px;line-height:1;letter-spacing:1.5px}
       .vn-ac-or-divider:before,.vn-ac-or-divider:after{content:"";height:1px;flex:1;background:#39343e}
       .vn-ac-email-bar{display:flex;align-items:center;gap:4px;width:100%;min-height:58px;padding:6px 7px 6px 17px;border:1px solid #555;border-radius:2px;overflow:hidden;background:#101010;transition:border-color .18s ease,background .18s ease}
@@ -845,7 +849,9 @@
           <p>Sign in or create an account</p>
         </div>
 
-        <div class="vn-ac-shop-space" aria-hidden="true"></div>
+        <div class="vn-ac-shop-space">
+          <button type="button" class="vn-ac-continue-shop" data-ac-action="continue-shop">CONTINUE WITH SHOP</button>
+        </div>
         <div class="vn-ac-or-divider" aria-hidden="true"><span>OR</span></div>
 
         <div class="vn-ac-email-form-wrap">
@@ -864,16 +870,18 @@
             <button type="submit" class="vn-ac-email-submit" aria-label="Continue" title="Continue"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 12h14M12 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
           </div>
 
+          <p class="vn-ac-muted vn-ac-email-terms">
+            <a href="#" data-ac-action="privacy-open" data-ac-policy="privacy">Privacy Policy</a>
+          </p>
+          <p class="vn-ac-consent-note">
+            By continuing, you agree to our <a href="/policies/terms-of-use.html">Terms of use</a>
+          </p>
           <label class="vn-ac-updates">
             <input type="checkbox" name="updates" ${state.signupMarketing ? "checked" : ""}>
             <span>Sign up to receive updates from 9ojeez9</span>
           </label>
         </form>
         </div>
-
-        <p class="vn-ac-muted vn-ac-email-terms">
-          <a href="#" data-ac-action="privacy-open" data-ac-policy="privacy">Privacy Policy</a>
-        </p>
       </main>
     `;
   }
@@ -1828,6 +1836,10 @@
         switch (action.dataset.acAction) {
           case "close":
             closePanel();
+            break;
+
+          case "continue-shop":
+            goShop();
             break;
 
           case "privacy-open":
