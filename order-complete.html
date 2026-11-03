@@ -331,6 +331,12 @@ a.package-card{box-shadow:none!important;filter:none!important;transition:transf
 /* Study 12 material layer — background only; scene content and existing overlays remain above it. */
 .scene--welcome .study12-background{position:absolute;inset:0;z-index:0;width:100%;height:100%;border:0;pointer-events:none;opacity:.86}
 
+
+/* Scene 02 — use the standalone Study 12 material without additional glitter or tint overlays. */
+.scene--welcome{background:#e4e3e1!important;background-image:none!important}
+.scene--welcome::before,.scene--welcome::after{content:none!important;display:none!important}
+.scene--welcome .study12-background{opacity:1!important}
+
 </style>
 </head>
 <body>
