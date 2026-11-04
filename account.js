@@ -1194,7 +1194,6 @@
           buttonLayout: "standalone",
           scope: "shop_app:oauth",
           uxMode: "windoid",
-          clientId: "90292cd96f43b8299e5b541fbe400d11",
           storefrontOrigin: "https://ojee9.github.io"
         },
         onComplete(event) {
@@ -1210,6 +1209,9 @@
         },
         onError(event) {
           console.error("[VN ACCOUNT] Shop login failed:", event?.code, event?.message);
+          state.messageType = "error";
+          state.message = "Shop sign-in failed" + (event?.code ? " (" + String(event.code) + ")" : "") + (event?.message ? ": " + String(event.message) : ".") + " Please try again or continue with email.";
+          render();
         }
       });
 
