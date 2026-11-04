@@ -41,11 +41,7 @@
     marketingUpdates: true,
     signupMarketing: false,
     editing: "",
-    loadingData: false,
-    shopSdkPromise: null,
-    shopLoginInstance: null,
-    shopLoginMount: null,
-    shopLoginGeneration: 0
+    loadingData: false
   };
 
   let configPromise = null;
@@ -252,7 +248,7 @@
       .vn-ac-signin-heading h1{margin:0;font-size:32px;font-weight:700;line-height:1.2;letter-spacing:-.7px;color:#f5f5f5}
       .vn-ac-signin-heading p{margin:9px 0 0;font-size:15px;line-height:1.5;color:#a9a5ad}
       .vn-ac-email-main{display:flex;flex-direction:column;align-items:stretch;width:100%;max-width:480px;margin-inline:auto}
-      .vn-ac-shop-space{width:100%;max-width:480px;margin:0 auto 18px}.vn-ac-shop-mount{display:flex;align-items:stretch;justify-content:center;width:100%;min-height:54px}.vn-ac-shop-mount>*{display:block;width:100%}.vn-ac-shop-continue{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:54px;padding:0 20px;border:1px solid #d9d9d9;border-radius:4px;background:#fff;color:#111;font:600 15px/1.2 Arial,sans-serif;cursor:pointer;transition:background .16s ease,border-color .16s ease}.vn-ac-shop-continue:hover{background:#f2f2f2;border-color:#fff}.vn-ac-shop-continue:focus-visible{outline:2px solid #fff;outline-offset:3px}.vn-ac-shop-continue svg{width:19px;height:19px;flex:0 0 19px}.vn-ac-or-divider{display:flex;align-items:center;gap:13px;width:100%;max-width:480px;margin:0 auto 18px;color:#a9a5ad;font-size:11px;line-height:1;letter-spacing:1.5px}.vn-ac-or-divider:before,.vn-ac-or-divider:after{content:"";height:1px;flex:1;background:#39343e}
+      .vn-ac-shop-space{width:100%;max-width:480px;margin:0 auto 18px}.vn-ac-shop-mount{display:flex;align-items:stretch;justify-content:center;width:100%;min-height:54px}.vn-ac-shop-mount>*{display:block;width:100%}.vn-ac-shop-continue{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:54px;padding:0 20px;border:1px solid #d9d9d9;border-radius:4px;background:#fff;color:#111;text-decoration:none;font:600 15px/1.2 Arial,sans-serif;cursor:pointer;transition:background .16s ease,border-color .16s ease}.vn-ac-shop-continue:hover{background:#f2f2f2;border-color:#fff}.vn-ac-shop-continue:focus-visible{outline:2px solid #fff;outline-offset:3px}.vn-ac-shop-continue svg{width:19px;height:19px;flex:0 0 19px}.vn-ac-or-divider{display:flex;align-items:center;gap:13px;width:100%;max-width:480px;margin:0 auto 18px;color:#a9a5ad;font-size:11px;line-height:1;letter-spacing:1.5px}.vn-ac-or-divider:before,.vn-ac-or-divider:after{content:"";height:1px;flex:1;background:#39343e}
       .vn-ac-email-form-wrap{width:100%;max-width:480px;margin:0 auto}.vn-ac-email-form-wrap form{display:flex;flex-direction:column;width:100%}
       .vn-ac-consent-note{margin:24px auto 0!important;max-width:480px;text-align:center;color:#a4a4a4;font-size:12px;line-height:1.75}
       .vn-ac-consent-note a{color:#fff;text-decoration:underline;text-underline-offset:2px}
@@ -1004,7 +1000,7 @@
         </div>
 
         <div class="vn-ac-shop-space">
-          <div id="vnAcShopLoginMount" class="vn-ac-shop-mount" aria-label="Continue with Shop"></div>
+          <a class="vn-ac-shop-continue" href="https://shopify.com/83672662239/account" aria-label="Continue with Shop"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="#5A31F4" d="M12 2.2c-5.4 0-9.8 4.4-9.8 9.8s4.4 9.8 9.8 9.8 9.8-4.4 9.8-9.8S17.4 2.2 12 2.2Zm0 2.1a7.7 7.7 0 1 1 0 15.4 7.7 7.7 0 0 1 0-15.4Z"/><path fill="#5A31F4" d="M8.1 9.2h2.1v5.6H8.1zm3.7 0h2.1v5.6h-2.1zm3.7 0h2.1v5.6h-2.1z"/></svg><span>Continue with Shop</span></a>
         </div>
         <div class="vn-ac-or-divider" aria-hidden="true"><span>OR</span></div>
 
@@ -1039,137 +1035,6 @@
         </div>
       </main>
     `;
-  }
-
-  function destroyShopLogin() {
-    state.shopLoginGeneration += 1;
-    const instance = state.shopLoginInstance;
-    state.shopLoginInstance = null;
-    state.shopLoginMount = null;
-    if (instance) {
-      try {
-        instance.destroy();
-      } catch (error) {
-        console.warn("[VN ACCOUNT] Shop login cleanup failed:", error);
-      }
-    }
-  }
-
-  async function mountShopLogin() {
-    const mount = $("#vnAcShopLoginMount");
-    if (!mount || state.screen !== "email" || state.user) return;
-    if (state.shopLoginMount === mount) return;
-
-    destroyShopLogin();
-    const generation = state.shopLoginGeneration;
-    state.shopLoginMount = mount;
-
-    try {
-      if (!state.shopSdkPromise) {
-        state.shopSdkPromise = (async () => {
-          await import("https://cdn.shopify.com/shopifycloud/shop-js/modules/v2/loader.sdk.esm.js");
-          if (!window.ShopSDK || typeof window.ShopSDK.initialize !== "function") {
-            throw new Error("Shop SDK did not initialize.");
-          }
-          return window.ShopSDK.initialize({
-            apiKey: "90292cd96f43b8299e5b541fbe400d11",
-            locale: "en",
-            features: { login: true }
-          });
-        })().catch(error => {
-          state.shopSdkPromise = null;
-          throw error;
-        });
-      }
-
-      const sdk = await state.shopSdkPromise;
-      if (generation !== state.shopLoginGeneration || !mount.isConnected) return;
-
-      const login = await sdk.create("login", {
-        id: "vn-shop-account-login",
-        appearance: {
-          preferredLoginExperience: "redirect"
-        },
-        attributes: {
-          buttonType: "continue",
-          buttonLayout: "standalone",
-          scope: "shop_app:oauth",
-          uxMode: "redirect",
-          returnTo: "same-page"
-        },
-        onComplete(event) {
-          const email = String(event?.email || "").trim();
-          if (!email || event.emailVerified !== true) {
-            state.messageType = "error";
-            state.message = "Shop could not confirm a verified email address. Please continue with email instead.";
-            render();
-            return;
-          }
-          sendCode(email, "shop");
-        },
-        onError(event) {
-          console.error("[VN ACCOUNT] Shop login failed:", event?.code, event?.message);
-          state.messageType = "error";
-          state.message = "Shop sign-in failed: " + String(event?.message || event?.code || "Please try again.");
-          const main = mount.closest(".vn-ac-main");
-          const message = main?.querySelector(".vn-ac-message");
-          if (message) {
-            message.className = "vn-ac-message error";
-            message.textContent = state.message;
-          } else if (main) {
-            const notice = document.createElement("div");
-            notice.className = "vn-ac-message error";
-            notice.setAttribute("role", "status");
-            notice.setAttribute("aria-live", "polite");
-            notice.textContent = state.message;
-            main.prepend(notice);
-          }
-        }
-      });
-
-      if (generation !== state.shopLoginGeneration || !mount.isConnected || state.screen !== "email") {
-        login.destroy();
-        return;
-      }
-
-      state.shopLoginInstance = login;
-
-      // The official SDK CTA is recognition-dependent. Keep a visible VN SHOP
-      // trigger for every visitor and start the official Shop login flow on click.
-      const trigger = document.createElement("button");
-      trigger.type = "button";
-      trigger.className = "vn-ac-shop-continue";
-      trigger.setAttribute("aria-label", "Continue with Shop");
-      trigger.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="#5A31F4" d="M12 2.2c-5.4 0-9.8 4.4-9.8 9.8s4.4 9.8 9.8 9.8 9.8-4.4 9.8-9.8S17.4 2.2 12 2.2Zm0 2.1a7.7 7.7 0 1 1 0 15.4 7.7 7.7 0 0 1 0-15.4Z"/><path fill="#5A31F4" d="M8.1 9.2h2.1v5.6H8.1zm3.7 0h2.1v5.6h-2.1zm3.7 0h2.1v5.6h-2.1z"/></svg><span>Continue with Shop</span>';
-      trigger.addEventListener("click", () => {
-        try {
-          login.start();
-        } catch (error) {
-          console.error("[VN ACCOUNT] Shop login could not be started:", error);
-          state.messageType = "error";
-          state.message = "Shop sign-in could not be started. Please continue with email instead.";
-          render();
-        }
-      });
-
-      // Keep the SDK element connected for its lifecycle; the visible trigger
-      // above invokes its documented start() method.
-      // Keep the SDK host connected and outside clipped containers so the
-      // Shop sign-in popup can render when start() is invoked.
-      login.element.style.position = "fixed";
-      login.element.style.left = "-10000px";
-      login.element.style.top = "0";
-      login.element.style.width = "1px";
-      login.element.style.height = "1px";
-      login.element.style.pointerEvents = "none";
-      mount.appendChild(trigger);
-      mount.appendChild(login.element);
-    } catch (error) {
-      if (generation === state.shopLoginGeneration) {
-        state.shopLoginMount = null;
-        console.error("[VN ACCOUNT] Shop SDK could not be mounted:", error);
-      }
-    }
   }
 
   function renderVerify() {
@@ -1667,13 +1532,10 @@
     }
 
     if (!state.user) {
-      destroyShopLogin();
       content.innerHTML = state.screen === "verify" ? renderVerify() : renderEmail();
-      if (state.screen === "email") mountShopLogin();
       return;
     }
 
-    destroyShopLogin();
     if (state.section === "dashboard") content.innerHTML = renderDashboard();
     else if (state.section === "profile") content.innerHTML = renderProfile();
     else if (state.section === "edit-contact") content.innerHTML = renderContactEdit();
