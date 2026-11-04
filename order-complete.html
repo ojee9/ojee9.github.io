@@ -468,20 +468,47 @@ html:not(.atmosphere-ready):not(.atmosphere-fallback) .scene--receipt{background
  top:auto!important;
  min-height:100svh;
 }
+
+
+/* Scene 1 — four scroll-through exhibition beats. */
+.scene--credits .credits-content{
+ position:relative!important;top:auto!important;display:block!important;
+ width:100%!important;max-width:none!important;height:auto!important;min-height:0!important;
+ margin:0!important;padding:0!important;opacity:1!important;transform:none!important;
+}
+.scene--credits .credits-stage{
+ position:relative;display:flex;min-height:100svh;width:100%;
+ flex-direction:column;align-items:center;justify-content:center;
+ padding:clamp(30px,6vh,72px) 24px;text-align:center;
+}
+.scene--credits .credits-stage--opening .vn-mark{margin:0 auto 30px}
+.scene--credits .credits-stage--opening .credits-title{margin-top:0}
+.scene--credits .credits-stage--message .credits-copy{margin:0 auto;max-width:620px}
+.scene--credits .credits-stage--message .skip-link{margin-top:30px}
+.scene--credits .credits-stage--credit .credits-bottom{margin:0}
+.scene--credits .credits-stage--signature .creator-logo{width:clamp(180px,30vw,340px);max-width:78vw;max-height:150px;margin:0 auto;object-fit:contain}
 </style>
 </head>
 <body>
 <canvas id="shared-atmosphere" aria-hidden="true"></canvas>
 <section class="scene scene--credits" id="scene-1" aria-label="Purchase completed credits">
   <div class="scene-inner credits-content">
-    <img class="vn-mark" src="images/vn-logo-black-transparent.png" alt="VN">
-    <p class="scene-kicker">VN SHOP® · ORDER EXPERIENCE</p>
-    <h1 class="credits-title">PURCHASE<br>COMPLETED</h1>
-    <p class="credits-copy">WE'LL MISS YOU. TAKE YOUR TIME WHILE WE GET YOUR ORDER DETAILS READY.</p>
-    <button class="skip-link" id="skip-to-receipt" type="button">TAKE ME DIRECTLY TO THE ORDER DETAILS</button>
-    <div class="credits-bottom">
-      <div class="created"><span class="created-label">A VN ORIGINAL</span><span class="created-by">Created by <strong>9ojeez9</strong></span></div>
-      <div class="copyright-line">© 2026 VN RECORDS. ALL RIGHTS RESERVED.</div>
+    <div class="credits-stage credits-stage--opening">
+      <img class="vn-mark" src="images/vn-logo-black-transparent.png" alt="VN">
+      <p class="scene-kicker">VN SHOP® · ORDER EXPERIENCE</p>
+      <h1 class="credits-title">PURCHASE<br>COMPLETED</h1>
+    </div>
+    <div class="credits-stage credits-stage--message">
+      <p class="credits-copy">WE'LL MISS YOU. TAKE YOUR TIME WHILE WE GET YOUR ORDER DETAILS READY.</p>
+      <button class="skip-link" id="skip-to-receipt" type="button">TAKE ME DIRECTLY TO THE ORDER DETAILS</button>
+    </div>
+    <div class="credits-stage credits-stage--credit">
+      <div class="credits-bottom">
+        <div class="created"><span class="created-label">A VN ORIGINAL</span><span class="created-by">Created by <strong>9ojeez9</strong></span></div>
+        <div class="copyright-line">© 2026 VN RECORDS. ALL RIGHTS RESERVED.</div>
+      </div>
+    </div>
+    <div class="credits-stage credits-stage--signature">
       <img class="creator-logo" src="images/9ojeez9-logo-banner-white.png" alt="9ojeez9" loading="eager">
     </div>
   </div>
@@ -776,9 +803,8 @@ function updateDom(chroma,brightness,bloom,glitter,close,t23){
  root.style.setProperty("--glitter",glitter.toFixed(5));
  root.style.setProperty("--glitter-close",close.toFixed(5));
  root.style.setProperty("--panel-opacity",panelOpacity.toFixed(5));
- const introOpacity=1-smooth(.72,1,p/FLOW_CONFIG.scene1Hold);
- root.style.setProperty("--intro-opacity",introOpacity.toFixed(5));
- credits.style.pointerEvents=introOpacity>.01?"auto":"none";
+ root.style.setProperty("--intro-opacity","1");
+ credits.style.pointerEvents="auto";
  const welcomeOpacity=smooth(.82,1,glitter)*(1-smooth(.50,.98,t23));
  welcome.style.opacity=String(welcomeOpacity);
  welcome.style.pointerEvents=welcomeOpacity>.01?"auto":"none";
@@ -792,7 +818,7 @@ function updateDom(chroma,brightness,bloom,glitter,close,t23){
   if(panelOpacity<=.01)panel.setAttribute("tabindex","-1");
   else panel.removeAttribute("tabindex");
  });
- const scene1CueOpacity=1-smooth(.78,1,p/FLOW_CONFIG.scene1Hold);
+ const scene1CueOpacity=1-smooth(.92,1,p/(FLOW_CONFIG.scene1Hold+FLOW_CONFIG.corridor));
  const scene2CueOpacity=(p>=geometry.scene2Start+FLOW_CONFIG.scene2Hold*.72&&p<geometry.scene2Start+FLOW_CONFIG.scene2Hold)?1:0;
  const scene3CueOpacity=(p>=geometry.scene3Start+FLOW_CONFIG.scene3Hold*.72&&p<geometry.transition34Start)?1:0;
  if(cues[0]){cues[0].style.opacity=String(scene1CueOpacity);cues[0].style.visibility=scene1CueOpacity>.01?"visible":"hidden";}
