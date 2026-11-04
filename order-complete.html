@@ -870,9 +870,10 @@ function frame(now){
  const t23=(p-geometry.transition23Start)/FLOW_CONFIG.transition23;
  const close=smooth(.17,.30,t23);
  const bloom=FLOW_CONFIG.bloomStrength*smooth(.15,.30,t23)*(1-smooth(.30,.85,t23));
- const chroma=smooth(0,.45,corridorP);
- const brightness=smooth(.35,.90,corridorP);
- const activeGlitter=p>=FLOW_CONFIG.scene1Hold+FLOW_CONFIG.corridor?1:glitter;
+ const chroma=smooth(0,.62,corridorP);
+ const brightness=smooth(.22,.96,corridorP);
+ const scene2Plateau=p>=FLOW_CONFIG.scene1Hold+FLOW_CONFIG.corridor&&p<geometry.transition23Start;
+ const activeGlitter=scene2Plateau?1:glitter;
  const effectiveGlitter=p<geometry.transition23Start?activeGlitter:1;
  const t23Clamped=clamp(t23,0,1);
  const glitterClose=p<geometry.transition23Start?0:close;
@@ -978,7 +979,13 @@ vec3 sceneBackground(vec2 screenUv,float worldY){
   fragment=fragment.replace("float mask=edge*step(1.0-density,hash12(cell+seed+13.9));","float densityRoll=hash12(cell+seed+13.9);\n float thresholdIn=hash12(cell+seed+53.7);\n float thresholdOut=1.0-thresholdIn;\n float enterFade=smoothstep(thresholdIn-0.055,thresholdIn+0.055,uGlitterLevel);\n float exitFade=1.0-smoothstep(thresholdOut-0.055,thresholdOut+0.055,uGlitterClose);\n float particleVisible=enterFade*exitFade;\n float mask=edge*step(1.0-density,densityRoll)*particleVisible;");
   fragment=fragment.replace("vec3 base=mix(vec3(0.78,0.80,0.84),baseFilm,0.13);","vec2 screenUv=vec2(pixel.x/uResolution.x,1.0-pixel.y/uResolution.y);\n float worldY=uScrollY+screenUv.y*uViewportHeight;\n vec3 base=sceneBackground(screenUv,worldY);");
   fragment=fragment.replace("vec3 color=base+fine+medium+micro;","vec3 color=base+fine+medium+micro;");
-  if(!fragment.includes("uGlitterClose")||!fragment.includes("sceneBackground")||!fragment.includes("thresholdOut>uGlitterClose"))throw new Error("Study 12 adaptation was incomplete.");
+  if(!fragment.includes("uGlitterClose")||
+     !fragment.includes("sceneBackground")||
+     !fragment.includes("float enterFade=smoothstep(thresholdIn-0.055,thresholdIn+0.055,uGlitterLevel);")||
+     !fragment.includes("float exitFade=1.0-smoothstep(thresholdOut-0.055,thresholdOut+0.055,uGlitterClose);")||
+     !fragment.includes("vec3 fine=facetLayer")||
+     !fragment.includes("vec3 medium=facetLayer")||
+     !fragment.includes("vec3 micro=facetLayer"))throw new Error("Study 12 adaptation was incomplete.");
   program=gl.createProgram();
   gl.attachShader(program,compile(gl.VERTEX_SHADER,vertexMatch[1]));
   gl.attachShader(program,compile(gl.FRAGMENT_SHADER,fragment));
