@@ -349,3 +349,92 @@ body[data-product-page="true"] #detail-overlay .drawer *{-webkit-user-select:non
   position:relative;
   z-index:1;
 }
+
+
+/* MOBILE PRODUCT PAGE — keep the hero image large and the gallery in one column. */
+@media(max-width:700px){
+  body[data-product-page="true"] #detail-overlay .detail-layout{
+    display:grid;
+    grid-template-columns:minmax(0,1fr);
+    gap:22px;
+    width:100%;
+  }
+  body[data-product-page="true"] #detail-overlay .detail-gallery{
+    display:flex;
+    flex-direction:column;
+    align-items:stretch;
+    gap:12px;
+    width:100%;
+    min-width:0;
+  }
+  body[data-product-page="true"] #detail-overlay .detail-image-stage{
+    order:0;
+    width:100%;
+    min-width:0;
+  }
+  body[data-product-page="true"] #detail-overlay .detail-gallery .detail-main-image,
+  body[data-product-page="true"] #detail-overlay .detail-gallery.is-poster-1 .detail-main-image,
+  body[data-product-page="true"] #detail-overlay .detail-gallery.is-poster-2 .detail-main-image,
+  body[data-product-page="true"] #detail-overlay .detail-gallery.is-poster-3 .detail-main-image{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-sizing:border-box;
+    width:100%;
+    height:clamp(340px,62svh,600px)!important;
+    min-height:340px;
+    padding:12px;
+    overflow:hidden;
+  }
+  body[data-product-page="true"] #detail-overlay .detail-main-image img{
+    display:block;
+    width:auto;
+    height:auto;
+    max-width:100%;
+    max-height:100%;
+    min-width:0;
+    min-height:0;
+    object-fit:contain;
+    object-position:center;
+  }
+  body[data-product-page="true"] #detail-overlay .detail-thumbnails{
+    order:1;
+    display:flex;
+    flex:0 0 auto;
+    flex-direction:row;
+    align-items:center;
+    gap:8px;
+    width:100%;
+    min-width:0;
+    max-width:100%;
+    max-height:none;
+    padding:2px 1px 7px;
+    overflow-x:auto;
+    overflow-y:hidden;
+    overscroll-behavior-x:contain;
+    -webkit-overflow-scrolling:touch;
+  }
+  body[data-product-page="true"] #detail-overlay .detail-thumb{
+    display:flex;
+    flex:0 0 58px;
+    width:58px;
+    height:66px;
+    min-width:58px;
+    min-height:66px;
+    padding:4px;
+  }
+  body[data-product-page="true"] #detail-overlay .detail-info{
+    width:100%;
+    min-width:0;
+    padding-bottom:18px;
+  }
+}
+@media(max-width:380px){
+  body[data-product-page="true"] #detail-overlay .detail-gallery .detail-main-image,
+  body[data-product-page="true"] #detail-overlay .detail-gallery.is-poster-1 .detail-main-image,
+  body[data-product-page="true"] #detail-overlay .detail-gallery.is-poster-2 .detail-main-image,
+  body[data-product-page="true"] #detail-overlay .detail-gallery.is-poster-3 .detail-main-image{
+    height:clamp(310px,58svh,500px)!important;
+    min-height:310px;
+  }
+}
