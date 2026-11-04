@@ -501,6 +501,11 @@ html:not(.atmosphere-ready):not(.atmosphere-fallback) .scene--receipt{background
  transition:none!important;
  will-change:opacity,translate;
 }
+
+/* Corridor step: signature banner sits higher so it leaves before the dark opens. */
+.scene--credits .credits-stage--credit{min-height:70svh}
+.scene--credits .credits-stage--signature{min-height:46svh}
+.scene--credits .credits-stage--signature .creator-logo{transform:translateY(-12svh)}
 </style>
 </head>
 <body>
@@ -750,6 +755,7 @@ const $=id=>document.getElementById(id);
 const canvas=$("shared-atmosphere");
 const scene1=$("scene-1"),scene2=$("scene-2"),scene3=$("scene-3"),scene4=$("scene-4");
 const credits=scene1.querySelector(".credits-content");
+const signatureLogo=scene1.querySelector(".creator-logo");
 const welcome=scene2.querySelector(".welcome-inner");
 const packageInner=scene3.querySelector(".package-inner");
 const packageRevealItems=[
@@ -823,6 +829,7 @@ function updateDom(chroma,brightness,bloom,glitter,close,t23){
  root.style.setProperty("--glitter-close",close.toFixed(5));
  root.style.setProperty("--panel-opacity",panelOpacity.toFixed(5));
  root.style.setProperty("--intro-opacity","1");
+ if(signatureLogo)signatureLogo.style.opacity=String(1-.85*smooth(.02,.25,brightness));
  credits.style.pointerEvents="auto";
  const welcomeOpacity=smooth(.82,1,glitter)*(1-smooth(.50,.98,t23));
  welcome.style.opacity=String(welcomeOpacity);
@@ -845,7 +852,7 @@ function updateDom(chroma,brightness,bloom,glitter,close,t23){
   if(panelOpacity<=.01)panel.setAttribute("tabindex","-1");
   else panel.removeAttribute("tabindex");
  });
- const scene1CueOpacity=1-smooth(.92,1,p/(FLOW_CONFIG.scene1Hold+FLOW_CONFIG.corridor));
+ const scene1CueOpacity=(1-smooth(.92,1,p/(FLOW_CONFIG.scene1Hold+FLOW_CONFIG.corridor)))*(1-smooth(.04,.3,brightness));
  const scene2CueOpacity=(p>=geometry.scene2Start+FLOW_CONFIG.scene2Hold*.72&&p<geometry.scene2Start+FLOW_CONFIG.scene2Hold)?1:0;
  const scene3CueOpacity=(p>=geometry.scene3Start+FLOW_CONFIG.scene3Hold*.72&&p<geometry.transition34Start)?1:0;
  if(cues[0]){cues[0].style.opacity=String(scene1CueOpacity);cues[0].style.visibility=scene1CueOpacity>.01?"visible":"hidden";}
@@ -871,7 +878,8 @@ function frame(now){
  const close=smooth(.17,.30,t23);
  const bloom=FLOW_CONFIG.bloomStrength*smooth(.15,.30,t23)*(1-smooth(.30,.85,t23));
  const chroma=1.16*smooth(0,.62,corridorP);
- const brightness=smooth(.22,.96,corridorP);
+ const brightness=Math.pow(smooth(.58,.99,corridorP),1.6);
+ const rainbow=smooth(.05,.5,corridorP)*(1-smooth(.55,.9,corridorP));
  const scene2Plateau=p>=FLOW_CONFIG.scene1Hold+FLOW_CONFIG.corridor&&p<geometry.transition23Start;
  const activeGlitter=scene2Plateau?1:glitter;
  const effectiveGlitter=p<geometry.transition23Start?activeGlitter:1;
@@ -891,6 +899,7 @@ function frame(now){
   gl.uniform1f(loc.scene4Height,scene4.offsetHeight);
   gl.uniform1f(loc.chroma,chroma);
   gl.uniform1f(loc.brightness,brightness);
+  gl.uniform1f(loc.rainbow,rainbow);
   gl.uniform1f(loc.bloom,bloom);
   gl.uniform1f(loc.t23,t23Clamped);
   gl.uniform1f(loc.glitter,effectiveGlitter);
@@ -927,8 +936,11 @@ async function initShader(){
   const fragmentMatch=source.match(/const fragmentSource=\x60([\s\S]*?)\x60;/);
   if(!vertexMatch||!fragmentMatch)throw new Error("Study 12 shader source was not found.");
   let fragment=fragmentMatch[1];
-  fragment=fragment.replace("uniform vec2 uPointer;","uniform vec2 uPointer;\nuniform float uScrollY;\nuniform float uViewportHeight;\nuniform float uScene4Top;\nuniform float uScene4Height;\nuniform float uChroma;\nuniform float uBrightness;\nuniform float uBloom;\nuniform float uT23;\nuniform float uGlitterLevel;\nuniform float uGlitterClose;");
+  fragment=fragment.replace("uniform vec2 uPointer;","uniform vec2 uPointer;\nuniform float uScrollY;\nuniform float uViewportHeight;\nuniform float uScene4Top;\nuniform float uScene4Height;\nuniform float uChroma;\nuniform float uBrightness;\nuniform float uRainbow;\nuniform float uBloom;\nuniform float uT23;\nuniform float uGlitterLevel;\nuniform float uGlitterClose;");
   const sceneFunctions=`
+vec3 vnSpectrum(float t){
+ return 0.5+0.5*cos(6.2831853*(vec3(0.0,0.33,0.67)+t));
+}
 vec3 scene02(vec2 uv){
  vec3 c=vec3(228.0,227.0,225.0)/255.0;
  float blue=1.0-smoothstep(0.0,0.43,length((uv-vec2(0.26,0.28))*vec2(1.0,0.92)));
@@ -966,7 +978,10 @@ vec3 sceneBackground(vec2 screenUv,float worldY){
  vec3 chromatic=scene02(screenUv);
  float luminance=dot(chromatic,vec3(0.2126,0.7152,0.0722));
  vec3 neutral=vec3(luminance);
- vec3 c=neutral*uBrightness+(chromatic-neutral)*uChroma;
+ float ph=screenUv.x*1.7+screenUv.y*1.1+uScrollY*0.00035;
+ float rk=0.5+0.5*(0.6*sin(ph*3.1416)+0.4*sin(screenUv.y*5.0-ph*2.0));
+ vec3 rainbow=vnSpectrum(rk);
+ vec3 c=neutral*uBrightness+(chromatic-neutral)*uChroma+rainbow*uRainbow*0.15;
  float stone=smoothstep(0.12,0.98,uT23);
  c=mix(c,scene03(screenUv),stone);
  c=mix(c,vec3(0.93,0.94,0.96),uBloom);
@@ -999,6 +1014,7 @@ vec3 sceneBackground(vec2 screenUv,float worldY){
   loc.scene4Height=gl.getUniformLocation(program,"uScene4Height");
   loc.chroma=gl.getUniformLocation(program,"uChroma");
   loc.brightness=gl.getUniformLocation(program,"uBrightness");
+  loc.rainbow=gl.getUniformLocation(program,"uRainbow");
   loc.bloom=gl.getUniformLocation(program,"uBloom");
   loc.t23=gl.getUniformLocation(program,"uT23");
   loc.glitter=gl.getUniformLocation(program,"uGlitterLevel");
