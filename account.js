@@ -1000,7 +1000,7 @@
         </div>
 
         <div class="vn-ac-shop-space">
-          <a class="vn-ac-shop-continue" href="https://shopify.com/83672662239/account" aria-label="Continue with Shop"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="#5A31F4" d="M12 2.2c-5.4 0-9.8 4.4-9.8 9.8s4.4 9.8 9.8 9.8 9.8-4.4 9.8-9.8S17.4 2.2 12 2.2Zm0 2.1a7.7 7.7 0 1 1 0 15.4 7.7 7.7 0 0 1 0-15.4Z"/><path fill="#5A31F4" d="M8.1 9.2h2.1v5.6H8.1zm3.7 0h2.1v5.6h-2.1zm3.7 0h2.1v5.6h-2.1z"/></svg><span>Continue with Shop</span></a>
+          <a class="vn-ac-shop-continue" href="https://shopify.com/83672662239/account" data-ac-action="shop-account" aria-label="Continue with Shop"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="#5A31F4" d="M12 2.2c-5.4 0-9.8 4.4-9.8 9.8s4.4 9.8 9.8 9.8 9.8-4.4 9.8-9.8S17.4 2.2 12 2.2Zm0 2.1a7.7 7.7 0 1 1 0 15.4 7.7 7.7 0 0 1 0-15.4Z"/><path fill="#5A31F4" d="M8.1 9.2h2.1v5.6H8.1zm3.7 0h2.1v5.6h-2.1zm3.7 0h2.1v5.6h-2.1z"/></svg><span>Continue with Shop</span></a>
         </div>
         <div class="vn-ac-or-divider" aria-hidden="true"><span>OR</span></div>
 
@@ -2013,6 +2013,19 @@
           case "close":
             closePanel();
             break;
+
+          case "shop-account": {
+            const width = 520;
+            const height = 720;
+            const left = Math.max(0, Math.round(window.screenX + (window.outerWidth - width) / 2));
+            const top = Math.max(0, Math.round(window.screenY + (window.outerHeight - height) / 2));
+            window.open(
+              "https://shopify.com/83672662239/account",
+              "vnShopCustomerAccount",
+              `popup=yes,width=${width},height=${height},left=${left},top=${top},resizable=yes,scrollbars=yes`
+            );
+            break;
+          }
 
           case "continue-shop":
             goShop();
