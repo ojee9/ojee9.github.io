@@ -328,15 +328,6 @@ a.package-card{box-shadow:none!important;filter:none!important;transition:transf
 }
 
 
-/* Study 12 material layer — background only; scene content and existing overlays remain above it. */
-.scene--welcome .study12-background{position:absolute;inset:0;z-index:0;width:100%;height:100%;border:0;pointer-events:none;opacity:.86}
-
-
-/* Scene 02 — use the standalone Study 12 material without additional glitter or tint overlays. */
-.scene--welcome{background:#e4e3e1!important;background-image:none!important}
-.scene--welcome::before{content:"";position:absolute;top:0;left:0;right:0;height:clamp(240px,32vh,380px);z-index:1;pointer-events:none;background:linear-gradient(180deg,rgba(199,204,214,var(--incoming-blend-opacity,0)) 0%,rgba(199,204,214,0) 100%)}
-.scene--welcome .study12-background{opacity:1!important}
-
 /* 01 → 02 — dissolve the seam by blending sampled tones from both scenes.
    The black scene stays black; the silver is introduced as a soft, irregular light field,
    not as a white strip growing upward from the bottom edge. */
@@ -383,32 +374,25 @@ a.package-card{box-shadow:none!important;filter:none!important;transition:transf
     radial-gradient(ellipse at 85% 78%,rgba(70,67,62,.1),transparent 46%);
 }
 
-/* True seam dissolve for 01→02 and 02→03.
-   backdrop-filter samples the actual rendered pixels from both adjacent scenes,
-   smearing the hard boundary instead of painting a white gradient over it. */
-#scene-transition-seam{
-  position:fixed;z-index:100;left:0;right:0;top:0;height:240px;
-  pointer-events:none;opacity:0;will-change:top,opacity;
-  -webkit-backdrop-filter:blur(34px) saturate(1.12);
-  backdrop-filter:blur(34px) saturate(1.12);
-  -webkit-mask-image:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.28) 16%,#000 42%,#000 58%,rgba(0,0,0,.28) 84%,transparent 100%);
-  mask-image:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.28) 16%,#000 42%,#000 58%,rgba(0,0,0,.28) 84%,transparent 100%);
-}
-#scene-transition-seam[data-transition="one-two"]{
-  background:
-    radial-gradient(ellipse 74% 78% at 50% 50%,rgba(199,204,214,.24),transparent 72%),
-    linear-gradient(180deg,transparent 0%,rgba(10,11,14,.16) 34%,rgba(199,204,214,.18) 66%,transparent 100%);
-}
-#scene-transition-seam[data-transition="two-three"]{
-  background:
-    radial-gradient(ellipse 76% 82% at 50% 50%,rgba(198,187,167,.25),transparent 72%),
-    linear-gradient(180deg,transparent 0%,rgba(191,197,200,.14) 32%,rgba(183,179,173,.2) 68%,transparent 100%);
-}
-@media(prefers-reduced-motion:reduce){#scene-transition-seam{-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}}
+
+/* Shared atmosphere renderer — one persistent surface for all four scenes. */
+#shared-atmosphere{position:fixed;inset:0;z-index:0;display:block;width:100%;height:100%;pointer-events:none}
+.scene{position:relative;z-index:1;background:transparent!important}
+.scene--credits{min-height:220svh!important}
+.scene--credits .credits-content{position:sticky;top:0;min-height:100svh!important}
+.scene--credits .swipe-cue{position:fixed;bottom:22px;transition:opacity .2s ease}
+.scene--credits::after,.scene--welcome::before,.scene--welcome::after,.scene--package::before,.scene--package::after{content:none!important}
+.scene--welcome,.scene--package,.scene--receipt{background:transparent!important;background-image:none!important}
+.atmosphere-fallback .scene--credits{background:#000!important}
+.atmosphere-fallback .scene--welcome{background-color:#E4E3E1!important;background-image:radial-gradient(ellipse at 26% 28%,rgba(177,218,255,.16),transparent 43%),radial-gradient(ellipse at 76% 72%,rgba(255,190,226,.17),transparent 46%),radial-gradient(ellipse at 52% 48%,rgba(255,255,255,.2),transparent 54%)!important}
+.atmosphere-fallback .scene--package{background:linear-gradient(135deg,#c9c5bf 0%,#b7b3ad 42%,#d4cec3 100%)!important}
+.atmosphere-fallback .scene--receipt{background:linear-gradient(180deg,#c6bba7 0%,#d0c5b2 18%,#c6bba7 52%,#E4CEA5 100%)!important}
+@media(prefers-reduced-motion:reduce){.scene--credits .swipe-cue{transition:none}}
+
 </style>
 </head>
 <body>
-<div id="scene-transition-seam" aria-hidden="true"></div>
+<canvas id="shared-atmosphere" aria-hidden="true"></canvas>
 <section class="scene scene--credits" id="scene-1" aria-label="Purchase completed credits">
   <div class="scene-inner credits-content">
     <img class="vn-mark" src="images/vn-logo-black-transparent.png" alt="VN">
@@ -426,7 +410,6 @@ a.package-card{box-shadow:none!important;filter:none!important;transition:transf
 </section>
 
 <section class="scene scene--welcome" id="scene-2" aria-label="Welcome to VN">
-  <iframe class="study12-background" src="glitter-material-study-12.html?embed=1" title="" aria-hidden="true" tabindex="-1" loading="eager"></iframe>
   <canvas class="light-trail" id="light-trail" aria-hidden="true"></canvas>
   <a class="sky-ad sky-ad--left" href="projects.html" aria-label="News, events, projects and more">
     <img class="sky-ad-image" src="assets/visuals/event-ojee-kash-gta-love-qa-2314-poster.png" alt="" loading="eager">
@@ -636,13 +619,87 @@ if(!reduced&&matchMedia("(hover:hover) and (pointer:fine)").matches){
  window.addEventListener("resize",resize,{passive:true});
 }
 $("skip-to-receipt").addEventListener("click",event=>{event.preventDefault();$("scene-4").scrollIntoView({behavior:reduced?"auto":"smooth",block:"start"})});
-const sections=[...document.querySelectorAll(".scene")];
-let blendFrame=0;
-const seamLayer=document.getElementById("scene-transition-seam");
-const updateSceneBlends=()=>{blendFrame=0;const vh=innerHeight||document.documentElement.clientHeight;const ease=value=>{const t=Math.max(0,Math.min(1,value));return t*t*t*(t*(t*6-15)+10);};let activeSeam=null;sections.forEach((section,index)=>{if(index>2)return;const rect=section.getBoundingClientRect();const range=index<2?vh:vh*3.4;const outgoing=ease((vh-rect.bottom)/range);const incoming=index===0?0:ease((vh-rect.top)/vh);section.style.setProperty("--blend-progress",String(outgoing));section.style.setProperty("--blend-opacity",String(outgoing));section.style.setProperty("--incoming-blend-opacity",String(incoming));if(index<2){const seamY=rect.bottom;if(seamY>0&&seamY<vh){const progress=seamY/vh;const strength=Math.sin(Math.PI*progress);if(!activeSeam||strength>activeSeam.strength)activeSeam={index,seamY,strength};}}});if(activeSeam){seamLayer.dataset.transition=activeSeam.index===0?"one-two":"two-three";seamLayer.style.top=(activeSeam.seamY-120)+"px";seamLayer.style.opacity=String(Math.pow(activeSeam.strength,.72));}else{seamLayer.style.opacity="0";}};
-window.addEventListener("scroll",()=>{if(!blendFrame)blendFrame=requestAnimationFrame(updateSceneBlends)},{passive:true});
-window.addEventListener("resize",updateSceneBlends,{passive:true});
-updateSceneBlends();
+
+})();
+</script>
+
+<script>
+/* Persistent WebGL material: original Study 12 facet layers, never amplified. */
+(()=>{"use strict";
+const canvas=document.getElementById("shared-atmosphere");
+const scene1=document.getElementById("scene-1"),scene2=document.getElementById("scene-2"),scene3=document.getElementById("scene-3"),scene4=document.getElementById("scene-4");
+const cue=scene1.querySelector(".swipe-cue");
+const gl=canvas.getContext("webgl2",{alpha:false,antialias:true,powerPreference:"high-performance"});
+if(!gl){document.documentElement.classList.add("atmosphere-fallback");canvas.hidden=true;return;}
+let program,loc={},progress=0,glitterLevel=0,raf=0,pointer=[innerWidth*.5,innerHeight*.5];
+const clamp=v=>Math.max(0,Math.min(1,v));
+const smooth=(a,b,x)=>{const t=clamp((x-a)/(b-a));return t*t*(3-2*t);};
+const colors=[[5,5,5],[228,227,225],[183,179,173],[198,187,167],[228,206,165]];
+function mix(a,b,t){return a+(b-a)*t;}
+function colorAt(p){
+ const stops=[0,.30,.58,.82,1];let i=0;while(i<stops.length-2&&p>stops[i+1])i++;
+ const t=smooth(stops[i],stops[i+1],p),a=colors[i],b=colors[i+1];
+ return [mix(a[0],b[0],t)/255,mix(a[1],b[1],t)/255,mix(a[2],b[2],t)/255];
+}
+function compile(type,source){const shader=gl.createShader(type);gl.shaderSource(shader,source);gl.compileShader(shader);if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS)){const msg=gl.getShaderInfoLog(shader);gl.deleteShader(shader);throw new Error(msg);}return shader;}
+function draw(){
+ raf=0;const dpr=Math.min(devicePixelRatio||1,1.5),w=Math.max(1,Math.floor(innerWidth*dpr)),h=Math.max(1,Math.floor(innerHeight*dpr));
+ if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;gl.viewport(0,0,w,h);}
+ gl.useProgram(program);gl.uniform2f(loc.res,w,h);gl.uniform2f(loc.pointer,pointer[0]*dpr,(innerHeight-pointer[1])*dpr);
+ const c=colorAt(progress);gl.uniform3f(loc.base,c[0],c[1],c[2]);gl.uniform1f(loc.glitter,glitterLevel);
+ gl.drawArrays(gl.TRIANGLES,0,3);
+}
+function requestDraw(){if(!raf)raf=requestAnimationFrame(draw);}
+function update(){
+ const y=window.scrollY||window.pageYOffset,vh=innerHeight||document.documentElement.clientHeight;
+ const runway=Math.max(1,scene1.offsetHeight-vh);
+ const s2start=scene2.offsetTop+scene2.offsetHeight-vh*.72,s2end=scene3.offsetTop;
+ const s3start=scene3.offsetTop+scene3.offsetHeight-vh*.72,s3end=scene4.offsetTop;
+ const receiptEnd=scene4.offsetTop+vh*.32;
+ let p;
+ if(y<=runway)p=.30*smooth(0,runway,y);
+ else if(y<=s2start)p=.30;
+ else if(y<=s2end)p=mix(.30,.58,smooth(s2start,s2end,y));
+ else if(y<=s3start)p=.58;
+ else if(y<=s3end)p=mix(.58,.82,smooth(s3start,s3end,y));
+ else p=mix(.82,1,smooth(s3end,receiptEnd,y));
+ progress=clamp(p);
+ glitterLevel=smooth(.035,.30,progress)*(1-.95*smooth(.56,.91,progress));
+ cue.style.opacity=y<runway*.92?"1":"0";
+ cue.style.visibility=y<runway*.92?"visible":"hidden";
+ requestDraw();
+}
+async function init(){
+ try{
+  const response=await fetch("glitter-material-study-12.html",{cache:"force-cache"});
+  if(!response.ok)throw new Error("Study 12 shader could not be loaded ("+response.status+").");
+  const source=await response.text();
+  const vertexMatch=source.match(/const vertexSource=\x60([\s\S]*?)\x60;/);
+  const fragmentMatch=source.match(/const fragmentSource=\x60([\s\S]*?)\x60;/);
+  if(!vertexMatch||!fragmentMatch)throw new Error("Study 12 shader source was not found.");
+  let fragment=fragmentMatch[1];
+  fragment=fragment.replace("uniform vec2 uPointer;","uniform vec2 uPointer;\nuniform vec3 uBaseColor;\nuniform float uGlitterLevel;");
+  fragment=fragment.replace("vec3 base=mix(vec3(0.78,0.80,0.84),baseFilm,0.13);","vec3 base=mix(uBaseColor,baseFilm,0.13);");
+  fragment=fragment.replace("vec3 color=base+fine+medium+micro;","vec3 color=base+(fine+medium+micro)*uGlitterLevel;");
+  if(!fragment.includes("uBaseColor")||!fragment.includes("*uGlitterLevel"))throw new Error("Material shader adaptation failed.");
+  program=gl.createProgram();
+  gl.attachShader(program,compile(gl.VERTEX_SHADER,vertexMatch[1]));
+  gl.attachShader(program,compile(gl.FRAGMENT_SHADER,fragment));
+  gl.linkProgram(program);
+  if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(program));
+  loc.res=gl.getUniformLocation(program,"uResolution");loc.pointer=gl.getUniformLocation(program,"uPointer");
+  loc.base=gl.getUniformLocation(program,"uBaseColor");loc.glitter=gl.getUniformLocation(program,"uGlitterLevel");
+  if(!loc.res||!loc.pointer||!loc.base||!loc.glitter)throw new Error("A required material uniform is unavailable.");
+  update();
+ }catch(error){
+  canvas.hidden=true;document.documentElement.classList.add("atmosphere-fallback");
+  console.error("VN shared atmosphere:",error);
+ }
+}
+window.addEventListener("scroll",update,{passive:true});
+window.addEventListener("resize",update,{passive:true});
+window.addEventListener("pointermove",e=>{pointer=[e.clientX,e.clientY];requestDraw();},{passive:true});
+init();
 })();
 </script>
 </body>
