@@ -1152,10 +1152,6 @@
       <main class="vn-ac-main vn-ac-verify-main">
         <h1>Enter code</h1>
         <p class="vn-ac-subtitle vn-ac-sent-to">Sent to <strong>${escapeHTML(state.email)}</strong> <button type="button" class="vn-ac-inline-change" data-ac-action="change-email">(change)</button></p>
-        <div class="vn-ac-shop-space vn-ac-verify-shop">
-          <button type="button" class="vn-ac-shop-button" data-ac-action="shop-login">Continue with Shop</button>
-          <div id="vnAcShopLogin" class="vn-ac-shop-sdk-host" aria-hidden="true"></div>
-        </div>
         ${messageHTML()}
         <form id="vnAcVerifyForm">
           <div class="vn-ac-otp-wrap ${state.busy ? "is-loading" : ""}">
@@ -1647,7 +1643,6 @@
 
     if (!state.user) {
       content.innerHTML = state.screen === "verify" ? renderVerify() : renderEmail();
-      mountShopLogin();
       return;
     }
 
@@ -1727,6 +1722,7 @@
     try {
       let updated;
       if (mode === "signup") updated = await attempt.prepareEmailAddressVerification({ strategy: "email_code" });
+      else if (mode === "signin-second-factor") updated = await attempt.prepareSecondFactor({ strategy: "email_code" });
       else {
         const id = attempt.firstFactorVerification?.emailAddressId || attempt.supportedFirstFactors?.find(f => f.strategy === "email_code")?.emailAddressId;
         if (!id) throw new Error("Clerk could not identify the email verification method for this sign-in.");
@@ -1812,10 +1808,47 @@
     }, 250);
   }
 
+  async function activateClerkSession(sessionId) {
+    const clerk = state.clerk;
+    if (!clerk || !sessionId) throw new Error("Clerk did not return a valid session.");
+
+    let activeUser = clerk.user || clerk.session?.user || null;
+    if (!activeUser || clerk.session?.id !== sessionId) {
+      let unsubscribe = null;
+      let resolveUser;
+      const userReady = new Promise(resolve => {
+        resolveUser = resolve;
+        unsubscribe = clerk.addListener(({ user, session }) => {
+          if (session?.id === sessionId && user) resolve(user);
+        }, { skipInitialEmit: true });
+      });
+
+      try {
+        await clerk.setActive({ session: sessionId });
+        activeUser = clerk.user || clerk.session?.user || null;
+        if (!activeUser || clerk.session?.id !== sessionId) {
+          activeUser = await Promise.race([
+            userReady,
+            new Promise(resolve => window.setTimeout(() => resolve(null), 8000))
+          ]);
+        }
+      } finally {
+        if (typeof unsubscribe === "function") unsubscribe();
+      }
+    }
+
+    if (!activeUser) {
+      throw new Error("Your email was verified, but Clerk has not finished loading your account session. Please try again.");
+    }
+
+    syncClerkUser(activeUser);
+    if (!state.user) throw new Error("Clerk activated the session but did not return the account profile.");
+  }
+
   async function verifyCode(code) {
     if (!state.clerk || !state.authAttempt) {
       state.messageType = "error"; state.message = "Sign-in is unavailable. Please return to the email step and try again.";
-      state.screen = "email"; render(); focusEntry(); return;
+      state.screen = "email"; render(); return;
     }
     if (!new RegExp("^\\d{" + CONFIG.otpLength + "}$").test(code)) {
       state.messageType = "error"; state.message = "Enter the complete " + CONFIG.otpLength + "-digit code."; render(); focusOtp(); return;
@@ -1824,23 +1857,61 @@
     state.busy = true; state.otpCode = code; state.message = ""; render();
     let failed = false;
     try {
-      const result = state.authMode === "signup"
-        ? await state.authAttempt.attemptEmailAddressVerification({ code })
-        : await state.authAttempt.attemptFirstFactor({ strategy: "email_code", code });
+      let result;
+      if (state.authMode === "signup") {
+        result = await state.authAttempt.attemptEmailAddressVerification({ code });
+      } else if (state.authMode === "signin-second-factor") {
+        result = await state.authAttempt.attemptSecondFactor({ strategy: "email_code", code });
+      } else {
+        result = await state.authAttempt.attemptFirstFactor({ strategy: "email_code", code });
+      }
       if (result) state.authAttempt = result;
-      if (result.status !== "complete" || !result.createdSessionId) throw new Error(result.status === "needs_second_factor"
-        ? "Additional verification is required by the Clerk account settings. Complete the required second factor in Clerk before using this sign-in flow."
-        : "Email verification is not complete. Check the code and try again.");
-      await state.clerk.setActive({ session: result.createdSessionId });
-      syncClerkUser(state.clerk.user || null);
-      if (!state.user) throw new Error("Clerk verified the code but did not return an active user session.");
-      state.screen = "account"; state.section = "dashboard"; state.message = ""; state.authAttempt = null; state.authMode = "";
+
+      if (result.status === "needs_second_factor" && state.authMode === "signin") {
+        const emailFactor = result.supportedSecondFactors?.find(f => f.strategy === "email_code");
+        if (!emailFactor) {
+          throw new Error("Your email was verified, but this account requires another security factor that is not configured for this sign-in screen.");
+        }
+        const prepared = await result.prepareSecondFactor({ strategy: "email_code" });
+        state.authAttempt = prepared || result;
+        state.authMode = "signin-second-factor";
+        state.otpCode = "";
+        state.messageType = "info";
+        state.message = "Email verified. Enter the additional security code sent to your email.";
+        state.resendAt = Date.now() + CONFIG.resendDelay * 1000;
+        startResendTimer();
+        return;
+      }
+
+      if (state.authMode === "signup" && result.status === "missing_requirements") {
+        const missing = Array.isArray(result.missingFields) ? result.missingFields : [];
+        throw new Error(missing.length
+          ? "Your email is verified, but Clerk still requires: " + missing.join(", ") + ". Complete these required sign-up fields in Clerk."
+          : "Your email is verified, but Clerk has not completed account creation. Check the required sign-up fields in Clerk.");
+      }
+
+      if (result.status !== "complete" || !result.createdSessionId) {
+        throw new Error(result.status === "needs_second_factor"
+          ? "The additional security verification is still required. Enter the second code sent by Clerk."
+          : "The code was accepted, but Clerk returned an incomplete sign-in state (" + String(result.status || "unknown") + ").");
+      }
+
+      await activateClerkSession(result.createdSessionId);
+      state.screen = "account";
+      state.section = "dashboard";
+      state.message = "";
+      state.authAttempt = null;
+      state.authMode = "";
       await loadAccountData();
     } catch (error) {
-      failed = true; console.error("[VN ACCOUNT] Clerk OTP verification failed:", error);
-      state.messageType = "error"; state.message = explainAuthError(error);
+      failed = true;
+      console.error("[VN ACCOUNT] Clerk OTP verification failed:", error);
+      state.messageType = "error";
+      state.message = explainAuthError(error);
     } finally {
-      state.busy = false; render(); if (failed) focusOtp();
+      state.busy = false;
+      render();
+      if (failed && state.screen === "verify") focusOtp();
     }
   }
   function focusEntry() {
@@ -2055,14 +2126,9 @@
             break;
 
           case "shop-login":
-            if (shopLoginInstance && typeof shopLoginInstance.start === "function") {
-              state.message = "";
-              shopLoginInstance.start(state.email || undefined);
-            } else {
-              state.messageType = "info";
-              state.message = "Shop sign-in is still loading. Please try again in a moment.";
-              render();
-            }
+            state.messageType = "info";
+            state.message = "Shop sign-in is not available on this storefront yet. Please continue with email.";
+            showShopLoginMessage();
             break;
 
           case "privacy-open":
