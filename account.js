@@ -1100,7 +1100,6 @@
               apiKey: "90292cd96f43b8299e5b541fbe400d11",
               locale: "en",
               features: { login: true },
-              appearance: { variables: { "--buttons-radius": "2px" } },
               onEligibleForSignInWithShop(eligible, context) {
                 console.info("[VN ACCOUNT] Shop sign-in eligibility:", eligible, context);
                 if (!eligible && $("#vnAcShopLogin")?.isConnected) {
