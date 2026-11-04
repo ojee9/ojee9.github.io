@@ -45,11 +45,6 @@
   };
 
   let configPromise = null;
-  let shopSdkPromise = null;
-  let shopLoginInstance = null;
-  let shopMountSequence = 0;
-  let shopLoginMountElement = null;
-  let shopLoginMountPromise = null;
 
   const $ = (selector, root = document) => root.querySelector(selector);
 
@@ -254,13 +249,8 @@
       .vn-ac-signin-heading p{margin:9px 0 0;font-size:15px;line-height:1.5;color:#a9a5ad}
       .vn-ac-email-main{display:flex;flex-direction:column;align-items:stretch;width:100%;max-width:480px;margin-inline:auto}
       .vn-ac-email-form-wrap{width:100%;max-width:480px;margin:0 auto}.vn-ac-email-form-wrap form{display:flex;flex-direction:column;width:100%}
-      .vn-ac-shop-space{display:flex;align-items:center;justify-content:center;width:100%;min-height:54px;flex:none;margin:0 auto 18px}.vn-ac-shop-space[hidden]{display:none!important}
-      .vn-ac-shop-sdk-host{position:relative;display:flex;align-items:center;justify-content:center;width:100%;min-height:52px}
-      #vnAcShopLogin>*{display:block!important;width:100%!important;max-width:100%!important;min-width:0!important}
       .vn-ac-consent-note{margin:24px auto 0!important;max-width:480px;text-align:center;color:#a4a4a4;font-size:12px;line-height:1.75}
       .vn-ac-consent-note a{color:#fff;text-decoration:underline;text-underline-offset:2px}
-      .vn-ac-or-divider{display:flex;align-items:center;gap:13px;width:min(100%,480px);margin:0 auto 18px;color:#8d8794;font-size:11px;line-height:1;letter-spacing:1.5px}
-      .vn-ac-or-divider:before,.vn-ac-or-divider:after{content:"";height:1px;flex:1;background:#39343e}
       .vn-ac-email-bar{display:flex;align-items:center;gap:4px;width:100%;min-height:60px;padding:6px 7px 6px 17px;border:1px solid #555;border-radius:2px;overflow:hidden;background:#101010;transition:border-color .18s ease,background .18s ease}
       .vn-ac-email-bar input{flex:1;min-width:0;height:44px;padding:0;border:0;outline:0;background:transparent;color:#f5f5f5;font:16px/1.45 Arial,sans-serif}
       .vn-ac-email-bar input::placeholder{color:#a4a4a4;opacity:1}
@@ -275,7 +265,7 @@
       .vn-ac-auth-shell .vn-ac-message{width:100%;max-width:480px;margin:0 auto 16px}
       .vn-ac-shell.vn-ac-auth-shell:not(.vn-ac-dashboard-open)::before{content:none!important;background:none!important}
       .vn-ac-shell.vn-ac-auth-shell .vn-ac-dashboard-background,.vn-ac-shell.vn-ac-auth-shell .vn-ac-dashboard-trail{display:none!important}
-      @media(max-width:600px){.vn-ac-shell.vn-ac-auth-shell{width:min(100%,560px);min-height:min(600px,calc(100dvh - 24px));max-height:calc(100dvh - 24px);padding:30px 24px 24px}.vn-ac-auth-shell .vn-ac-close{right:14px;top:14px;width:40px;height:40px;font-size:32px}.vn-ac-auth-shell .vn-ac-header{padding:0 0 14px}.vn-ac-auth-shell .vn-ac-brand{width:174px;height:82px}.vn-ac-auth-shell #vnAcContent{width:100%;justify-content:center}.vn-ac-auth-shell .vn-ac-main{width:100%;max-width:480px}.vn-ac-signin-heading{margin-bottom:22px}.vn-ac-signin-heading h1{font-size:28px}.vn-ac-signin-heading p{font-size:14px}.vn-ac-email-form-wrap,.vn-ac-or-divider,.vn-ac-shop-space{width:100%;max-width:480px}.vn-ac-email-bar{min-height:58px;padding-left:14px}.vn-ac-email-bar input{height:44px;font-size:16px}.vn-ac-email-submit{width:44px;height:44px}.vn-ac-email-submit svg{display:block;width:20px;height:20px}.vn-ac-shop-space{min-height:52px;margin-bottom:18px}.vn-ac-updates{font-size:13px;line-height:1.5}.vn-ac-consent-note{margin-top:20px!important}.vn-ac-email-terms{margin-top:18px!important}.vn-ac-auth-shell .vn-ac-policy-footer-row{margin-top:14px}}
+      @media(max-width:600px){.vn-ac-shell.vn-ac-auth-shell{width:min(100%,560px);min-height:min(600px,calc(100dvh - 24px));max-height:calc(100dvh - 24px);padding:30px 24px 24px}.vn-ac-auth-shell .vn-ac-close{right:14px;top:14px;width:40px;height:40px;font-size:32px}.vn-ac-auth-shell .vn-ac-header{padding:0 0 14px}.vn-ac-auth-shell .vn-ac-brand{width:174px;height:82px}.vn-ac-auth-shell #vnAcContent{width:100%;justify-content:center}.vn-ac-auth-shell .vn-ac-main{width:100%;max-width:480px}.vn-ac-signin-heading{margin-bottom:22px}.vn-ac-signin-heading h1{font-size:28px}.vn-ac-signin-heading p{font-size:14px}.vn-ac-email-form-wrap{width:100%;max-width:480px}.vn-ac-email-bar{min-height:58px;padding-left:14px}.vn-ac-email-bar input{height:44px;font-size:16px}.vn-ac-email-submit{width:44px;height:44px}.vn-ac-email-submit svg{display:block;width:20px;height:20px}.vn-ac-updates{font-size:13px;line-height:1.5}.vn-ac-consent-note{margin-top:20px!important}.vn-ac-email-terms{margin-top:18px!important}.vn-ac-auth-shell .vn-ac-policy-footer-row{margin-top:14px}}
       .vn-ac-layout{display:grid;grid-template-columns:200px minmax(0,1fr);gap:48px;padding-top:32px}
       .vn-ac-sidebar{display:flex;flex-direction:column;gap:8px}
       .vn-ac-nav{border:0;background:none;color:#666;text-align:left;padding:12px 10px;font:inherit;cursor:pointer;border-radius:4px;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
@@ -1008,11 +998,6 @@
           <p>Sign in or create an account</p>
         </div>
 
-        <div class="vn-ac-shop-space">
-          <div id="vnAcShopLogin" class="vn-ac-shop-sdk-host"></div>
-        </div>
-        <div class="vn-ac-or-divider" aria-hidden="true"><span>OR</span></div>
-
         <div class="vn-ac-email-form-wrap">
         <form id="vnAcEmailForm">
           <div class="vn-ac-email-bar">
@@ -1044,144 +1029,6 @@
         </div>
       </main>
     `;
-  }
-
-  function showShopLoginMessage() {
-    const main = $("#vnAccountOverlay .vn-ac-main");
-    if (!main) return;
-
-    let message = $(".vn-ac-message", main);
-    if (!message) {
-      main.insertAdjacentHTML("afterbegin", messageHTML());
-      message = $(".vn-ac-message", main);
-    }
-    if (!message) return;
-
-    message.className = "vn-ac-message " + state.messageType;
-    message.textContent = state.message;
-  }
-
-  function destroyShopLogin() {
-    shopMountSequence += 1;
-    shopLoginMountPromise = null;
-    shopLoginMountElement = null;
-
-    if (shopLoginInstance) {
-      try {
-        shopLoginInstance.destroy();
-      } catch (error) {
-        console.warn("[VN ACCOUNT] Shop login cleanup failed:", error);
-      }
-      shopLoginInstance = null;
-    }
-  }
-
-  function mountShopLogin() {
-    const mount = $("#vnAcShopLogin");
-    if (!mount) {
-      destroyShopLogin();
-      return;
-    }
-
-    if (shopLoginMountElement === mount && (shopLoginInstance || shopLoginMountPromise)) return;
-
-    destroyShopLogin();
-    const sequence = ++shopMountSequence;
-    shopLoginMountElement = mount;
-
-    shopLoginMountPromise = (async () => {
-      try {
-        if (!shopSdkPromise) {
-          shopSdkPromise = (async () => {
-            await import("https://cdn.shopify.com/shopifycloud/shop-js/modules/v2/loader.sdk.esm.js");
-            if (!window.ShopSDK) throw new Error("Shop SDK did not initialize.");
-
-            return window.ShopSDK.initialize({
-              apiKey: "90292cd96f43b8299e5b541fbe400d11",
-              locale: "en",
-              features: { login: true },
-              onEligibleForSignInWithShop(eligible, context) {
-                console.info("[VN ACCOUNT] Shop sign-in eligibility:", eligible, context);
-                if (!eligible && $("#vnAcShopLogin")?.isConnected) {
-                  state.messageType = "info";
-                  state.message = "Sign in with Shop is not enabled for this storefront. Email sign-in is still available.";
-                  showShopLoginMessage();
-                }
-              },
-              onError(event) {
-                console.error("[VN ACCOUNT] Shop SDK error:", event?.feature, event?.message, event?.cause);
-                if (!$("#vnAcShopLogin")?.isConnected) return;
-                state.messageType = "error";
-                state.message = event?.message
-                  ? "Shop sign-in failed: " + event.message
-                  : "Shop sign-in could not be completed. Please try again or continue with email.";
-                showShopLoginMessage();
-              }
-            });
-          })();
-        }
-
-        const sdk = await shopSdkPromise;
-        if (sequence !== shopMountSequence || !mount.isConnected) return;
-
-        const login = await sdk.create("login", {
-          attributes: {
-            buttonType: "continue",
-            buttonLayout: "standalone",
-            presentationMode: "button",
-            emailInputSelector: "#customer-authentication-web-email",
-            scope: "shop_app:oauth",
-            storefrontOrigin: window.location.origin,
-            returnTo: "same-page"
-          },
-          onLoad(event) {
-            console.info("[VN ACCOUNT] Shop login component ready:", { userFound: Boolean(event?.userFound) });
-          },
-          onComplete(event) {
-            if (event?.signedIn && event?.emailVerified && event?.email) {
-              sendCode(event.email, "shop");
-            } else {
-              state.messageType = "error";
-              state.message = "Shop did not complete sign-in with a verified email address. You can continue with email instead.";
-              render();
-            }
-          },
-          onError(event) {
-            console.error("[VN ACCOUNT] Shop sign-in failed:", event?.code, event?.message, event);
-            if (sequence !== shopMountSequence || !mount.isConnected) return;
-            state.messageType = "error";
-            state.message = event?.message
-              ? "Shop sign-in failed: " + event.message
-              : "Shop sign-in could not be completed. Please try again or continue with email.";
-            showShopLoginMessage();
-          }
-        });
-
-        if (sequence !== shopMountSequence || !mount.isConnected) {
-          login.destroy();
-          return;
-        }
-
-        shopLoginInstance = login;
-        login.element.style.display = "block";
-        login.element.style.width = "100%";
-        login.element.style.maxWidth = "100%";
-        mount.replaceChildren(login.element);
-      } catch (error) {
-        shopSdkPromise = null;
-        if (sequence === shopMountSequence) shopLoginMountElement = null;
-        console.error("[VN ACCOUNT] Shop SDK could not be loaded:", error);
-        if (sequence === shopMountSequence && mount.isConnected) {
-          state.messageType = "error";
-          state.message = error?.message
-            ? "Shop sign-in could not be initialized: " + error.message
-            : "Shop sign-in could not be initialized. Please use email sign-in.";
-          showShopLoginMessage();
-        }
-      } finally {
-        if (sequence === shopMountSequence) shopLoginMountPromise = null;
-      }
-    })();
   }
 
   function renderVerify() {
@@ -1680,12 +1527,8 @@
 
     if (!state.user) {
       content.innerHTML = state.screen === "verify" ? renderVerify() : renderEmail();
-      if (state.screen === "verify") destroyShopLogin();
-      else mountShopLogin();
       return;
     }
-
-    destroyShopLogin();
 
     if (state.section === "dashboard") content.innerHTML = renderDashboard();
     else if (state.section === "profile") content.innerHTML = renderProfile();
