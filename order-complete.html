@@ -489,7 +489,7 @@ html:not(.atmosphere-ready):not(.atmosphere-fallback) .scene--receipt{background
 .scene--credits .credits-stage--credit{min-height:78svh}
 .scene--credits .credits-stage--credit .credits-bottom{margin:0;transform:translateY(-8svh)}
 .scene--credits .credits-stage--signature{min-height:58svh}
-.scene--credits .credits-stage--signature .creator-logo{width:clamp(180px,30vw,340px);max-width:78vw;max-height:150px;margin:0 auto;object-fit:contain;transform:translateY(-4svh)}
+.scene--credits .credits-stage--signature .creator-logo{width:clamp(180px,30vw,340px);max-width:78vw;max-height:150px;margin:0 auto;object-fit:contain}
 
 
 /* Scene 3 — reveal each exhibit as it enters the viewport; never fade the whole gallery out at once. */
@@ -870,18 +870,13 @@ function frame(now){
  const t23=(p-geometry.transition23Start)/FLOW_CONFIG.transition23;
  const close=smooth(.17,.30,t23);
  const bloom=FLOW_CONFIG.bloomStrength*smooth(.15,.30,t23)*(1-smooth(.30,.85,t23));
- const chroma=1.16*smooth(0,.62,corridorP);
+ const chroma=smooth(0,.62,corridorP);
  const brightness=smooth(.22,.96,corridorP);
- const scene2Plateau=p>=geometry.scene2Start+FLOW_CONFIG.scene2Hold*.12&&p<geometry.transition23Start;
+ const scene2Plateau=p>=FLOW_CONFIG.scene1Hold+FLOW_CONFIG.corridor&&p<geometry.transition23Start;
  const activeGlitter=scene2Plateau?1:glitter;
  const effectiveGlitter=p<geometry.transition23Start?activeGlitter:1;
  const t23Clamped=clamp(t23,0,1);
- const t34=(p-geometry.transition34Start)/FLOW_CONFIG.transition34;
- // Leave a sparse Study 12 afterimage through Scene 3; clear it completely in Scene 4.
- const scene3ResidualClose=0.965*close;
- const scene4ParticleExit=smooth(.05,.68,t34);
- const glitterClose=p<geometry.transition23Start?0:Math.max(scene3ResidualClose,scene4ParticleExit);
- const glitterBoost=scene2Plateau?1.75:(p<geometry.transition34Start?1.0:0.78);
+ const glitterClose=p<geometry.transition23Start?0:close;
  updateDom(chroma,brightness,bloom,effectiveGlitter,glitterClose,t23);
  if(webglReady&&program){
   gl.useProgram(program);
@@ -900,7 +895,6 @@ function frame(now){
   gl.uniform1f(loc.t23,t23Clamped);
   gl.uniform1f(loc.glitter,effectiveGlitter);
   gl.uniform1f(loc.glitterClose,glitterClose);
-  gl.uniform1f(loc.glitterBoost,glitterBoost);
   gl.drawArrays(gl.TRIANGLES,0,3);
   if(!root.classList.contains("atmosphere-ready")){
    root.classList.remove("atmosphere-fallback");
@@ -933,7 +927,7 @@ async function initShader(){
   const fragmentMatch=source.match(/const fragmentSource=\x60([\s\S]*?)\x60;/);
   if(!vertexMatch||!fragmentMatch)throw new Error("Study 12 shader source was not found.");
   let fragment=fragmentMatch[1];
-  fragment=fragment.replace("uniform vec2 uPointer;","uniform vec2 uPointer;\nuniform float uScrollY;\nuniform float uViewportHeight;\nuniform float uScene4Top;\nuniform float uScene4Height;\nuniform float uChroma;\nuniform float uBrightness;\nuniform float uBloom;\nuniform float uT23;\nuniform float uGlitterLevel;\nuniform float uGlitterClose;\nuniform float uGlitterBoost;");
+  fragment=fragment.replace("uniform vec2 uPointer;","uniform vec2 uPointer;\nuniform float uScrollY;\nuniform float uViewportHeight;\nuniform float uScene4Top;\nuniform float uScene4Height;\nuniform float uChroma;\nuniform float uBrightness;\nuniform float uBloom;\nuniform float uT23;\nuniform float uGlitterLevel;\nuniform float uGlitterClose;");
   const sceneFunctions=`
 vec3 scene02(vec2 uv){
  vec3 c=vec3(228.0,227.0,225.0)/255.0;
@@ -962,7 +956,7 @@ vec3 scene04(vec2 uv){
  float y=uv.y;
  vec3 a=vec3(198.0,187.0,167.0)/255.0;
  vec3 b=vec3(208.0,197.0,178.0)/255.0;
- vec3 d=vec3(214.0,195.0,157.0)/255.0;
+ vec3 d=vec3(228.0,206.0,165.0)/255.0;
  if(y<0.18)return mix(a,b,y/0.18);
  if(y<0.52)return mix(b,a,(y-0.18)/0.34);
  return mix(a,d,(y-0.52)/0.48);
@@ -983,8 +977,8 @@ vec3 sceneBackground(vec2 screenUv,float worldY){
 `;
   fragment=fragment.replace("vec3 facetLayer(vec2 pixel,",sceneFunctions+"\nvec3 facetLayer(vec2 pixel,");
   fragment=fragment.replace("float mask=edge*step(1.0-density,hash12(cell+seed+13.9));","float densityRoll=hash12(cell+seed+13.9);\n float thresholdIn=hash12(cell+seed+53.7);\n float thresholdOut=1.0-thresholdIn;\n float enterFade=smoothstep(thresholdIn-0.055,thresholdIn+0.055,uGlitterLevel);\n float exitFade=1.0-smoothstep(thresholdOut-0.055,thresholdOut+0.055,uGlitterClose);\n float particleVisible=enterFade*exitFade;\n float mask=edge*step(1.0-density,densityRoll)*particleVisible;");
-  fragment=fragment.replace("vec3 base=mix(vec3(0.78,0.80,0.84),baseFilm,0.13);","vec2 screenUv=vec2(pixel.x/uResolution.x,1.0-pixel.y/uResolution.y);\n float worldY=uScrollY+screenUv.y*uViewportHeight;\n vec3 base=mix(sceneBackground(screenUv,worldY),baseFilm,0.34);");
-  fragment=fragment.replace("vec3 color=base+(fine+medium+micro)*uGlitterBoost;","vec3 color=base+fine+medium+micro;");
+  fragment=fragment.replace("vec3 base=mix(vec3(0.78,0.80,0.84),baseFilm,0.13);","vec2 screenUv=vec2(pixel.x/uResolution.x,1.0-pixel.y/uResolution.y);\n float worldY=uScrollY+screenUv.y*uViewportHeight;\n vec3 base=sceneBackground(screenUv,worldY);");
+  fragment=fragment.replace("vec3 color=base+fine+medium+micro;","vec3 color=base+fine+medium+micro;");
   if(!fragment.includes("uGlitterClose")||
      !fragment.includes("sceneBackground")||
      !fragment.includes("float enterFade=smoothstep(thresholdIn-0.055,thresholdIn+0.055,uGlitterLevel);")||
@@ -1009,7 +1003,6 @@ vec3 sceneBackground(vec2 screenUv,float worldY){
   loc.t23=gl.getUniformLocation(program,"uT23");
   loc.glitter=gl.getUniformLocation(program,"uGlitterLevel");
   loc.glitterClose=gl.getUniformLocation(program,"uGlitterClose");
-  loc.glitterBoost=gl.getUniformLocation(program,"uGlitterBoost");
   if(Object.values(loc).some(value=>value===null))throw new Error("A required material uniform is unavailable.");
   webglReady=true;
   requestFrame();
