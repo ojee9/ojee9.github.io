@@ -1044,6 +1044,21 @@
     `;
   }
 
+  function showShopLoginMessage() {
+    const main = $("#vnAccountOverlay .vn-ac-main");
+    if (!main) return;
+
+    let message = $(".vn-ac-message", main);
+    if (!message) {
+      main.insertAdjacentHTML("afterbegin", messageHTML());
+      message = $(".vn-ac-message", main);
+    }
+    if (!message) return;
+
+    message.className = "vn-ac-message " + state.messageType;
+    message.textContent = state.message;
+  }
+
   function mountShopLogin() {
     const mount = $("#vnAcShopLogin");
     if (!mount) return;
@@ -1070,6 +1085,11 @@
               },
               onError(event) {
                 console.error("[VN ACCOUNT] Shop SDK error:", event?.feature, event?.message, event?.cause);
+                state.messageType = "error";
+                state.message = event?.message
+                  ? "Shop sign-in failed: " + event.message
+                  : "Shop sign-in could not be completed. Please try again or continue with email.";
+                showShopLoginMessage();
               }
             });
           })();
@@ -1083,6 +1103,7 @@
             buttonType: "continue",
             buttonLayout: "standalone",
             scope: "shop_app:oauth",
+            storefrontOrigin: window.location.origin,
             returnTo: "same-page"
           },
           onLoad(event) {
@@ -1098,12 +1119,12 @@
             }
           },
           onError(event) {
-            console.error("[VN ACCOUNT] Shop sign-in failed:", event?.code, event?.message);
+            console.error("[VN ACCOUNT] Shop sign-in failed:", event?.code, event?.message, event);
             state.messageType = "error";
             state.message = event?.message
               ? "Shop sign-in failed: " + event.message
               : "Shop sign-in could not be completed. Please try again or continue with email.";
-            if (state.screen !== "verify") render();
+            showShopLoginMessage();
           }
         });
 
@@ -1120,11 +1141,7 @@
         if (sequence === shopMountSequence && mount.isConnected) {
           state.messageType = "error";
           state.message = "Continue with Shop is temporarily unavailable. Please use email sign-in.";
-          const message = $(".vn-ac-message", mount.closest(".vn-ac-main"));
-          if (message) {
-            message.textContent = state.message;
-            message.classList.add("error");
-          }
+          showShopLoginMessage();
         }
       }
     })();
@@ -1726,8 +1743,24 @@
   function explainAuthError(error) {
     const message = String(error?.errors?.[0]?.longMessage || error?.errors?.[0]?.message || error?.message || "");
     const lower = message.toLowerCase();
+    const code = String(error?.errors?.[0]?.code || "");
+    if (code === "dev_browser_unauthenticated") {
+      return "Clerk could not verify this browser session. Refresh the page and try again.";
+    }
+    if (code === "dev_email_provider_blocked") {
+      return "Clerk's development email provider cannot send to this email domain. Use another address or configure Clerk email delivery.";
+    }
+    if (code === "dev_monthly_email_limit_exceeded" || code === "dev_daily_email_recipient_limit_exceeded") {
+      return "Clerk's development email limit has been reached. Configure a production Clerk instance or wait for the limit to reset.";
+    }
+    if (code === "verification_code_not_sent" || code === "verification_not_sent") {
+      return "Clerk did not send the verification code. Request a new code and check the Clerk email delivery settings.";
+    }
+    if (code === "host_invalid" || code === "origin_invalid") {
+      return "Clerk rejected this website's domain. Check the Clerk instance domain and allowed origins.";
+    }
     if (/network|failed to fetch|timeout|timed out/.test(lower)) {
-      return "A network error interrupted the request. Check your connection and try again.";
+      return "The browser could not reach Clerk's authentication API. Check the Clerk instance connection and browser network requests, then try again.";
     }
     if (/rate limit|too many requests/.test(lower)) {
       return "Too many verification requests. Wait a little before trying again.";
