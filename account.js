@@ -252,7 +252,7 @@
       .vn-ac-signin-heading h1{margin:0;font-size:32px;font-weight:700;line-height:1.2;letter-spacing:-.7px;color:#f5f5f5}
       .vn-ac-signin-heading p{margin:9px 0 0;font-size:15px;line-height:1.5;color:#a9a5ad}
       .vn-ac-email-main{display:flex;flex-direction:column;align-items:stretch;width:100%;max-width:480px;margin-inline:auto}
-      .vn-ac-shop-space{width:100%;max-width:480px;margin:0 auto 18px}.vn-ac-shop-mount{display:flex;align-items:stretch;justify-content:center;width:100%;min-height:54px}.vn-ac-shop-mount>*{display:block;width:100%}.vn-ac-or-divider{display:flex;align-items:center;gap:13px;width:100%;max-width:480px;margin:0 auto 18px;color:#a9a5ad;font-size:11px;line-height:1;letter-spacing:1.5px}.vn-ac-or-divider:before,.vn-ac-or-divider:after{content:"";height:1px;flex:1;background:#39343e}
+      .vn-ac-shop-space{width:100%;max-width:480px;margin:0 auto 18px}.vn-ac-shop-mount{display:flex;align-items:stretch;justify-content:center;width:100%;min-height:54px}.vn-ac-shop-mount>*{display:block;width:100%}.vn-ac-shop-continue{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:54px;padding:0 20px;border:1px solid #d9d9d9;border-radius:4px;background:#fff;color:#111;font:600 15px/1.2 Arial,sans-serif;cursor:pointer;transition:background .16s ease,border-color .16s ease}.vn-ac-shop-continue:hover{background:#f2f2f2;border-color:#fff}.vn-ac-shop-continue:focus-visible{outline:2px solid #fff;outline-offset:3px}.vn-ac-shop-continue svg{width:19px;height:19px;flex:0 0 19px}.vn-ac-or-divider{display:flex;align-items:center;gap:13px;width:100%;max-width:480px;margin:0 auto 18px;color:#a9a5ad;font-size:11px;line-height:1;letter-spacing:1.5px}.vn-ac-or-divider:before,.vn-ac-or-divider:after{content:"";height:1px;flex:1;background:#39343e}
       .vn-ac-email-form-wrap{width:100%;max-width:480px;margin:0 auto}.vn-ac-email-form-wrap form{display:flex;flex-direction:column;width:100%}
       .vn-ac-consent-note{margin:24px auto 0!important;max-width:480px;text-align:center;color:#a4a4a4;font-size:12px;line-height:1.75}
       .vn-ac-consent-note a{color:#fff;text-decoration:underline;text-underline-offset:2px}
@@ -1113,6 +1113,35 @@
       }
 
       state.shopLoginInstance = login;
+
+      // The official SDK CTA is recognition-dependent. Keep a visible VN SHOP
+      // trigger for every visitor and start the official Shop login flow on click.
+      const trigger = document.createElement("button");
+      trigger.type = "button";
+      trigger.className = "vn-ac-shop-continue";
+      trigger.setAttribute("aria-label", "Continue with Shop");
+      trigger.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="#5A31F4" d="M12 2.2c-5.4 0-9.8 4.4-9.8 9.8s4.4 9.8 9.8 9.8 9.8-4.4 9.8-9.8S17.4 2.2 12 2.2Zm0 2.1a7.7 7.7 0 1 1 0 15.4 7.7 7.7 0 0 1 0-15.4Z"/><path fill="#5A31F4" d="M8.1 9.2h2.1v5.6H8.1zm3.7 0h2.1v5.6h-2.1zm3.7 0h2.1v5.6h-2.1z"/></svg><span>Continue with Shop</span>';
+      trigger.addEventListener("click", () => {
+        try {
+          login.start();
+        } catch (error) {
+          console.error("[VN ACCOUNT] Shop login could not be started:", error);
+          state.messageType = "error";
+          state.message = "Shop sign-in could not be started. Please continue with email instead.";
+          render();
+        }
+      });
+
+      // Keep the SDK element connected for its lifecycle; the visible trigger
+      // above invokes its documented start() method.
+      login.element.style.position = "absolute";
+      login.element.style.width = "1px";
+      login.element.style.height = "1px";
+      login.element.style.overflow = "hidden";
+      login.element.style.clipPath = "inset(50%)";
+      login.element.style.whiteSpace = "nowrap";
+      login.element.setAttribute("aria-hidden", "true");
+      mount.appendChild(trigger);
       mount.appendChild(login.element);
     } catch (error) {
       if (generation === state.shopLoginGeneration) {
