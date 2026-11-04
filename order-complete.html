@@ -416,6 +416,27 @@ a.package-card{box-shadow:none!important;filter:none!important;transition:transf
  background:linear-gradient(180deg,rgba(228,227,225,.72) 0%,rgba(191,197,200,.42) 38%,transparent 100%);
 }
 
+
+/* Continuous absolute-svh scene choreography. */
+html{scroll-behavior:auto!important;scroll-snap-type:none!important;scroll-padding:0!important}
+.scene{scroll-snap-align:none!important;scroll-snap-stop:normal!important;overflow:visible!important}
+.scene--credits{height:400svh!important;min-height:400svh!important}
+.scene--welcome{height:280svh!important;min-height:280svh!important}
+.scene--welcome .welcome-inner{position:sticky;top:0;height:100svh!important;min-height:100svh!important}
+.scene--credits .credits-content{position:sticky;top:0;min-height:100svh!important;opacity:var(--intro-opacity,1);transform:translate3d(0,calc((1 - var(--intro-opacity,1))*-22px),0);transition:none}
+.scene--credits .swipe-cue{position:fixed;bottom:22px;transition:none}
+.scene--package{height:auto!important;min-height:170svh!important}
+.scene--package .package-inner{position:sticky;top:0;min-height:100svh}
+.scene--welcome .sky-ad{position:fixed;top:50%;opacity:var(--panel-opacity,0);pointer-events:none;transition:none}
+.scene--welcome{overflow:visible!important}
+.scene--credits::after,.scene--welcome::before,.scene--welcome::after,.scene--package::before,.scene--package::after{content:none!important}
+#shared-atmosphere{z-index:0}
+.atmosphere-fallback body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:var(--fallback-bg,#000);background-image:radial-gradient(ellipse at 26% 28%,rgba(177,218,255,calc(var(--chroma,0)*.16)),transparent 43%),radial-gradient(ellipse at 76% 72%,rgba(255,190,226,calc(var(--chroma,0)*.17)),transparent 46%); }
+.atmosphere-fallback body::after{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse at 50% 50%,rgba(228,227,225,.35),transparent 68%);opacity:var(--bloom,0)}
+.atmosphere-fallback .scene,.atmosphere-fallback .scene--credits,.atmosphere-fallback .scene--welcome,.atmosphere-fallback .scene--package,.atmosphere-fallback .scene--receipt{background:transparent!important;background-image:none!important}
+.atmosphere-fallback .scene--credits::after,.atmosphere-fallback .scene--welcome::before,.atmosphere-fallback .scene--welcome::after,.atmosphere-fallback .scene--package::before{content:none!important}
+@media(prefers-reduced-motion:reduce){.scene--credits .swipe-cue{transition:none}}
+
 </style>
 </head>
 <body>
@@ -651,36 +672,152 @@ $("skip-to-receipt").addEventListener("click",event=>{event.preventDefault();$("
 </script>
 
 <script>
-/* Persistent WebGL material — repaired shader injection and gradual Study 12 reveal. */
+/* Persistent atmosphere — one absolute-svh progress value drives WebGL and DOM. */
 (()=>{"use strict";
-const canvas=document.getElementById("shared-atmosphere");
-const scene1=document.getElementById("scene-1"),scene2=document.getElementById("scene-2"),scene3=document.getElementById("scene-3"),scene4=document.getElementById("scene-4");
-const cue=scene1.querySelector(".swipe-cue");
-const gl=canvas.getContext("webgl2",{alpha:false,antialias:true,powerPreference:"high-performance"});
-if(!gl){document.documentElement.classList.add("atmosphere-fallback");canvas.hidden=true;return;}
-let program,loc={},glitterLevel=0,raf=0,pointer=[innerWidth*.5,innerHeight*.5],scrollY=0,viewportHeight=innerHeight;
+const $=id=>document.getElementById(id);
+const canvas=$("shared-atmosphere");
+const scene1=$("scene-1"),scene2=$("scene-2"),scene3=$("scene-3"),scene4=$("scene-4");
+const credits=scene1.querySelector(".credits-content");
+const welcome=scene2.querySelector(".welcome-inner");
+const packageInner=scene3.querySelector(".package-inner");
+const panels=Array.from(scene2.querySelectorAll(".sky-ad"));
+const cues=Array.from(document.querySelectorAll(".scene .swipe-cue"));
+const FLOW_CONFIG={
+ scene1Hold:100,
+ corridor:300,
+ scene2Hold:150,
+ transition23:130,
+ scene3Hold:100,
+ transition34:70,
+ bloomStrength:0.14,
+ lerpRate:18
+};
 const smooth=(a,b,x)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t);};
-function compile(type,source){const shader=gl.createShader(type);gl.shaderSource(shader,source);gl.compileShader(shader);if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS)){const msg=gl.getShaderInfoLog(shader);gl.deleteShader(shader);throw new Error(msg);}return shader;}
-function draw(){
- raf=0;const dpr=Math.min(devicePixelRatio||1,1.5),w=Math.max(1,Math.floor(innerWidth*dpr)),h=Math.max(1,Math.floor(innerHeight*dpr));
- if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;gl.viewport(0,0,w,h);}
- gl.useProgram(program);gl.uniform2f(loc.res,w,h);gl.uniform2f(loc.pointer,pointer[0]*dpr,(innerHeight-pointer[1])*dpr);
- gl.uniform1f(loc.scroll,scrollY);gl.uniform1f(loc.vh,viewportHeight);
- gl.uniform1f(loc.scene2Top,scene2.offsetTop);gl.uniform1f(loc.scene2Height,scene2.offsetHeight);
- gl.uniform1f(loc.scene3Top,scene3.offsetTop);gl.uniform1f(loc.scene3Height,scene3.offsetHeight);
- gl.uniform1f(loc.scene4Top,scene4.offsetTop);gl.uniform1f(loc.scene4Height,scene4.offsetHeight);
- gl.uniform1f(loc.glitter,glitterLevel);gl.drawArrays(gl.TRIANGLES,0,3);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const mix=(a,b,t)=>a+(b-a)*t;
+const mixColor=(a,b,t)=>a.map((v,i)=>Math.round(mix(v,b[i],t)));
+const root=document.documentElement;
+const svhProbe=document.createElement("div");
+svhProbe.setAttribute("aria-hidden","true");
+svhProbe.style.cssText="position:absolute;visibility:hidden;pointer-events:none;height:100svh;width:0;top:0;left:0";
+document.body.appendChild(svhProbe);
+let svhPx=svhProbe.getBoundingClientRect().height||innerHeight;
+let program=null,loc={},raf=0,lastFrame=0,targetP=0,p=0,pointer=[innerWidth*.5,innerHeight*.5];
+let geometry={scene2Start:400,scene3Start:680,scene4Start:850,transition23Start:550,transition34Start:780};
+let metricsDirty=true,gl=null,webglReady=false;
+const glContext=canvas.getContext("webgl2",{alpha:false,antialias:false,powerPreference:"high-performance"});
+gl=glContext;
+if(!gl)document.documentElement.classList.add("atmosphere-fallback");
+function setSceneGeometry(){
+ svhPx=svhProbe.getBoundingClientRect().height||innerHeight||1;
+ scene1.style.height=(FLOW_CONFIG.scene1Hold+FLOW_CONFIG.corridor)+"svh";
+ scene1.style.minHeight=scene1.style.height;
+ scene2.style.height=(FLOW_CONFIG.scene2Hold+FLOW_CONFIG.transition23)+"svh";
+ scene2.style.minHeight=scene2.style.height;
+ scene3.style.minHeight=(FLOW_CONFIG.scene3Hold+FLOW_CONFIG.transition34)+"svh";
+ scene4.style.minHeight="100svh";
+ const contentSvh=packageInner.scrollHeight/svhPx;
+ const requiredScene3=Math.max(FLOW_CONFIG.scene3Hold+FLOW_CONFIG.transition34,contentSvh+FLOW_CONFIG.transition34);
+ scene3.style.minHeight=requiredScene3+"svh";
+ welcome.style.minHeight="100svh";
+ welcome.style.height="100svh";
+ const scene2Start=scene2.offsetTop/svhPx;
+ const scene3Start=scene3.offsetTop/svhPx;
+ const scene4Start=scene4.offsetTop/svhPx;
+ geometry={
+  scene2Start:scene2Start,
+  scene3Start:scene3Start,
+  scene4Start:scene4Start,
+  transition23Start:scene2Start+FLOW_CONFIG.scene2Hold,
+  transition34Start:scene4Start-FLOW_CONFIG.transition34
+ };
+ metricsDirty=false;
+ targetP=(window.scrollY||window.pageYOffset)/svhPx;
+ if(!lastFrame)p=targetP;
 }
-function requestDraw(){if(!raf)raf=requestAnimationFrame(draw);}
-function update(){
- scrollY=window.scrollY||window.pageYOffset;viewportHeight=innerHeight||document.documentElement.clientHeight;
- const scene2Top=scene2.offsetTop;
- glitterLevel=smooth(scene2Top-viewportHeight,scene2Top,scrollY);
- cue.style.opacity=scrollY<scene1.offsetHeight-viewportHeight*.1?"1":"0";
- cue.style.visibility=scrollY<scene1.offsetHeight-viewportHeight*.1?"visible":"hidden";
- requestDraw();
+function updateDom(chroma,brightness,bloom,glitter,close,t23){
+ const panelOpacity=smooth(.9,1,glitter)*(1-smooth(0,.2,t23));
+ root.style.setProperty("--p",p.toFixed(5));
+ root.style.setProperty("--chroma",chroma.toFixed(5));
+ root.style.setProperty("--brightness",brightness.toFixed(5));
+ root.style.setProperty("--bloom",bloom.toFixed(5));
+ root.style.setProperty("--glitter",glitter.toFixed(5));
+ root.style.setProperty("--glitter-close",close.toFixed(5));
+ root.style.setProperty("--panel-opacity",panelOpacity.toFixed(5));
+ root.style.setProperty("--intro-opacity",(1-smooth(.72,1,p/FLOW_CONFIG.scene1Hold)).toFixed(5));
+ panels.forEach(panel=>{
+  panel.style.opacity=String(panelOpacity);
+  panel.style.pointerEvents=panelOpacity>.01?"auto":"none";
+  panel.setAttribute("aria-hidden",panelOpacity<=.01?"true":"false");
+  if(panelOpacity<=.01)panel.setAttribute("tabindex","-1");
+  else panel.removeAttribute("tabindex");
+ });
+ const scene1CueOpacity=1-smooth(.78,1,p/FLOW_CONFIG.scene1Hold);
+ const scene2CueOpacity=(p>=geometry.scene2Start+FLOW_CONFIG.scene2Hold*.72&&p<geometry.scene2Start+FLOW_CONFIG.scene2Hold)?1:0;
+ const scene3CueOpacity=(p>=geometry.scene3Start+FLOW_CONFIG.scene3Hold*.72&&p<geometry.transition34Start)?1:0;
+ if(cues[0]){cues[0].style.opacity=String(scene1CueOpacity);cues[0].style.visibility=scene1CueOpacity>.01?"visible":"hidden";}
+ if(cues[1]){cues[1].style.opacity=String(scene2CueOpacity);cues[1].style.visibility=scene2CueOpacity>.01?"visible":"hidden";}
+ if(cues[2]){cues[2].style.opacity=String(scene3CueOpacity);cues[2].style.visibility=scene3CueOpacity>.01?"visible":"hidden";}
+ const corridorColor=mixColor([0,0,0],[228,227,225],brightness);
+ const stone= smooth(.30,1,t23);
+ const stoneColor=mixColor(corridorColor,[201,197,191],stone);
+ const receiptColor=mixColor(stoneColor,[198,187,167],smooth(0,1,(p-geometry.transition34Start)/FLOW_CONFIG.transition34));
+ root.style.setProperty("--fallback-bg","rgb("+receiptColor.join(",")+")");
 }
-async function init(){
+function frame(now){
+ raf=0;
+ const dt=lastFrame?Math.min(.05,Math.max(0,(now-lastFrame)/1000)):1/60;
+ lastFrame=now;
+ p+=(targetP-p)*(1-Math.exp(-dt*FLOW_CONFIG.lerpRate));
+ if(Math.abs(targetP-p)<.00015)p=targetP;
+ const corridorP=clamp((p-FLOW_CONFIG.scene1Hold)/FLOW_CONFIG.corridor,0,1);
+ const corridorHint=.05*smooth(.70,.88,corridorP);
+ const corridorRise=.95*smooth(.88,1,corridorP);
+ const glitter=clamp(corridorHint+corridorRise,0,1);
+ const t23=(p-geometry.transition23Start)/FLOW_CONFIG.transition23;
+ const close=smooth(.17,.30,t23);
+ const bloom=FLOW_CONFIG.bloomStrength*smooth(.15,.30,t23)*(1-smooth(.30,.85,t23));
+ const chroma=smooth(0,.45,corridorP);
+ const brightness=smooth(.35,.90,corridorP);
+ const activeGlitter=p>=FLOW_CONFIG.scene1Hold+FLOW_CONFIG.corridor?1:glitter;
+ const effectiveGlitter=p<geometry.transition23Start?activeGlitter:1;
+ const t23Clamped=clamp(t23,0,1);
+ const glitterClose=p<geometry.transition23Start?0:close;
+ updateDom(chroma,brightness,bloom,effectiveGlitter,glitterClose,t23);
+ if(webglReady&&program){
+  gl.useProgram(program);
+  const dpr=Math.min(devicePixelRatio||1,1.5);
+  const w=Math.max(1,Math.floor(innerWidth*dpr)),h=Math.max(1,Math.floor(innerHeight*dpr));
+  if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;gl.viewport(0,0,w,h);}
+  gl.uniform2f(loc.res,w,h);
+  gl.uniform2f(loc.pointer,pointer[0]*dpr,(innerHeight-pointer[1])*dpr);
+  gl.uniform1f(loc.scroll,p*svhPx);
+  gl.uniform1f(loc.vh,innerHeight||document.documentElement.clientHeight);
+  gl.uniform1f(loc.scene4Top,scene4.offsetTop);
+  gl.uniform1f(loc.scene4Height,scene4.offsetHeight);
+  gl.uniform1f(loc.chroma,chroma);
+  gl.uniform1f(loc.brightness,brightness);
+  gl.uniform1f(loc.bloom,bloom);
+  gl.uniform1f(loc.t23,t23Clamped);
+  gl.uniform1f(loc.glitter,effectiveGlitter);
+  gl.uniform1f(loc.glitterClose,glitterClose);
+  gl.drawArrays(gl.TRIANGLES,0,3);
+ }
+ if(Math.abs(targetP-p)>.00015)raf=requestAnimationFrame(frame);
+}
+function requestFrame(){if(!raf)raf=requestAnimationFrame(frame);}
+function onScroll(){targetP=(window.scrollY||window.pageYOffset)/svhPx;requestFrame();}
+function fallbackInit(){
+ root.classList.add("atmosphere-fallback");
+ canvas.hidden=true;
+}
+function compile(type,source){
+ const shader=gl.createShader(type);gl.shaderSource(shader,source);gl.compileShader(shader);
+ if(!gl.getShaderParameter(shader,gl.COMPILE_STATUS)){const message=gl.getShaderInfoLog(shader);gl.deleteShader(shader);throw new Error(message);}
+ return shader;
+}
+async function initShader(){
+ if(!gl)return;
  try{
   const response=await fetch("glitter-material-study-12.html",{cache:"force-cache"});
   if(!response.ok)throw new Error("Study 12 shader could not be loaded ("+response.status+").");
@@ -689,26 +826,96 @@ async function init(){
   const fragmentMatch=source.match(/const fragmentSource=\x60([\s\S]*?)\x60;/);
   if(!vertexMatch||!fragmentMatch)throw new Error("Study 12 shader source was not found.");
   let fragment=fragmentMatch[1];
-  fragment=fragment.replace("uniform vec2 uPointer;","uniform vec2 uPointer;\nuniform float uScrollY;\nuniform float uViewportHeight;\nuniform float uScene2Top;\nuniform float uScene2Height;\nuniform float uScene3Top;\nuniform float uScene3Height;\nuniform float uScene4Top;\nuniform float uScene4Height;\nuniform float uGlitterLevel;");
-  fragment=fragment.replace("vec3 facetLayer(vec2 pixel,","\nvec3 scene02(vec2 uv){\n vec3 c=vec3(228.0,227.0,225.0)/255.0;\n float blue=1.0-smoothstep(0.0,0.43,length((uv-vec2(0.26,0.28))*vec2(1.0,0.92)));\n float pink=1.0-smoothstep(0.0,0.46,length((uv-vec2(0.76,0.72))*vec2(1.0,0.92)));\n float white=1.0-smoothstep(0.0,0.54,length((uv-vec2(0.52,0.48))*vec2(1.0,0.92)));\n c=mix(c,vec3(177.0,218.0,255.0)/255.0,blue*0.16);\n c=mix(c,vec3(255.0,190.0,226.0)/255.0,pink*0.17);\n c=mix(c,vec3(1.0),white*0.20);\n return c;\n}\nvec3 scene03(vec2 uv){\n float t=clamp((uv.x+uv.y)*0.5,0.0,1.0);\n vec3 c;\n if(t<0.42)c=mix(vec3(201.0,197.0,191.0)/255.0,vec3(183.0,179.0,173.0)/255.0,t/0.42);\n else c=mix(vec3(183.0,179.0,173.0)/255.0,vec3(212.0,206.0,195.0)/255.0,(t-0.42)/0.58);\n float topRadius=length((uv-vec2(0.5,0.0))/vec2(0.42,0.29));\n float topAlpha=topRadius<0.52?mix(0.95,0.48,topRadius/0.52):mix(0.48,0.0,clamp((topRadius-0.52)/0.48,0.0,1.0));\n float bottomRadius=length((uv-vec2(0.5,1.0))/vec2(0.45,0.29));\n float bottomAlpha=bottomRadius<0.50?mix(0.96,0.55,bottomRadius/0.50):mix(0.55,0.0,clamp((bottomRadius-0.50)/0.50,0.0,1.0));\n c=mix(c,vec3(191.0,197.0,200.0)/255.0,clamp(topAlpha,0.0,1.0));\n c=mix(c,vec3(198.0,187.0,167.0)/255.0,clamp(bottomAlpha,0.0,1.0));\n return c;\n}\nvec3 scene04(vec2 uv){\n float y=uv.y;\n vec3 a=vec3(198.0,187.0,167.0)/255.0;\n vec3 b=vec3(208.0,197.0,178.0)/255.0;\n vec3 d=vec3(228.0,206.0,165.0)/255.0;\n if(y<0.18)return mix(a,b,y/0.18);\n if(y<0.52)return mix(b,a,(y-0.18)/0.34);\n return mix(a,d,(y-0.52)/0.48);\n}\nvec3 sceneBackground(vec2 screenUv,float worldY){\n vec2 uv4=vec2(screenUv.x,clamp((worldY-uScene4Top)/max(1.0,uScene4Height),0.0,1.0));\n // Scene hand-offs use scroll progress, not per-pixel worldY. This avoids a\n // horizontal transition edge while the incoming palette fills the viewport.\n float t12=smoothstep(uScene2Top-uViewportHeight*0.78,uScene2Top+uViewportHeight*0.78,uScrollY);\n vec3 c=mix(vec3(0.0),scene02(screenUv),t12);\n float t23=smoothstep(uScene3Top-uViewportHeight*0.78,uScene3Top+uViewportHeight*0.78,uScrollY);\n c=mix(c,scene03(screenUv),t23);\n float t34=smoothstep(uScene4Top-uViewportHeight*0.92,uScene4Top+uViewportHeight*0.22,worldY+sin(screenUv.x*6.1+worldY*0.0011)*uViewportHeight*0.022);\n c=mix(c,scene04(uv4),t34);\n return c;\n}\n\nvec3 facetLayer(vec2 pixel,");
-  fragment=fragment.replace("vec3 base=mix(vec3(0.78,0.80,0.84),baseFilm,0.13);","vec2 screenUv=vec2(pixel.x/uResolution.x,1.0-pixel.y/uResolution.y);\n float worldY=uScrollY+screenUv.y*uViewportHeight;\n float scene2Mask=smoothstep(uScene2Top,uScene2Top+uViewportHeight*0.045,worldY)*(1.0-smoothstep(uScene2Top+uScene2Height-uViewportHeight*0.045,uScene2Top+uScene2Height,worldY));\n vec3 base=sceneBackground(screenUv,worldY);");
-  fragment=fragment.replace("vec3 color=base+fine+medium+micro;","vec3 color=base+(fine+medium+micro)*(uGlitterLevel*scene2Mask);");
-  if(!fragment.includes("vec3 sceneBackground")||!fragment.includes("uGlitterLevel*scene2Mask"))throw new Error("Study 12 shader adaptation failed.");
-  program=gl.createProgram();gl.attachShader(program,compile(gl.VERTEX_SHADER,vertexMatch[1]));gl.attachShader(program,compile(gl.FRAGMENT_SHADER,fragment));gl.linkProgram(program);
-  if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(program));
-  loc.res=gl.getUniformLocation(program,"uResolution");loc.pointer=gl.getUniformLocation(program,"uPointer");
-  loc.scroll=gl.getUniformLocation(program,"uScrollY");loc.vh=gl.getUniformLocation(program,"uViewportHeight");
-  loc.scene2Top=gl.getUniformLocation(program,"uScene2Top");loc.scene2Height=gl.getUniformLocation(program,"uScene2Height");
-  loc.scene3Top=gl.getUniformLocation(program,"uScene3Top");loc.scene3Height=gl.getUniformLocation(program,"uScene3Height");
-  loc.scene4Top=gl.getUniformLocation(program,"uScene4Top");loc.scene4Height=gl.getUniformLocation(program,"uScene4Height");
-  loc.glitter=gl.getUniformLocation(program,"uGlitterLevel");
-  if(Object.values(loc).some(value=>value===null))throw new Error("A required material uniform is unavailable.");
-  update();
- }catch(error){canvas.hidden=true;document.documentElement.classList.add("atmosphere-fallback");console.error("VN shared atmosphere:",error);}
+  fragment=fragment.replace("uniform vec2 uPointer;","uniform vec2 uPointer;\nuniform float uScrollY;\nuniform float uViewportHeight;\nuniform float uScene4Top;\nuniform float uScene4Height;\nuniform float uChroma;\nuniform float uBrightness;\nuniform float uBloom;\nuniform float uT23;\nuniform float uGlitterLevel;\nuniform float uGlitterClose;");
+  const sceneFunctions=`
+vec3 scene02(vec2 uv){
+ vec3 c=vec3(228.0,227.0,225.0)/255.0;
+ float blue=1.0-smoothstep(0.0,0.43,length((uv-vec2(0.26,0.28))*vec2(1.0,0.92)));
+ float pink=1.0-smoothstep(0.0,0.46,length((uv-vec2(0.76,0.72))*vec2(1.0,0.92)));
+ float white=1.0-smoothstep(0.0,0.54,length((uv-vec2(0.52,0.48))*vec2(1.0,0.92)));
+ c=mix(c,vec3(177.0,218.0,255.0)/255.0,blue*0.16);
+ c=mix(c,vec3(255.0,190.0,226.0)/255.0,pink*0.17);
+ c=mix(c,vec3(1.0),white*0.20);
+ return c;
 }
-window.addEventListener("scroll",update,{passive:true});window.addEventListener("resize",update,{passive:true});
-window.addEventListener("pointermove",e=>{pointer=[e.clientX,e.clientY];requestDraw();},{passive:true});
-init();
+vec3 scene03(vec2 uv){
+ float t=clamp((uv.x+uv.y)*0.5,0.0,1.0);
+ vec3 c;
+ if(t<0.42)c=mix(vec3(201.0,197.0,191.0)/255.0,vec3(183.0,179.0,173.0)/255.0,t/0.42);
+ else c=mix(vec3(183.0,179.0,173.0)/255.0,vec3(212.0,206.0,195.0)/255.0,(t-0.42)/0.58);
+ float topRadius=length((uv-vec2(0.5,0.0))/vec2(0.42,0.29));
+ float topAlpha=topRadius<0.52?mix(0.95,0.48,topRadius/0.52):mix(0.48,0.0,clamp((topRadius-0.52)/0.48,0.0,1.0));
+ float bottomRadius=length((uv-vec2(0.5,1.0))/vec2(0.45,0.29));
+ float bottomAlpha=bottomRadius<0.50?mix(0.96,0.55,bottomRadius/0.50):mix(0.55,0.0,clamp((bottomRadius-0.50)/0.50,0.0,1.0));
+ c=mix(c,vec3(191.0,197.0,200.0)/255.0,clamp(topAlpha,0.0,1.0));
+ c=mix(c,vec3(198.0,187.0,167.0)/255.0,clamp(bottomAlpha,0.0,1.0));
+ return c;
+}
+vec3 scene04(vec2 uv){
+ float y=uv.y;
+ vec3 a=vec3(198.0,187.0,167.0)/255.0;
+ vec3 b=vec3(208.0,197.0,178.0)/255.0;
+ vec3 d=vec3(228.0,206.0,165.0)/255.0;
+ if(y<0.18)return mix(a,b,y/0.18);
+ if(y<0.52)return mix(b,a,(y-0.18)/0.34);
+ return mix(a,d,(y-0.52)/0.48);
+}
+vec3 sceneBackground(vec2 screenUv,float worldY){
+ vec2 uv4=vec2(screenUv.x,clamp((worldY-uScene4Top)/max(1.0,uScene4Height),0.0,1.0));
+ vec3 chromatic=scene02(screenUv);
+ float luminance=dot(chromatic,vec3(0.2126,0.7152,0.0722));
+ vec3 neutral=vec3(luminance);
+ vec3 c=mix(neutral,chromatic,uChroma)*uBrightness;
+ float stone=smoothstep(0.30,1.0,uT23);
+ c=mix(c,scene03(screenUv),stone);
+ c+=vec3(0.93,0.94,0.96)*uBloom;
+ float t34=smoothstep(uScene4Top-uViewportHeight*0.92,uScene4Top+uViewportHeight*0.22,worldY+sin(screenUv.x*6.1+worldY*0.0011)*uViewportHeight*0.022);
+ c=mix(c,scene04(uv4),t34);
+ return c;
+}
+`;
+  fragment=fragment.replace("vec3 facetLayer(vec2 pixel,",sceneFunctions+"\nvec3 facetLayer(vec2 pixel,");
+  fragment=fragment.replace("float mask=edge*step(1.0-density,hash12(cell+seed+13.9));","float densityRoll=hash12(cell+seed+13.9);\n float thresholdIn=hash12(cell+seed+53.7);\n float thresholdOut=1.0-thresholdIn;\n float particleVisible=float(thresholdIn<uGlitterLevel && thresholdOut>uGlitterClose);\n float mask=edge*step(1.0-density,densityRoll)*particleVisible;");
+  fragment=fragment.replace("vec3 base=mix(vec3(0.78,0.80,0.84),baseFilm,0.13);","vec2 screenUv=vec2(pixel.x/uResolution.x,1.0-pixel.y/uResolution.y);\n float worldY=uScrollY+screenUv.y*uViewportHeight;\n vec3 base=sceneBackground(screenUv,worldY);");
+  fragment=fragment.replace("vec3 color=base+fine+medium+micro;","vec3 color=base+fine+medium+micro;");
+  if(!fragment.includes("uGlitterClose")||!fragment.includes("sceneBackground")||!fragment.includes("thresholdOut>uGlitterClose"))throw new Error("Study 12 adaptation was incomplete.");
+  program=gl.createProgram();
+  gl.attachShader(program,compile(gl.VERTEX_SHADER,vertexMatch[1]));
+  gl.attachShader(program,compile(gl.FRAGMENT_SHADER,fragment));
+  gl.linkProgram(program);
+  if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(program));
+  loc.res=gl.getUniformLocation(program,"uResolution");
+  loc.pointer=gl.getUniformLocation(program,"uPointer");
+  loc.scroll=gl.getUniformLocation(program,"uScrollY");
+  loc.vh=gl.getUniformLocation(program,"uViewportHeight");
+  loc.scene4Top=gl.getUniformLocation(program,"uScene4Top");
+  loc.scene4Height=gl.getUniformLocation(program,"uScene4Height");
+  loc.chroma=gl.getUniformLocation(program,"uChroma");
+  loc.brightness=gl.getUniformLocation(program,"uBrightness");
+  loc.bloom=gl.getUniformLocation(program,"uBloom");
+  loc.t23=gl.getUniformLocation(program,"uT23");
+  loc.glitter=gl.getUniformLocation(program,"uGlitterLevel");
+  loc.glitterClose=gl.getUniformLocation(program,"uGlitterClose");
+  if(Object.values(loc).some(value=>value===null))throw new Error("A required material uniform is unavailable.");
+  webglReady=true;
+  requestFrame();
+ }catch(error){
+  console.error("VN shared atmosphere:",error);
+  fallbackInit();
+ }
+}
+setSceneGeometry();
+const resizeObserver=new ResizeObserver(()=>{setSceneGeometry();requestFrame();});
+resizeObserver.observe(packageInner);
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{setSceneGeometry();requestFrame();});
+window.addEventListener("scroll",onScroll,{passive:true});
+window.addEventListener("resize",()=>{setSceneGeometry();requestFrame();},{passive:true});
+if(window.visualViewport)window.visualViewport.addEventListener("resize",()=>{setSceneGeometry();requestFrame();},{passive:true});
+window.addEventListener("orientationchange",()=>{setSceneGeometry();requestFrame();},{passive:true});
+window.addEventListener("pointermove",event=>{pointer=[event.clientX,event.clientY];requestFrame();},{passive:true});
+$("skip-to-receipt").addEventListener("click",event=>{event.preventDefault();scene4.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});});
+setSceneGeometry();
+initShader();
 })();
 </script>
 </body>
