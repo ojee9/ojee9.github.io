@@ -487,6 +487,17 @@ html:not(.atmosphere-ready):not(.atmosphere-fallback) .scene--receipt{background
 .scene--credits .credits-stage--message .skip-link{margin-top:30px}
 .scene--credits .credits-stage--credit .credits-bottom{margin:0}
 .scene--credits .credits-stage--signature .creator-logo{width:clamp(180px,30vw,340px);max-width:78vw;max-height:150px;margin:0 auto;object-fit:contain}
+
+
+/* Scene 3 — reveal each exhibit as it enters the viewport; never fade the whole gallery out at once. */
+.scene--package .package-heading,
+.scene--package .package-brief,
+.scene--package .package-card{
+ opacity:1;
+ translate:0 var(--reveal-offset,0px);
+ transition:none!important;
+ will-change:opacity,translate;
+}
 </style>
 </head>
 <body>
@@ -738,6 +749,11 @@ const scene1=$("scene-1"),scene2=$("scene-2"),scene3=$("scene-3"),scene4=$("scen
 const credits=scene1.querySelector(".credits-content");
 const welcome=scene2.querySelector(".welcome-inner");
 const packageInner=scene3.querySelector(".package-inner");
+const packageRevealItems=[
+ packageInner.querySelector(".package-heading"),
+ packageInner.querySelector(".package-brief"),
+ ...Array.from(packageInner.querySelectorAll(".package-card"))
+].filter(Boolean);
 const panels=Array.from(scene2.querySelectorAll(".sky-ad"));
 const cues=Array.from(document.querySelectorAll(".scene .swipe-cue"));
 const FLOW_CONFIG={
@@ -808,9 +824,17 @@ function updateDom(chroma,brightness,bloom,glitter,close,t23){
  const welcomeOpacity=smooth(.82,1,glitter)*(1-smooth(.50,.98,t23));
  welcome.style.opacity=String(welcomeOpacity);
  welcome.style.pointerEvents=welcomeOpacity>.01?"auto":"none";
- const scene3Opacity=smooth(geometry.scene3Start,geometry.scene3Start+12,p)*(1-smooth(geometry.transition34Start-25,geometry.transition34Start,p));
- packageInner.style.opacity=String(scene3Opacity);
- packageInner.style.pointerEvents=scene3Opacity>.01?"auto":"none";
+ packageInner.style.opacity="1";
+ packageInner.style.pointerEvents="auto";
+ packageRevealItems.forEach(item=>{
+  const documentTop=(item.getBoundingClientRect().top+(window.scrollY||window.pageYOffset))/svhPx*100;
+  const reveal=smooth(documentTop-88,documentTop-56,p);
+  item.style.opacity=String(reveal);
+  item.style.setProperty("--reveal-offset",((1-reveal)*22).toFixed(2)+"px");
+  item.style.pointerEvents=reveal>.02?"auto":"none";
+  item.setAttribute("aria-hidden",reveal<=.02?"true":"false");
+  if(item.matches("a")){if(reveal<=.02)item.setAttribute("tabindex","-1");else item.removeAttribute("tabindex");}
+ });
  panels.forEach(panel=>{
   panel.style.opacity=String(panelOpacity);
   panel.style.pointerEvents=panelOpacity>.01?"auto":"none";
