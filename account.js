@@ -1137,8 +1137,8 @@
 
       // Keep the SDK element connected for its lifecycle; the visible trigger
       // above invokes its documented start() method.
-      // Keep the SDK host connected and outside clipped containers so its
-      // popup/windoid UI can render when start() is invoked.
+      // Keep the SDK host connected and outside clipped containers so the
+      // Shop sign-in popup can render when start() is invoked.
       login.element.style.position = "fixed";
       login.element.style.left = "-10000px";
       login.element.style.top = "0";
