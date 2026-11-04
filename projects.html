@@ -200,6 +200,10 @@
             <h2>TAG INDEX</h2>
             <span>21 TAGS</span>
           </div>
+          <div class="selected-tags" id="selected-tags" hidden>
+            <div class="selected-tags-heading"><span>SELECTED TAGS</span><button type="button" id="clear-selected-tags">CLEAR</button></div>
+            <div class="selected-tags-list" id="selected-tags-list"></div>
+          </div>
           <div class="tag-filter-scroll" id="tag-filter-options" aria-label="Filter by archive tag"></div>
         </div>
 
@@ -421,6 +425,10 @@
         archiveTagGroups.flatMap(group => group.tags.map(tag => [tag, group.color]))
       );
       const tagFilterOptions = document.getElementById("tag-filter-options");
+      const selectedTagsPanel = document.getElementById("selected-tags");
+      const selectedTagsList = document.getElementById("selected-tags-list");
+      const clearSelectedTagsButton = document.getElementById("clear-selected-tags");
+      let selectedArchiveTags = [];
 
       let activeCategory = "projects";
 
@@ -444,17 +452,23 @@
       }
 
       function getSelectedArchiveTags() {
-        return [...document.querySelectorAll('input[name="archive-tag"]:checked')].map(input => input.value);
+        return [...selectedArchiveTags];
       }
 
       function renderTagFilters() {
         const categoryEntries = getActiveCategoryEntries();
-        const selectedTags = getSelectedArchiveTags();
+        const scrollTop = tagFilterOptions.scrollTop;
         tagFilterOptions.innerHTML = archiveTagGroups.map(group => group.tags.map(tag => {
           const count = categoryEntries.filter(entry => (entry.archiveTags || []).includes(tag)).length;
-          const checked = selectedTags.includes(tag) ? "checked" : "";
-          return '<label class="tag-filter-option"><input type="checkbox" name="archive-tag" value="' + tag + '" ' + checked + '><span class="archive-tag" style="--tag-color:' + archiveTagColors[tag] + '">' + tag + '</span><span class="tag-filter-count">(' + count + ')</span></label>';
+          const selected = selectedArchiveTags.includes(tag);
+          return '<button type="button" class="tag-filter-option' + (selected ? ' is-selected' : '') + '" data-tag-toggle="' + tag + '" aria-pressed="' + selected + '"><span class="archive-tag" style="--tag-color:' + archiveTagColors[tag] + '">' + tag + '</span><span class="tag-filter-count">(' + count + ')</span></button>';
         }).join("")).join("");
+        tagFilterOptions.scrollTop = scrollTop;
+        selectedTagsPanel.hidden = selectedArchiveTags.length === 0;
+        selectedTagsList.innerHTML = selectedArchiveTags.map(tag =>
+          '<button type="button" class="selected-tag-chip" data-tag-remove="' + tag + '" aria-label="Remove ' + tag + ' filter"><span>' + tag + '</span><span aria-hidden="true">×</span></button>'
+        ).join("");
+        clearSelectedTagsButton.hidden = selectedArchiveTags.length === 0;
       }
 
       function renderEntryTags(record) {
@@ -492,6 +506,7 @@
             event.descriptionEN,
             event.descriptionTR,
             event.tags,
+            ...(event.archiveTags || []),
             event.dateLabel
           ].join(" ").toLowerCase();
 
@@ -534,6 +549,7 @@
             entry.subtitle,
             entry.artist,
             entry.tags,
+            ...(entry.archiveTags || []),
             ...entry.descriptionEN,
             ...entry.collections
           ].join(" ").toLowerCase();
@@ -757,13 +773,37 @@
         }
       });
 
-      document.addEventListener("change", event => {
-        if (event.target.matches('input[name="archive-tag"]')) {
-          if (activeCategory === "events") renderEvents();
-          else renderArchiveEntries();
-          return;
-        }
+      tagFilterOptions.addEventListener("click", event => {
+        const button = event.target.closest("[data-tag-toggle]");
+        if (!button) return;
+        event.preventDefault();
+        const tag = button.dataset.tagToggle;
+        selectedArchiveTags = selectedArchiveTags.includes(tag)
+          ? selectedArchiveTags.filter(selected => selected !== tag)
+          : [...selectedArchiveTags, tag];
+        renderTagFilters();
+        if (activeCategory === "events") renderEvents();
+        else renderArchiveEntries();
+      });
 
+      selectedTagsList.addEventListener("click", event => {
+        const button = event.target.closest("[data-tag-remove]");
+        if (!button) return;
+        event.preventDefault();
+        selectedArchiveTags = selectedArchiveTags.filter(tag => tag !== button.dataset.tagRemove);
+        renderTagFilters();
+        if (activeCategory === "events") renderEvents();
+        else renderArchiveEntries();
+      });
+
+      clearSelectedTagsButton.addEventListener("click", () => {
+        selectedArchiveTags = [];
+        renderTagFilters();
+        if (activeCategory === "events") renderEvents();
+        else renderArchiveEntries();
+      });
+
+      document.addEventListener("change", event => {
         if (activeCategory === "events" && event.target.matches(
           'input[name="event-status"], input[name="year"], input[name="sort"]'
         )) {
@@ -788,8 +828,10 @@
       resetButton.addEventListener("click", () => {
         searchInput.value = "";
 
+        selectedArchiveTags = [];
+        renderTagFilters();
         document.querySelectorAll(
-          'input[name="event-status"], input[name="collection"], input[name="year"], input[name="archive-tag"]'
+          'input[name="event-status"], input[name="collection"], input[name="year"]'
         ).forEach(input => {
           input.checked = false;
         });
