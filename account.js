@@ -1174,10 +1174,21 @@
       return;
     }
 
+    const popupWidth = 520;
+    const popupHeight = 720;
+    const popupLeft = Math.max(
+      0,
+      Math.round(window.screenX + (window.outerWidth - popupWidth) / 2)
+    );
+    const popupTop = Math.max(
+      0,
+      Math.round(window.screenY + (window.outerHeight - popupHeight) / 2)
+    );
+
     const popup = window.open(
       loginUrl,
       "vnShopAuthPopup",
-      "popup=yes,width=520,height=720,resizable=yes,scrollbars=yes"
+      `popup=yes,width=${popupWidth},height=${popupHeight},left=${popupLeft},top=${popupTop},resizable=yes,scrollbars=yes`
     );
 
     if (!popup) {
