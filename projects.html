@@ -195,6 +195,14 @@
           </div>
         </div>
 
+        <div class="filter-group tag-filter-group">
+          <div class="tag-filter-heading">
+            <h2>TAG INDEX</h2>
+            <span>21 TAGS</span>
+          </div>
+          <div class="tag-filter-scroll" id="tag-filter-options" aria-label="Filter by archive tag"></div>
+        </div>
+
         <div class="filter-group">
           <h2>SORT BY</h2>
           <label class="sort-option">
@@ -251,6 +259,7 @@
       const events = [
         {
           id: "flinta-halloween-2026",
+          archiveTags: ["LIVE", "EVENT"],
           title: "FLINTA HALLOWEEN PARTY NIGHT",
           subtitle: "SHOW YOUR INNER MONSTER",
           artist: "9ojeez9",
@@ -269,6 +278,7 @@
         },
         {
           id: "gta-love-launch-2026",
+          archiveTags: ["EVENT", "RELEASE", "LIVE", "PREMIERE"],
           title: "GTA LOVE",
           subtitle: "PRIVATE LAUNCH NIGHT",
           artist: "Ojee Ka$h",
@@ -287,6 +297,7 @@
         },
         {
           id: "cheater-launch-2023",
+          archiveTags: ["EVENT", "RELEASE", "LIVE", "PREMIERE"],
           title: "CHEATER",
           subtitle: "ALBUM LAUNCH",
           artist: "9ojeez9",
@@ -308,6 +319,7 @@
       const archiveEntries = [
 {
           id: "gala-night-announcement",
+          archiveTags: ["PROJECT", "ANNOUNCEMENT", "NEWS", "STUDIO", "GAMING"],
           title: "A BRAND NEW GAME ANNOUNCEMENT",
           subtitle: "VN GAMES",
           artist: "VN Studios",
@@ -333,6 +345,7 @@
         },
         {
           id: "vn-club-magazine-01",
+          archiveTags: ["SPOTLIGHT", "CLUB", "NEWS", "Q&A"],
           title: "VN Club MAGAZINE 01",
           subtitle: "VN Club MAGAZINE",
           artist: "VN Club",
@@ -366,6 +379,7 @@
         },
         {
           id: "vn-legacy-collection",
+          archiveTags: ["FASHION", "MERCH", "ANNOUNCEMENT", "NEWS", "SNEAK PEEK"],
           title: "VN: LEGACY COLLECTION — AVAILABLE SOON!",
           subtitle: "VN LEGACY COLLECTION",
           artist: "VN Studios",
@@ -394,6 +408,20 @@
       const resultCount = document.getElementById("result-count");
       const yearOptions = document.getElementById("year-options");
 
+      const archiveTagGroups = [
+        { name: "01", color: "#D47F94", tags: ["FASHION", "PRE-ORDER", "PREMIERE"] },
+        { name: "02", color: "#C8102E", tags: ["EXCLUSIVE", "SPECIAL", "SPOTLIGHT"] },
+        { name: "03", color: "#F05A83", tags: ["MERCH", "EVENT", "CLUB"] },
+        { name: "04", color: "#FF7900", tags: ["STUDIO", "GAMING", "LIVE"] },
+        { name: "05", color: "#7953B8", tags: ["ARCHIVE", "NEWS", "Q&A"] },
+        { name: "06", color: "#F2D13D", tags: ["ANNOUNCEMENT", "PROJECT", "DEBUT"] },
+        { name: "07", color: "#00A6A6", tags: ["COMMUNITY", "SNEAK PEEK", "RELEASE"] }
+      ];
+      const archiveTagColors = Object.fromEntries(
+        archiveTagGroups.flatMap(group => group.tags.map(tag => [tag, group.color]))
+      );
+      const tagFilterOptions = document.getElementById("tag-filter-options");
+
       let activeCategory = "projects";
 
       function populateYears() {
@@ -407,6 +435,32 @@
             <span>${year}</span>
           </label>
         `).join("");
+      }
+
+      function getActiveCategoryEntries() {
+        return activeCategory === "events"
+          ? events
+          : archiveEntries.filter(entry => entry.categories.includes(activeCategory));
+      }
+
+      function getSelectedArchiveTags() {
+        return [...document.querySelectorAll('input[name="archive-tag"]:checked')].map(input => input.value);
+      }
+
+      function renderTagFilters() {
+        const categoryEntries = getActiveCategoryEntries();
+        const selectedTags = getSelectedArchiveTags();
+        tagFilterOptions.innerHTML = archiveTagGroups.map(group => group.tags.map(tag => {
+          const count = categoryEntries.filter(entry => (entry.archiveTags || []).includes(tag)).length;
+          const checked = selectedTags.includes(tag) ? "checked" : "";
+          return '<label class="tag-filter-option"><input type="checkbox" name="archive-tag" value="' + tag + '" ' + checked + '><span class="archive-tag" style="--tag-color:' + archiveTagColors[tag] + '">' + tag + '</span><span class="tag-filter-count">(' + count + ')</span></label>';
+        }).join("")).join("");
+      }
+
+      function renderEntryTags(record) {
+        return (record.archiveTags || []).map(tag =>
+          '<span class="archive-tag" style="--tag-color:' + archiveTagColors[tag] + '">' + tag + '</span>'
+        ).join("");
       }
 
       function getSort() {
@@ -446,8 +500,11 @@
             selectedStatuses.includes(event.status);
           const matchesYear = selectedYears.length === 0 ||
             selectedYears.includes(event.date.slice(0, 4));
+          const selectedTags = getSelectedArchiveTags();
+          const matchesTags = selectedTags.length === 0 ||
+            selectedTags.some(tag => (event.archiveTags || []).includes(tag));
 
-          return matchesQuery && matchesStatus && matchesYear;
+          return matchesQuery && matchesStatus && matchesYear && matchesTags;
         });
 
         if (getSort() === "all-time") {
@@ -489,10 +546,14 @@
             selectedCollections.some(collection =>
               entry.collections.includes(collection)
             );
+          const selectedTags = getSelectedArchiveTags();
+          const matchesTags = selectedTags.length === 0 ||
+            selectedTags.some(tag => (entry.archiveTags || []).includes(tag));
 
           return belongsToCategory &&
             matchesQuery &&
-            matchesCollection;
+            matchesCollection &&
+            matchesTags;
         });
 
         if (getSort() === "all-time") {
@@ -531,7 +592,10 @@
             <div class="event-card-content">
               <div class="event-meta">
                 <span>${event.dateLabel}</span>
-                <span>${event.status === "present" ? "UPCOMING" : "ARCHIVE"}</span>
+                <div class="entry-meta-right">
+                  <div class="entry-tags">${renderEntryTags(event)}</div>
+                  <span>${event.status === "present" ? "UPCOMING" : "ARCHIVE"}</span>
+                </div>
               </div>
 
               <p class="event-artist">${event.artist}</p>
@@ -587,7 +651,10 @@
             <div class="event-card-content">
               <div class="event-meta">
                 <span>${entry.id === "vn-club-magazine-01" ? "Club 01" : "VN STUDIOS"}</span>
-                <span>AVAILABLE SOON</span>
+                <div class="entry-meta-right">
+                  <div class="entry-tags">${renderEntryTags(entry)}</div>
+                  <span>AVAILABLE SOON</span>
+                </div>
               </div>
 
               <p class="event-artist">${entry.artist}</p>
@@ -653,6 +720,7 @@
         eventFilters.hidden = category !== "events";
         merchFilters.hidden = category !== "merch";
         yearFilters.hidden = category !== "events";
+        renderTagFilters();
 
         if (category === "events") {
           renderEvents();
@@ -690,6 +758,12 @@
       });
 
       document.addEventListener("change", event => {
+        if (event.target.matches('input[name="archive-tag"]')) {
+          if (activeCategory === "events") renderEvents();
+          else renderArchiveEntries();
+          return;
+        }
+
         if (activeCategory === "events" && event.target.matches(
           'input[name="event-status"], input[name="year"], input[name="sort"]'
         )) {
@@ -715,7 +789,7 @@
         searchInput.value = "";
 
         document.querySelectorAll(
-          'input[name="event-status"], input[name="collection"], input[name="year"]'
+          'input[name="event-status"], input[name="collection"], input[name="year"], input[name="archive-tag"]'
         ).forEach(input => {
           input.checked = false;
         });
