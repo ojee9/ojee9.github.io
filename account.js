@@ -248,6 +248,7 @@
       .vn-ac-signin-heading h1{margin:0;font-size:32px;font-weight:700;line-height:1.2;letter-spacing:-.7px;color:#f5f5f5}
       .vn-ac-signin-heading p{margin:9px 0 0;font-size:15px;line-height:1.5;color:#a9a5ad}
       .vn-ac-email-main{display:flex;flex-direction:column;align-items:stretch;width:100%;max-width:480px;margin-inline:auto}
+      .vn-ac-shop-space{width:100%;max-width:480px;margin:0 auto 18px}.vn-ac-shop-preview{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;min-height:54px;padding:0 18px;border:0;border-radius:4px;background:#5433eb;color:#fff;font:600 15px/1 Arial,sans-serif;opacity:1;cursor:not-allowed}.vn-ac-shop-preview:disabled{opacity:1;color:#fff}.vn-ac-shop-wordmark{font-size:20px;font-weight:800;letter-spacing:-1.2px}.vn-ac-or-divider{display:flex;align-items:center;gap:13px;width:100%;max-width:480px;margin:0 auto 18px;color:#a9a5ad;font-size:11px;line-height:1;letter-spacing:1.5px}.vn-ac-or-divider:before,.vn-ac-or-divider:after{content:"";height:1px;flex:1;background:#39343e}
       .vn-ac-email-form-wrap{width:100%;max-width:480px;margin:0 auto}.vn-ac-email-form-wrap form{display:flex;flex-direction:column;width:100%}
       .vn-ac-consent-note{margin:24px auto 0!important;max-width:480px;text-align:center;color:#a4a4a4;font-size:12px;line-height:1.75}
       .vn-ac-consent-note a{color:#fff;text-decoration:underline;text-underline-offset:2px}
@@ -1027,6 +1028,14 @@
           </p>
         </form>
         </div>
+
+        <div class="vn-ac-shop-space">
+          <button type="button" class="vn-ac-shop-preview" disabled aria-disabled="true" aria-label="Continue with Shop (currently unavailable)">
+            <span class="vn-ac-shop-wordmark" aria-hidden="true">shop</span>
+            <span>Continue with Shop</span>
+          </button>
+        </div>
+        <div class="vn-ac-or-divider" aria-hidden="true"><span>OR</span></div>
       </main>
     `;
   }
