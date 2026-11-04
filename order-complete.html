@@ -876,7 +876,7 @@ function frame(now){
  const activeGlitter=scene2Plateau?1:glitter;
  const effectiveGlitter=p<geometry.transition23Start?activeGlitter:1;
  const t23Clamped=clamp(t23,0,1);
-  const studio=scene2Plateau?smooth(.8,1,effectiveGlitter)*(1-smooth(0,.03,t23Clamped)):0;
+  const studio=smooth(.90,1,corridorP)*(1-smooth(0,.15,t23Clamped));
  const glitterClose=p<geometry.transition23Start?0:close;
  updateDom(chroma,brightness,bloom,effectiveGlitter,glitterClose,t23);
  if(webglReady&&program){
