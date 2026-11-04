@@ -437,6 +437,15 @@ html{scroll-behavior:auto!important;scroll-snap-type:none!important;scroll-paddi
 .atmosphere-fallback .scene--credits::after,.atmosphere-fallback .scene--welcome::before,.atmosphere-fallback .scene--welcome::after,.atmosphere-fallback .scene--package::before{content:none!important}
 @media(prefers-reduced-motion:reduce){.scene--credits .swipe-cue{transition:none}}
 
+
+/* Keep native scene surfaces visible until the shared WebGL frame is ready. */
+html:not(.atmosphere-ready):not(.atmosphere-fallback) .scene--credits{background:#000!important}
+html:not(.atmosphere-ready):not(.atmosphere-fallback) .scene--welcome{background-color:#E4E3E1!important;background-image:radial-gradient(ellipse at 26% 28%,rgba(177,218,255,.16),transparent 43%),radial-gradient(ellipse at 76% 72%,rgba(255,190,226,.17),transparent 46%),radial-gradient(ellipse at 52% 48%,rgba(255,255,255,.2),transparent 54%)!important}
+html:not(.atmosphere-ready):not(.atmosphere-fallback) .scene--package{background:radial-gradient(ellipse 84% 58% at 50% 0%,rgba(191,197,200,.95) 0%,rgba(191,197,200,.48) 52%,rgba(191,197,200,0) 100%),radial-gradient(ellipse 90% 58% at 50% 100%,rgba(198,187,167,.96) 0%,rgba(198,187,167,.55) 50%,rgba(198,187,167,0) 100%),linear-gradient(135deg,#c9c5bf 0%,#b7b3ad 42%,#d4cec3 100%)!important}
+html:not(.atmosphere-ready):not(.atmosphere-fallback) .scene--receipt{background:linear-gradient(180deg,#c6bba7 0%,#d0c5b2 18%,#c6bba7 52%,#E4CEA5 100%)!important}
+#shared-atmosphere{visibility:hidden}
+.scene--welcome .welcome-inner,.scene--package .package-inner{transition:none!important}
+.scene--package .package-inner{position:relative!important;top:auto!important;min-height:100svh}
 </style>
 </head>
 <body>
@@ -707,7 +716,8 @@ let geometry={scene2Start:400,scene3Start:680,scene4Start:850,transition23Start:
 let metricsDirty=true,gl=null,webglReady=false;
 const glContext=canvas.getContext("webgl2",{alpha:false,antialias:false,powerPreference:"high-performance"});
 gl=glContext;
-if(!gl)document.documentElement.classList.add("atmosphere-fallback");
+canvas.style.visibility="hidden";
+if(!gl)fallbackInit();
 function setSceneGeometry(){
  svhPx=svhProbe.getBoundingClientRect().height||innerHeight||1;
  scene1.style.height=(FLOW_CONFIG.scene1Hold+FLOW_CONFIG.corridor)+"svh";
@@ -716,14 +726,14 @@ function setSceneGeometry(){
  scene2.style.minHeight=scene2.style.height;
  scene3.style.minHeight=(FLOW_CONFIG.scene3Hold+FLOW_CONFIG.transition34)+"svh";
  scene4.style.minHeight="100svh";
- const contentSvh=packageInner.scrollHeight/svhPx;
+ const contentSvh=packageInner.scrollHeight/svhPx*100;
  const requiredScene3=Math.max(FLOW_CONFIG.scene3Hold+FLOW_CONFIG.transition34,contentSvh+FLOW_CONFIG.transition34);
  scene3.style.minHeight=requiredScene3+"svh";
  welcome.style.minHeight="100svh";
  welcome.style.height="100svh";
- const scene2Start=scene2.offsetTop/svhPx;
- const scene3Start=scene3.offsetTop/svhPx;
- const scene4Start=scene4.offsetTop/svhPx;
+ const scene2Start=scene2.offsetTop/svhPx*100;
+ const scene3Start=scene3.offsetTop/svhPx*100;
+ const scene4Start=scene4.offsetTop/svhPx*100;
  geometry={
   scene2Start:scene2Start,
   scene3Start:scene3Start,
@@ -732,7 +742,7 @@ function setSceneGeometry(){
   transition34Start:scene4Start-FLOW_CONFIG.transition34
  };
  metricsDirty=false;
- targetP=(window.scrollY||window.pageYOffset)/svhPx;
+ targetP=(window.scrollY||window.pageYOffset)/svhPx*100;
  if(!lastFrame)p=targetP;
 }
 function updateDom(chroma,brightness,bloom,glitter,close,t23){
@@ -744,7 +754,15 @@ function updateDom(chroma,brightness,bloom,glitter,close,t23){
  root.style.setProperty("--glitter",glitter.toFixed(5));
  root.style.setProperty("--glitter-close",close.toFixed(5));
  root.style.setProperty("--panel-opacity",panelOpacity.toFixed(5));
- root.style.setProperty("--intro-opacity",(1-smooth(.72,1,p/FLOW_CONFIG.scene1Hold)).toFixed(5));
+ const introOpacity=1-smooth(.72,1,p/FLOW_CONFIG.scene1Hold);
+ root.style.setProperty("--intro-opacity",introOpacity.toFixed(5));
+ credits.style.pointerEvents=introOpacity>.01?"auto":"none";
+ const welcomeOpacity=smooth(.82,1,glitter);
+ welcome.style.opacity=String(welcomeOpacity);
+ welcome.style.pointerEvents=welcomeOpacity>.01?"auto":"none";
+ const scene3Opacity=smooth(geometry.scene3Start,geometry.scene3Start+12,p);
+ packageInner.style.opacity=String(scene3Opacity);
+ packageInner.style.pointerEvents=scene3Opacity>.01?"auto":"none";
  panels.forEach(panel=>{
   panel.style.opacity=String(panelOpacity);
   panel.style.pointerEvents=panelOpacity>.01?"auto":"none";
@@ -791,7 +809,7 @@ function frame(now){
   if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;gl.viewport(0,0,w,h);}
   gl.uniform2f(loc.res,w,h);
   gl.uniform2f(loc.pointer,pointer[0]*dpr,(innerHeight-pointer[1])*dpr);
-  gl.uniform1f(loc.scroll,p*svhPx);
+  gl.uniform1f(loc.scroll,p*svhPx/100);
   gl.uniform1f(loc.vh,innerHeight||document.documentElement.clientHeight);
   gl.uniform1f(loc.scene4Top,scene4.offsetTop);
   gl.uniform1f(loc.scene4Height,scene4.offsetHeight);
@@ -802,14 +820,21 @@ function frame(now){
   gl.uniform1f(loc.glitter,effectiveGlitter);
   gl.uniform1f(loc.glitterClose,glitterClose);
   gl.drawArrays(gl.TRIANGLES,0,3);
+  if(!root.classList.contains("atmosphere-ready")){
+   root.classList.remove("atmosphere-fallback");
+   root.classList.add("atmosphere-ready");
+   canvas.style.visibility="visible";
+  }
  }
  if(Math.abs(targetP-p)>.00015)raf=requestAnimationFrame(frame);
 }
 function requestFrame(){if(!raf)raf=requestAnimationFrame(frame);}
-function onScroll(){targetP=(window.scrollY||window.pageYOffset)/svhPx;requestFrame();}
+function onScroll(){targetP=(window.scrollY||window.pageYOffset)/svhPx*100;requestFrame();}
 function fallbackInit(){
+ root.classList.remove("atmosphere-ready");
  root.classList.add("atmosphere-fallback");
- canvas.hidden=true;
+ canvas.style.display="none";
+ requestFrame();
 }
 function compile(type,source){
  const shader=gl.createShader(type);gl.shaderSource(shader,source);gl.compileShader(shader);
@@ -865,10 +890,10 @@ vec3 sceneBackground(vec2 screenUv,float worldY){
  vec3 chromatic=scene02(screenUv);
  float luminance=dot(chromatic,vec3(0.2126,0.7152,0.0722));
  vec3 neutral=vec3(luminance);
- vec3 c=mix(neutral,chromatic,uChroma)*uBrightness;
+ vec3 c=neutral*uBrightness+(chromatic-neutral)*uChroma;
  float stone=smoothstep(0.30,1.0,uT23);
  c=mix(c,scene03(screenUv),stone);
- c+=vec3(0.93,0.94,0.96)*uBloom;
+ c=mix(c,vec3(0.93,0.94,0.96),uBloom);
  float t34=smoothstep(uScene4Top-uViewportHeight*0.92,uScene4Top+uViewportHeight*0.22,worldY+sin(screenUv.x*6.1+worldY*0.0011)*uViewportHeight*0.022);
  c=mix(c,scene04(uv4),t34);
  return c;
