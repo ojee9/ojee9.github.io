@@ -150,6 +150,12 @@
       </section>
 
       <aside class="filter-panel" aria-label="Search and filters">
+        <button type="button" class="mobile-filter-toggle" id="mobile-filter-toggle" aria-expanded="false" aria-controls="filter-panel-content">
+          <span>FILTER &amp; SORT</span>
+          <span class="mobile-filter-count" id="mobile-filter-count">0 ACTIVE</span>
+          <span class="mobile-filter-icon" aria-hidden="true">+</span>
+        </button>
+        <div class="filter-panel-content" id="filter-panel-content">
         <div class="panel-heading">
           <span class="eyebrow">INDEX / FILTERS</span>
           <span class="panel-number">01—04</span>
@@ -233,6 +239,7 @@
         <div class="panel-footer">
           <span>INDEPENDENT ARCHIVE</span>
           <span>© OJEE</span>
+        </div>
         </div>
       </aside>
     </div>
@@ -411,6 +418,37 @@
       const grid = document.getElementById("projects-grid");
       const resultCount = document.getElementById("result-count");
       const yearOptions = document.getElementById("year-options");
+      const mobileFilterToggle = document.getElementById("mobile-filter-toggle");
+      const mobileFilterCount = document.getElementById("mobile-filter-count");
+      const filterPanel = document.querySelector(".filter-panel");
+
+      const updateMobileFilterCount = () => {
+        const checkedFilters = filterPanel.querySelectorAll(
+          'input[type="checkbox"]:checked'
+        ).length;
+        const selectedSort = filterPanel.querySelector(
+          'input[name="sort"]:checked'
+        )?.value;
+        const searchActive = searchInput.value.trim().length > 0;
+        const activeCount = checkedFilters + selectedArchiveTags.length +
+          (selectedSort && selectedSort !== "newest" ? 1 : 0) +
+          (searchActive ? 1 : 0);
+
+        mobileFilterCount.textContent = `${activeCount} ACTIVE`;
+        mobileFilterToggle.setAttribute(
+          "aria-label",
+          activeCount ? `Show filters, ${activeCount} active` : "Show filters"
+        );
+      };
+
+      mobileFilterToggle.addEventListener("click", () => {
+        const expanded = filterPanel.classList.toggle("is-expanded");
+        mobileFilterToggle.setAttribute("aria-expanded", String(expanded));
+        mobileFilterToggle.querySelector(".mobile-filter-icon").textContent =
+          expanded ? "−" : "+";
+      });
+
+      searchInput.addEventListener("input", updateMobileFilterCount);
 
       const archiveTagGroups = [
         { name: "01", color: "#D47F94", tags: ["FASHION", "PRE-ORDER", "PREMIERE"] },
@@ -763,6 +801,7 @@
         } else {
           renderArchiveEntries();
         }
+        updateMobileFilterCount();
       });
 
       searchInput.addEventListener("input", () => {
@@ -801,9 +840,11 @@
         renderTagFilters();
         if (activeCategory === "events") renderEvents();
         else renderArchiveEntries();
+        updateMobileFilterCount();
       });
 
       document.addEventListener("change", event => {
+        updateMobileFilterCount();
         if (activeCategory === "events" && event.target.matches(
           'input[name="event-status"], input[name="year"], input[name="sort"]'
         )) {
@@ -848,6 +889,7 @@
       });
 
       populateYears();
+      updateMobileFilterCount();
 
       const initialCategory = location.hash.slice(1);
       setCategory(

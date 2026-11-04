@@ -1095,3 +1095,63 @@ input:focus-visible {
 .selected-tag-chip:hover { border: 0; background: transparent; }
 .selected-tag-chip:hover > span:first-child { filter: brightness(1.08); }
 .selected-tag-chip span:last-child { color: #aaa; }
+
+
+/* MOBILE FILTER PANEL — COMPACT COLLAPSIBLE CONTROL */
+.mobile-filter-toggle {
+  display: none;
+}
+@media (max-width: 650px) {
+  .filter-panel {
+    padding: 0;
+    border: 1px solid var(--line);
+  }
+  .mobile-filter-toggle {
+    display: flex;
+    width: 100%;
+    min-height: 54px;
+    align-items: center;
+    gap: 12px;
+    padding: 0 16px;
+    border: 0;
+    background: #111;
+    color: var(--text);
+    text-align: left;
+    font: inherit;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+    cursor: pointer;
+  }
+  .mobile-filter-count {
+    margin-left: auto;
+    color: var(--accent);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .8px;
+    white-space: nowrap;
+  }
+  .mobile-filter-icon {
+    display: inline-flex;
+    width: 22px;
+    height: 22px;
+    flex: 0 0 22px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #454545;
+    border-radius: 50%;
+    color: var(--text);
+    font-size: 16px;
+    line-height: 1;
+  }
+  .filter-panel-content {
+    padding: 18px;
+  }
+  .filter-panel:not(.is-expanded) .filter-panel-content {
+    display: none;
+  }
+  .filter-panel.is-expanded .filter-panel-content {
+    display: block;
+    border-top: 1px solid var(--line);
+  }
+}
