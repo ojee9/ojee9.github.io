@@ -45,7 +45,9 @@
     shopSdkPromise: null,
     shopLoginInstance: null,
     shopLoginMount: null,
-    shopLoginGeneration: 0
+    shopLoginGeneration: 0,
+    authProvider: "",
+    shopSessionToken: ""
   };
 
   let configPromise = null;
@@ -82,7 +84,7 @@
         if (configPromise) await configPromise;
         if (authRequestAtOpen !== state.sendRequestId) return;
 
-        if (state.clerk) {
+        if (state.clerk && state.authProvider !== "shop") {
           syncClerkUser(state.clerk.user || null);
           state.screen = state.user ? "account" : "email";
         }
@@ -139,7 +141,8 @@
     try {
       await clerk.load();
       state.clerk = clerk;
-      syncClerkUser(clerk.user || null);
+      const restoredShopSession = await restoreShopSession();
+      if (!restoredShopSession) syncClerkUser(clerk.user || null);
 
       clerk.addListener(({ user }) => {
         if (user === undefined) return;
@@ -150,6 +153,7 @@
           return;
         }
 
+        if (state.authProvider === "shop" && !user) return;
         syncClerkUser(user || null);
         if (user) {
           loadAccountData().finally(render);
@@ -174,10 +178,13 @@
   function syncClerkUser(clerkUser) {
     state.clerkUser = clerkUser || null;
     if (!clerkUser) {
+      if (state.authProvider === "shop") return;
+      state.authProvider = "";
       state.user = null;
       state.email = "";
       return;
     }
+    state.authProvider = "clerk";
 
     const email = clerkUser.primaryEmailAddress?.emailAddress ||
       clerkUser.emailAddresses?.[0]?.emailAddress || "";
@@ -207,7 +214,16 @@
   }
 
   async function loadAccountData() {
-    if (!state.user || !state.clerkUser) return;
+    if (!state.user) return;
+    if (state.authProvider === "shop") {
+      state.country = state.profile.country || userCountry();
+      state.marketingUpdates = state.profile.marketing_updates !== false;
+      state.orders = [];
+      state.returns = [];
+      updateAccountAvatar();
+      return;
+    }
+    if (!state.clerkUser) return;
     state.loadingData = true;
     try {
       state.profile = {
@@ -1055,6 +1071,89 @@
     }
   }
 
+
+  const SHOP_AUTH_WORKER = "https://vn-shop-auth.9ojeez9.workers.dev";
+
+  async function shopWorkerRequest(body) {
+    const response = await fetch(SHOP_AUTH_WORKER, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      cache: "no-store"
+    });
+    let payload = {};
+    try { payload = await response.json(); } catch (_) {}
+    if (!response.ok) throw new Error(payload.error || payload.message || "Shop authentication service returned an error (" + response.status + ").");
+    if (payload.error) throw new Error(payload.error);
+    return payload;
+  }
+
+  function applyShopUser(user) {
+    if (!user || !(user.sub || user.id)) throw new Error("Shop verified the session but did not return a customer identity.");
+    const firstName = user.first_name || user.firstName || user.given_name || "";
+    const lastName = user.last_name || user.lastName || user.family_name || "";
+    const email = user.email || "";
+    state.authProvider = "shop";
+    state.clerkUser = null;
+    state.user = { id: user.sub || user.id, email, user_metadata: { first_name: firstName, last_name: lastName } };
+    state.email = email;
+    state.profile = { ...state.profile, first_name: firstName, last_name: lastName, avatar_url: user.avatar || user.picture || "" };
+    state.screen = "account";
+    state.section = "dashboard";
+    state.message = "";
+    state.messageType = "info";
+    updateAccountAvatar();
+  }
+
+  async function restoreShopSession() {
+    let token = "";
+    try { token = sessionStorage.getItem("vn_shop_session") || ""; } catch (_) {}
+    if (!token) return false;
+    try {
+      const result = await shopWorkerRequest({ action: "verify", sessionToken: token });
+      const user = result.user || result.customer || result;
+      if (result.authenticated === false || result.valid === false) throw new Error("Shop session expired.");
+      state.shopSessionToken = token;
+      applyShopUser(user);
+      return true;
+    } catch (error) {
+      try { sessionStorage.removeItem("vn_shop_session"); } catch (_) {}
+      state.shopSessionToken = "";
+      state.authProvider = "";
+      state.user = null;
+      console.warn("[VN ACCOUNT] Saved Shop session could not be restored:", error);
+      return false;
+    }
+  }
+
+  async function exchangeShopConsent(consentToken) {
+    if (state.busy) return;
+    state.busy = true;
+    state.messageType = "info";
+    state.message = "Connecting your Shop account to VN SHOP…";
+    render();
+    try {
+      const result = await shopWorkerRequest({ action: "exchange", shopConsentToken: consentToken });
+      const sessionToken = String(result.sessionToken || result.session_token || "").trim();
+      if (!sessionToken) throw new Error("The Shop service did not issue a VN SHOP session.");
+      const verified = await shopWorkerRequest({ action: "verify", sessionToken });
+      const user = verified.user || verified.customer || result.user || result.customer || verified;
+      if (verified.authenticated === false || verified.valid === false) throw new Error("The new VN SHOP session could not be verified.");
+      state.shopSessionToken = sessionToken;
+      try { sessionStorage.setItem("vn_shop_session", sessionToken); } catch (_) {}
+      applyShopUser(user);
+      await loadAccountData();
+    } catch (error) {
+      console.error("[VN ACCOUNT] Shop session exchange failed:", error);
+      state.messageType = "error";
+      state.message = error.message || "Could not connect your Shop account. Please try email sign-in instead.";
+      state.screen = "email";
+    } finally {
+      state.busy = false;
+      render();
+    }
+  }
+
   async function mountShopLogin() {
     const mount = $("#vnAcShopLoginMount");
     if (!mount || state.screen !== "email" || state.user) return;
@@ -1100,13 +1199,14 @@
         },
         onComplete(event) {
           const email = String(event?.email || "").trim();
-          if (!email || event.emailVerified !== true || event.signedIn !== true) {
+          const consentToken = String(event?.shopConsentToken || "").trim();
+          if (!email || event.emailVerified !== true || event.signedIn !== true || !consentToken) {
             state.messageType = "error";
-            state.message = "Shop sign-in was not completed. Please continue with email instead.";
+            state.message = "Shop sign-in did not return a valid authorization token. Please continue with email instead.";
             render();
             return;
           }
-          sendCode(email, "shop");
+          exchangeShopConsent(consentToken);
         },
         onError(event) {
           console.error("[VN ACCOUNT] Shop login failed:", event?.code, event?.message);
@@ -1951,7 +2051,7 @@
   }
 
   async function saveProfile(form) {
-    if (!state.clerkUser || !state.user) return;
+    if (!state.user) return;
     const data = new FormData(form);
     const email = String(data.get("email") || "").trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -1973,12 +2073,15 @@
     const firstName = String(data.get("first_name") || "").trim();
     const lastName = String(data.get("last_name") || "").trim();
     try {
-      await state.clerkUser.update({ firstName, lastName });
+      if (state.authProvider === "clerk" && state.clerkUser) {
+        await state.clerkUser.update({ firstName, lastName });
+        syncClerkUser(state.clerk.user || state.clerkUser);
+      }
       state.profile = { ...state.profile, first_name: firstName, last_name: lastName };
-      syncClerkUser(state.clerk.user || state.clerkUser);
+      if (state.user) state.user.user_metadata = { ...(state.user.user_metadata || {}), first_name: firstName, last_name: lastName };
       state.section = "profile";
       state.messageType = "success";
-      state.message = "Profile updated.";
+      state.message = state.authProvider === "shop" ? "Profile updated for this session only." : "Profile updated.";
     } catch (error) {
       state.messageType = "error";
       state.message = "Could not save your profile: " +
@@ -2030,6 +2133,22 @@
   }
 
   async function signOut(allDevices = false) {
+    if (state.authProvider === "shop") {
+      try { sessionStorage.removeItem("vn_shop_session"); } catch (_) {}
+      state.shopSessionToken = "";
+      state.authProvider = "";
+      state.clerkUser = null;
+      state.user = null;
+      state.email = "";
+      state.profile = {};
+      state.addresses = [];
+      state.orders = [];
+      state.returns = [];
+      state.screen = "email";
+      state.section = "dashboard";
+      closePanel();
+      return;
+    }
     if (!state.clerk) return;
     try {
       if (allDevices) {
