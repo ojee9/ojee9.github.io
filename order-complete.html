@@ -166,7 +166,7 @@ a.package-card:hover{background:rgba(255,255,255,.52);transform:translateY(-3px)
 .scene--credits::after{content:"";position:absolute;z-index:1;left:0;right:0;bottom:0;height:clamp(150px,25vh,280px);pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(0,0,0,.12) 18%,rgba(228,227,225,.42) 66%,#E4E3E1 100%)}
 .scene--welcome::after{content:"";position:absolute;z-index:1;left:0;right:0;bottom:0;height:clamp(150px,24vh,260px);pointer-events:none;background:linear-gradient(180deg,rgba(228,227,225,0) 0%,rgba(228,227,225,.12) 18%,rgba(191,197,200,.58) 76%,#BFC5C8 100%)}
 .scene--package::after{content:"";position:absolute;z-index:1;left:0;right:0;bottom:0;height:clamp(150px,24vh,260px);pointer-events:none;background:linear-gradient(180deg,rgba(191,197,200,0) 0%,rgba(191,197,200,.14) 35%,rgba(198,187,167,.72) 78%,#C6BBA7 100%)}
-.scene--receipt{background:linear-gradient(180deg,#c6bba7 0%,#d0c5b2 18%,#c6bba7 52%,#D6C39D 100%)}
+.scene--receipt{background:linear-gradient(180deg,#c6bba7 0%,#d0c5b2 18%,#c6bba7 52%,#E4CEA5 100%)}
 .space-ad-card{position:relative;overflow:hidden;background:radial-gradient(ellipse at 50% 48%,rgba(255,255,255,.18),transparent 58%),linear-gradient(145deg,#08090d,#171820 58%,#090a0e);color:#fff;border-color:rgba(255,255,255,.24)}
 .package-cards>.space-ad-card:last-child{background:linear-gradient(145deg,#08090d,#171820 58%,#090a0e)!important}
 .space-ad-card::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.7;background-image:radial-gradient(1px 1px at 12% 18%,#fff 98%,transparent),radial-gradient(1px 1px at 76% 22%,#fff 98%,transparent),radial-gradient(1px 1px at 36% 78%,#fff 98%,transparent),radial-gradient(1.5px 1.5px at 86% 72%,#fff 98%,transparent),radial-gradient(1px 1px at 58% 42%,#fff 98%,transparent)}
@@ -294,7 +294,7 @@ a.package-card{box-shadow:none!important;filter:none!important;transition:transf
 
 .scene--package{background:radial-gradient(ellipse 84% 58% at 50% 0%,rgba(191,197,200,.95) 0%,rgba(191,197,200,.48) 52%,rgba(191,197,200,0) 100%),radial-gradient(ellipse 90% 58% at 50% 100%,rgba(198,187,167,.96) 0%,rgba(198,187,167,.55) 50%,rgba(198,187,167,0) 100%),linear-gradient(135deg,#c9c5bf 0%,#b7b3ad 42%,#d4cec3 100%)}
 .scene--package::after{height:82vh;filter:blur(84px);opacity:1;background:radial-gradient(ellipse 84% 56% at 50% 100%,rgba(198,187,167,.98) 0%,rgba(198,187,167,.58) 48%,rgba(198,187,167,0) 100%)}
-.scene--receipt{background:radial-gradient(ellipse 90% 36% at 50% 0%,rgba(198,187,167,.9) 0%,rgba(198,187,167,0) 100%),linear-gradient(180deg,#c6bba7 0%,#d0c5b2 18%,#c6bba7 52%,#D6C39D 100%)}
+.scene--receipt{background:radial-gradient(ellipse 90% 36% at 50% 0%,rgba(198,187,167,.9) 0%,rgba(198,187,167,0) 100%),linear-gradient(180deg,#c6bba7 0%,#d0c5b2 18%,#c6bba7 52%,#E4CEA5 100%)}
 /* Blend opacity is driven by updateSceneBlends; do not force it to 1. */
 @media(max-width:600px){.receipt-meta--order{grid-template-columns:1fr}}
 
@@ -388,7 +388,7 @@ a.package-card{box-shadow:none!important;filter:none!important;transition:transf
 .atmosphere-fallback .scene--credits{background:#000!important}
 .atmosphere-fallback .scene--welcome{background-color:#E4E3E1!important;background-image:radial-gradient(ellipse at 26% 28%,rgba(177,218,255,.16),transparent 43%),radial-gradient(ellipse at 76% 72%,rgba(255,190,226,.17),transparent 46%),radial-gradient(ellipse at 52% 48%,rgba(255,255,255,.2),transparent 54%)!important}
 .atmosphere-fallback .scene--package{background:radial-gradient(ellipse 84% 58% at 50% 0%,rgba(191,197,200,.95) 0%,rgba(191,197,200,.48) 52%,rgba(191,197,200,0) 100%),radial-gradient(ellipse 90% 58% at 50% 100%,rgba(198,187,167,.96) 0%,rgba(198,187,167,.55) 50%,rgba(198,187,167,0) 100%),linear-gradient(135deg,#c9c5bf 0%,#b7b3ad 42%,#d4cec3 100%)!important}
-.atmosphere-fallback .scene--receipt{background:linear-gradient(180deg,#c6bba7 0%,#d0c5b2 18%,#c6bba7 52%,#D6C39D 100%)!important}
+.atmosphere-fallback .scene--receipt{background:linear-gradient(180deg,#c6bba7 0%,#d0c5b2 18%,#c6bba7 52%,#E4CEA5 100%)!important}
 @media(prefers-reduced-motion:reduce){.scene--credits .swipe-cue{transition:none}}
 
 
@@ -442,7 +442,7 @@ html{scroll-behavior:auto!important;scroll-snap-type:none!important;scroll-paddi
 html:not(.atmosphere-ready):not(.atmosphere-fallback) .scene--credits{background:#000!important}
 html:not(.atmosphere-ready):not(.atmosphere-fallback) .scene--welcome{background-color:#E4E3E1!important;background-image:radial-gradient(ellipse at 26% 28%,rgba(177,218,255,.16),transparent 43%),radial-gradient(ellipse at 76% 72%,rgba(255,190,226,.17),transparent 46%),radial-gradient(ellipse at 52% 48%,rgba(255,255,255,.2),transparent 54%)!important}
 html:not(.atmosphere-ready):not(.atmosphere-fallback) .scene--package{background:radial-gradient(ellipse 84% 58% at 50% 0%,rgba(191,197,200,.95) 0%,rgba(191,197,200,.48) 52%,rgba(191,197,200,0) 100%),radial-gradient(ellipse 90% 58% at 50% 100%,rgba(198,187,167,.96) 0%,rgba(198,187,167,.55) 50%,rgba(198,187,167,0) 100%),linear-gradient(135deg,#c9c5bf 0%,#b7b3ad 42%,#d4cec3 100%)!important}
-html:not(.atmosphere-ready):not(.atmosphere-fallback) .scene--receipt{background:linear-gradient(180deg,#c6bba7 0%,#d0c5b2 18%,#c6bba7 52%,#D6C39D 100%)!important}
+html:not(.atmosphere-ready):not(.atmosphere-fallback) .scene--receipt{background:linear-gradient(180deg,#c6bba7 0%,#d0c5b2 18%,#c6bba7 52%,#E4CEA5 100%)!important}
 #shared-atmosphere{visibility:hidden}
 .scene--welcome .welcome-inner,.scene--package .package-inner{transition:none!important}
 .scene--package .package-inner{position:relative!important;top:auto!important;min-height:100svh}
@@ -854,7 +854,7 @@ function updateDom(chroma,brightness,bloom,glitter,close,t23){
  const corridorColor=mixColor([0,0,0],[228,227,225],brightness);
  const stone= smooth(.12,.98,t23);
  const stoneColor=mixColor(corridorColor,[201,197,191],stone);
- const receiptColor=mixColor(stoneColor,[214,195,157],smooth(0,1,(p-geometry.transition34Start)/FLOW_CONFIG.transition34));
+ const receiptColor=mixColor(stoneColor,[198,187,167],smooth(0,1,(p-geometry.transition34Start)/FLOW_CONFIG.transition34));
  root.style.setProperty("--fallback-bg","rgb("+receiptColor.join(",")+")");
 }
 function frame(now){
@@ -984,7 +984,7 @@ vec3 sceneBackground(vec2 screenUv,float worldY){
   fragment=fragment.replace("vec3 facetLayer(vec2 pixel,",sceneFunctions+"\nvec3 facetLayer(vec2 pixel,");
   fragment=fragment.replace("float mask=edge*step(1.0-density,hash12(cell+seed+13.9));","float densityRoll=hash12(cell+seed+13.9);\n float thresholdIn=hash12(cell+seed+53.7);\n float thresholdOut=1.0-thresholdIn;\n float enterFade=smoothstep(thresholdIn-0.055,thresholdIn+0.055,uGlitterLevel);\n float exitFade=1.0-smoothstep(thresholdOut-0.055,thresholdOut+0.055,uGlitterClose);\n float particleVisible=enterFade*exitFade;\n float mask=edge*step(1.0-density,densityRoll)*particleVisible;");
   fragment=fragment.replace("vec3 base=mix(vec3(0.78,0.80,0.84),baseFilm,0.13);","vec2 screenUv=vec2(pixel.x/uResolution.x,1.0-pixel.y/uResolution.y);\n float worldY=uScrollY+screenUv.y*uViewportHeight;\n vec3 base=mix(sceneBackground(screenUv,worldY),baseFilm,0.34);");
-  fragment=fragment.replace("vec3 color=base+fine+medium+micro;","vec3 color=base+(fine+medium+micro)*uGlitterBoost;");
+  fragment=fragment.replace("vec3 color=base+(fine+medium+micro)*uGlitterBoost;","vec3 color=base+fine+medium+micro;");
   if(!fragment.includes("uGlitterClose")||
      !fragment.includes("sceneBackground")||
      !fragment.includes("float enterFade=smoothstep(thresholdIn-0.055,thresholdIn+0.055,uGlitterLevel);")||
