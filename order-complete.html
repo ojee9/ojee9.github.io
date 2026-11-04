@@ -387,9 +387,34 @@ a.package-card{box-shadow:none!important;filter:none!important;transition:transf
 .scene--welcome,.scene--package,.scene--receipt{background:transparent!important;background-image:none!important}
 .atmosphere-fallback .scene--credits{background:#000!important}
 .atmosphere-fallback .scene--welcome{background-color:#E4E3E1!important;background-image:radial-gradient(ellipse at 26% 28%,rgba(177,218,255,.16),transparent 43%),radial-gradient(ellipse at 76% 72%,rgba(255,190,226,.17),transparent 46%),radial-gradient(ellipse at 52% 48%,rgba(255,255,255,.2),transparent 54%)!important}
-.atmosphere-fallback .scene--package{background:linear-gradient(135deg,#c9c5bf 0%,#b7b3ad 42%,#d4cec3 100%)!important}
+.atmosphere-fallback .scene--package{background:radial-gradient(ellipse 84% 58% at 50% 0%,rgba(191,197,200,.95) 0%,rgba(191,197,200,.48) 52%,rgba(191,197,200,0) 100%),radial-gradient(ellipse 90% 58% at 50% 100%,rgba(198,187,167,.96) 0%,rgba(198,187,167,.55) 50%,rgba(198,187,167,0) 100%),linear-gradient(135deg,#c9c5bf 0%,#b7b3ad 42%,#d4cec3 100%)!important}
 .atmosphere-fallback .scene--receipt{background:linear-gradient(180deg,#c6bba7 0%,#d0c5b2 18%,#c6bba7 52%,#E4CEA5 100%)!important}
 @media(prefers-reduced-motion:reduce){.scene--credits .swipe-cue{transition:none}}
+
+
+/* WebGL fallback: retain the same scene palettes and two-way colour hand-offs. */
+.atmosphere-fallback .scene--credits::after,
+.atmosphere-fallback .scene--welcome::before,
+.atmosphere-fallback .scene--welcome::after,
+.atmosphere-fallback .scene--package::before{
+ content:""!important;position:absolute;z-index:1;left:-8%;right:-8%;pointer-events:none;filter:blur(24px);
+}
+.atmosphere-fallback .scene--credits::after{
+ bottom:-5%;height:82vh;
+ background:linear-gradient(180deg,transparent 0%,rgba(5,5,5,.28) 18%,rgba(92,92,92,.42) 48%,rgba(228,227,225,.78) 82%,#E4E3E1 100%);
+}
+.atmosphere-fallback .scene--welcome::before{
+ top:0;bottom:auto;height:42vh;
+ background:linear-gradient(180deg,rgba(0,0,0,.48) 0%,rgba(0,0,0,.18) 42%,transparent 100%);
+}
+.atmosphere-fallback .scene--welcome::after{
+ bottom:-5%;height:84vh;
+ background:linear-gradient(180deg,transparent 0%,rgba(228,227,225,.36) 18%,rgba(191,197,200,.62) 48%,rgba(201,197,191,.76) 76%,#C9C5BF 100%);
+}
+.atmosphere-fallback .scene--package::before{
+ top:0;bottom:auto;height:50vh;
+ background:linear-gradient(180deg,rgba(228,227,225,.72) 0%,rgba(191,197,200,.42) 38%,transparent 100%);
+}
 
 </style>
 </head>
@@ -665,8 +690,8 @@ async function init(){
   if(!vertexMatch||!fragmentMatch)throw new Error("Study 12 shader source was not found.");
   let fragment=fragmentMatch[1];
   fragment=fragment.replace("uniform vec2 uPointer;","uniform vec2 uPointer;\nuniform float uScrollY;\nuniform float uViewportHeight;\nuniform float uScene2Top;\nuniform float uScene2Height;\nuniform float uScene3Top;\nuniform float uScene3Height;\nuniform float uScene4Top;\nuniform float uScene4Height;\nuniform float uGlitterLevel;");
-  fragment=fragment.replace("vec3 facetLayer(vec2 pixel,","\nvec3 scene02(vec2 uv){\n vec3 c=vec3(228.0,227.0,225.0)/255.0;\n float blue=1.0-smoothstep(0.0,0.43,length((uv-vec2(0.26,0.28))*vec2(1.0,0.92)));\n float pink=1.0-smoothstep(0.0,0.46,length((uv-vec2(0.76,0.72))*vec2(1.0,0.92)));\n float white=1.0-smoothstep(0.0,0.54,length((uv-vec2(0.52,0.48))*vec2(1.0,0.92)));\n c=mix(c,vec3(177.0,218.0,255.0)/255.0,blue*0.16);\n c=mix(c,vec3(255.0,190.0,226.0)/255.0,pink*0.17);\n c=mix(c,vec3(1.0),white*0.20);\n float edge=(1.0-smoothstep(0.0,0.22,uv.y))*0.12+smoothstep(0.78,1.0,uv.y)*0.12;\n return mix(c,vec3(1.0),edge);\n}\nvec3 scene03(vec2 uv){\n float t=clamp((uv.x+uv.y)*0.5,0.0,1.0);\n vec3 c;\n if(t<0.42)c=mix(vec3(201.0,197.0,191.0)/255.0,vec3(183.0,179.0,173.0)/255.0,t/0.42);\n else c=mix(vec3(183.0,179.0,173.0)/255.0,vec3(212.0,206.0,195.0)/255.0,(t-0.42)/0.58);\n float light=1.0-smoothstep(0.0,0.42,length((uv-vec2(0.20,0.18))*vec2(1.0,0.92)));\n float shade=1.0-smoothstep(0.0,0.46,length((uv-vec2(0.85,0.78))*vec2(1.0,0.92)));\n c=mix(c,vec3(1.0),light*0.42);\n c=mix(c,vec3(70.0,67.0,62.0)/255.0,shade*0.10);\n return c;\n}\nvec3 scene04(vec2 uv){\n float y=uv.y;\n vec3 a=vec3(198.0,187.0,167.0)/255.0;\n vec3 b=vec3(208.0,197.0,178.0)/255.0;\n vec3 d=vec3(228.0,206.0,165.0)/255.0;\n if(y<0.18)return mix(a,b,y/0.18);\n if(y<0.52)return mix(b,a,(y-0.18)/0.34);\n return mix(a,d,(y-0.52)/0.48);\n}\nvec3 sceneBackground(vec2 screenUv,float worldY){\n vec2 uv2=vec2(screenUv.x,clamp((worldY-uScene2Top)/max(1.0,uScene2Height),0.0,1.0));\n vec2 uv3=vec2(screenUv.x,clamp((worldY-uScene3Top)/max(1.0,uScene3Height),0.0,1.0));\n vec2 uv4=vec2(screenUv.x,clamp((worldY-uScene4Top)/max(1.0,uScene4Height),0.0,1.0));\n vec3 c=vec3(0.0);\n float diffractionWave=0.5+0.5*sin(screenUv.x*8.0+worldY*0.0017);\n float t12=smoothstep(uScene2Top-uViewportHeight*1.0,uScene2Top,uScrollY);\n c=mix(c,scene02(uv2),t12);\n vec3 prism=thinFilm(0.16+diffractionWave*0.10,610.0+diffractionWave*100.0,screenUv.x*1.5);\n c+=prism*(4.0*t12*(1.0-t12))*0.018;\n float t23=smoothstep(uScene3Top-uViewportHeight*1.0,uScene3Top,uScrollY);\n c=mix(c,scene03(uv3),t23);\n float t34=smoothstep(uScene4Top-uViewportHeight*0.92,uScene4Top+uViewportHeight*0.22,worldY+sin(screenUv.x*6.1+worldY*0.0011)*uViewportHeight*0.022);\n c=mix(c,scene04(uv4),t34);\n return c;\n}\n"+"\nvec3 facetLayer(vec2 pixel,");
-  fragment=fragment.replace("vec3 base=mix(vec3(0.78,0.80,0.84),baseFilm,0.13);","vec2 screenUv=vec2(pixel.x/uResolution.x,1.0-pixel.y/uResolution.y);\n float worldY=uScrollY+screenUv.y*uViewportHeight;\n float scene2Mask=smoothstep(uScene2Top,uScene2Top+uViewportHeight*0.045,worldY)*(1.0-smoothstep(uScene2Top+uScene2Height-uViewportHeight*0.045,uScene2Top+uScene2Height,worldY));\n vec3 base=sceneBackground(screenUv,worldY);\n base=mix(base,baseFilm,0.13*scene2Mask);");
+  fragment=fragment.replace("vec3 facetLayer(vec2 pixel,","\nvec3 scene02(vec2 uv){\n vec3 c=vec3(228.0,227.0,225.0)/255.0;\n float blue=1.0-smoothstep(0.0,0.43,length((uv-vec2(0.26,0.28))*vec2(1.0,0.92)));\n float pink=1.0-smoothstep(0.0,0.46,length((uv-vec2(0.76,0.72))*vec2(1.0,0.92)));\n float white=1.0-smoothstep(0.0,0.54,length((uv-vec2(0.52,0.48))*vec2(1.0,0.92)));\n c=mix(c,vec3(177.0,218.0,255.0)/255.0,blue*0.16);\n c=mix(c,vec3(255.0,190.0,226.0)/255.0,pink*0.17);\n c=mix(c,vec3(1.0),white*0.20);\n return c;\n}\nvec3 scene03(vec2 uv){\n float t=clamp((uv.x+uv.y)*0.5,0.0,1.0);\n vec3 c;\n if(t<0.42)c=mix(vec3(201.0,197.0,191.0)/255.0,vec3(183.0,179.0,173.0)/255.0,t/0.42);\n else c=mix(vec3(183.0,179.0,173.0)/255.0,vec3(212.0,206.0,195.0)/255.0,(t-0.42)/0.58);\n float topRadius=length((uv-vec2(0.5,0.0))/vec2(0.42,0.29));\n float topAlpha=topRadius<0.52?mix(0.95,0.48,topRadius/0.52):mix(0.48,0.0,clamp((topRadius-0.52)/0.48,0.0,1.0));\n float bottomRadius=length((uv-vec2(0.5,1.0))/vec2(0.45,0.29));\n float bottomAlpha=bottomRadius<0.50?mix(0.96,0.55,bottomRadius/0.50):mix(0.55,0.0,clamp((bottomRadius-0.50)/0.50,0.0,1.0));\n c=mix(c,vec3(191.0,197.0,200.0)/255.0,clamp(topAlpha,0.0,1.0));\n c=mix(c,vec3(198.0,187.0,167.0)/255.0,clamp(bottomAlpha,0.0,1.0));\n return c;\n}\nvec3 scene04(vec2 uv){\n float y=uv.y;\n vec3 a=vec3(198.0,187.0,167.0)/255.0;\n vec3 b=vec3(208.0,197.0,178.0)/255.0;\n vec3 d=vec3(228.0,206.0,165.0)/255.0;\n if(y<0.18)return mix(a,b,y/0.18);\n if(y<0.52)return mix(b,a,(y-0.18)/0.34);\n return mix(a,d,(y-0.52)/0.48);\n}\nvec3 sceneBackground(vec2 screenUv,float worldY){\n vec2 uv2=vec2(screenUv.x,clamp((worldY-uScene2Top)/max(1.0,uScene2Height),0.0,1.0));\n vec2 uv3=vec2(screenUv.x,clamp((worldY-uScene3Top)/max(1.0,uScene3Height),0.0,1.0));\n vec2 uv4=vec2(screenUv.x,clamp((worldY-uScene4Top)/max(1.0,uScene4Height),0.0,1.0));\n float band=max(1.0,uViewportHeight*0.42);\n float t12=smoothstep(uScene2Top-band,uScene2Top+band,worldY);\n vec3 c=mix(vec3(0.0),scene02(uv2),t12);\n float t23=smoothstep(uScene3Top-band,uScene3Top+band,worldY);\n c=mix(c,scene03(uv3),t23);\n float t34=smoothstep(uScene4Top-uViewportHeight*0.92,uScene4Top+uViewportHeight*0.22,worldY+sin(screenUv.x*6.1+worldY*0.0011)*uViewportHeight*0.022);\n c=mix(c,scene04(uv4),t34);\n return c;\n}\n\nvec3 facetLayer(vec2 pixel,");
+  fragment=fragment.replace("vec3 base=mix(vec3(0.78,0.80,0.84),baseFilm,0.13);","vec2 screenUv=vec2(pixel.x/uResolution.x,1.0-pixel.y/uResolution.y);\n float worldY=uScrollY+screenUv.y*uViewportHeight;\n float scene2Mask=smoothstep(uScene2Top,uScene2Top+uViewportHeight*0.045,worldY)*(1.0-smoothstep(uScene2Top+uScene2Height-uViewportHeight*0.045,uScene2Top+uScene2Height,worldY));\n vec3 base=sceneBackground(screenUv,worldY);");
   fragment=fragment.replace("vec3 color=base+fine+medium+micro;","vec3 color=base+(fine+medium+micro)*(uGlitterLevel*scene2Mask);");
   if(!fragment.includes("vec3 sceneBackground")||!fragment.includes("uGlitterLevel*scene2Mask"))throw new Error("Study 12 shader adaptation failed.");
   program=gl.createProgram();gl.attachShader(program,compile(gl.VERTEX_SHADER,vertexMatch[1]));gl.attachShader(program,compile(gl.FRAGMENT_SHADER,fragment));gl.linkProgram(program);
