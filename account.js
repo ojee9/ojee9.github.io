@@ -1086,6 +1086,7 @@
       if (generation !== state.shopLoginGeneration || !mount.isConnected) return;
 
       const login = await sdk.create("login", {
+        id: "vn-shop-account-login",
         appearance: {
           preferredLoginExperience: "redirect"
         },
@@ -1108,6 +1109,21 @@
         },
         onError(event) {
           console.error("[VN ACCOUNT] Shop login failed:", event?.code, event?.message);
+          state.messageType = "error";
+          state.message = "Shop sign-in failed: " + String(event?.message || event?.code || "Please try again.");
+          const main = mount.closest(".vn-ac-main");
+          const message = main?.querySelector(".vn-ac-message");
+          if (message) {
+            message.className = "vn-ac-message error";
+            message.textContent = state.message;
+          } else if (main) {
+            const notice = document.createElement("div");
+            notice.className = "vn-ac-message error";
+            notice.setAttribute("role", "status");
+            notice.setAttribute("aria-live", "polite");
+            notice.textContent = state.message;
+            main.prepend(notice);
+          }
         }
       });
 
