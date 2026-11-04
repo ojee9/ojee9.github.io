@@ -1155,3 +1155,68 @@ input:focus-visible {
     border-top: 1px solid var(--line);
   }
 }
+
+
+/* PLAYFUL DIGITAL ARCHIVE TAGS — KEEP THE ASYMMETRIC SILHOUETTE */
+.archive-tag {
+  min-height: 19px;
+  padding: 0 13px 0 15px;
+  background: var(--tag-color);
+  color: #171017;
+  clip-path: polygon(5px 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 5px 100%, 0 50%);
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: .45px;
+  line-height: 1;
+  filter: saturate(1.18);
+  transition: transform 140ms ease, filter 140ms ease;
+}
+.archive-tag::before {
+  display: none;
+  content: none;
+}
+.entry-tags .archive-tag:hover {
+  transform: translateY(-2px) rotate(-1deg);
+  filter: saturate(1.35) brightness(1.06);
+}
+.tag-filter-option {
+  min-height: 31px;
+  padding: 3px 4px;
+}
+.tag-filter-option .archive-tag {
+  max-width: 100%;
+  overflow: visible;
+  opacity: 1;
+  text-overflow: clip;
+}
+.tag-filter-option:hover .archive-tag {
+  transform: translateX(2px);
+  filter: saturate(1.3) brightness(1.06);
+}
+.tag-filter-option.is-selected {
+  background: rgba(255,255,255,.055);
+}
+.tag-filter-option.is-selected .archive-tag {
+  background: var(--tag-color);
+  filter: saturate(1.3);
+}
+.selected-tag-chip > span:first-child {
+  min-height: 19px;
+  padding: 0 13px 0 15px;
+  background: var(--tag-color);
+  color: #171017;
+  clip-path: polygon(5px 0, calc(100% - 8px) 0, 100% 50%, calc(100% - 8px) 100%, 5px 100%, 0 50%);
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: .45px;
+  filter: saturate(1.18);
+  transition: transform 140ms ease, filter 140ms ease;
+}
+.selected-tag-chip > span:first-child::before {
+  display: none;
+  content: none;
+}
+.selected-tag-chip:hover > span:first-child {
+  transform: translateY(-1px);
+  filter: saturate(1.35) brightness(1.06);
+}
