@@ -1086,6 +1086,9 @@
       if (generation !== state.shopLoginGeneration || !mount.isConnected) return;
 
       const login = await sdk.create("login", {
+        appearance: {
+          preferredLoginExperience: "popup"
+        },
         attributes: {
           buttonType: "continue",
           buttonLayout: "standalone",
@@ -1134,13 +1137,14 @@
 
       // Keep the SDK element connected for its lifecycle; the visible trigger
       // above invokes its documented start() method.
-      login.element.style.position = "absolute";
+      // Keep the SDK host connected and outside clipped containers so its
+      // popup/windoid UI can render when start() is invoked.
+      login.element.style.position = "fixed";
+      login.element.style.left = "-10000px";
+      login.element.style.top = "0";
       login.element.style.width = "1px";
       login.element.style.height = "1px";
-      login.element.style.overflow = "hidden";
-      login.element.style.clipPath = "inset(50%)";
-      login.element.style.whiteSpace = "nowrap";
-      login.element.setAttribute("aria-hidden", "true");
+      login.element.style.pointerEvents = "none";
       mount.appendChild(trigger);
       mount.appendChild(login.element);
     } catch (error) {
