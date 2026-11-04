@@ -1087,12 +1087,13 @@
 
       const login = await sdk.create("login", {
         appearance: {
-          preferredLoginExperience: "popup"
+          preferredLoginExperience: "redirect"
         },
         attributes: {
           buttonType: "continue",
           buttonLayout: "standalone",
           scope: "shop_app:oauth",
+          uxMode: "redirect",
           returnTo: "same-page"
         },
         onComplete(event) {
