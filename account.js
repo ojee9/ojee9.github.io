@@ -46,6 +46,7 @@
     shopLoginInstance: null,
     shopLoginMount: null,
     shopLoginGeneration: 0,
+    shopPopupWindow: null,
     authProvider: "",
     shopSessionToken: ""
   };
@@ -1073,6 +1074,7 @@
 
 
   const SHOP_AUTH_WORKER = "https://vn-shop-auth.9ojeez9.workers.dev";
+  const SHOP_AUTH_WORKER_ORIGIN = new URL(SHOP_AUTH_WORKER).origin;
 
   async function shopWorkerRequest(body) {
     const response = await fetch(SHOP_AUTH_WORKER, {
@@ -1126,25 +1128,35 @@
     }
   }
 
-  async function exchangeShopConsent(consentToken) {
+  async function acceptShopSession(sessionToken) {
     if (state.busy) return;
     state.busy = true;
     state.messageType = "info";
     state.message = "Connecting your Shop account to VN SHOP…";
     render();
+
     try {
-      const result = await shopWorkerRequest({ action: "exchange", shopConsentToken: consentToken });
-      const sessionToken = String(result.sessionToken || result.session_token || "").trim();
-      if (!sessionToken) throw new Error("The Shop service did not issue a VN SHOP session.");
-      const verified = await shopWorkerRequest({ action: "verify", sessionToken });
-      const user = verified.user || verified.customer || result.user || result.customer || verified;
-      if (verified.authenticated === false || verified.valid === false) throw new Error("The new VN SHOP session could not be verified.");
+      const verified = await shopWorkerRequest({
+        action: "verify",
+        sessionToken
+      });
+
+      if (
+        !verified.authenticated ||
+        !(verified.user?.id || verified.user?.sub)
+      ) {
+        throw new Error("The Shop session could not be verified.");
+      }
+
       state.shopSessionToken = sessionToken;
-      try { sessionStorage.setItem("vn_shop_session", sessionToken); } catch (_) {}
-      applyShopUser(user);
+      try {
+        sessionStorage.setItem("vn_shop_session", sessionToken);
+      } catch (_) {}
+
+      applyShopUser(verified.user);
       await loadAccountData();
     } catch (error) {
-      console.error("[VN ACCOUNT] Shop session exchange failed:", error);
+      console.error("[VN ACCOUNT] Shop popup authentication failed:", error);
       state.messageType = "error";
       state.message = error.message || "Could not connect your Shop account. Please try email sign-in instead.";
       state.screen = "email";
@@ -1154,77 +1166,69 @@
     }
   }
 
+  function startShopPopup() {
+    const loginUrl = SHOP_AUTH_WORKER + "/shop/login";
+
+    if (state.shopPopupWindow && !state.shopPopupWindow.closed) {
+      state.shopPopupWindow.focus();
+      return;
+    }
+
+    const popup = window.open(
+      loginUrl,
+      "vnShopAuthPopup",
+      "popup=yes,width=520,height=720,resizable=yes,scrollbars=yes"
+    );
+
+    if (!popup) {
+      window.location.assign(loginUrl);
+      return;
+    }
+
+    state.shopPopupWindow = popup;
+  }
+
+  window.addEventListener("message", event => {
+    if (event.origin !== SHOP_AUTH_WORKER_ORIGIN) return;
+    if (!state.shopPopupWindow || event.source !== state.shopPopupWindow) return;
+
+    const popup = state.shopPopupWindow;
+    state.shopPopupWindow = null;
+
+    if (event.data?.type === "VN_SHOP_AUTH_SUCCESS") {
+      const token = String(event.data.sessionToken || "").trim();
+      if (!token || token.length > 5000) {
+        state.messageType = "error";
+        state.message = "Shop returned an invalid session. Please try again.";
+        render();
+        return;
+      }
+      acceptShopSession(token);
+      return;
+    }
+
+    if (event.data?.type === "VN_SHOP_AUTH_ERROR") {
+      state.messageType = "error";
+      state.message = "Shop sign-in could not be completed. Please try again or continue with email.";
+      render();
+    }
+
+    try {
+      if (popup && !popup.closed) popup.close();
+    } catch (_) {}
+  });
+
   async function mountShopLogin() {
     const mount = $("#vnAcShopLoginMount");
     if (!mount || state.screen !== "email" || state.user) return;
-    if (state.shopLoginMount === mount) return;
+    if (mount.dataset.ready === "true") return;
 
-    destroyShopLogin();
-    const generation = state.shopLoginGeneration;
-    state.shopLoginMount = mount;
-
-    try {
-      if (!state.shopSdkPromise) {
-        state.shopSdkPromise = (async () => {
-          await import("https://cdn.shopify.com/shopifycloud/shop-js/modules/v2/loader.sdk.esm.js");
-          if (!window.ShopSDK || typeof window.ShopSDK.initialize !== "function") {
-            throw new Error("Shop SDK did not initialize.");
-          }
-          return window.ShopSDK.initialize({
-            apiKey: "90292cd96f43b8299e5b541fbe400d11",
-            locale: "tr",
-            features: { login: true }
-          });
-        })().catch(error => {
-          state.shopSdkPromise = null;
-          throw error;
-        });
-      }
-
-      const sdk = await state.shopSdkPromise;
-      if (generation !== state.shopLoginGeneration || !mount.isConnected) return;
-
-      const login = await sdk.create("login", {
-        attributes: {
-          buttonType: "continue",
-          buttonLayout: "standalone",
-          scope: "shop_app:oauth"
-        },
-        onComplete(event) {
-          const email = String(event?.email || "").trim();
-          const consentToken = String(event?.shopConsentToken || "").trim();
-          if (!email || event.emailVerified !== true || event.signedIn !== true || !consentToken) {
-            state.messageType = "error";
-            state.message = "Shop sign-in did not return a valid authorization token. Please continue with email instead.";
-            render();
-            return;
-          }
-          exchangeShopConsent(consentToken);
-        },
-        onError(event) {
-          console.error("[VN ACCOUNT] Shop login failed:", event?.code, event?.message);
-          state.messageType = "error";
-          state.message = "Shop sign-in failed" + (event?.code ? " (" + String(event.code) + ")" : "") + (event?.message ? ": " + String(event.message) : ".") + " Please try again or continue with email.";
-          render();
-        }
-      });
-
-      if (generation !== state.shopLoginGeneration || !mount.isConnected || state.screen !== "email") {
-        login.destroy();
-        return;
-      }
-
-      state.shopLoginInstance = login;
-      mount.appendChild(login.element);
-    } catch (error) {
-      if (generation === state.shopLoginGeneration) {
-        state.shopLoginMount = null;
-        console.error("[VN ACCOUNT] Shop SDK could not be mounted:", error);
-        state.messageType = "error";
-        state.message = "Shop sign-in could not be loaded. Please continue with email.";
-        render();
-      }
-    }
+    mount.dataset.ready = "true";
+    mount.innerHTML = `
+      <button type="button" class="vn-ac-shop-continue" data-ac-action="shop-login">
+        <span>Continue with Shop</span>
+      </button>
+    `;
   }
 
   function renderVerify() {
@@ -2231,6 +2235,10 @@
             goShop();
             break;
 
+          case "shop-login":
+            startShopPopup();
+            break;
+
           case "privacy-open":
           case "policy-open": {
             const policyType = action.dataset.acPolicy || "privacy";
@@ -2503,6 +2511,22 @@
   configPromise = loadConfig();
   configPromise.then(() => {
     if (state.user) render();
+
+    const callbackParams = new URLSearchParams(window.location.hash.slice(1));
+    const callbackToken = callbackParams.get("vn_shop_session");
+    const callbackError = callbackParams.get("shop_error");
+
+    if (callbackToken || callbackError) {
+      history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
+
+    if (callbackToken) {
+      acceptShopSession(callbackToken);
+    } else if (callbackError) {
+      state.messageType = "error";
+      state.message = "Shop sign-in could not be completed. Please try again or continue with email.";
+      render();
+    }
   });
   if (new URLSearchParams(window.location.search).get("account") === "register") window.setTimeout(() => openPanel(), 0);
 })();
