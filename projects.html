@@ -466,7 +466,7 @@
         tagFilterOptions.scrollTop = scrollTop;
         selectedTagsPanel.hidden = selectedArchiveTags.length === 0;
         selectedTagsList.innerHTML = selectedArchiveTags.map(tag =>
-          '<button type="button" class="selected-tag-chip" data-tag-remove="' + tag + '" aria-label="Remove ' + tag + ' filter"><span>' + tag + '</span><span aria-hidden="true">×</span></button>'
+          '<button type="button" class="selected-tag-chip" data-tag-remove="' + tag + '" aria-label="Remove ' + tag + ' filter"><span style="--tag-color:' + archiveTagColors[tag] + '">' + tag + '</span><span aria-hidden="true">×</span></button>'
         ).join("");
         clearSelectedTagsButton.hidden = selectedArchiveTags.length === 0;
       }

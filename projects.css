@@ -983,3 +983,114 @@ input:focus-visible {
 @media (max-width: 650px) {
   .tag-filter-scroll { max-height: 210px; }
 }
+
+/* MATCH SELECTED TAG CHIPS TO THE ASYMMETRIC LABEL */
+.selected-tag-chip > span:first-child {
+  position: relative;
+}
+.selected-tag-chip > span:first-child::before {
+  position: absolute;
+  top: 50%;
+  left: 4px;
+  width: 3px;
+  height: 3px;
+  border: 1px solid rgba(16,16,16,.8);
+  border-radius: 50%;
+  content: "";
+  transform: translateY(-50%);
+}
+
+/* REFINED ASYMMETRIC ARCHIVE LABELS */
+.archive-tag {
+  position: relative;
+  display: inline-flex;
+  min-height: 18px;
+  align-items: center;
+  padding: 0 8px 0 16px;
+  border: 0;
+  border-radius: 0;
+  background: var(--tag-color);
+  color: #101010;
+  clip-path: polygon(8px 0,100% 0,100% 100%,8px 100%,0 50%);
+  font-size: 7.5px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: .65px;
+  white-space: nowrap;
+  text-transform: uppercase;
+  box-shadow: none;
+}
+.archive-tag::before {
+  position: absolute;
+  top: 50%;
+  left: 4px;
+  display: block;
+  width: 3px;
+  height: 3px;
+  border: 1px solid rgba(16,16,16,.8);
+  border-radius: 50%;
+  content: "";
+  transform: translateY(-50%);
+}
+.tag-filter-option {
+  min-height: 27px;
+  padding: 2px 3px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.tag-filter-option:hover {
+  border: 0;
+  background: #1a1a1a;
+}
+.tag-filter-option.is-selected {
+  border: 0;
+  background: #202020;
+}
+.tag-filter-option .archive-tag {
+  max-width: calc(100% - 34px);
+  opacity: 1;
+}
+.tag-filter-option.is-selected .archive-tag {
+  border: 0;
+  background: var(--tag-color);
+  color: #101010;
+}
+.selected-tag-chip {
+  min-height: 22px;
+  gap: 8px;
+  padding: 0 6px 0 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.selected-tag-chip > span:first-child {
+  position: relative;
+  display: inline-flex;
+  min-height: 18px;
+  align-items: center;
+  padding: 0 8px 0 16px;
+  background: var(--tag-color);
+  color: #101010;
+  clip-path: polygon(8px 0,100% 0,100% 100%,8px 100%,0 50%);
+  font-size: 7.5px;
+  font-weight: 800;
+  letter-spacing: .65px;
+}
+.selected-tag-chip > span:first-child::before {
+  position: absolute;
+  top: 50%;
+  left: 4px;
+  width: 3px;
+  height: 3px;
+  border: 1px solid rgba(16,16,16,.8);
+  border-radius: 50%;
+  content: "";
+  transform: translateY(-50%);
+}
+.selected-tag-chip:hover {
+  border: 0;
+  background: transparent;
+}
+.selected-tag-chip:hover > span:first-child { filter: brightness(1.12); }
+.selected-tag-chip span:last-child { color: #aaa; }
