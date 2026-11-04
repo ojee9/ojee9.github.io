@@ -875,12 +875,11 @@ function frame(now){
  const bloom=FLOW_CONFIG.bloomStrength*smooth(.15,.30,t23)*(1-smooth(.30,.85,t23));
  const chroma=1.16*smooth(0,.62,corridorP);
  const brightness=smooth(.22,.96,corridorP);
- const scene2Plateau=p>=FLOW_CONFIG.scene1Hold+FLOW_CONFIG.corridor&&p<geometry.transition23Start;
- const activeGlitter=scene2Plateau?1:glitter;
- const effectiveGlitter=p<geometry.transition23Start?activeGlitter:1;
  const t23Clamped=clamp(t23,0,1);
-  const studio=smooth(.90,1,corridorP)*(1-smooth(0,.15,t23Clamped));
- const glitterClose=p<geometry.transition23Start?0:close;
+ const stop=geometry.transition23Start;
+ const effectiveGlitter=clamp(.05*smooth(stop-220,stop-150,p)+.95*smooth(stop-150,stop,p),0,1);
+ const glitterClose=smooth(stop+70,stop+150,p);
+ const studio=smooth(stop-30,stop+5,p)*(1-smooth(stop+60,stop+90,p));
  updateDom(chroma,brightness,bloom,effectiveGlitter,glitterClose,t23);
  if(webglReady&&program){
   gl.useProgram(program);
