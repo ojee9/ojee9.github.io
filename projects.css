@@ -1000,22 +1000,24 @@ input:focus-visible {
   transform: translateY(-50%);
 }
 
-/* REFINED ASYMMETRIC ARCHIVE LABELS */
+/* CLEAN ASYMMETRIC ARCHIVE LABELS — ORIGINAL SILHOUETTE */
 .archive-tag {
   position: relative;
   display: inline-flex;
-  min-height: 18px;
+  flex: 0 0 auto;
+  min-height: 17px;
   align-items: center;
-  padding: 0 8px 0 16px;
+  justify-content: center;
+  padding: 0 15px 0 20px;
   border: 0;
   border-radius: 0;
   background: var(--tag-color);
-  color: #101010;
-  clip-path: polygon(8px 0,100% 0,100% 100%,8px 100%,0 50%);
-  font-size: 7.5px;
-  font-weight: 800;
+  color: #171017;
+  clip-path: polygon(1px 1px, calc(100% - 11px) 1px, 100% 50%, calc(100% - 11px) calc(100% - 1px), 1px calc(100% - 1px), 7px 50%);
+  font-size: 8px;
+  font-weight: 700;
   line-height: 1;
-  letter-spacing: .65px;
+  letter-spacing: .35px;
   white-space: nowrap;
   text-transform: uppercase;
   box-shadow: none;
@@ -1023,12 +1025,12 @@ input:focus-visible {
 .archive-tag::before {
   position: absolute;
   top: 50%;
-  left: 4px;
-  display: block;
+  left: 10px;
   width: 3px;
   height: 3px;
-  border: 1px solid rgba(16,16,16,.8);
+  border: 0;
   border-radius: 50%;
+  background: #171017;
   content: "";
   transform: translateY(-50%);
 }
@@ -1039,22 +1041,18 @@ input:focus-visible {
   border-radius: 0;
   background: transparent;
 }
-.tag-filter-option:hover {
-  border: 0;
-  background: #1a1a1a;
-}
-.tag-filter-option.is-selected {
-  border: 0;
-  background: #202020;
-}
+.tag-filter-option:hover { border: 0; background: #1a1a1a; }
+.tag-filter-option.is-selected { border: 0; background: #202020; }
 .tag-filter-option .archive-tag {
-  max-width: calc(100% - 34px);
+  max-width: none;
+  overflow: visible;
   opacity: 1;
+  text-overflow: clip;
 }
 .tag-filter-option.is-selected .archive-tag {
   border: 0;
   background: var(--tag-color);
-  color: #101010;
+  color: #171017;
 }
 .selected-tag-chip {
   min-height: 22px;
@@ -1067,30 +1065,33 @@ input:focus-visible {
 .selected-tag-chip > span:first-child {
   position: relative;
   display: inline-flex;
-  min-height: 18px;
+  flex: 0 0 auto;
+  min-height: 17px;
   align-items: center;
-  padding: 0 8px 0 16px;
+  justify-content: center;
+  padding: 0 15px 0 20px;
   background: var(--tag-color);
-  color: #101010;
-  clip-path: polygon(8px 0,100% 0,100% 100%,8px 100%,0 50%);
-  font-size: 7.5px;
-  font-weight: 800;
-  letter-spacing: .65px;
+  color: #171017;
+  clip-path: polygon(1px 1px, calc(100% - 11px) 1px, 100% 50%, calc(100% - 11px) calc(100% - 1px), 1px calc(100% - 1px), 7px 50%);
+  font-size: 8px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: .35px;
+  white-space: nowrap;
+  text-transform: uppercase;
 }
 .selected-tag-chip > span:first-child::before {
   position: absolute;
   top: 50%;
-  left: 4px;
+  left: 10px;
   width: 3px;
   height: 3px;
-  border: 1px solid rgba(16,16,16,.8);
+  border: 0;
   border-radius: 50%;
+  background: #171017;
   content: "";
   transform: translateY(-50%);
 }
-.selected-tag-chip:hover {
-  border: 0;
-  background: transparent;
-}
-.selected-tag-chip:hover > span:first-child { filter: brightness(1.12); }
+.selected-tag-chip:hover { border: 0; background: transparent; }
+.selected-tag-chip:hover > span:first-child { filter: brightness(1.08); }
 .selected-tag-chip span:last-child { color: #aaa; }
