@@ -41,7 +41,11 @@
     marketingUpdates: true,
     signupMarketing: false,
     editing: "",
-    loadingData: false
+    loadingData: false,
+    shopSdkPromise: null,
+    shopLoginInstance: null,
+    shopLoginMount: null,
+    shopLoginGeneration: 0
   };
 
   let configPromise = null;
@@ -248,7 +252,7 @@
       .vn-ac-signin-heading h1{margin:0;font-size:32px;font-weight:700;line-height:1.2;letter-spacing:-.7px;color:#f5f5f5}
       .vn-ac-signin-heading p{margin:9px 0 0;font-size:15px;line-height:1.5;color:#a9a5ad}
       .vn-ac-email-main{display:flex;flex-direction:column;align-items:stretch;width:100%;max-width:480px;margin-inline:auto}
-      .vn-ac-shop-space{width:100%;max-width:480px;margin:0 auto 18px}.vn-ac-shop-preview{display:flex;align-items:center;justify-content:center;width:100%;min-height:54px;padding:0 18px;border:1px solid rgba(255,255,255,.2);border-radius:7px;background:#5433eb;color:#fff;font:600 15px/1 Arial,sans-serif;opacity:1;cursor:not-allowed;box-shadow:0 1px 2px rgba(0,0,0,.12)}.vn-ac-shop-preview:disabled{opacity:1;color:#fff}.vn-ac-shop-button-content{display:flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap}.vn-ac-shop-button-content svg{display:block;width:48px;height:20px;transform:translateY(1px)}.vn-ac-or-divider{display:flex;align-items:center;gap:13px;width:100%;max-width:480px;margin:0 auto 18px;color:#a9a5ad;font-size:11px;line-height:1;letter-spacing:1.5px}.vn-ac-or-divider:before,.vn-ac-or-divider:after{content:"";height:1px;flex:1;background:#39343e}
+      .vn-ac-shop-space{width:100%;max-width:480px;margin:0 auto 18px}.vn-ac-shop-mount{display:flex;align-items:stretch;justify-content:center;width:100%;min-height:54px}.vn-ac-shop-mount>*{display:block;width:100%}.vn-ac-or-divider{display:flex;align-items:center;gap:13px;width:100%;max-width:480px;margin:0 auto 18px;color:#a9a5ad;font-size:11px;line-height:1;letter-spacing:1.5px}.vn-ac-or-divider:before,.vn-ac-or-divider:after{content:"";height:1px;flex:1;background:#39343e}
       .vn-ac-email-form-wrap{width:100%;max-width:480px;margin:0 auto}.vn-ac-email-form-wrap form{display:flex;flex-direction:column;width:100%}
       .vn-ac-consent-note{margin:24px auto 0!important;max-width:480px;text-align:center;color:#a4a4a4;font-size:12px;line-height:1.75}
       .vn-ac-consent-note a{color:#fff;text-decoration:underline;text-underline-offset:2px}
@@ -1000,13 +1004,7 @@
         </div>
 
         <div class="vn-ac-shop-space">
-          <button type="button" class="vn-ac-shop-preview" disabled aria-disabled="true" aria-label="Continue with Shop">
-            <span class="vn-ac-shop-button-content">Continue with
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 60 25" role="img" aria-label="Shop">
-                <path fill="currentColor" d="M7.74 11.067c-2.35-.509-3.396-.708-3.396-1.612 0-.85.708-1.274 2.125-1.274 1.246 0 2.157.544 2.828 1.609.05.082.155.11.24.066l2.644-1.334a.186.186 0 0 0 .076-.259c-1.098-1.9-3.125-2.94-5.794-2.94-3.507 0-5.686 1.727-5.686 4.47 0 2.914 2.653 3.65 5.006 4.16 2.353.509 3.403.708 3.403 1.612 0 .904-.765 1.33-2.293 1.33-1.41 0-2.457-.644-3.09-1.896a.185.185 0 0 0-.25-.082L.916 16.222a.188.188 0 0 0-.082.253c1.046 2.102 3.194 3.284 6.062 3.284 3.653 0 5.86-1.697 5.86-4.526 0-2.83-2.666-3.65-5.015-4.16v-.006ZM21.909 5.324c-1.5 0-2.824.53-3.776 1.476a.093.093 0 0 1-.158-.067V.7a.185.185 0 0 0-.187-.186H14.48a.185.185 0 0 0-.187.186v18.728c0 .105.083.187.187.187h3.308a.185.185 0 0 0 .187-.187v-8.215c0-1.586 1.217-2.803 2.859-2.803 1.641 0 2.83 1.191 2.83 2.803v8.215c0 .105.082.187.187.187h3.308a.185.185 0 0 0 .186-.187v-8.215c0-3.451-2.264-5.888-5.436-5.888ZM34.056 4.786c-1.796 0-3.478.55-4.687 1.344a.187.187 0 0 0-.06.25l1.458 2.487c.054.089.168.12.256.066a5.812 5.812 0 0 1 3.04-.834c2.887 0 5.01 2.035 5.01 4.725 0 2.292-1.7 3.99-3.853 3.99-1.755 0-2.973-1.022-2.973-2.463 0-.825.351-1.501 1.265-1.979a.183.183 0 0 0 .073-.259L32.21 9.787a.186.186 0 0 0-.224-.08c-1.844.683-3.137 2.327-3.137 4.533 0 3.338 2.66 5.829 6.369 5.829 4.333 0 7.448-3 7.448-7.302 0-4.611-3.624-7.98-8.609-7.98ZM52.342 5.295c-1.673 0-3.169.62-4.26 1.707a.092.092 0 0 1-.158-.066V5.627a.185.185 0 0 0-.186-.186h-3.223a.185.185 0 0 0-.187.186v18.7c0 .104.082.186.187.186h3.308a.185.185 0 0 0 .187-.187v-6.131c0-.083.098-.124.158-.07 1.088 1.012 2.527 1.602 4.174 1.602 3.88 0 6.907-3.138 6.907-7.216 0-4.077-3.03-7.216-6.907-7.216Zm-.626 11.265c-2.207 0-3.88-1.754-3.88-4.074s1.67-4.074 3.88-4.074 3.877 1.726 3.877 4.074c0 2.349-1.644 4.074-3.88 4.074h.003Z"></path>
-              </svg>
-            </span>
-          </button>
+          <div id="vnAcShopLoginMount" class="vn-ac-shop-mount" aria-label="Continue with Shop"></div>
         </div>
         <div class="vn-ac-or-divider" aria-hidden="true"><span>OR</span></div>
 
@@ -1041,6 +1039,89 @@
         </div>
       </main>
     `;
+  }
+
+  function destroyShopLogin() {
+    state.shopLoginGeneration += 1;
+    const instance = state.shopLoginInstance;
+    state.shopLoginInstance = null;
+    state.shopLoginMount = null;
+    if (instance) {
+      try {
+        instance.destroy();
+      } catch (error) {
+        console.warn("[VN ACCOUNT] Shop login cleanup failed:", error);
+      }
+    }
+  }
+
+  async function mountShopLogin() {
+    const mount = $("#vnAcShopLoginMount");
+    if (!mount || state.screen !== "email" || state.user) return;
+    if (state.shopLoginMount === mount) return;
+
+    destroyShopLogin();
+    const generation = state.shopLoginGeneration;
+    state.shopLoginMount = mount;
+
+    try {
+      if (!state.shopSdkPromise) {
+        state.shopSdkPromise = (async () => {
+          await import("https://cdn.shopify.com/shopifycloud/shop-js/modules/v2/loader.sdk.esm.js");
+          if (!window.ShopSDK || typeof window.ShopSDK.initialize !== "function") {
+            throw new Error("Shop SDK did not initialize.");
+          }
+          return window.ShopSDK.initialize({
+            apiKey: "43e89c78-f1a2-4b72-bfa1-e6ecd1171a5a",
+            locale: "en",
+            features: { login: true }
+          });
+        })().catch(error => {
+          state.shopSdkPromise = null;
+          throw error;
+        });
+      }
+
+      const sdk = await state.shopSdkPromise;
+      if (generation !== state.shopLoginGeneration || !mount.isConnected) return;
+
+      const login = await sdk.create("login", {
+        attributes: {
+          buttonType: "continue",
+          buttonLayout: "standalone",
+          presentationMode: "button",
+          emailInputSelector: "#customer-authentication-web-email",
+          scope: "shop_app:oauth",
+          returnTo: "same-page"
+        },
+        onComplete(event) {
+          const email = String(event?.email || "").trim();
+          if (!email || event.emailVerified !== true) {
+            state.messageType = "error";
+            state.message = "Shop could not confirm a verified email address. Please continue with email instead.";
+            render();
+            return;
+          }
+          sendCode(email, "shop");
+        },
+        onError(event) {
+          console.error("[VN ACCOUNT] Shop login failed:", event?.code, event?.message);
+        }
+      });
+
+      if (generation !== state.shopLoginGeneration || !mount.isConnected || state.screen !== "email") {
+        login.destroy();
+        return;
+      }
+
+      state.shopLoginInstance = login;
+      mount.appendChild(login.element);
+    } catch (error) {
+      if (generation === state.shopLoginGeneration) {
+        state.shopLoginMount = null;
+        console.error("[VN ACCOUNT] Shop SDK could not be mounted:", error);
+      }
+    }
   }
 
   function renderVerify() {
@@ -1538,10 +1619,13 @@
     }
 
     if (!state.user) {
+      destroyShopLogin();
       content.innerHTML = state.screen === "verify" ? renderVerify() : renderEmail();
+      if (state.screen === "email") mountShopLogin();
       return;
     }
 
+    destroyShopLogin();
     if (state.section === "dashboard") content.innerHTML = renderDashboard();
     else if (state.section === "profile") content.innerHTML = renderProfile();
     else if (state.section === "edit-contact") content.innerHTML = renderContactEdit();
