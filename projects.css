@@ -736,16 +736,3 @@ input:focus-visible {
   opacity: .95;
 }
 
-/* ARCHIVE TAGS — COMPACT PHYSICAL LABELS */
-.entry-meta-right{display:flex;min-width:0;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px;text-align:right}
-.entry-tags{display:flex;min-width:0;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:5px}
-.archive-tag{position:relative;display:inline-flex;min-height:19px;align-items:center;padding:0 7px 0 17px;background:var(--tag-color);color:#fff;clip-path:polygon(11px 0,100% 0,100% 100%,11px 100%,0 50%);font-size:8px;font-weight:800;line-height:1;letter-spacing:.65px;white-space:nowrap;text-transform:uppercase}
-.archive-tag::before{position:absolute;top:50%;left:5px;width:4px;height:4px;border:1px solid rgba(8,8,8,.72);border-radius:50%;content:"";transform:translateY(-50%)}
-.tag-filter-options{display:flex;flex-wrap:wrap;align-items:flex-start;gap:9px 8px}
-.tag-filter-option{position:relative;display:inline-flex;cursor:pointer}
-.tag-filter-option input{position:absolute;width:1px;height:1px;opacity:0}
-.tag-filter-option .archive-tag{opacity:.72;transition:opacity 150ms ease,outline-color 150ms ease}
-.tag-filter-option:hover .archive-tag,.tag-filter-option input:checked+.archive-tag{opacity:1}
-.tag-filter-option input:checked+.archive-tag{outline:1px solid #fff;outline-offset:2px}
-.tag-filter-option input:focus-visible+.archive-tag{outline:1px solid #fff;outline-offset:3px}
-@media(max-width:650px){.event-meta{align-items:flex-start;flex-direction:column}.entry-meta-right{width:100%;justify-content:space-between;text-align:left}.entry-tags{justify-content:flex-start}}

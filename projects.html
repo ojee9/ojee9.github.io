@@ -188,10 +188,6 @@
           </label>
         </div>
 
-        <div class="filter-group" id="tag-filters">
-          <h2>TAG FILTERS</h2>
-          <div class="tag-filter-options" id="tag-options"></div>
-        </div>
         <div class="filter-group" id="year-filters">
           <h2>YEAR</h2>
           <div class="filter-options" id="year-options">
@@ -251,26 +247,6 @@
         }
       };
 
-      const tagGroups = {
-        "FASHION":"01","PRE-ORDER":"01","PREMIERE":"01",
-        "EXCLUSIVE":"02","SPECIAL":"02","SPOTLIGHT":"02",
-        "MERCH":"03","EVENT":"03","CLUB":"03",
-        "STUDIO":"04","GAMING":"04","LIVE":"04",
-        "ARCHIVE":"05","NEWS":"05","Q&A":"05",
-        "ANNOUNCEMENT":"06","PROJECT":"06","DEBUT":"06",
-        "COMMUNITY":"07","SNEAK PEEK":"07","RELEASE":"07"
-      };
-      const tagColors={"01":"#D47F94","02":"#C8102E","03":"#F05A83","04":"#FF7900","05":"#7953B8","06":"#F2D13D","07":"#00A6A6"};
-      const allTags=Object.keys(tagGroups);
-      function renderTags(tags=[]){
-        return tags.map(tag=>{const group=tagGroups[tag];if(!group)return "";return `<span class="archive-tag" data-tag="${tag}" style="--tag-color:${tagColors[group]}" title="${tag}">${tag}</span>`;}).join("");
-      }
-      function populateTagFilters(){
-        const tagOptions=document.getElementById("tag-options");
-        tagOptions.innerHTML=allTags.map(tag=>`<label class="tag-filter-option"><input type="checkbox" name="archive-tag" value="${tag}"><span class="archive-tag" style="--tag-color:${tagColors[tagGroups[tag]]}">${tag}</span></label>`).join("");
-      }
-      function getSelectedTags(){return [...document.querySelectorAll('input[name="archive-tag"]:checked')].map(input=>input.value);}
-
       // EXISTING EVENT RECORDS — PRESERVED
       const events = [
         {
@@ -288,7 +264,6 @@
           ticketUrl: "https://biletino.com/en/e-1do8/flinta-halloween-party/#",
           tags: "Halloween, 18+, Show Your Inner Monster",
           status: "present",
-          archiveTags: ["LIVE", "EVENT"],
           descriptionEN: "Unleash your inner monster at FLINTA for a Halloween night of cocktails, music, immersive decorations and rooftop nightlife. Inspired by Show Your Inner Monster, the evening invites guests to embrace the darker side of Halloween through creative costumes, atmospheric visuals and a night made for dancing. 9ojeez9 joins the lineup for a dedicated two-hour set, from 21:00 to 23:00. The night also features a special pole dance performance.",
           descriptionTR: "FLINTA’da kokteyller, müzik, etkileyici dekorasyonlar ve rooftop atmosferiyle bir Halloween gecesine hazır ol. Show Your Inner Monster temasından ilham alan etkinlik, yaratıcı kostümlerle Halloween’in karanlık tarafını keşfetmeye ve gece boyunca dans etmeye davet ediyor. 9ojeez9, gecenin müzik programında 21:00–23:00 saatleri arasında iki saatlik özel bir set ile yer alıyor. Etkinlikte ayrıca özel bir pole dance performansı bulunuyor."
         },
@@ -307,7 +282,6 @@
           ticketUrl: "https://biletino.com/en/e-1ddm/ojee-kah-gta-love-premium-launch-night/#",
           tags: "18+, Limited Access, ₺2,500",
           status: "past",
-          archiveTags: ["EVENT", "RELEASE", "LIVE", "PREMIERE"],
           descriptionEN: "A private launch night celebrating Ojee Ka$h’s GTA LOVE at Flinta Cocktail Bar & Rooftop. Designed for a limited number of guests, this exclusive gathering offers a more intimate alternative to a traditional concert. Limited access. One night, one special release.",
           descriptionTR: "Ojee Ka$h’ın GTA LOVE lansmanı için Flinta Cocktail Bar & Rooftop’ta özel bir gece. Geleneksel konser formatından farklı olarak sınırlı sayıda katılımcıyla gerçekleşen bu buluşma, daha samimi ve ayrıcalıklı bir deneyim sunuyor. Sınırlı erişim. Tek gece, özel bir lansman."
         },
@@ -325,7 +299,6 @@
           ticketUrl: "https://biletino.com/tr/e-q8d/cheater-album-lunch/#",
           tags: "Album Premiere, Electronic, Groove, Dark Melodic",
           status: "past",
-          archiveTags: ["EVENT", "RELEASE", "LIVE", "PREMIERE"],
           descriptionEN: "CHEATER is a genre-spanning album journey from Trap to PsyTrance. Celebrating its premiere at Cute, 9ojeez9 brings the project to Ankara for a night of music, followed by Electronic, Groove and Dark Melodic sounds until late. One rule: stay with the music.",
           descriptionTR: "CHEATER, Trap’ten PsyTrance’a uzanan, farklı türleri bir araya getiren bir albüm yolculuğu. 9ojeez9, projenin prömiyerini Ankara’daki Cute’ta kutluyor. Albüm lansmanının ardından gece, Electronic, Groove ve Dark Melodic sesleriyle devam ediyor. Tek kural: müzikle kal."
         }
@@ -340,7 +313,6 @@
           artist: "VN Studios",
           image: "assets/visuals/9o9-game-galanight-teaser-48651.png",
           tags: "Gala Night, VN Games, VN Studios, Gaming, Announcement, Early Testing, VN Club",
-          archiveTags: ["PROJECT", "ANNOUNCEMENT", "NEWS", "STUDIO", "GAMING"],
           collections: [],
           categories: ["news", "projects"],
           descriptionEN: [
@@ -366,7 +338,6 @@
           artist: "VN Club",
           image: "assets/visuals/event-ojee-kash-gta-love-qa-2314-poster.png",
           tags: "VN Club MAGAZINE 01, Exposed Vocals, GTA LOVE, Ojee Ka$h, 9OJEEZ9, Southside, VN STUDIOS, Ankara, Interview",
-          archiveTags: ["SPOTLIGHT", "CLUB", "NEWS", "Q&A"],
           collections: [],
           categories: ["news", "projects"],
           descriptionEN: [
@@ -400,7 +371,6 @@
           artist: "VN Studios",
           image: "assets/visuals/vn-legacy-collection-poster.png",
           tags: "VN Legacy Collection, Merch, Announcement",
-          archiveTags: ["FASHION", "MERCH", "ANNOUNCEMENT", "NEWS", "SNEAK PEEK"],
           collections: ["vn-legacy"],
           categories: ["news", "projects", "merch"],
           descriptionEN: [
@@ -458,7 +428,6 @@
           ...document.querySelectorAll('input[name="year"]:checked')
         ].map(input => input.value);
 
-        const selectedTags = getSelectedTags();
         let filtered = events.filter(event => {
           const searchable = [
             event.title,
@@ -469,7 +438,6 @@
             event.descriptionEN,
             event.descriptionTR,
             event.tags,
-            event.archiveTags.join(" "),
             event.dateLabel
           ].join(" ").toLowerCase();
 
@@ -479,8 +447,7 @@
           const matchesYear = selectedYears.length === 0 ||
             selectedYears.includes(event.date.slice(0, 4));
 
-          const matchesTags = selectedTags.length === 0 || selectedTags.some(tag => event.archiveTags.includes(tag));
-          return matchesQuery && matchesStatus && matchesYear && matchesTags;
+          return matchesQuery && matchesStatus && matchesYear;
         });
 
         if (getSort() === "all-time") {
@@ -501,7 +468,6 @@
           )
         ].map(input => input.value);
 
-        const selectedTags = getSelectedTags();
         let filtered = archiveEntries.filter(entry => {
           const belongsToCategory =
             entry.categories.includes(activeCategory);
@@ -511,7 +477,6 @@
             entry.subtitle,
             entry.artist,
             entry.tags,
-            entry.archiveTags.join(" "),
             ...entry.descriptionEN,
             ...entry.collections
           ].join(" ").toLowerCase();
@@ -525,11 +490,9 @@
               entry.collections.includes(collection)
             );
 
-          const matchesTags = selectedTags.length === 0 || selectedTags.some(tag => entry.archiveTags.includes(tag));
           return belongsToCategory &&
             matchesQuery &&
-            matchesCollection &&
-            matchesTags;
+            matchesCollection;
         });
 
         if (getSort() === "all-time") {
@@ -568,7 +531,7 @@
             <div class="event-card-content">
               <div class="event-meta">
                 <span>${event.dateLabel}</span>
-                <div class="entry-meta-right"><div class="entry-tags">${renderTags(event.archiveTags)}</div><span>${event.status === "present" ? "UPCOMING" : "ARCHIVE"}</span></div>
+                <span>${event.status === "present" ? "UPCOMING" : "ARCHIVE"}</span>
               </div>
 
               <p class="event-artist">${event.artist}</p>
@@ -624,7 +587,7 @@
             <div class="event-card-content">
               <div class="event-meta">
                 <span>${entry.id === "vn-club-magazine-01" ? "Club 01" : "VN STUDIOS"}</span>
-                <div class="entry-meta-right"><div class="entry-tags">${renderTags(entry.archiveTags)}</div><span>AVAILABLE SOON</span></div>
+                <span>AVAILABLE SOON</span>
               </div>
 
               <p class="event-artist">${entry.artist}</p>
@@ -728,13 +691,13 @@
 
       document.addEventListener("change", event => {
         if (activeCategory === "events" && event.target.matches(
-          'input[name="event-status"], input[name="year"], input[name="sort"], input[name="archive-tag"]'
+          'input[name="event-status"], input[name="year"], input[name="sort"]'
         )) {
           renderEvents();
         }
 
         if (activeCategory === "merch" && event.target.matches(
-          'input[name="collection"], input[name="sort"], input[name="archive-tag"]'
+          'input[name="collection"], input[name="sort"]'
         )) {
           renderArchiveEntries();
         }
@@ -742,7 +705,7 @@
         if (
           activeCategory !== "events" &&
           activeCategory !== "merch" &&
-          event.target.matches('input[name="sort"], input[name="archive-tag"]')
+          event.target.matches('input[name="sort"]')
         ) {
           renderArchiveEntries();
         }
@@ -752,7 +715,7 @@
         searchInput.value = "";
 
         document.querySelectorAll(
-          'input[name="event-status"], input[name="collection"], input[name="year"], input[name="archive-tag"]'
+          'input[name="event-status"], input[name="collection"], input[name="year"]'
         ).forEach(input => {
           input.checked = false;
         });
@@ -769,7 +732,6 @@
       });
 
       populateYears();
-      populateTagFilters();
 
       const initialCategory = location.hash.slice(1);
       setCategory(
