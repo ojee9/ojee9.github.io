@@ -1072,7 +1072,7 @@
             throw new Error("Shop SDK did not initialize.");
           }
           return window.ShopSDK.initialize({
-            apiKey: "43e89c78-f1a2-4b72-bfa1-e6ecd1171a5a",
+            apiKey: "90292cd96f43b8299e5b541fbe400d11",
             locale: "en",
             features: { login: true }
           });
@@ -1089,8 +1089,6 @@
         attributes: {
           buttonType: "continue",
           buttonLayout: "standalone",
-          presentationMode: "button",
-          emailInputSelector: "#customer-authentication-web-email",
           scope: "shop_app:oauth",
           returnTo: "same-page"
         },
