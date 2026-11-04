@@ -1220,3 +1220,32 @@ input:focus-visible {
   transform: translateY(-1px);
   filter: saturate(1.35) brightness(1.06);
 }
+
+
+/* ARCHIVE TAGS — MORE BODY AND CLEARER TYPE */
+.archive-tag {
+  min-height: 23px;
+  padding: 0 16px 0 18px;
+  font-size: 9.5px;
+  font-weight: 850;
+  letter-spacing: .4px;
+  line-height: 1.1;
+}
+.tag-filter-option {
+  min-height: 35px;
+  padding: 4px 5px;
+}
+.selected-tag-chip > span:first-child {
+  min-height: 23px;
+  padding: 0 16px 0 18px;
+  font-size: 9.5px;
+  font-weight: 850;
+  letter-spacing: .4px;
+  line-height: 1.1;
+}
+.archive-tag[style*="#C8102E"],
+.selected-tag-chip > span[style*="#C8102E"],
+.archive-tag[style*="#7953B8"],
+.selected-tag-chip > span[style*="#7953B8"] {
+  color: #fff;
+}
