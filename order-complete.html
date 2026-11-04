@@ -446,6 +446,28 @@ html:not(.atmosphere-ready):not(.atmosphere-fallback) .scene--receipt{background
 #shared-atmosphere{visibility:hidden}
 .scene--welcome .welcome-inner,.scene--package .package-inner{transition:none!important}
 .scene--package .package-inner{position:relative!important;top:auto!important;min-height:100svh}
+
+/* Scroll-through exhibition layout: content travels with the document, not a sticky viewport. */
+.scene--welcome .welcome-inner{
+ position:absolute!important;
+ top:150svh!important;
+ left:0!important;
+ right:0!important;
+ height:100svh!important;
+ min-height:100svh!important;
+ margin:0 auto!important;
+}
+.scene--welcome .sky-ad{
+ position:absolute!important;
+ top:165svh!important;
+ transform:none!important;
+}
+.scene--welcome .sky-ad:hover{transform:none!important}
+.scene--package .package-inner{
+ position:relative!important;
+ top:auto!important;
+ min-height:100svh;
+}
 </style>
 </head>
 <body>
@@ -746,7 +768,7 @@ function setSceneGeometry(){
  if(!lastFrame)p=targetP;
 }
 function updateDom(chroma,brightness,bloom,glitter,close,t23){
- const panelOpacity=smooth(.9,1,glitter)*(1-smooth(0,.2,t23));
+ const panelOpacity=smooth(.9,1,glitter)*(1-smooth(.45,.92,t23));
  root.style.setProperty("--p",p.toFixed(5));
  root.style.setProperty("--chroma",chroma.toFixed(5));
  root.style.setProperty("--brightness",brightness.toFixed(5));
@@ -757,10 +779,10 @@ function updateDom(chroma,brightness,bloom,glitter,close,t23){
  const introOpacity=1-smooth(.72,1,p/FLOW_CONFIG.scene1Hold);
  root.style.setProperty("--intro-opacity",introOpacity.toFixed(5));
  credits.style.pointerEvents=introOpacity>.01?"auto":"none";
- const welcomeOpacity=smooth(.82,1,glitter);
+ const welcomeOpacity=smooth(.82,1,glitter)*(1-smooth(.50,.98,t23));
  welcome.style.opacity=String(welcomeOpacity);
  welcome.style.pointerEvents=welcomeOpacity>.01?"auto":"none";
- const scene3Opacity=smooth(geometry.scene3Start,geometry.scene3Start+12,p);
+ const scene3Opacity=smooth(geometry.scene3Start,geometry.scene3Start+12,p)*(1-smooth(geometry.transition34Start-25,geometry.transition34Start,p));
  packageInner.style.opacity=String(scene3Opacity);
  packageInner.style.pointerEvents=scene3Opacity>.01?"auto":"none";
  panels.forEach(panel=>{
@@ -777,7 +799,7 @@ function updateDom(chroma,brightness,bloom,glitter,close,t23){
  if(cues[1]){cues[1].style.opacity=String(scene2CueOpacity);cues[1].style.visibility=scene2CueOpacity>.01?"visible":"hidden";}
  if(cues[2]){cues[2].style.opacity=String(scene3CueOpacity);cues[2].style.visibility=scene3CueOpacity>.01?"visible":"hidden";}
  const corridorColor=mixColor([0,0,0],[228,227,225],brightness);
- const stone= smooth(.30,1,t23);
+ const stone= smooth(.12,.98,t23);
  const stoneColor=mixColor(corridorColor,[201,197,191],stone);
  const receiptColor=mixColor(stoneColor,[198,187,167],smooth(0,1,(p-geometry.transition34Start)/FLOW_CONFIG.transition34));
  root.style.setProperty("--fallback-bg","rgb("+receiptColor.join(",")+")");
@@ -891,7 +913,7 @@ vec3 sceneBackground(vec2 screenUv,float worldY){
  float luminance=dot(chromatic,vec3(0.2126,0.7152,0.0722));
  vec3 neutral=vec3(luminance);
  vec3 c=neutral*uBrightness+(chromatic-neutral)*uChroma;
- float stone=smoothstep(0.30,1.0,uT23);
+ float stone=smoothstep(0.12,0.98,uT23);
  c=mix(c,scene03(screenUv),stone);
  c=mix(c,vec3(0.93,0.94,0.96),uBloom);
  float t34=smoothstep(uScene4Top-uViewportHeight*0.92,uScene4Top+uViewportHeight*0.22,worldY+sin(screenUv.x*6.1+worldY*0.0011)*uViewportHeight*0.022);
