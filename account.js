@@ -364,6 +364,9 @@
       .vn-ac-verify-main h1{margin:0 0 8px;font-size:22px;font-weight:600;letter-spacing:-.02em;color:#f5f5f5}
       .vn-ac-verify-main .vn-ac-sent-to{margin:0;color:#bdbdbd;font-size:12px}
       .vn-ac-inline-change{padding:0 0 0 3px;border:0;background:none;color:#f5f5f5;font:inherit;text-decoration:underline;cursor:pointer}
+      .vn-ac-verify-shop{margin:14px auto 16px;min-height:48px}
+      .vn-ac-resend-button{display:block;margin:18px auto 0;padding:7px 10px;border:0;background:transparent;color:#f5f5f5;font:12px/1.4 Arial,sans-serif;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+      .vn-ac-resend-button:disabled{color:#888;cursor:default;text-decoration:none}
       
       #vnAccountOverlay{flex-direction:column;gap:13px}
       .vn-ac-policy-body h3{margin:22px 0 9px;font-size:15px;font-weight:700;line-height:1.4}.vn-ac-policy-body p{margin:0 0 13px}.vn-ac-policy-body ul{margin:0 0 15px;padding-left:22px}.vn-ac-policy-body li{margin:0 0 7px}.vn-ac-policy-body a{color:inherit;text-decoration:underline;overflow-wrap:anywhere}.vn-ac-policy-table-wrap{max-width:100%;overflow-x:auto;margin:14px 0 20px}.vn-ac-policy-table{width:100%;border-collapse:collapse;font-size:12px;line-height:1.45}.vn-ac-policy-table th,.vn-ac-policy-table td{padding:9px;border:1px solid #ddd;text-align:left;vertical-align:top}.vn-ac-policy-table th{font-weight:700}
@@ -1080,6 +1083,8 @@
             buttonType: "continue",
             buttonLayout: "standalone",
             scope: "shop_app:oauth",
+            storefrontOrigin: window.location.origin,
+            uxMode: "windoid",
             returnTo: "same-page"
           },
           onLoad(event) {
@@ -1100,7 +1105,7 @@
             state.message = event?.message
               ? "Shop sign-in failed: " + event.message
               : "Shop sign-in could not be completed. Please try again or continue with email.";
-            if (state.screen !== "verify") render();
+            render();
           }
         });
 
@@ -1112,6 +1117,7 @@
         shopLoginInstance = login;
         mount.appendChild(login.element);
       } catch (error) {
+        shopSdkPromise = null;
         console.error("[VN ACCOUNT] Shop SDK could not be loaded:", error);
         if (sequence === shopMountSequence && mount.isConnected) {
           state.messageType = "error";
@@ -1127,39 +1133,31 @@
   }
 
   function renderVerify() {
-    return `
+    return \`
       <main class="vn-ac-main vn-ac-verify-main">
         <h1>Enter code</h1>
         <p class="vn-ac-subtitle vn-ac-sent-to">
-          Sent to <strong>${escapeHTML(state.email)}</strong>
+          Sent to <strong>\${escapeHTML(state.email)}</strong>
           <button type="button" class="vn-ac-inline-change" data-ac-action="change-email">(change)</button>
         </p>
-
-        ${messageHTML()}
-
+        <div class="vn-ac-shop-space vn-ac-verify-shop">
+          <button type="button" class="vn-ac-shop-button" data-ac-action="shop-login">Continue with Shop</button>
+          <div id="vnAcShopLogin" class="vn-ac-shop-sdk-host" aria-hidden="true"></div>
+        </div>
+        \${messageHTML()}
         <form id="vnAcVerifyForm">
-          <div class="vn-ac-otp-wrap ${state.busy ? "is-loading" : ""}">
+          <div class="vn-ac-otp-wrap \${state.busy ? "is-loading" : ""}">
           <div class="vn-ac-otp" aria-label="Verification code">
-            ${Array.from({ length: 6 }, (_, index) => `
-              <input
-                aria-label="Digit ${index + 1}"
-                data-otp-digit="${index}"
-                type="text"
-                inputmode="numeric"
-                pattern="[0-9]*"
-                maxlength="1"
-                autocomplete="${index === 0 ? "one-time-code" : "off"}"
-                value="${escapeHTML(state.otpCode[index] || "")}"
-                ${state.busy ? "disabled" : ""}
-                required
-              >
-            `).join("")}
+            \${Array.from({ length: 6 }, (_, index) => \`
+              <input aria-label="Digit \${index + 1}" data-otp-digit="\${index}" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="\${index === 0 ? "one-time-code" : "off"}" value="\${escapeHTML(state.otpCode[index] || "")}" \${state.busy ? "disabled" : ""} required>
+            \`).join("")}
           </div>
-          <div class="vn-ac-otp-loading" role="status" aria-live="polite" ${state.busy ? "" : "hidden"}><span class="vn-ac-otp-spinner" aria-label="Verifying code"></span></div>
+          <div class="vn-ac-otp-loading" role="status" aria-live="polite" \${state.busy ? "" : "hidden"}><span class="vn-ac-otp-spinner" aria-label="Verifying code"></span></div>
           </div>
+          <button type="button" class="vn-ac-resend-button" data-ac-action="resend" \${state.sendingCode || !state.authAttempt || Date.now() < state.resendAt ? "disabled" : ""}>Resend code</button>
         </form>
       </main>
-    `;
+    \`;
   }
 
   function sidebar() {
@@ -1637,7 +1635,7 @@
 
     if (!state.user) {
       content.innerHTML = state.screen === "verify" ? renderVerify() : renderEmail();
-      if (state.screen !== "verify") mountShopLogin();
+      mountShopLogin();
       return;
     }
 
@@ -1676,7 +1674,6 @@
       render();
       return;
     }
-
     const requestId = ++state.sendRequestId;
     state.email = normalizedEmail;
     state.screen = "verify";
@@ -1690,64 +1687,44 @@
     render();
     startResendTimer();
     window.setTimeout(focusOtp, 0);
-
     Promise.resolve().then(async () => {
       try {
         if (configPromise) await configPromise;
-        if (!state.clerk?.loaded || !state.clerk.client) {
-          throw new Error("Sign-in is unavailable because Clerk could not be initialized.");
-        }
-
+        if (requestId !== state.sendRequestId) return;
+        if (!state.clerk?.loaded || !state.clerk.client) throw new Error("Sign-in is unavailable because Clerk could not be initialized.");
+        let authAttempt;
+        let authMode;
         try {
-          // Create the sign-in attempt first, then explicitly prepare its
-          // email-code factor. This keeps the code and the active attempt paired.
-          const signInAttempt = await state.clerk.client.signIn.create({
-            identifier: normalizedEmail
-          });
-          const emailFactor = signInAttempt.supportedFirstFactors?.find(
-            factor => factor.strategy === "email_code"
-          );
-
-          if (!emailFactor?.emailAddressId) {
-            throw new Error("Email verification is not enabled as a sign-in method for this Clerk account.");
-          }
-
-          await signInAttempt.prepareFirstFactor({
-            strategy: "email_code",
-            emailAddressId: emailFactor.emailAddressId
-          });
-
-          state.authAttempt = signInAttempt;
-          state.authMode = "signin";
+          const signInAttempt = await state.clerk.client.signIn.create({ identifier: normalizedEmail });
+          const emailFactor = signInAttempt.supportedFirstFactors?.find(factor => factor.strategy === "email_code");
+          if (!emailFactor?.emailAddressId) throw new Error("Email verification is not enabled as a sign-in method for this Clerk account.");
+          const preparedSignIn = await signInAttempt.prepareFirstFactor({ strategy: "email_code", emailAddressId: emailFactor.emailAddressId });
+          authAttempt = preparedSignIn || signInAttempt;
+          authMode = "signin";
         } catch (signInError) {
           if (!isUnknownClerkUser(signInError)) throw signInError;
-
-          const signUp = state.clerk.client.signUp;
-          await signUp.create({ emailAddress: normalizedEmail });
-          await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-          state.authAttempt = signUp;
-          state.authMode = "signup";
+          const signUpAttempt = await state.clerk.client.signUp.create({ emailAddress: normalizedEmail });
+          const preparedSignUp = await signUpAttempt.prepareEmailAddressVerification({ strategy: "email_code" });
+          authAttempt = preparedSignUp || signUpAttempt;
+          authMode = "signup";
         }
-
-        if (requestId === state.sendRequestId) {
-          state.messageType = "info";
-          state.message = "";
-          if (state.screen !== "verify") {
-            state.screen = "verify";
-            render();
-          }
-          window.setTimeout(focusOtp, 0);
-        }
+        if (requestId !== state.sendRequestId) return;
+        state.authAttempt = authAttempt;
+        state.authMode = authMode;
+        state.messageType = "info";
+        state.message = "";
+        window.setTimeout(focusOtp, 0);
       } catch (error) {
         console.error("[VN ACCOUNT] Clerk OTP send failed:", error);
         if (requestId !== state.sendRequestId) return;
         state.resendAt = 0;
+        state.authAttempt = null;
+        state.authMode = "";
         state.messageType = "error";
         state.message = explainAuthError(error);
-        state.screen = "verify";
+        state.screen = "email";
         render();
-        startResendTimer();
-        focusOtp();
+        focusEntry();
       } finally {
         if (requestId === state.sendRequestId) {
           state.sendingCode = false;
@@ -1759,97 +1736,49 @@
 
   async function resendCode() {
     if (Date.now() < state.resendAt || state.sendingCode || !state.authAttempt) return;
+    const requestId = state.sendRequestId;
+    const attempt = state.authAttempt;
+    const mode = state.authMode;
     state.sendingCode = true;
     state.resendAt = Date.now() + CONFIG.resendDelay * 1000;
     state.message = "";
     render();
     startResendTimer();
-
     try {
-      if (state.authMode === "signup") {
-        await state.authAttempt.prepareEmailAddressVerification({ strategy: "email_code" });
+      let updatedAttempt;
+      if (mode === "signup") {
+        updatedAttempt = await attempt.prepareEmailAddressVerification({ strategy: "email_code" });
       } else {
-        const emailFactor = state.authAttempt.firstFactorVerification;
-        const emailAddressId = emailFactor?.emailAddressId ||
-          state.authAttempt.supportedFirstFactors?.find(factor => factor.strategy === "email_code")?.emailAddressId;
+        const emailAddressId = attempt.firstFactorVerification?.emailAddressId ||
+          attempt.supportedFirstFactors?.find(factor => factor.strategy === "email_code")?.emailAddressId;
         if (!emailAddressId) throw new Error("Clerk could not identify the email verification method for this sign-in.");
-        await state.authAttempt.prepareFirstFactor({ strategy: "email_code", emailAddressId });
+        updatedAttempt = await attempt.prepareFirstFactor({ strategy: "email_code", emailAddressId });
       }
+      if (requestId === state.sendRequestId && state.authAttempt === attempt) state.authAttempt = updatedAttempt || attempt;
     } catch (error) {
-      state.resendAt = 0;
-      state.messageType = "error";
-      state.message = explainAuthError(error);
-      render();
+      if (requestId === state.sendRequestId) {
+        state.resendAt = 0;
+        state.messageType = "error";
+        state.message = explainAuthError(error);
+        render();
+      }
     } finally {
-      state.sendingCode = false;
-      updateResendButton();
-    }
-  }
-
-  function explainAuthError(error) {
-    const message = String(error?.errors?.[0]?.longMessage || error?.errors?.[0]?.message || error?.message || "");
-    const lower = message.toLowerCase();
-    if (/network|failed to fetch|timeout|timed out/.test(lower)) {
-      return "A network error interrupted the request. Check your connection and try again.";
-    }
-    if (/rate limit|too many requests/.test(lower)) {
-      return "Too many verification requests. Wait a little before trying again.";
-    }
-    if (/invalid.*email|email.*invalid/.test(lower)) {
-      return "This email address is invalid. Change the address and try again.";
-    }
-    return message || "Could not send the verification code. Please try again.";
-  }
-
-  function updateResendButton() {
-    const root = $("#vnAccountOverlay");
-    if (!root || root.hidden || state.screen !== "verify") return;
-
-    const button = $('[data-ac-action="resend"]', root);
-    if (!button) return;
-
-    const remaining = Math.ceil((state.resendAt - Date.now()) / 1000);
-
-    if (state.sendingCode) {
-      button.textContent = "Resend code";
-      button.disabled = true;
-    } else if (remaining > 0) {
-      button.textContent = `Resend code (${remaining}s)`;
-      button.disabled = true;
-    } else {
-      button.textContent = "Resend code";
-      button.disabled = false;
-    }
-  }
-
-  function startResendTimer() {
-    clearInterval(state.resendTimer);
-    updateResendButton();
-
-    state.resendTimer = setInterval(() => {
-      const root = $("#vnAccountOverlay");
-
-      if (!root || root.hidden || state.screen !== "verify") {
-        clearInterval(state.resendTimer);
-        return;
+      if (requestId === state.sendRequestId) {
+        state.sendingCode = false;
+        updateResendButton();
       }
-
-      updateResendButton();
-
-      if (Date.now() >= state.resendAt && !state.sendingCode) {
-        clearInterval(state.resendTimer);
-      }
-    }, 250);
+    }
   }
 
   async function verifyCode(code) {
     if (!state.clerk || !state.authAttempt) {
       state.messageType = "error";
       state.message = "Sign-in is unavailable. Please return to the email step and try again.";
+      state.screen = "email";
       render();
+      focusEntry();
       return;
     }
-
     if (!new RegExp("^\\d{" + CONFIG.otpLength + "}$").test(code)) {
       state.messageType = "error";
       state.message = "Enter the complete " + CONFIG.otpLength + "-digit code.";
@@ -1857,46 +1786,40 @@
       focusOtp();
       return;
     }
-
     if (state.busy) return;
     state.busy = true;
     state.otpCode = code;
     state.message = "";
     render();
-
+    let verificationFailed = false;
     try {
       let result;
-      if (state.authMode === "signup") {
-        result = await state.authAttempt.attemptEmailAddressVerification({ code });
-      } else {
-        result = await state.authAttempt.attemptFirstFactor({ strategy: "email_code", code });
-      }
-
+      if (state.authMode === "signup") result = await state.authAttempt.attemptEmailAddressVerification({ code });
+      else result = await state.authAttempt.attemptFirstFactor({ strategy: "email_code", code });
+      if (result) state.authAttempt = result;
       if (result.status !== "complete" || !result.createdSessionId) {
         throw new Error(result.status === "needs_second_factor"
           ? "Additional verification is required by the Clerk account settings. Complete the required second factor in Clerk before using this sign-in flow."
           : "Email verification is not complete. Check the code and try again.");
       }
-
       await state.clerk.setActive({ session: result.createdSessionId });
       syncClerkUser(state.clerk.user || null);
       if (!state.user) throw new Error("Clerk verified the code but did not return an active user session.");
-
       state.screen = "account";
       state.section = "dashboard";
       state.message = "";
       state.authAttempt = null;
       state.authMode = "";
       await loadAccountData();
-      render();
     } catch (error) {
+      verificationFailed = true;
       console.error("[VN ACCOUNT] Clerk OTP verification failed:", error);
       state.messageType = "error";
       state.message = explainAuthError(error);
-      render();
-      focusOtp();
     } finally {
       state.busy = false;
+      render();
+      if (verificationFailed) focusOtp();
     }
   }
   function focusEntry() {
