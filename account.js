@@ -1106,6 +1106,18 @@
   }
 
   async function restoreShopSession() {
+    // Consume the short-lived session returned by the OAuth callback fragment.
+    try {
+      const callbackParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+      const callbackToken = callbackParams.get("vn_shop_session");
+      if (callbackToken) {
+        sessionStorage.setItem("vn_shop_session", callbackToken);
+        window.history.replaceState(null, "", window.location.pathname + window.location.search);
+      }
+    } catch (error) {
+      console.warn("[VN ACCOUNT] Could not consume the Shop callback session:", error);
+    }
+
     let token = "";
     try { token = sessionStorage.getItem("vn_shop_session") || ""; } catch (_) {}
     if (!token) return false;
@@ -1154,112 +1166,29 @@
     }
   }
 
-  async function mountShopLogin() {
+  function mountShopLogin() {
     const mount = $("#vnAcShopLoginMount");
     if (!mount || state.screen !== "email" || state.user) return;
     if (state.shopLoginMount === mount) return;
 
     destroyShopLogin();
-    const generation = state.shopLoginGeneration;
     state.shopLoginMount = mount;
 
-    try {
-      if (!state.shopSdkPromise) {
-        state.shopSdkPromise = (async () => {
-          await import("https://cdn.shopify.com/shopifycloud/shop-js/modules/v2/loader.sdk.esm.js");
-          if (!window.ShopSDK || typeof window.ShopSDK.initialize !== "function") {
-            throw new Error("Shop SDK did not initialize.");
-          }
-          return window.ShopSDK.initialize({
-            apiKey: "90292cd96f43b8299e5b541fbe400d11",
-            locale: "en",
-            features: { login: true }
-          });
-        })().catch(error => {
-          state.shopSdkPromise = null;
-          throw error;
-        });
-      }
-
-      const sdk = await state.shopSdkPromise;
-      if (generation !== state.shopLoginGeneration || !mount.isConnected) return;
-
-      const login = await sdk.create("login", {
-        id: "vn-shop-account-login",
-        appearance: {
-          preferredLoginExperience: "popup"
-        },
-        attributes: {
-          buttonType: "continue",
-          buttonLayout: "standalone",
-          scope: "shop_app:oauth",
-          uxMode: "windoid",
-          storefrontOrigin: "https://ojee9.github.io"
-        },
-        onComplete(event) {
-          const email = String(event?.email || "").trim();
-          const consentToken = String(event?.shopConsentToken || "").trim();
-          if (!email || event.emailVerified !== true || event.signedIn !== true || !consentToken) {
-            state.messageType = "error";
-            state.message = "Shop sign-in did not return a valid authorization token. Please continue with email instead.";
-            render();
-            return;
-          }
-          exchangeShopConsent(consentToken);
-        },
-        onError(event) {
-          console.error("[VN ACCOUNT] Shop login failed:", event?.code, event?.message);
-          state.messageType = "error";
-          state.message = "Shop sign-in failed" + (event?.code ? " (" + String(event.code) + ")" : "") + (event?.message ? ": " + String(event.message) : ".") + " Please try again or continue with email.";
-          render();
-        }
-      });
-
-      if (generation !== state.shopLoginGeneration || !mount.isConnected || state.screen !== "email") {
-        login.destroy();
-        return;
-      }
-
-      state.shopLoginInstance = login;
-
-      // The official SDK CTA is recognition-dependent. Keep a visible VN SHOP
-      // trigger for every visitor and start the official Shop login flow on click.
-      const trigger = document.createElement("button");
-      trigger.type = "button";
-      trigger.className = "vn-ac-shop-continue";
-      trigger.setAttribute("aria-label", "Continue with Shop");
-      trigger.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="#5A31F4" d="M12 2.2c-5.4 0-9.8 4.4-9.8 9.8s4.4 9.8 9.8 9.8 9.8-4.4 9.8-9.8S17.4 2.2 12 2.2Zm0 2.1a7.7 7.7 0 1 1 0 15.4 7.7 7.7 0 0 1 0-15.4Z"/><path fill="#5A31F4" d="M8.1 9.2h2.1v5.6H8.1zm3.7 0h2.1v5.6h-2.1zm3.7 0h2.1v5.6h-2.1z"/></svg><span>Continue with Shop</span>';
-      trigger.addEventListener("click", () => {
-        try {
-          login.start();
-        } catch (error) {
-          console.error("[VN ACCOUNT] Shop login could not be started:", error);
-          state.messageType = "error";
-          state.message = "Shop sign-in could not be started. Please continue with email instead.";
-          render();
-        }
-      });
-
-      // Keep the SDK element connected for its lifecycle; the visible trigger
-      // above invokes its documented start() method.
-      // Keep the SDK host connected and outside clipped containers so the
-      // Shop sign-in popup can render when start() is invoked.
-      login.element.style.position = "fixed";
-      login.element.style.left = "-10000px";
-      login.element.style.top = "0";
-      login.element.style.width = "1px";
-      login.element.style.height = "1px";
-      login.element.style.pointerEvents = "none";
-      mount.appendChild(trigger);
-      mount.appendChild(login.element);
-    } catch (error) {
-      if (generation === state.shopLoginGeneration) {
-        state.shopLoginMount = null;
-        console.error("[VN ACCOUNT] Shop SDK could not be mounted:", error);
-      }
-    }
+    const trigger = document.createElement("button");
+    trigger.type = "button";
+    trigger.className = "vn-ac-shop-continue";
+    trigger.setAttribute("aria-label", "Continue with Shop");
+    trigger.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path fill="#5A31F4" d="M12 2.2c-5.4 0-9.8 4.4-9.8 9.8s4.4 9.8 9.8 9.8 9.8-4.4 9.8-9.8S17.4 2.2 12 2.2Zm0 2.1a7.7 7.7 0 1 1 0 15.4 7.7 7.7 0 0 1 0-15.4Z"/><path fill="#5A31F4" d="M8.1 9.2h2.1v5.6H8.1zm3.7 0h2.1v5.6h-2.1zm3.7 0h2.1v5.6h-2.1z"/></svg><span>Continue with Shop</span>';
+    trigger.addEventListener("click", () => {
+      if (state.busy) return;
+      state.busy = true;
+      state.messageType = "info";
+      state.message = "Connecting to Shop…";
+      render();
+      window.location.assign(SHOP_AUTH_WORKER + "/customer-account/login");
+    });
+    mount.appendChild(trigger);
   }
-
 
   function renderVerify() {
     return `
