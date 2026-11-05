@@ -1355,3 +1355,14 @@ input:focus-visible {
   -webkit-mask: radial-gradient(circle at 0 50%, transparent 0 5.5px, #000 6px);
   mask: radial-gradient(circle at 0 50%, transparent 0 5.5px, #000 6px);
 }
+
+/* KEEP ARCHIVE LABEL TEXT OUT OF THE BROWSER SELECTION HIGHLIGHT */
+.archive-tag,
+.selected-tag-chip > span:first-child {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+@media (max-width: 650px) {
+  .filter-panel { margin-top: 0 !important; }
+}

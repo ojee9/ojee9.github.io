@@ -330,7 +330,7 @@
       const archiveEntries = [
 {
           id: "gala-night-announcement",
-          archiveTags: ["PROJECT", "ANNOUNCEMENT", "NEWS", "STUDIO", "GAMING"],
+          archiveTags: ["ANNOUNCEMENT", "STUDIO", "GAMING"],
           title: "A BRAND NEW GAME ANNOUNCEMENT",
           subtitle: "VN GAMES",
           artist: "VN Studios",
@@ -390,7 +390,7 @@
         },
         {
           id: "vn-legacy-collection",
-          archiveTags: ["FASHION", "MERCH", "ANNOUNCEMENT", "NEWS", "SNEAK PEEK"],
+          archiveTags: ["FASHION", "MERCH", "NEWS", "SNEAK PEEK"],
           title: "VN: LEGACY COLLECTION — AVAILABLE SOON!",
           subtitle: "VN LEGACY COLLECTION",
           artist: "VN Studios",
@@ -421,6 +421,22 @@
       const mobileFilterToggle = document.getElementById("mobile-filter-toggle");
       const mobileFilterCount = document.getElementById("mobile-filter-count");
       const filterPanel = document.querySelector(".filter-panel");
+
+      function updateFilterPanelPosition() {
+        if (window.innerWidth <= 650) {
+          filterPanel.style.removeProperty("margin-top");
+          return;
+        }
+
+        const layoutTop = document.querySelector(".projects-layout").getBoundingClientRect().top;
+        const entriesTop = grid.getBoundingClientRect().top;
+        filterPanel.style.marginTop = `${Math.max(0, Math.round(entriesTop - layoutTop))}px`;
+      }
+
+      const filterPanelPositionObserver = new ResizeObserver(updateFilterPanelPosition);
+      filterPanelPositionObserver.observe(document.querySelector(".section-heading"));
+      filterPanelPositionObserver.observe(document.getElementById("content-status"));
+      window.addEventListener("resize", updateFilterPanelPosition, { passive: true });
 
       const updateMobileFilterCount = () => {
         const checkedFilters = filterPanel.querySelectorAll(
@@ -721,6 +737,7 @@
           </article>
         `).join("");
         updateEntryTagScrollHints();
+        updateFilterPanelPosition();
       }
 
       function renderArchiveEntries() {
@@ -783,6 +800,7 @@
           </article>
         `).join("");
         updateEntryTagScrollHints();
+        updateFilterPanelPosition();
       }
 
       function renderNoResults(message = "NO ENTRIES YET") {
@@ -795,6 +813,7 @@
             <span>TRY ANOTHER SEARCH OR FILTER.</span>
           </div>
         `;
+        updateFilterPanelPosition();
       }
 
       function setCategory(category) {
