@@ -1060,6 +1060,7 @@
   function destroyShopLogin() {
     state.shopLoginGeneration += 1;
     const instance = state.shopLoginInstance;
+    const mount = state.shopLoginMount;
     state.shopLoginInstance = null;
     state.shopLoginMount = null;
     if (instance) {
@@ -1068,6 +1069,9 @@
       } catch (error) {
         console.warn("[VN ACCOUNT] Shop login cleanup failed:", error);
       }
+    }
+    if (mount && mount.id !== "vnAcShopLoginMount" && mount.isConnected) {
+      mount.remove();
     }
   }
 
@@ -1194,8 +1198,12 @@
 
     // Reuse the login element prepared before the account panel was opened.
     if (state.shopLoginInstance) {
+      const previousMount = state.shopLoginMount;
       state.shopLoginMount = mount;
       mount.replaceChildren(state.shopLoginInstance.element);
+      if (previousMount && previousMount !== mount && previousMount.isConnected) {
+        previousMount.remove();
+      }
       mount.removeAttribute("aria-busy");
       mount.dataset.ready = "true";
       return;
@@ -2580,11 +2588,9 @@
   // It stays off-screen until renderEmail() moves it into the visible mount.
   const shopLoginPreloadMount = document.createElement("div");
   shopLoginPreloadMount.setAttribute("aria-hidden", "true");
-  shopLoginPreloadMount.style.cssText = "position:fixed;left:-10000px;top:0;width:1px;height:1px;overflow:hidden;visibility:hidden;pointer-events:none;";
+  shopLoginPreloadMount.style.cssText = "position:fixed;left:-10000px;top:0;width:320px;height:60px;overflow:visible;opacity:0;pointer-events:none;";
   document.body.appendChild(shopLoginPreloadMount);
-  mountShopLogin(shopLoginPreloadMount).then(() => {
-    if (shopLoginPreloadMount.isConnected) shopLoginPreloadMount.remove();
-  }).catch(error => {
+  mountShopLogin(shopLoginPreloadMount).catch(error => {
     console.warn("[VN ACCOUNT] Shop login preload failed:", error);
     if (shopLoginPreloadMount.isConnected) shopLoginPreloadMount.remove();
   });
