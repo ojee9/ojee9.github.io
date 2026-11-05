@@ -1497,3 +1497,14 @@ input:focus-visible {
     font-size: 10px;
   }
 }
+
+
+/* FILTER PANEL — BALANCED CENTERING AND FOOTER SEPARATION */
+@media (min-width: 651px) {
+  .panel-footer {
+    align-items: center;
+    min-height: 38px;
+    margin-top: 22px;
+    padding: 18px 0 4px;
+  }
+}
