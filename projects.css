@@ -1249,3 +1249,44 @@ input:focus-visible {
 .selected-tag-chip > span[style*="#7953B8"] {
   color: #fff;
 }
+
+
+/* SOFT BUBBLY TAG SHAPE — RETAIN THE ASYMMETRIC LEFT NOTCH */
+.archive-tag {
+  min-height: 23px;
+  padding: 0 13px 0 14px;
+  border-radius: 999px;
+  clip-path: none;
+  -webkit-mask: radial-gradient(circle at 0 50%, transparent 0 4px, #000 4.5px);
+  mask: radial-gradient(circle at 0 50%, transparent 0 4px, #000 4.5px);
+  font-size: 9.5px;
+  font-weight: 850;
+  letter-spacing: .25px;
+  line-height: 1;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.3), inset 0 -1px 0 rgba(0,0,0,.1);
+  filter: saturate(1.2);
+}
+.selected-tag-chip > span:first-child {
+  min-height: 23px;
+  padding: 0 13px 0 14px;
+  border-radius: 999px;
+  clip-path: none;
+  -webkit-mask: radial-gradient(circle at 0 50%, transparent 0 4px, #000 4.5px);
+  mask: radial-gradient(circle at 0 50%, transparent 0 4px, #000 4.5px);
+  font-size: 9.5px;
+  font-weight: 850;
+  letter-spacing: .25px;
+  line-height: 1;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.3), inset 0 -1px 0 rgba(0,0,0,.1);
+}
+.entry-tags .archive-tag:hover,
+.selected-tag-chip:hover > span:first-child {
+  transform: translateY(-1px) scale(1.035);
+  filter: saturate(1.35) brightness(1.05);
+}
+.tag-filter-option .archive-tag {
+  min-height: 23px;
+}
+.tag-filter-option:hover .archive-tag {
+  transform: translateX(1px) scale(1.025);
+}
