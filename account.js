@@ -60,14 +60,25 @@
   const SHOP_CLIENT_ID = "90292cd96f43b8299e5b541fbe400d11";
   const SHOP_AUTH_WORKER = "https://vn-shop-auth.9ojeez9.workers.dev";
 
-  const shopLoginPreloadMount = document.createElement("div");
-  shopLoginPreloadMount.setAttribute("aria-hidden", "true");
-  shopLoginPreloadMount.style.cssText = "position:fixed;left:-10000px;top:0;width:320px;height:60px;overflow:visible;opacity:0;pointer-events:none;";
-  document.body.appendChild(shopLoginPreloadMount);
-  mountShopLogin(shopLoginPreloadMount).catch(error => {
-    console.warn("[VN ACCOUNT] Shop login preload failed:", error);
-    if (shopLoginPreloadMount.isConnected) shopLoginPreloadMount.remove();
-  });
+  function startShopLoginPreload() {
+    // account.js may execute before <body> exists; defer only the DOM mount,
+    // while keeping the preload at the earliest safe point.
+    if (!document.body) {
+      document.addEventListener("DOMContentLoaded", startShopLoginPreload, { once: true });
+      return;
+    }
+
+    const shopLoginPreloadMount = document.createElement("div");
+    shopLoginPreloadMount.setAttribute("aria-hidden", "true");
+    shopLoginPreloadMount.style.cssText = "position:fixed;left:-10000px;top:0;width:320px;height:60px;overflow:visible;opacity:0;pointer-events:none;";
+    document.body.appendChild(shopLoginPreloadMount);
+    mountShopLogin(shopLoginPreloadMount).catch(error => {
+      console.warn("[VN ACCOUNT] Shop login preload failed:", error);
+      if (shopLoginPreloadMount.isConnected) shopLoginPreloadMount.remove();
+    });
+  }
+
+  startShopLoginPreload();
 
   // Open the account panel immediately on click. Session/config requests must
   // never block the visible response to the profile icon.
