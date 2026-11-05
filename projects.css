@@ -261,8 +261,7 @@ input:focus-visible {
 /* RIGHT FILTER PANEL */ 
  
 .filter-panel { 
-  position: sticky; 
-  top: 24px; 
+  position: static; 
   min-width: 0; 
   padding: 22px; 
   border: 1px solid var(--line); 

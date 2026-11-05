@@ -430,7 +430,7 @@
 
         const layoutTop = document.querySelector(".projects-layout").getBoundingClientRect().top;
         const entriesTop = grid.getBoundingClientRect().top;
-        filterPanel.style.marginTop = `${Math.max(0, Math.round(entriesTop - layoutTop))}px`;
+        filterPanel.style.marginTop = `${Math.max(0, Math.round(entriesTop - layoutTop)) + 16}px`;
       }
 
       const filterPanelPositionObserver = new ResizeObserver(updateFilterPanelPosition);
