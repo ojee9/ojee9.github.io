@@ -1328,13 +1328,10 @@
             return null;
           }
 
-          // sdk.create() loads the feature code; onReady() confirms the
-          // actual Shopify element has finished loading. Keep it mounted in
-          // the hidden staging node until that event fires, before the panel
-          // can move it into the visible account UI.
-          const ready = new Promise(resolve => login.onReady(resolve));
+          // sdk.create() resolves when the Shopify login feature is ready.
+          // Mount the real element immediately; an additional readiness wait
+          // here only delays display without adding a useful guarantee.
           stagingMount.replaceChildren(login.element);
-          await ready;
 
           if (
             generation !== state.shopLoginGeneration ||
