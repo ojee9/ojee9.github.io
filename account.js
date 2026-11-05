@@ -70,7 +70,7 @@
 
     const shopLoginPreloadMount = document.createElement("div");
     shopLoginPreloadMount.setAttribute("aria-hidden", "true");
-    shopLoginPreloadMount.style.cssText = "position:fixed;left:-10000px;top:0;width:320px;height:60px;overflow:visible;opacity:0;pointer-events:none;";
+    shopLoginPreloadMount.style.cssText = "position:fixed;left:0;top:0;width:320px;height:60px;overflow:visible;opacity:0;pointer-events:none;";
     document.body.appendChild(shopLoginPreloadMount);
     mountShopLogin(shopLoginPreloadMount).catch(error => {
       console.warn("[VN ACCOUNT] Shop login preload failed:", error);
