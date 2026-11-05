@@ -421,6 +421,7 @@
       const mobileFilterToggle = document.getElementById("mobile-filter-toggle");
       const mobileFilterCount = document.getElementById("mobile-filter-count");
       const filterPanel = document.querySelector(".filter-panel");
+      const projectsContent = document.querySelector(".projects-content");
 
       function updateFilterPanelPosition() {
         if (window.innerWidth <= 650) {
@@ -428,14 +429,15 @@
           return;
         }
 
-        const layoutTop = document.querySelector(".projects-layout").getBoundingClientRect().top;
-        const entriesTop = grid.getBoundingClientRect().top;
-        filterPanel.style.marginTop = `${Math.max(0, Math.round(entriesTop - layoutTop)) + 16}px`;
+        const contentHeight = projectsContent.offsetHeight;
+        const panelHeight = filterPanel.offsetHeight;
+        const centeredOffset = Math.round((contentHeight - panelHeight) / 2);
+        filterPanel.style.marginTop = `${Math.max(16, centeredOffset + 16)}px`;
       }
 
       const filterPanelPositionObserver = new ResizeObserver(updateFilterPanelPosition);
-      filterPanelPositionObserver.observe(document.querySelector(".section-heading"));
-      filterPanelPositionObserver.observe(document.getElementById("content-status"));
+      filterPanelPositionObserver.observe(projectsContent);
+      filterPanelPositionObserver.observe(filterPanel);
       window.addEventListener("resize", updateFilterPanelPosition, { passive: true });
 
       const updateMobileFilterCount = () => {
