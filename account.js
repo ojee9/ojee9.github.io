@@ -46,7 +46,6 @@
     shopLoginInstance: null,
     shopLoginMount: null,
     shopLoginGeneration: 0,
-    shopPopupWindow: null,
     authProvider: "",
     shopSessionToken: ""
   };
@@ -1073,8 +1072,8 @@
   }
 
 
+  const SHOP_CLIENT_ID = "90292cd96f43b8299e5b541fbe400d11";
   const SHOP_AUTH_WORKER = "https://vn-shop-auth.9ojeez9.workers.dev";
-  const SHOP_AUTH_WORKER_ORIGIN = new URL(SHOP_AUTH_WORKER).origin;
 
   async function shopWorkerRequest(body) {
     const response = await fetch(SHOP_AUTH_WORKER, {
@@ -1166,80 +1165,125 @@
     }
   }
 
-  function startShopPopup() {
-    const loginUrl = SHOP_AUTH_WORKER + "/shop/login";
-
-    if (state.shopPopupWindow && !state.shopPopupWindow.closed) {
-      state.shopPopupWindow.focus();
-      return;
-    }
-
-    const popupWidth = 520;
-    const popupHeight = 720;
-    const popupLeft = Math.max(
-      0,
-      Math.round(window.screenX + (window.outerWidth - popupWidth) / 2)
-    );
-    const popupTop = Math.max(
-      0,
-      Math.round(window.screenY + (window.outerHeight - popupHeight) / 2)
-    );
-
-    const popup = window.open(
-      loginUrl,
-      "vnShopAuthPopup",
-      `popup=yes,width=${popupWidth},height=${popupHeight},left=${popupLeft},top=${popupTop},resizable=yes,scrollbars=yes`
-    );
-
-    if (!popup) {
-      window.location.assign(loginUrl);
-      return;
-    }
-
-    state.shopPopupWindow = popup;
-  }
-
-  window.addEventListener("message", event => {
-    if (event.origin !== SHOP_AUTH_WORKER_ORIGIN) return;
-    if (!state.shopPopupWindow || event.source !== state.shopPopupWindow) return;
-
-    const popup = state.shopPopupWindow;
-    state.shopPopupWindow = null;
-
-    if (event.data?.type === "VN_SHOP_AUTH_SUCCESS") {
-      const token = String(event.data.sessionToken || "").trim();
-      if (!token || token.length > 5000) {
-        state.messageType = "error";
-        state.message = "Shop returned an invalid session. Please try again.";
-        render();
-        return;
-      }
-      acceptShopSession(token);
-      return;
-    }
-
-    if (event.data?.type === "VN_SHOP_AUTH_ERROR") {
-      state.messageType = "error";
-      state.message = "Shop sign-in could not be completed. Please try again or continue with email.";
-      render();
-    }
-
-    try {
-      if (popup && !popup.closed) popup.close();
-    } catch (_) {}
-  });
-
   async function mountShopLogin() {
     const mount = $("#vnAcShopLoginMount");
-    if (!mount || state.screen !== "email" || state.user) return;
-    if (mount.dataset.ready === "true") return;
+    if (!mount || state.screen !== "email" || state.user || state.busy) return;
+    if (mount.dataset.ready === "true" || mount.dataset.ready === "loading") return;
 
-    mount.dataset.ready = "true";
-    mount.innerHTML = `
-      <button type="button" class="vn-ac-shop-continue" data-ac-action="shop-login">
-        <span>Continue with Shop</span>
-      </button>
-    `;
+    const generation = ++state.shopLoginGeneration;
+    state.shopLoginMount = mount;
+    mount.dataset.ready = "loading";
+    mount.setAttribute("aria-busy", "true");
+
+    try {
+      if (!state.shopSdkPromise) {
+        state.shopSdkPromise = import(
+          "https://cdn.shopify.com/shopifycloud/shop-js/modules/v2/loader.sdk.esm.js"
+        ).then(({ initialize }) => {
+          if (typeof initialize !== "function") {
+            throw new Error("Shop SDK could not be initialized.");
+          }
+
+          return initialize({
+            apiKey: SHOP_CLIENT_ID,
+            locale: "tr",
+            features: { login: true }
+          });
+        });
+      }
+
+      const sdk = await state.shopSdkPromise;
+
+      if (
+        generation !== state.shopLoginGeneration ||
+        !mount.isConnected ||
+        state.screen !== "email" ||
+        state.user ||
+        state.busy
+      ) {
+        return;
+      }
+
+      const login = await sdk.create("login", {
+        attributes: {
+          clientId: SHOP_CLIENT_ID,
+          buttonType: "continue",
+          buttonLayout: "standalone",
+          scope: "shop_app:oauth",
+          storefrontOrigin: window.location.origin,
+          uxMode: "windoid"
+        },
+        appearance: {
+          preferredLoginExperience: "popup"
+        },
+        onComplete: async event => {
+          if (generation !== state.shopLoginGeneration) return;
+
+          const shopConsentToken = String(event?.shopConsentToken || "").trim();
+          if (event?.signedIn !== true || !shopConsentToken) {
+            state.messageType = "error";
+            state.message = "Shop did not return the authorization needed to create your VN SHOP session. Please try again or continue with email.";
+            render();
+            return;
+          }
+
+          state.busy = true;
+          state.messageType = "info";
+          state.message = "Connecting your Shop account to VN SHOP…";
+          render();
+
+          try {
+            const exchanged = await shopWorkerRequest({
+              action: "exchange",
+              consentToken: shopConsentToken
+            });
+
+            if (!exchanged.authenticated || !exchanged.sessionToken) {
+              throw new Error("Shop authorization could not be connected to VN SHOP.");
+            }
+
+            state.busy = false;
+            await acceptShopSession(exchanged.sessionToken);
+          } catch (error) {
+            state.busy = false;
+            state.messageType = "error";
+            state.message = error.message || "Could not connect your Shop account. Please try email sign-in instead.";
+            state.screen = "email";
+            render();
+          }
+        },
+        onError: () => {
+          if (generation !== state.shopLoginGeneration) return;
+          mount.removeAttribute("aria-busy");
+          mount.dataset.ready = "error";
+          mount.textContent = "Shop sign-in could not be completed. Please try again or continue with email.";
+        }
+      });
+
+      if (
+        generation !== state.shopLoginGeneration ||
+        !mount.isConnected ||
+        state.screen !== "email" ||
+        state.user ||
+        state.busy
+      ) {
+        login.destroy();
+        return;
+      }
+
+      state.shopLoginInstance = login;
+      state.shopLoginMount = mount;
+      mount.replaceChildren(login.element);
+      mount.removeAttribute("aria-busy");
+      mount.dataset.ready = "true";
+    } catch (error) {
+      if (generation !== state.shopLoginGeneration) return;
+      console.error("[VN ACCOUNT] Shop SDK initialization failed:", error);
+      state.shopSdkPromise = null;
+      mount.removeAttribute("aria-busy");
+      mount.dataset.ready = "error";
+      mount.textContent = "Shop sign-in is temporarily unavailable. Please continue with email.";
+    }
   }
 
   function renderVerify() {
@@ -2244,10 +2288,6 @@
 
           case "continue-shop":
             goShop();
-            break;
-
-          case "shop-login":
-            startShopPopup();
             break;
 
           case "privacy-open":
