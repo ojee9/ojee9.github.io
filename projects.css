@@ -1365,3 +1365,135 @@ input:focus-visible {
 @media (max-width: 650px) {
   .filter-panel { margin-top: 0 !important; }
 }
+
+
+/* DESKTOP FILTER PANEL — ROOMIER VERTICAL RHYTHM */
+@media (min-width: 651px) {
+  .filter-panel {
+    padding: clamp(22px, 2vw, 27px);
+  }
+
+  .panel-heading {
+    gap: 14px;
+    padding-bottom: 27px;
+  }
+
+  .panel-number {
+    font-size: 10px;
+  }
+
+  .search-form {
+    padding: 28px 0;
+  }
+
+  .search-form > label,
+  .filter-group h2 {
+    margin-bottom: 15px;
+    font-size: 10px;
+  }
+
+  .search-field {
+    height: 47px;
+  }
+
+  .search-field input {
+    padding-inline: 13px;
+    font-size: 12px;
+  }
+
+  .search-field button {
+    width: 46px;
+    flex-basis: 46px;
+  }
+
+  .filter-group {
+    padding: 28px 0;
+  }
+
+  .filter-group h2 {
+    margin-bottom: 19px;
+  }
+
+  .filter-option,
+  .sort-option {
+    min-height: 38px;
+    gap: 11px;
+    font-size: 12px;
+    line-height: 1.55;
+  }
+
+  .filter-option input,
+  .sort-option input {
+    width: 15px;
+    height: 15px;
+    flex-basis: 15px;
+  }
+
+  .filter-options {
+    gap: 9px;
+  }
+
+  .filter-note {
+    font-size: 11px;
+    line-height: 1.75;
+  }
+
+  .reset-filters {
+    margin-top: 24px;
+    padding-top: 15px;
+    font-size: 10px;
+  }
+
+  .panel-footer {
+    gap: 12px;
+    margin-top: 32px;
+    padding-top: 19px;
+    font-size: 9px;
+  }
+
+  .tag-filter-heading {
+    gap: 12px;
+    margin-bottom: 15px;
+  }
+
+  .tag-filter-heading > span {
+    font-size: 9px;
+  }
+
+  .tag-filter-scroll {
+    gap: 9px 10px;
+    max-height: 270px;
+    padding: 4px 6px 6px 3px;
+  }
+
+  .tag-filter-option {
+    min-height: 35px;
+    gap: 6px;
+    padding: 5px 6px;
+  }
+
+  .tag-filter-count {
+    font-size: 10px;
+  }
+
+  .selected-tags {
+    margin-bottom: 15px;
+    padding: 12px;
+  }
+
+  .selected-tags-heading {
+    margin-bottom: 10px;
+    font-size: 9px;
+  }
+
+  .selected-tags-list {
+    gap: 8px;
+  }
+
+  .selected-tag-chip {
+    min-height: 29px;
+    gap: 10px;
+    padding-inline: 9px;
+    font-size: 10px;
+  }
+}
