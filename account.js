@@ -1242,9 +1242,9 @@
     mount.dataset.ready = "loading";
     mount.setAttribute("aria-busy", "true");
 
-    // Render the Shop control immediately; replace it with Shopify's live
-    // login element as soon as the SDK has finished preparing it.
-    mount.innerHTML = `<button type="button" class="vn-ac-shop-continue" disabled aria-disabled="true"><span>Continue with Shop</span></button>`;
+    // Keep the Shop mount empty until Shopify's real login element is ready.
+    // Email registration remains immediately usable; no fake button or wait state
+    // is inserted while the preloaded Shop feature finishes initializing.
 
     try {
       if (!state.shopLoginCreatePromise) {
