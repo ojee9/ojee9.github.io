@@ -1165,6 +1165,29 @@
     }
   }
 
+  function loadShopSdk() {
+    if (!state.shopSdkPromise) {
+      state.shopSdkPromise = import(
+        "https://cdn.shopify.com/shopifycloud/shop-js/modules/v2/loader.sdk.esm.js"
+      ).then(({ initialize }) => {
+        if (typeof initialize !== "function") {
+          throw new Error("Shop SDK could not be initialized.");
+        }
+
+        return initialize({
+          clientId: SHOP_CLIENT_ID,
+          locale: "tr",
+          features: { login: true }
+        });
+      }).catch(error => {
+        state.shopSdkPromise = null;
+        throw error;
+      });
+    }
+
+    return state.shopSdkPromise;
+  }
+
   async function mountShopLogin() {
     const mount = $("#vnAcShopLoginMount");
     if (!mount || state.screen !== "email" || state.user || state.busy) return;
@@ -1176,23 +1199,7 @@
     mount.setAttribute("aria-busy", "true");
 
     try {
-      if (!state.shopSdkPromise) {
-        state.shopSdkPromise = import(
-          "https://cdn.shopify.com/shopifycloud/shop-js/modules/v2/loader.sdk.esm.js"
-        ).then(({ initialize }) => {
-          if (typeof initialize !== "function") {
-            throw new Error("Shop SDK could not be initialized.");
-          }
-
-          return initialize({
-            apiKey: SHOP_CLIENT_ID,
-            locale: "tr",
-            features: { login: true }
-          });
-        });
-      }
-
-      const sdk = await state.shopSdkPromise;
+      const sdk = await loadShopSdk();
 
       if (
         generation !== state.shopLoginGeneration ||
@@ -1206,7 +1213,6 @@
 
       const login = await sdk.create("login", {
         attributes: {
-          clientId: SHOP_CLIENT_ID,
           buttonType: "continue",
           buttonLayout: "standalone",
           scope: "shop_app:oauth",
@@ -2558,6 +2564,11 @@
     },
     getUser: () => state.user
   };
+
+  // Start loading Shop sign-in before the account panel is opened.
+  loadShopSdk().catch(error => {
+    console.warn("[VN ACCOUNT] Shop SDK preload failed:", error);
+  });
 
   configPromise = loadConfig();
   configPromise.then(() => {
