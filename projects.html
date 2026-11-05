@@ -435,9 +435,6 @@
         filterPanel.style.marginTop = `${Math.max(0, centeredOffset)}px`;
       }
 
-      const filterPanelPositionObserver = new ResizeObserver(updateFilterPanelPosition);
-      filterPanelPositionObserver.observe(projectsContent);
-      filterPanelPositionObserver.observe(filterPanel);
       window.addEventListener("resize", updateFilterPanelPosition, { passive: true });
 
       const updateMobileFilterCount = () => {
@@ -751,7 +748,6 @@
           </article>
         `).join("");
         updateEntryTagScrollHints();
-        updateFilterPanelPosition();
       }
 
       function renderArchiveEntries() {
@@ -814,7 +810,6 @@
           </article>
         `).join("");
         updateEntryTagScrollHints();
-        updateFilterPanelPosition();
       }
 
       function renderNoResults(message = "NO ENTRIES YET") {
@@ -827,7 +822,6 @@
             <span>TRY ANOTHER SEARCH OR FILTER.</span>
           </div>
         `;
-        updateFilterPanelPosition();
       }
 
       function setCategory(category) {
@@ -858,6 +852,8 @@
         } else {
           renderArchiveEntries();
         }
+
+        updateFilterPanelPosition();
       }
 
       navLinks.forEach(link => {
