@@ -541,15 +541,27 @@
         return [...selectedArchiveTags];
       }
 
+      let renderedTagCategory = null;
+
       function renderTagFilters() {
         const categoryEntries = getActiveCategoryEntries();
-        const scrollTop = tagFilterOptions.scrollTop;
-        tagFilterOptions.innerHTML = archiveTagDisplayOrder.map(tag => {
-          const count = categoryEntries.filter(entry => (entry.archiveTags || []).includes(tag)).length;
-          const selected = selectedArchiveTags.includes(tag);
-          return '<button type="button" class="tag-filter-option' + (selected ? ' is-selected' : '') + '" data-tag-toggle="' + tag + '" aria-pressed="' + selected + '"><span class="archive-tag" style="--tag-color:' + archiveTagColors[tag] + '">' + tag + '</span><span class="tag-filter-count">(' + count + ')</span></button>';
-        }).join("");
-        tagFilterOptions.scrollTop = scrollTop;
+
+        if (renderedTagCategory !== activeCategory) {
+          tagFilterOptions.innerHTML = archiveTagDisplayOrder.map(tag => {
+            const count = categoryEntries.filter(entry => (entry.archiveTags || []).includes(tag)).length;
+            const selected = selectedArchiveTags.includes(tag);
+            return '<button type="button" class="tag-filter-option' + (selected ? ' is-selected' : '') + '" data-tag-toggle="' + tag + '" aria-pressed="' + selected + '"><span class="archive-tag" style="--tag-color:' + archiveTagColors[tag] + '">' + tag + '</span><span class="tag-filter-count">(' + count + ')</span></button>';
+          }).join("");
+          renderedTagCategory = activeCategory;
+        } else {
+          tagFilterOptions.querySelectorAll("[data-tag-toggle]").forEach(button => {
+            const tag = button.dataset.tagToggle;
+            const selected = selectedArchiveTags.includes(tag);
+            button.classList.toggle("is-selected", selected);
+            button.setAttribute("aria-pressed", String(selected));
+          });
+        }
+
         selectedTagsPanel.hidden = selectedArchiveTags.length === 0;
         selectedTagsList.innerHTML = selectedArchiveTags.map(tag =>
           '<button type="button" class="selected-tag-chip" data-tag-remove="' + tag + '" aria-label="Remove ' + tag + ' filter"><span style="--tag-color:' + archiveTagColors[tag] + '">' + tag + '</span><span aria-hidden="true">×</span></button>'
