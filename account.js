@@ -55,6 +55,20 @@
 
   const $ = (selector, root = document) => root.querySelector(selector);
 
+  // Start Shop SDK and login-element creation as soon as account.js executes.
+  // The real button is prepared off-screen, then moved into the panel on open.
+  const SHOP_CLIENT_ID = "90292cd96f43b8299e5b541fbe400d11";
+  const SHOP_AUTH_WORKER = "https://vn-shop-auth.9ojeez9.workers.dev";
+
+  const shopLoginPreloadMount = document.createElement("div");
+  shopLoginPreloadMount.setAttribute("aria-hidden", "true");
+  shopLoginPreloadMount.style.cssText = "position:fixed;left:-10000px;top:0;width:320px;height:60px;overflow:visible;opacity:0;pointer-events:none;";
+  document.body.appendChild(shopLoginPreloadMount);
+  mountShopLogin(shopLoginPreloadMount).catch(error => {
+    console.warn("[VN ACCOUNT] Shop login preload failed:", error);
+    if (shopLoginPreloadMount.isConnected) shopLoginPreloadMount.remove();
+  });
+
   // Open the account panel immediately on click. Session/config requests must
   // never block the visible response to the profile icon.
   document.addEventListener("click", event => {
@@ -1076,9 +1090,6 @@
     }
   }
 
-
-  const SHOP_CLIENT_ID = "90292cd96f43b8299e5b541fbe400d11";
-  const SHOP_AUTH_WORKER = "https://vn-shop-auth.9ojeez9.workers.dev";
 
   async function shopWorkerRequest(body) {
     const response = await fetch(SHOP_AUTH_WORKER, {
