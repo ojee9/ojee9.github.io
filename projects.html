@@ -462,6 +462,36 @@
       const archiveTagColors = Object.fromEntries(
         archiveTagGroups.flatMap(group => group.tags.map(tag => [tag, group.color]))
       );
+      const archiveTagDisplayOrder = (() => {
+        const remaining = archiveTagGroups.map(group => [...group.tags]);
+        const ordered = [];
+        let previousGroup = -1;
+        let remainingCount = remaining.reduce((total, tags) => total + tags.length, 0);
+
+        while (remainingCount > 0) {
+          const candidates = remaining
+            .map((tags, index) => ({ tags, index }))
+            .filter(item => item.tags.length && item.index !== previousGroup)
+            .filter(item => {
+              const nextCounts = remaining.map((tags, groupIndex) =>
+                tags.length - (groupIndex === item.index ? 1 : 0)
+              );
+              return Math.max(...nextCounts) <= Math.ceil((remainingCount - 1) / 2);
+            });
+
+          if (!candidates.length) {
+            throw new Error("Unable to create a tag order without adjacent color groups.");
+          }
+
+          const chosen = candidates[Math.floor(Math.random() * candidates.length)];
+          const tagIndex = Math.floor(Math.random() * chosen.tags.length);
+          ordered.push(chosen.tags.splice(tagIndex, 1)[0]);
+          previousGroup = chosen.index;
+          remainingCount -= 1;
+        }
+
+        return ordered;
+      })();
       const tagFilterOptions = document.getElementById("tag-filter-options");
       const selectedTagsPanel = document.getElementById("selected-tags");
       const selectedTagsList = document.getElementById("selected-tags-list");
@@ -496,11 +526,11 @@
       function renderTagFilters() {
         const categoryEntries = getActiveCategoryEntries();
         const scrollTop = tagFilterOptions.scrollTop;
-        tagFilterOptions.innerHTML = archiveTagGroups.map(group => group.tags.map(tag => {
+        tagFilterOptions.innerHTML = archiveTagDisplayOrder.map(tag => {
           const count = categoryEntries.filter(entry => (entry.archiveTags || []).includes(tag)).length;
           const selected = selectedArchiveTags.includes(tag);
           return '<button type="button" class="tag-filter-option' + (selected ? ' is-selected' : '') + '" data-tag-toggle="' + tag + '" aria-pressed="' + selected + '"><span class="archive-tag" style="--tag-color:' + archiveTagColors[tag] + '">' + tag + '</span><span class="tag-filter-count">(' + count + ')</span></button>';
-        }).join("")).join("");
+        }).join("");
         tagFilterOptions.scrollTop = scrollTop;
         selectedTagsPanel.hidden = selectedArchiveTags.length === 0;
         selectedTagsList.innerHTML = selectedArchiveTags.map(tag =>
@@ -514,6 +544,18 @@
           '<span class="archive-tag" style="--tag-color:' + archiveTagColors[tag] + '">' + tag + '</span>'
         ).join("");
       }
+      function updateEntryTagScrollHints() {
+        document.querySelectorAll(".entry-tags").forEach(tags => {
+          const updateHint = () => {
+            const hasMoreToScroll = tags.scrollWidth > tags.clientWidth + 2 &&
+              tags.scrollLeft + tags.clientWidth < tags.scrollWidth - 2;
+            tags.classList.toggle("has-overflow", hasMoreToScroll);
+          };
+          tags.addEventListener("scroll", updateHint, { passive: true });
+          updateHint();
+        });
+      }
+      window.addEventListener("resize", updateEntryTagScrollHints, { passive: true });
 
       function getSort() {
         return document.querySelector(
@@ -678,6 +720,7 @@
             </div>
           </article>
         `).join("");
+        updateEntryTagScrollHints();
       }
 
       function renderArchiveEntries() {
@@ -739,6 +782,7 @@
             </div>
           </article>
         `).join("");
+        updateEntryTagScrollHints();
       }
 
       function renderNoResults(message = "NO ENTRIES YET") {

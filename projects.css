@@ -1310,3 +1310,48 @@ input:focus-visible {
   cursor: default !important;
   transform: translateY(-1px) scale(1.035);
 }
+
+
+/* MOBILE ENTRY TAG RAIL — HORIZONTAL, TOUCH-FRIENDLY, AND CONTENT-AWARE */
+@media (max-width: 650px) {
+  .event-meta { gap: 8px; }
+  .entry-meta-right {
+    flex: 1 1 0;
+    max-width: none;
+    min-width: 0;
+    flex-wrap: nowrap;
+    gap: 7px;
+  }
+  .entry-tags {
+    position: relative;
+    flex: 1 1 0;
+    width: 0;
+    max-width: 100%;
+    min-width: 0;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 4px 0 5px 2px;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+  }
+  .entry-tags::-webkit-scrollbar { display: none; }
+  .entry-tags .archive-tag { flex: 0 0 auto; scroll-snap-align: start; }
+  .entry-tags .archive-tag:hover { transform: none; }
+  .entry-meta-right > span { flex: 0 0 auto; white-space: nowrap; }
+  .entry-tags.has-overflow {
+    -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 calc(100% - 18px), transparent 100%);
+    mask-image: linear-gradient(90deg, #000 0%, #000 calc(100% - 18px), transparent 100%);
+  }
+}
+
+/* BALANCED TAG BODY AND A MORE VISIBLE END NOTCH */
+.archive-tag,
+.selected-tag-chip > span:first-child {
+  padding-right: 11px;
+  -webkit-mask: radial-gradient(circle at 0 50%, transparent 0 5.5px, #000 6px);
+  mask: radial-gradient(circle at 0 50%, transparent 0 5.5px, #000 6px);
+}
