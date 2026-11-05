@@ -763,7 +763,7 @@ const FLOW_CONFIG={
  scene1Hold:100,
  corridor:300,
  scene2Hold:150,
- transition23:160,
+ transition23:130,
  scene3Hold:100,
  transition34:70,
  bloomStrength:0,
@@ -878,9 +878,7 @@ function frame(now){
  const t23Clamped=clamp(t23,0,1);
  const stop=geometry.transition23Start;
  const effectiveGlitter=clamp(.05*smooth(stop-220,stop-150,p)+.95*smooth(stop-150,stop,p),0,1);
- const stars=1-smooth(250,320,p);
- const floatLevel=smooth(geometry.scene3Start-10,geometry.scene3Start,p);
- const glitterClose=smooth(stop+55,stop+115,p);
+ const glitterClose=smooth(stop+70,stop+150,p);
  const studio=smooth(stop-30,stop+5,p)*(1-smooth(stop+60,stop+90,p));
  updateDom(chroma,brightness,bloom,effectiveGlitter,glitterClose,t23);
  if(webglReady&&program){
@@ -899,8 +897,6 @@ function frame(now){
   gl.uniform1f(loc.bloom,bloom);
   gl.uniform1f(loc.t23,t23Clamped);
   gl.uniform1f(loc.glitter,effectiveGlitter);
-  gl.uniform1f(loc.stars,stars);
-  gl.uniform1f(loc.floating,floatLevel);
   gl.uniform1f(loc.studio,studio);
   gl.uniform1f(loc.glitterClose,glitterClose);
   gl.drawArrays(gl.TRIANGLES,0,3);
@@ -935,7 +931,7 @@ async function initShader(){
   const fragmentMatch=source.match(/const fragmentSource=\x60([\s\S]*?)\x60;/);
   if(!vertexMatch||!fragmentMatch)throw new Error("Study 12 shader source was not found.");
   let fragment=fragmentMatch[1];
-  fragment=fragment.replace("uniform vec2 uPointer;","uniform vec2 uPointer;\nuniform float uScrollY;\nuniform float uViewportHeight;\nuniform float uScene4Top;\nuniform float uScene4Height;\nuniform float uChroma;\nuniform float uBrightness;\nuniform float uStudio;\nuniform float uBloom;\nuniform float uT23;\nuniform float uGlitterLevel;\nuniform float uGlitterClose;\nuniform float uStars;\nuniform float uFloat;");
+  fragment=fragment.replace("uniform vec2 uPointer;","uniform vec2 uPointer;\nuniform float uScrollY;\nuniform float uViewportHeight;\nuniform float uScene4Top;\nuniform float uScene4Height;\nuniform float uChroma;\nuniform float uBrightness;\nuniform float uStudio;\nuniform float uBloom;\nuniform float uT23;\nuniform float uGlitterLevel;\nuniform float uGlitterClose;");
   const sceneFunctions=`
 vec3 scene02(vec2 uv){
  vec3 c=vec3(228.0,227.0,225.0)/255.0;
@@ -984,24 +980,13 @@ vec3 sceneBackground(vec2 screenUv,float worldY,vec3 studioBase){
 }
 `;
   fragment=fragment.replace("vec3 facetLayer(vec2 pixel,",sceneFunctions+"\nvec3 facetLayer(vec2 pixel,");
-  fragment=fragment.replace("float mask=edge*step(1.0-density,hash12(cell+seed+13.9));","float densityRoll=hash12(cell+seed+13.9);\n float thresholdIn=hash12(cell+seed+53.7);\n float starProfile=smoothstep(thresholdIn-0.055,thresholdIn+0.055,0.0);\n float starMask=uStars*starProfile;\n float h=hash12(cell+seed+59.7);\n float g=hash12(cell+seed+71.3);\n float w=0.055;\n float enter=smoothstep(h,h+w,uGlitterLevel*(1.0+w));\n float exit=1.0-smoothstep(g,g+w,uGlitterClose*(1.0+w));\n float glitterMask=enter*exit;\n float floatMask=uFloat*starProfile;\n float particleMask=starMask+glitterMask+floatMask;\n float mask=edge*step(1.0-density,densityRoll)*particleMask;\n if(mask<=0.0)return vec3(0.0);");
+  fragment=fragment.replace("float mask=edge*step(1.0-density,hash12(cell+seed+13.9));","float densityRoll=hash12(cell+seed+13.9);\n float thresholdIn=hash12(cell+seed+53.7);\n float thresholdOut=1.0-thresholdIn;\n float enterFade=smoothstep(thresholdIn-0.055,thresholdIn+0.055,uGlitterLevel);\n float exitFade=1.0-smoothstep(thresholdOut-0.055,thresholdOut+0.055,uGlitterClose);\n float particleVisible=max(enterFade*exitFade,uStudio);\n float mask=edge*step(1.0-density,densityRoll)*particleVisible;");
   fragment=fragment.replace("vec3 base=mix(vec3(0.78,0.80,0.84),baseFilm,0.13);","vec2 screenUv=vec2(pixel.x/uResolution.x,1.0-pixel.y/uResolution.y);\n float worldY=uScrollY+screenUv.y*uViewportHeight;\n vec3 studioBase=mix(vec3(0.78,0.80,0.84),baseFilm,0.13);\n vec3 base=mix(sceneBackground(screenUv,worldY,studioBase),studioBase,uStudio);");
   fragment=fragment.replace("vec3 color=base+fine+medium+micro;","vec3 color=base+fine+medium+micro;");
   if(!fragment.includes("uGlitterClose")||
-     !fragment.includes("uStars")||
-     !fragment.includes("uFloat")||
      !fragment.includes("sceneBackground")||
-     !fragment.includes("vec3 facetLayer(")||
-     !fragment.includes("float densityRoll=hash12(cell+seed+13.9);")||
-     !fragment.includes("float thresholdIn=hash12(cell+seed+53.7);")||
-     !fragment.includes("float h=hash12(cell+seed+59.7);")||
-     !fragment.includes("float g=hash12(cell+seed+71.3);")||
-     !fragment.includes("float starMask=uStars*starProfile;")||
-     !fragment.includes("float glitterMask=enter*exit;")||
-     !fragment.includes("float floatMask=uFloat*starProfile;")||
-     !fragment.includes("float particleMask=starMask+glitterMask+floatMask;")||
-     !fragment.includes("float enter=smoothstep(h,h+w,uGlitterLevel*(1.0+w));")||
-     !fragment.includes("float exit=1.0-smoothstep(g,g+w,uGlitterClose*(1.0+w));")||
+     !fragment.includes("float enterFade=smoothstep(thresholdIn-0.055,thresholdIn+0.055,uGlitterLevel);")||
+     !fragment.includes("float exitFade=1.0-smoothstep(thresholdOut-0.055,thresholdOut+0.055,uGlitterClose);")||
      !fragment.includes("vec3 fine=facetLayer")||
      !fragment.includes("vec3 medium=facetLayer")||
      !fragment.includes("vec3 micro=facetLayer"))throw new Error("Study 12 adaptation was incomplete.");
@@ -1023,8 +1008,6 @@ vec3 sceneBackground(vec2 screenUv,float worldY,vec3 studioBase){
   loc.t23=gl.getUniformLocation(program,"uT23");
   loc.glitter=gl.getUniformLocation(program,"uGlitterLevel");
   loc.glitterClose=gl.getUniformLocation(program,"uGlitterClose");
-  loc.stars=gl.getUniformLocation(program,"uStars");
-  loc.floating=gl.getUniformLocation(program,"uFloat");
   if(Object.values(loc).some(value=>value===null))throw new Error("A required material uniform is unavailable.");
   webglReady=true;
   requestFrame();
