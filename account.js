@@ -2651,17 +2651,6 @@
     getUser: () => state.user
   };
 
-  // Build the Shop login element before the customer opens the account panel.
-  // It stays off-screen until renderEmail() moves it into the visible mount.
-  const shopLoginPreloadMount = document.createElement("div");
-  shopLoginPreloadMount.setAttribute("aria-hidden", "true");
-  shopLoginPreloadMount.style.cssText = "position:fixed;left:-10000px;top:0;width:320px;height:60px;overflow:visible;opacity:0;pointer-events:none;";
-  document.body.appendChild(shopLoginPreloadMount);
-  mountShopLogin(shopLoginPreloadMount).catch(error => {
-    console.warn("[VN ACCOUNT] Shop login preload failed:", error);
-    if (shopLoginPreloadMount.isConnected) shopLoginPreloadMount.remove();
-  });
-
   configPromise = loadConfig();
   configPromise.then(() => {
     if (state.user) render();
