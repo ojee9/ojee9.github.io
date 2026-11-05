@@ -70,6 +70,7 @@
 
     const shopLoginPreloadMount = document.createElement("div");
     shopLoginPreloadMount.setAttribute("aria-hidden", "true");
+    shopLoginPreloadMount.dataset.vnShopLoginPreload = "true";
     shopLoginPreloadMount.style.cssText = "position:fixed;left:0;top:0;width:320px;height:60px;overflow:visible;opacity:0;pointer-events:none;";
     document.body.appendChild(shopLoginPreloadMount);
     mountShopLogin(shopLoginPreloadMount).catch(error => {
@@ -1247,6 +1248,7 @@
 
     try {
       if (!state.shopLoginCreatePromise) {
+        const stagingMount = mount;
         const creation = (async () => {
           const sdk = await loadShopSdk();
 
@@ -1326,6 +1328,24 @@
             return null;
           }
 
+          // sdk.create() loads the feature code; onReady() confirms the
+          // actual Shopify element has finished loading. Keep it mounted in
+          // the hidden staging node until that event fires, before the panel
+          // can move it into the visible account UI.
+          const ready = new Promise(resolve => login.onReady(resolve));
+          stagingMount.replaceChildren(login.element);
+          await ready;
+
+          if (
+            generation !== state.shopLoginGeneration ||
+            state.screen !== "email" ||
+            state.user ||
+            state.busy
+          ) {
+            login.destroy();
+            return null;
+          }
+
           state.shopLoginInstance = login;
           return login;
         })();
@@ -1369,7 +1389,16 @@
         return;
       }
 
+      const previousMount = login.element.parentElement;
       mount.replaceChildren(login.element);
+      if (
+        previousMount &&
+        previousMount !== mount &&
+        previousMount.dataset.vnShopLoginPreload === "true" &&
+        previousMount.isConnected
+      ) {
+        previousMount.remove();
+      }
       mount.removeAttribute("aria-busy");
       mount.dataset.ready = "true";
     } catch (error) {
