@@ -1241,6 +1241,10 @@
     mount.dataset.ready = "loading";
     mount.setAttribute("aria-busy", "true");
 
+    // Render the Shop control immediately; replace it with Shopify's live
+    // login element as soon as the SDK has finished preparing it.
+    mount.innerHTML = `<button type="button" class="vn-ac-shop-continue" disabled aria-disabled="true"><span>Continue with Shop</span></button>`;
+
     try {
       if (!state.shopLoginCreatePromise) {
         const creation = (async () => {
