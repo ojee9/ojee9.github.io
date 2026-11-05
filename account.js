@@ -44,6 +44,7 @@
     loadingData: false,
     shopSdkPromise: null,
     shopLoginInstance: null,
+    shopLoginCreatePromise: null,
     shopLoginMount: null,
     shopLoginGeneration: 0,
     authProvider: "",
@@ -1211,93 +1212,137 @@
 
     if (mount.dataset.ready === "true" || mount.dataset.ready === "loading") return;
 
-    const generation = ++state.shopLoginGeneration;
+    // The preload mount and visible mount must share one in-flight SDK create().
+    // Opening the panel while preload is running must never create a second login.
+    const generation = state.shopLoginGeneration;
     state.shopLoginMount = mount;
     mount.dataset.ready = "loading";
     mount.setAttribute("aria-busy", "true");
 
     try {
-      const sdk = await loadShopSdk();
+      if (!state.shopLoginCreatePromise) {
+        const creation = (async () => {
+          const sdk = await loadShopSdk();
+
+          if (
+            generation !== state.shopLoginGeneration ||
+            state.screen !== "email" ||
+            state.user ||
+            state.busy
+          ) {
+            return null;
+          }
+
+          const login = await sdk.create("login", {
+            attributes: {
+              buttonType: "continue",
+              buttonLayout: "standalone",
+              scope: "shop_app:oauth",
+              storefrontOrigin: window.location.origin,
+              uxMode: "windoid"
+            },
+            appearance: {
+              preferredLoginExperience: "popup"
+            },
+            onComplete: async event => {
+              if (generation !== state.shopLoginGeneration) return;
+
+              const shopConsentToken = String(event?.shopConsentToken || "").trim();
+              if (event?.signedIn !== true || !shopConsentToken) {
+                state.messageType = "error";
+                state.message = "Shop did not return the authorization needed to create your VN SHOP session. Please try again or continue with email.";
+                render();
+                return;
+              }
+
+              state.busy = true;
+              state.messageType = "info";
+              state.message = "Connecting your Shop account to VN SHOP…";
+              render();
+
+              try {
+                const exchanged = await shopWorkerRequest({
+                  action: "exchange",
+                  consentToken: shopConsentToken
+                });
+
+                if (!exchanged.authenticated || !exchanged.sessionToken) {
+                  throw new Error("Shop authorization could not be connected to VN SHOP.");
+                }
+
+                state.busy = false;
+                await acceptShopSession(exchanged.sessionToken);
+              } catch (error) {
+                state.busy = false;
+                state.messageType = "error";
+                state.message = error.message || "Could not connect your Shop account. Please try email sign-in instead.";
+                state.screen = "email";
+                render();
+              }
+            },
+            onError: () => {
+              if (generation !== state.shopLoginGeneration) return;
+              const currentMount = state.shopLoginMount;
+              if (!currentMount) return;
+              currentMount.removeAttribute("aria-busy");
+              currentMount.dataset.ready = "error";
+              currentMount.textContent = "Shop sign-in could not be completed. Please try again or continue with email.";
+            }
+          });
+
+          if (
+            generation !== state.shopLoginGeneration ||
+            state.screen !== "email" ||
+            state.user ||
+            state.busy
+          ) {
+            login.destroy();
+            return null;
+          }
+
+          state.shopLoginInstance = login;
+          return login;
+        })();
+
+        state.shopLoginCreatePromise = creation;
+        creation.then(
+          () => {
+            if (state.shopLoginCreatePromise === creation) state.shopLoginCreatePromise = null;
+          },
+          () => {
+            if (state.shopLoginCreatePromise === creation) state.shopLoginCreatePromise = null;
+          }
+        );
+      }
+
+      const login = await state.shopLoginCreatePromise;
+
+      if (!login) {
+        // If the screen changed during creation and returned to email, retry
+        // against the new generation after the stale creation has settled.
+        if (
+          generation !== state.shopLoginGeneration &&
+          mount.isConnected &&
+          state.screen === "email" &&
+          !state.user &&
+          !state.busy
+        ) {
+          return mountShopLogin(mount);
+        }
+        return;
+      }
 
       if (
         generation !== state.shopLoginGeneration ||
         !mount.isConnected ||
         state.screen !== "email" ||
         state.user ||
-        state.busy
+        state.busy ||
+        state.shopLoginMount !== mount
       ) {
         return;
       }
 
-      const login = await sdk.create("login", {
-        attributes: {
-          buttonType: "continue",
-          buttonLayout: "standalone",
-          scope: "shop_app:oauth",
-          storefrontOrigin: window.location.origin,
-          uxMode: "windoid"
-        },
-        appearance: {
-          preferredLoginExperience: "popup"
-        },
-        onComplete: async event => {
-          if (generation !== state.shopLoginGeneration) return;
-
-          const shopConsentToken = String(event?.shopConsentToken || "").trim();
-          if (event?.signedIn !== true || !shopConsentToken) {
-            state.messageType = "error";
-            state.message = "Shop did not return the authorization needed to create your VN SHOP session. Please try again or continue with email.";
-            render();
-            return;
-          }
-
-          state.busy = true;
-          state.messageType = "info";
-          state.message = "Connecting your Shop account to VN SHOP…";
-          render();
-
-          try {
-            const exchanged = await shopWorkerRequest({
-              action: "exchange",
-              consentToken: shopConsentToken
-            });
-
-            if (!exchanged.authenticated || !exchanged.sessionToken) {
-              throw new Error("Shop authorization could not be connected to VN SHOP.");
-            }
-
-            state.busy = false;
-            await acceptShopSession(exchanged.sessionToken);
-          } catch (error) {
-            state.busy = false;
-            state.messageType = "error";
-            state.message = error.message || "Could not connect your Shop account. Please try email sign-in instead.";
-            state.screen = "email";
-            render();
-          }
-        },
-        onError: () => {
-          if (generation !== state.shopLoginGeneration) return;
-          const currentMount = state.shopLoginMount;
-          if (!currentMount) return;
-          currentMount.removeAttribute("aria-busy");
-          currentMount.dataset.ready = "error";
-          currentMount.textContent = "Shop sign-in could not be completed. Please try again or continue with email.";
-        }
-      });
-
-      if (
-        generation !== state.shopLoginGeneration ||
-        state.screen !== "email" ||
-        state.user ||
-        state.busy
-      ) {
-        login.destroy();
-        return;
-      }
-
-      state.shopLoginInstance = login;
-      state.shopLoginMount = mount;
       mount.replaceChildren(login.element);
       mount.removeAttribute("aria-busy");
       mount.dataset.ready = "true";
