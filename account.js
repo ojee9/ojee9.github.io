@@ -1188,9 +1188,19 @@
     return state.shopSdkPromise;
   }
 
-  async function mountShopLogin() {
-    const mount = $("#vnAcShopLoginMount");
+  async function mountShopLogin(targetMount = $("#vnAcShopLoginMount")) {
+    const mount = targetMount;
     if (!mount || state.screen !== "email" || state.user || state.busy) return;
+
+    // Reuse the login element prepared before the account panel was opened.
+    if (state.shopLoginInstance) {
+      state.shopLoginMount = mount;
+      mount.replaceChildren(state.shopLoginInstance.element);
+      mount.removeAttribute("aria-busy");
+      mount.dataset.ready = "true";
+      return;
+    }
+
     if (mount.dataset.ready === "true" || mount.dataset.ready === "loading") return;
 
     const generation = ++state.shopLoginGeneration;
@@ -1260,15 +1270,16 @@
         },
         onError: () => {
           if (generation !== state.shopLoginGeneration) return;
-          mount.removeAttribute("aria-busy");
-          mount.dataset.ready = "error";
-          mount.textContent = "Shop sign-in could not be completed. Please try again or continue with email.";
+          const currentMount = state.shopLoginMount;
+          if (!currentMount) return;
+          currentMount.removeAttribute("aria-busy");
+          currentMount.dataset.ready = "error";
+          currentMount.textContent = "Shop sign-in could not be completed. Please try again or continue with email.";
         }
       });
 
       if (
         generation !== state.shopLoginGeneration ||
-        !mount.isConnected ||
         state.screen !== "email" ||
         state.user ||
         state.busy
@@ -1787,7 +1798,7 @@
     }
 
     if (!state.user) {
-      destroyShopLogin();
+      if (state.screen !== "email") destroyShopLogin();
       content.innerHTML = state.screen === "verify" ? renderVerify() : renderEmail();
       if (state.screen === "email") mountShopLogin();
       return;
@@ -2565,9 +2576,17 @@
     getUser: () => state.user
   };
 
-  // Start loading Shop sign-in before the account panel is opened.
-  loadShopSdk().catch(error => {
-    console.warn("[VN ACCOUNT] Shop SDK preload failed:", error);
+  // Build the Shop login element before the customer opens the account panel.
+  // It stays off-screen until renderEmail() moves it into the visible mount.
+  const shopLoginPreloadMount = document.createElement("div");
+  shopLoginPreloadMount.setAttribute("aria-hidden", "true");
+  shopLoginPreloadMount.style.cssText = "position:fixed;left:-10000px;top:0;width:1px;height:1px;overflow:hidden;visibility:hidden;pointer-events:none;";
+  document.body.appendChild(shopLoginPreloadMount);
+  mountShopLogin(shopLoginPreloadMount).then(() => {
+    if (shopLoginPreloadMount.isConnected) shopLoginPreloadMount.remove();
+  }).catch(error => {
+    console.warn("[VN ACCOUNT] Shop login preload failed:", error);
+    if (shopLoginPreloadMount.isConnected) shopLoginPreloadMount.remove();
   });
 
   configPromise = loadConfig();
