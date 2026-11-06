@@ -1,0 +1,11 @@
+name = "vn-shop-inventory-api"
+main = "src/index.js"
+compatibility_date = "2026-11-06"
+account_id = "7ed24ae1d8cc3295e8e08be5a33e5e66"
+workers_dev = true
+
+[[d1_databases]]
+binding = "DB"
+database_name = "vn-shop-account-db"
+database_id = "adbe0b5c-c2a6-4fb3-a3e7-37e47d6799b3"
+migrations_dir = "migrations"

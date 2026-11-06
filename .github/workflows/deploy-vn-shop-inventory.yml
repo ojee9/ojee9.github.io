@@ -1,0 +1,51 @@
+name: Deploy VN SHOP inventory API
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "cloudflare/inventory-worker/**"
+      - ".github/workflows/deploy-vn-shop-inventory.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vn-shop-inventory-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Check Cloudflare deployment secrets
+        id: credentials
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          VN_SHOP_INVENTORY_ADMIN_TOKEN: ${{ secrets.VN_SHOP_INVENTORY_ADMIN_TOKEN }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$VN_SHOP_INVENTORY_ADMIN_TOKEN" ]; then
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "Cloudflare deployment skipped. Add CLOUDFLARE_API_TOKEN and VN_SHOP_INVENTORY_ADMIN_TOKEN repository secrets, then run this workflow manually."
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Apply D1 migration and deploy inventory Worker
+        if: steps.credentials.outputs.ready == 'true'
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: "7ed24ae1d8cc3295e8e08be5a33e5e66"
+          wranglerVersion: "4"
+          workingDirectory: "cloudflare/inventory-worker"
+          command: |
+            d1 migrations apply vn-shop-account-db --remote
+            deploy
+          secrets: INVENTORY_ADMIN_TOKEN
+        env:
+          INVENTORY_ADMIN_TOKEN: ${{ secrets.VN_SHOP_INVENTORY_ADMIN_TOKEN }}

@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>VN SHOP · INVENTORY</title>
+  <style>
+    :root{color-scheme:light;--ink:#171717;--muted:#737373;--line:#dedbd5;--paper:#f5f3ef;--white:#fff;--danger:#9b3030}
+    *{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:14px/1.5 Arial,Helvetica,sans-serif}
+    main{width:min(1120px,calc(100% - 32px));margin:48px auto 80px}.eyebrow{font-size:11px;letter-spacing:.16em;font-weight:700}.top{display:flex;justify-content:space-between;gap:20px;align-items:end;margin-bottom:28px}.top h1{font-size:clamp(28px,5vw,44px);letter-spacing:-.055em;margin:8px 0 0}.top p{color:var(--muted);max-width:420px;margin:0}
+    .panel{background:var(--white);border:1px solid var(--line);padding:22px;margin-bottom:18px}.auth{display:grid;grid-template-columns:1fr auto;gap:10px}.field{display:grid;gap:6px}.field label{font-size:11px;font-weight:700;letter-spacing:.08em}.field input,.field select{width:100%;min-height:44px;border:1px solid var(--line);background:#fff;padding:10px 12px;font:inherit;color:var(--ink)}
+    button{border:1px solid var(--ink);background:var(--ink);color:white;padding:0 18px;min-height:44px;font:700 11px Arial,sans-serif;letter-spacing:.08em;cursor:pointer}button.secondary{background:white;color:var(--ink)}button:disabled{opacity:.45;cursor:wait}
+    .status{min-height:22px;color:var(--muted);margin-top:10px}.status.error{color:var(--danger)}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:18px 0}.stat{background:#fff;border:1px solid var(--line);padding:16px}.stat span{display:block;color:var(--muted);font-size:10px;letter-spacing:.1em}.stat strong{display:block;font-size:25px;margin-top:4px;font-weight:600}
+    .table-wrap{overflow-x:auto;background:#fff;border:1px solid var(--line)}table{width:100%;border-collapse:collapse;min-width:760px}th,td{text-align:left;padding:13px 14px;border-bottom:1px solid var(--line)}th{font-size:10px;letter-spacing:.08em;color:var(--muted);font-weight:700}td strong{display:block}td small{color:var(--muted)}.num{font-variant-numeric:tabular-nums}
+    .movement{display:grid;grid-template-columns:2fr 1fr 2fr auto auto;gap:10px;align-items:end}.section-title{font-size:15px;margin:0 0 16px}.hint{color:var(--muted);font-size:12px;margin:10px 0 0}.events{display:grid;gap:0}.event{display:flex;justify-content:space-between;gap:15px;padding:10px 0;border-bottom:1px solid var(--line)}.event:last-child{border:0}.event small{display:block;color:var(--muted)}
+    @media(max-width:700px){main{margin-top:28px}.top{display:block}.top p{margin-top:10px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.movement{grid-template-columns:1fr 1fr}.movement .wide{grid-column:1/-1}.auth{grid-template-columns:1fr}.auth button{width:100%}.panel{padding:16px}}
+  </style>
+</head>
+<body>
+<main>
+  <header class="top"><div><div class="eyebrow">VN SHOP® · PRIVATE OPERATIONS</div><h1>INVENTORY CONTROL</h1></div><p>Production limits and manually recorded stock movements. Test checkout activity is not imported as a sale.</p></header>
+  <section class="panel" aria-label="Admin authentication"><div class="auth"><div class="field"><label for="api-url">CLOUDFLARE WORKER API URL</label><input id="api-url" type="url" autocomplete="url" placeholder="https://vn-shop-inventory-api.YOUR-SUBDOMAIN.workers.dev/api/inventory"></div><div class="field"><label for="admin-token">INVENTORY ADMIN TOKEN</label><input id="admin-token" type="password" autocomplete="current-password" placeholder="Enter the private admin token"></div><button id="connect">CONNECT</button></div><div id="status" class="status" role="status" aria-live="polite">Connect to load inventory.</div></section>
+  <section id="inventory-view" hidden>
+    <div class="stats">
+      <div class="stat"><span>PRODUCTS</span><strong id="stat-products">0</strong></div>
+      <div class="stat"><span>PRODUCTION LIMIT</span><strong id="stat-limit">0</strong></div>
+      <div class="stat"><span>PRODUCED</span><strong id="stat-produced">0</strong></div>
+      <div class="stat"><span>AVAILABLE</span><strong id="stat-available">0</strong></div>
+    </div>
+    <section class="panel"><h2 class="section-title">RECORD STOCK MOVEMENT</h2><form id="movement-form" class="movement">
+      <div class="field wide"><label for="product">PRODUCT</label><select id="product" required></select></div>
+      <div class="field"><label for="quantity">QUANTITY</label><input id="quantity" type="number" min="1" max="1000" step="1" required></div>
+      <div class="field wide"><label for="note">NOTE (OPTIONAL)</label><input id="note" maxlength="250" placeholder="Production batch / internal note"></div>
+      <button type="button" id="record-production">ADD PRODUCTION</button><button type="button" class="secondary" id="record-sale">RECORD SALE</button>
+    </form><p class="hint">Production cannot exceed the product's approved limit. A sale can only be recorded from available produced stock. Each poster design has one shared limit across all sizes.</p></section>
+    <h2 class="section-title">CURRENT INVENTORY</h2>
+    <div class="table-wrap"><table><thead><tr><th>PRODUCT</th><th>PRODUCED</th><th>SOLD</th><th>RESERVED</th><th>AVAILABLE</th><th>LIMIT</th><th>PRODUCTION LEFT</th></tr></thead><tbody id="inventory-rows"></tbody></table></div>
+    <section class="panel" style="margin-top:18px"><h2 class="section-title">RECENT MOVEMENTS</h2><div id="events" class="events"><p class="hint">No movements recorded.</p></div></section>
+  </section>
+</main>
+<script type="module">
+const apiInput=document.getElementById("api-url"),tokenInput=document.getElementById("admin-token"),statusNode=document.getElementById("status"),view=document.getElementById("inventory-view");
+let API=sessionStorage.getItem("vn-inventory-api-url")||"",token=sessionStorage.getItem("vn-inventory-admin-token")||"",products=[];
+apiInput.value=API;tokenInput.value=token;
+const number=value=>new Intl.NumberFormat("en-US").format(Number(value)||0);
+function status(message,error=false){statusNode.textContent=message;statusNode.classList.toggle("error",error)}
+async function api(path="",options={}){const response=await fetch(API+path,{...options,headers:{Authorization:"Bearer "+token,"Content-Type":"application/json",...(options.headers||{})}});let data={};try{data=await response.json()}catch{}if(!response.ok)throw new Error(data.message||"Request failed ("+response.status+")");return data}
+function render(data){products=data.products||[];document.getElementById("stat-products").textContent=number(products.length);document.getElementById("stat-limit").textContent=number(products.reduce((n,p)=>n+p.production_limit,0));document.getElementById("stat-produced").textContent=number(products.reduce((n,p)=>n+p.produced_quantity,0));document.getElementById("stat-available").textContent=number(products.reduce((n,p)=>n+p.available_quantity,0));
+ document.getElementById("inventory-rows").innerHTML=products.map(p=>'<tr><td><strong>'+escapeHtml(p.product_name)+'</strong><small>'+escapeHtml(p.product_id)+'</small></td><td class="num">'+number(p.produced_quantity)+'</td><td class="num">'+number(p.sold_quantity)+'</td><td class="num">'+number(p.reserved_quantity)+'</td><td class="num">'+number(p.available_quantity)+'</td><td class="num">'+number(p.production_limit)+'</td><td class="num">'+number(p.remaining_production_capacity)+'</td></tr>').join("");
+ const select=document.getElementById("product"),selected=select.value;select.innerHTML=products.map(p=>'<option value="'+escapeHtml(p.product_id)+'">'+escapeHtml(p.product_name)+'</option>').join("");if(products.some(p=>p.product_id===selected))select.value=selected;
+ const events=data.events||[];document.getElementById("events").innerHTML=events.length?events.map(e=>'<div class="event"><div><strong>'+(e.event_type==="production"?"Production added":"Sale recorded")+' · '+escapeHtml(e.product_id)+'</strong><small>'+escapeHtml(e.note||"")+' · '+new Date(e.created_at+"Z").toLocaleString()+'</small></div><strong class="num">'+(e.event_type==="production"?"+":"−")+number(e.quantity)+'</strong></div>').join(""):'<p class="hint">No movements recorded.</p>';
+ view.hidden=false;
+}
+function escapeHtml(value){return String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+async function connect(){API=apiInput.value.trim().replace(/\/$/,"");token=tokenInput.value.trim();if(!/^https:\/\//i.test(API)||!API.endsWith("/api/inventory")){status("Enter the full Cloudflare Worker URL ending in /api/inventory.",true);return}if(!token){status("Enter the admin token.",true);return}try{const data=await api();sessionStorage.setItem("vn-inventory-api-url",API);sessionStorage.setItem("vn-inventory-admin-token",token);render(data);status("Connected. Inventory is up to date.")}catch(error){sessionStorage.removeItem("vn-inventory-admin-token");view.hidden=true;status(error.message,true)}}
+async function movement(type){const button=document.getElementById(type==="production"?"record-production":"record-sale"),productId=document.getElementById("product").value,quantity=Number(document.getElementById("quantity").value),note=document.getElementById("note").value.trim();if(!productId||!Number.isSafeInteger(quantity)||quantity<1){status("Choose a product and enter a valid whole quantity.",true);return}button.disabled=true;try{const data=await api("/"+type,{method:"POST",body:JSON.stringify({productId,quantity,note,requestId:crypto.randomUUID()})});if(Array.isArray(data.products))render(data);else await connect();document.getElementById("quantity").value="";document.getElementById("note").value="";status(data.message)}catch(error){status(error.message,true)}finally{button.disabled=false}}
+document.getElementById("connect").addEventListener("click",connect);document.getElementById("record-production").addEventListener("click",()=>movement("production"));document.getElementById("record-sale").addEventListener("click",()=>movement("sale"));
+if(token)connect();
+</script>
+</body>
+</html>
