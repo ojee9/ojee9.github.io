@@ -696,7 +696,7 @@
       .vn-ac-profile-signout .vn-ac-button.danger{color:#999;border-color:#ddd}
       .vn-ac-orders-empty h2{margin:0 0 24px;font-size:22px;color:#222}
       .vn-ac-ready-row{display:flex;align-items:center;justify-content:space-between;gap:18px}
-      .vn-ac-orders-empty .vn-ac-ready-row [data-ac-section="shop"]{align-self:center;position:relative;top:0}
+      .vn-ac-orders-empty .vn-ac-ready-row [data-ac-section="shop"]{position:absolute;right:24px;top:50%;transform:translateY(-50%)}
       .vn-ac-ready-row h3{margin:0;font-size:20px;color:#222}
       @media(max-width:700px){.vn-ac-policy-footer-row{gap:5px 10px}.vn-ac-footer-policies .vn-ac-legal-list{gap:6px 10px}}
       #profile-open.vn-ac-avatar-initial{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;box-sizing:border-box;border:1px solid #9A7955;border-radius:50%;background:#B89A76;color:#17110B;font:700 15px/1 Arial,sans-serif;text-transform:uppercase;box-shadow:0 0 0 2px rgba(184,154,118,.22),0 1px 5px rgba(0,0,0,.22)}
@@ -705,7 +705,7 @@
       .vn-ac-profile-signout .vn-ac-button{font-size:10px;letter-spacing:.7px}
       .vn-ac-empty{padding:24px;border:1px solid #e5e5e5;color:#777;font-size:13px}
       .vn-ac-empty-addresses{background:#24170F;border-color:#24170F;color:#fff}
-      .vn-ac-orders-empty{background:#494E51;border-color:#494E51;color:#fff}
+      .vn-ac-orders-empty{position:relative;background:#494E51;border-color:#494E51;color:#fff}
       .vn-ac-save-address{background:#24170F;border-color:#24170F;color:#fff}
       .vn-ac-orders-empty h1,.vn-ac-orders-empty h2,.vn-ac-orders-empty h3,.vn-ac-orders-empty p{color:#fff}
       .vn-ac-orders-empty .vn-ac-button{background:#fff;color:#000;border-color:#fff}
@@ -1129,7 +1129,7 @@
       trailCanvas.setAttribute("aria-hidden", "true");
       dashboardShell.prepend(trailCanvas);
 
-      const trailContext = trailCanvas.getContext("2d", { alpha: true });
+      const trailContext = trailCanvas.getContext("2d", { alpha: true, desynchronized: true });
       const trailPoints = [];
       let trailFrame = 0;
       let trailWidth = 0;
