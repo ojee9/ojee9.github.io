@@ -455,6 +455,7 @@
       .vn-ac-field{display:flex;flex-direction:column;gap:6px;margin:13px 0}
       .vn-ac-field span{font-size:12px;color:#555}
       .vn-ac-field input,.vn-ac-field select,.vn-ac-field textarea{box-sizing:border-box;width:100%;min-height:48px;padding:12px;border:1px solid #d7d7d7;border-radius:5px;background:#fff;color:#111;font:inherit}
+      .vn-ac-field input[name="first_name"],.vn-ac-field input[name="last_name"]{background:#A99A87}
       .vn-ac-field textarea{min-height:90px;resize:vertical}
       .vn-ac-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
       .vn-ac-message{margin:15px 0;padding:12px 14px;border:1px solid #ddd;background:#f7f7f7;font-size:13px;overflow-wrap:anywhere}
@@ -525,7 +526,7 @@
       .vn-ac-address-form{display:flex;flex-direction:column;gap:12px}
       .vn-ac-address-control{position:relative;display:block;min-width:0}
       .vn-ac-address-control>span{position:absolute;z-index:1;top:7px;left:13px;font-size:10px;line-height:1.1;color:#8c8c8c;pointer-events:none}
-      .vn-ac-address-control>input,.vn-ac-address-control>select{box-sizing:border-box;width:100%;min-width:0;min-height:48px;padding:20px 12px 7px;border:1px solid #d7d7d7;border-radius:5px;background:#fff;color:#111;font:13px/1.3 Arial,sans-serif}
+      .vn-ac-address-control>input,.vn-ac-address-control>select{box-sizing:border-box;width:100%;min-width:0;min-height:48px;padding:20px 12px 7px;border:1px solid #d7d7d7;border-radius:5px;background:#A99A87;color:#171411;font:13px/1.3 Arial,sans-serif}
       .vn-ac-address-control>input::placeholder{color:#777;opacity:1}
       .vn-ac-address-control>select{padding-right:28px}
       .vn-ac-field{position:relative}
