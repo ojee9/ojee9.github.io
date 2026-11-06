@@ -756,8 +756,8 @@
         background:radial-gradient(
           ellipse 140% 140% at var(--vn-ac-shade-x, 50%) var(--vn-ac-shade-y, 50%),
           rgba(0,0,0,0) 0%,
-          rgba(0,0,0,.055) 55%,
-          rgba(0,0,0,.17) 100%
+          rgba(0,0,0,.012) 55%,
+          rgba(0,0,0,.035) 100%
         );
       }
       .vn-ac-shell.vn-ac-dashboard-open::before{
@@ -1099,29 +1099,7 @@
       materialFrame.loading = "eager";
       dashboardShell.prepend(materialFrame);
     }
-    if (dashboardShell) {
-      const shadePointer = { x: 0, y: 0 };
-      let shadeFrame = 0;
-      const canTrackShade = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
-      const updateDashboardShade = event => {
-        if (!canTrackShade
-          || !dashboardShell.classList.contains("vn-ac-dashboard-open")
-          || event.pointerType === "touch") return;
-        shadePointer.x = event.clientX;
-        shadePointer.y = event.clientY;
-        if (shadeFrame) return;
-        shadeFrame = requestAnimationFrame(() => {
-          shadeFrame = 0;
-          const rect = dashboardShell.getBoundingClientRect();
-          if (!rect.width || !rect.height) return;
-          const x = Math.max(0, Math.min(100, ((shadePointer.x - rect.left) / rect.width) * 100));
-          const y = Math.max(0, Math.min(100, ((shadePointer.y - rect.top) / rect.height) * 100));
-          dashboardShell.style.setProperty("--vn-ac-shade-x", x + "%");
-          dashboardShell.style.setProperty("--vn-ac-shade-y", y + "%");
-        });
-      };
-      dashboardShell.addEventListener("pointermove", updateDashboardShade, {passive:true});
-    }
+    // Cursor-following dashboard shading is intentionally disabled to avoid pointer-driven repaint cost.
 
     if (dashboardShell && !dashboardShell.querySelector(".vn-ac-dashboard-trail")) {
       const trailCanvas = document.createElement("canvas");
@@ -1215,28 +1193,28 @@
           trailContext.lineJoin = "round";
 
           // Restore the original full-width, layered pink/white trail treatment.
-          trailContext.strokeStyle = `rgba(255,105,210,${headLife * .16})`;
+          trailContext.strokeStyle = `rgba(150,205,255,${headLife * .25})`;
           trailContext.lineWidth = 19 * headLife;
-          trailContext.shadowColor = `rgba(255,75,190,${headLife * .28})`;
+          trailContext.shadowColor = `rgba(130,155,255,${headLife * .62})`;
+          trailContext.shadowBlur = 18 * headLife;
+          trailContext.stroke(trailPath);
+
+          trailContext.strokeStyle = `rgba(255,145,220,${headLife * .3})`;
+          trailContext.lineWidth = 10.5 * headLife;
+          trailContext.shadowColor = `rgba(255,92,205,${headLife * .58})`;
+          trailContext.shadowBlur = 16 * headLife;
+          trailContext.stroke(trailPath);
+
+          trailContext.strokeStyle = `rgba(105,205,255,${headLife * .52})`;
+          trailContext.lineWidth = 6.5 * headLife;
+          trailContext.shadowColor = `rgba(75,190,255,${headLife * .62})`;
           trailContext.shadowBlur = 5 * headLife;
           trailContext.stroke(trailPath);
 
-          trailContext.strokeStyle = `rgba(255,80,190,${headLife * .22})`;
-          trailContext.lineWidth = 10.5 * headLife;
-          trailContext.shadowColor = `rgba(255,65,180,${headLife * .24})`;
-          trailContext.shadowBlur = 3 * headLife;
-          trailContext.stroke(trailPath);
-
-          trailContext.strokeStyle = `rgba(255,150,225,${headLife * .36})`;
-          trailContext.lineWidth = 6.5 * headLife;
-          trailContext.shadowColor = `rgba(255,115,210,${headLife * .25})`;
-          trailContext.shadowBlur = 2 * headLife;
-          trailContext.stroke(trailPath);
-
-          trailContext.strokeStyle = `rgba(255,240,250,${headLife * .7})`;
+          trailContext.strokeStyle = `rgba(255,238,252,${headLife * .66})`;
           trailContext.lineWidth = 3.2 * headLife;
-          trailContext.shadowColor = `rgba(255,190,235,${headLife * .35})`;
-          trailContext.shadowBlur = 1.5 * headLife;
+          trailContext.shadowColor = `rgba(255,170,235,${headLife * .55})`;
+          trailContext.shadowBlur = 3 * headLife;
           trailContext.stroke(trailPath);
         }
 
