@@ -1046,7 +1046,7 @@
           <p>Sign in or create an account</p>
         </div>
 
-        <div class="vn-ac-shop-space">
+        <div class="vn-ac-shop-space" hidden>
           <div id="vnAcShopLoginMount" class="vn-ac-shop-mount" aria-label="Continue with Shop"></div>
         </div>
         <div class="vn-ac-or-divider" aria-hidden="true"><span>OR</span></div>
@@ -1230,6 +1230,8 @@
       }
       mount.removeAttribute("aria-busy");
       mount.dataset.ready = "true";
+      const shopSpace = mount.closest(".vn-ac-shop-space");
+      if (shopSpace) shopSpace.hidden = false;
       return;
     }
 
@@ -1398,6 +1400,8 @@
       }
       mount.removeAttribute("aria-busy");
       mount.dataset.ready = "true";
+      const shopSpace = mount.closest(".vn-ac-shop-space");
+      if (shopSpace) shopSpace.hidden = false;
     } catch (error) {
       if (generation !== state.shopLoginGeneration) return;
       console.error("[VN ACCOUNT] Shop SDK initialization failed:", error);
