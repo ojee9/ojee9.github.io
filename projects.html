@@ -429,8 +429,10 @@
           return;
         }
 
-        const sectionHeading = projectsContent.querySelector(".section-heading");
-        filterPanel.style.marginTop = `${sectionHeading ? sectionHeading.offsetHeight : 0}px`;
+        const firstEntry = projectsContent.querySelector(".projects-grid");
+        const contentTop = projectsContent.getBoundingClientRect().top;
+        const entryTop = firstEntry ? firstEntry.getBoundingClientRect().top : contentTop;
+        filterPanel.style.marginTop = `${Math.max(0, Math.round(entryTop - contentTop))}px`;
       }
 
       window.addEventListener("resize", updateFilterPanelPosition, { passive: true });
