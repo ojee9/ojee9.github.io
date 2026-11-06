@@ -708,6 +708,7 @@
       .vn-ac-save-address{background:#24170F;border-color:#24170F;color:#fff}
       .vn-ac-orders-empty h1,.vn-ac-orders-empty h2,.vn-ac-orders-empty h3,.vn-ac-orders-empty p{color:#fff}
       .vn-ac-orders-empty .vn-ac-button{background:#fff;color:#000;border-color:#fff}
+      .vn-ac-orders-empty .vn-ac-button[data-ac-section="shop"]{background:#24170F;border-color:#24170F;color:#fff}
       /* One fixed-size dashboard shell for every signed-in section, including views without .vn-ac-layout. */
       .vn-ac-shell.vn-ac-dashboard-open{
         position:relative;
@@ -1135,6 +1136,8 @@
       let trailDpr = 1;
       let trailExitStart = 0;
       let trailBurst = [];
+      let trailPath = null;
+      let trailPathDirty = true;
 
       const resizeTrail = () => {
         const rect = dashboardShell.getBoundingClientRect();
@@ -1150,23 +1153,31 @@
         trailFrame = 0;
         const now = performance.now();
         const firstLivePoint = trailPoints.findIndex(point => now - point.time < 620);
-        trailPoints.splice(0, firstLivePoint < 0 ? trailPoints.length : firstLivePoint);
+        const expiredCount = firstLivePoint < 0 ? trailPoints.length : firstLivePoint;
+        if (expiredCount) {
+          trailPoints.splice(0, expiredCount);
+          trailPathDirty = true;
+        }
         trailContext.clearRect(0, 0, trailWidth, trailHeight);
 
         if (trailPoints.length > 1) {
-          const path = new Path2D();
-          path.moveTo(trailPoints[0].x, trailPoints[0].y);
-          for (let i = 1; i < trailPoints.length - 1; i++) {
-            const current = trailPoints[i];
-            const next = trailPoints[i + 1];
-            path.quadraticCurveTo(
-              current.x, current.y,
-              (current.x + next.x) / 2,
-              (current.y + next.y) / 2
-            );
+          if (trailPathDirty || !trailPath) {
+            trailPath = new Path2D();
+            trailPath.moveTo(trailPoints[0].x, trailPoints[0].y);
+            for (let i = 1; i < trailPoints.length - 1; i++) {
+              const current = trailPoints[i];
+              const next = trailPoints[i + 1];
+              trailPath.quadraticCurveTo(
+                current.x, current.y,
+                (current.x + next.x) / 2,
+                (current.y + next.y) / 2
+              );
+            }
+            const last = trailPoints[trailPoints.length - 1];
+            trailPath.lineTo(last.x, last.y);
+            trailPathDirty = false;
           }
-          const last = trailPoints[trailPoints.length - 1];
-          path.lineTo(last.x, last.y);
+          const path = trailPath;
 
           const tailLife = Math.max(0, 1 - (now - last.time) / 620);
           const exitLife = trailExitStart ? Math.max(0, 1 - (now - trailExitStart) / 240) : 1;
@@ -1241,6 +1252,7 @@
         const rect = dashboardShell.getBoundingClientRect();
         trailPoints.push({x:event.clientX - rect.left, y:event.clientY - rect.top, time:performance.now()});
         if (trailPoints.length > 16) trailPoints.shift();
+        trailPathDirty = true;
         if (!trailFrame) trailFrame = requestAnimationFrame(animateTrail);
       }, {passive:true});
 
