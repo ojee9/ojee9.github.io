@@ -557,13 +557,54 @@
     });
   }
 
+  let pageScrollPosition = 0;
+  let pageScrollStyles = null;
+
+  function lockPageScroll() {
+    const body = document.body;
+    if (body.classList.contains("modal-open")) return;
+
+    pageScrollPosition = window.scrollY || window.pageYOffset || 0;
+    pageScrollStyles = {
+      position: body.style.position,
+      top: body.style.top,
+      left: body.style.left,
+      right: body.style.right,
+      width: body.style.width
+    };
+
+    body.classList.add("modal-open");
+    body.style.position = "fixed";
+    body.style.top = `-${pageScrollPosition}px`;
+    body.style.left = "0";
+    body.style.right = "0";
+    body.style.width = "100%";
+  }
+
+  function unlockPageScroll() {
+    const body = document.body;
+    const scrollPosition = pageScrollPosition;
+    const styles = pageScrollStyles;
+
+    body.classList.remove("modal-open");
+    if (styles) {
+      body.style.position = styles.position;
+      body.style.top = styles.top;
+      body.style.left = styles.left;
+      body.style.right = styles.right;
+      body.style.width = styles.width;
+    }
+    pageScrollStyles = null;
+    window.scrollTo(0, scrollPosition);
+  }
+
   function openOverlay(overlay) {
     overlay.hidden = false;
 
     requestAnimationFrame(() => {
       overlay.classList.add("is-open");
       overlay.setAttribute("aria-hidden", "false");
-      document.body.classList.add("modal-open");
+      lockPageScroll();
       overlay.querySelector(".drawer-close")?.focus();
     });
   }
@@ -585,7 +626,11 @@
       const anotherDrawerIsOpen =
         document.querySelector(".drawer-overlay.is-open") !== null;
 
-      document.body.classList.toggle("modal-open", anotherDrawerIsOpen);
+      if (anotherDrawerIsOpen) {
+        document.body.classList.add("modal-open");
+      } else {
+        unlockPageScroll();
+      }
     }, 260);
   }
 
