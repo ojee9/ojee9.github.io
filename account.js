@@ -61,15 +61,22 @@
   const SHOP_AUTH_WORKER = "https://vn-shop-auth.9ojeez9.workers.dev";
 
   function startShopLoginPreload() {
-    // Render the real account UI off-screen visually, but keep it mounted so
-    // Shopify can finish creating its login button in its final DOM location.
-    const root = createRoot();
-    root.hidden = false;
-    root.style.opacity = "0";
-    root.style.pointerEvents = "none";
-    root.setAttribute("aria-hidden", "true");
-    root.inert = true;
-    render();
+    // account.js may execute before <body> exists; defer only the DOM mount,
+    // while keeping the preload at the earliest safe point.
+    if (!document.body) {
+      document.addEventListener("DOMContentLoaded", startShopLoginPreload, { once: true });
+      return;
+    }
+
+    const shopLoginPreloadMount = document.createElement("div");
+    shopLoginPreloadMount.setAttribute("aria-hidden", "true");
+    shopLoginPreloadMount.dataset.vnShopLoginPreload = "true";
+    shopLoginPreloadMount.style.cssText = "position:fixed;left:0;top:0;width:320px;height:60px;overflow:visible;opacity:0;pointer-events:none;";
+    document.body.appendChild(shopLoginPreloadMount);
+    mountShopLogin(shopLoginPreloadMount).catch(error => {
+      console.warn("[VN ACCOUNT] Shop login preload failed:", error);
+      if (shopLoginPreloadMount.isConnected) shopLoginPreloadMount.remove();
+    });
   }
 
   startShopLoginPreload();
@@ -88,12 +95,7 @@
     } catch (error) {
       console.error("[VN ACCOUNT] Profile panel failed to open:", error);
       try {
-        const root = createRoot();
-        root.hidden = false;
-        root.style.opacity = "";
-        root.style.pointerEvents = "";
-        root.removeAttribute("aria-hidden");
-        root.inert = false;
+        createRoot().hidden = false;
         render();
       } catch (fallbackError) {
         console.error("[VN ACCOUNT] Could not render account panel:", fallbackError);
@@ -1044,7 +1046,7 @@
           <p>Sign in or create an account</p>
         </div>
 
-        <div class="vn-ac-shop-space">
+        <div class="vn-ac-shop-space" hidden>
           <div id="vnAcShopLoginMount" class="vn-ac-shop-mount" aria-label="Continue with Shop"></div>
         </div>
         <div class="vn-ac-or-divider" aria-hidden="true"><span>OR</span></div>
@@ -2326,12 +2328,7 @@
 
   function closePanel() {
     const root = $("#vnAccountOverlay");
-    if (root) {
-      root.style.opacity = "0";
-      root.style.pointerEvents = "none";
-      root.setAttribute("aria-hidden", "true");
-      root.inert = true;
-    }
+    if (root) root.hidden = true;
     document.body.style.overflow = "";
   }
 
@@ -2344,12 +2341,7 @@
       state.message = "";
     }
 
-    const root = createRoot();
-    root.hidden = false;
-    root.style.opacity = "";
-    root.style.pointerEvents = "";
-    root.removeAttribute("aria-hidden");
-    root.inert = false;
+    createRoot().hidden = false;
     render();
     document.body.style.overflow = "hidden";
     window.setTimeout(focusEntry, 30);
