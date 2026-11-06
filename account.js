@@ -587,10 +587,10 @@
         z-index:1;
         pointer-events:none;
         background:radial-gradient(
-          ellipse 23% 25% at var(--vn-ac-shade-x, 50%) var(--vn-ac-shade-y, 50%),
+          ellipse 140% 140% at var(--vn-ac-shade-x, 50%) var(--vn-ac-shade-y, 50%),
           rgba(0,0,0,0) 0%,
-          rgba(0,0,0,.08) 58%,
-          rgba(0,0,0,.24) 100%
+          rgba(0,0,0,.025) 55%,
+          rgba(0,0,0,.085) 100%
         );
       }
       .vn-ac-shell.vn-ac-dashboard-open::before{
