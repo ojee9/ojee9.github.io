@@ -90,18 +90,40 @@
     const trigger = target instanceof Element ? target.closest("#profile-open") : null;
     if (!trigger) return;
 
+    const currentPath = window.location.pathname.replace(/\/+$/, "");
+    const isHomePage = currentPath === "" || /^\/index\.html$/i.test(currentPath);
     const isMerchPage = /\/merch\.html$/i.test(window.location.pathname);
 
-    if (!isMerchPage) {
+    if (!isHomePage && !isMerchPage) {
       event.preventDefault();
       event.stopImmediatePropagation();
 
-      // Open immediately, paint the panel, then continue on the canonical shop page.
+      // Preserve the instant panel open and background session restoration.
       try {
         openPanel();
       } catch (error) {
         console.error("[VN ACCOUNT] Profile panel failed to open:", error);
+        return;
       }
+
+      const authRequestAtOpen = state.sendRequestId;
+      (async () => {
+        try {
+          if (configPromise) await configPromise;
+          if (authRequestAtOpen !== state.sendRequestId || !state.user) return;
+
+          state.screen = "account";
+          state.section = "dashboard";
+          state.message = "";
+          render();
+
+          loadAccountData()
+            .then(() => render())
+            .catch(error => console.error("[VN ACCOUNT] Account data refresh failed:", error));
+        } catch (error) {
+          console.error("[VN ACCOUNT] Background session refresh failed:", error);
+        }
+      })();
 
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
