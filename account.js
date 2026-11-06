@@ -1133,6 +1133,8 @@
       let trailWidth = 0;
       let trailHeight = 0;
       let trailDpr = 1;
+      let trailExitStart = 0;
+      let trailBurst = [];
 
       const resizeTrail = () => {
         const rect = dashboardShell.getBoundingClientRect();
@@ -1166,7 +1168,9 @@
           const last = trailPoints[trailPoints.length - 1];
           path.lineTo(last.x, last.y);
 
-          const headLife = Math.max(0, 1 - (now - last.time) / 620);
+          const tailLife = Math.max(0, 1 - (now - last.time) / 620);
+          const exitLife = trailExitStart ? Math.max(0, 1 - (now - trailExitStart) / 240) : 1;
+          const headLife = tailLife * exitLife;
           trailContext.globalCompositeOperation = "screen";
           trailContext.lineCap = "round";
           trailContext.lineJoin = "round";
@@ -1196,8 +1200,32 @@
           trailContext.stroke(path);
         }
 
+        const burstAge = trailExitStart ? now - trailExitStart : 0;
+        if (trailBurst.length && burstAge < 360) {
+          trailContext.globalCompositeOperation = "screen";
+          trailBurst.forEach(particle => {
+            const progress = Math.min(1, burstAge / 360);
+            const x = particle.x + particle.vx * burstAge / 1000;
+            const y = particle.y + particle.vy * burstAge / 1000;
+            const opacity = (1 - progress) * particle.opacity;
+            trailContext.beginPath();
+            trailContext.arc(x, y, particle.radius * (1 - progress * .45), 0, Math.PI * 2);
+            trailContext.fillStyle = `rgba(255,205,240,${opacity})`;
+            trailContext.shadowColor = `rgba(255,85,195,${opacity})`;
+            trailContext.shadowBlur = 8 * (1 - progress);
+            trailContext.fill();
+          });
+        } else if (trailExitStart && burstAge >= 360) {
+          trailBurst = [];
+          trailExitStart = 0;
+        }
+
         trailContext.shadowBlur = 0;
-        if (trailPoints.length > 1) trailFrame = requestAnimationFrame(animateTrail);
+        const trailFading = trailExitStart && now - trailExitStart < 240;
+        const burstAnimating = trailExitStart && now - trailExitStart < 360;
+        if ((trailPoints.length > 1 && (!trailExitStart || trailFading)) || burstAnimating) {
+          trailFrame = requestAnimationFrame(animateTrail);
+        }
       };
 
       dashboardShell.addEventListener("pointermove", event => {
@@ -1206,6 +1234,10 @@
           || !window.matchMedia("(hover: hover) and (pointer: fine)").matches
           || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
         if (!trailWidth || trailWidth !== dashboardShell.clientWidth || trailHeight !== dashboardShell.clientHeight) resizeTrail();
+        if (trailExitStart) {
+          trailExitStart = 0;
+          trailBurst = [];
+        }
         const rect = dashboardShell.getBoundingClientRect();
         trailPoints.push({x:event.clientX - rect.left, y:event.clientY - rect.top, time:performance.now()});
         if (trailPoints.length > 16) trailPoints.shift();
@@ -1213,10 +1245,22 @@
       }, {passive:true});
 
       dashboardShell.addEventListener("pointerleave", () => {
-        trailPoints.length = 0;
-        if (trailFrame) cancelAnimationFrame(trailFrame);
-        trailFrame = 0;
-        trailContext.clearRect(0, 0, trailWidth, trailHeight);
+        if (!trailPoints.length) return;
+        const last = trailPoints[trailPoints.length - 1];
+        trailExitStart = performance.now();
+        trailBurst = Array.from({length:12}, (_, index) => {
+          const angle = (Math.PI * 2 * index) / 12 + (Math.random() - .5) * .28;
+          const speed = 45 + Math.random() * 75;
+          return {
+            x:last.x,
+            y:last.y,
+            vx:Math.cos(angle) * speed,
+            vy:Math.sin(angle) * speed,
+            radius:1.1 + Math.random() * 1.5,
+            opacity:.55 + Math.random() * .4
+          };
+        });
+        if (!trailFrame) trailFrame = requestAnimationFrame(animateTrail);
       });
       window.addEventListener("resize", resizeTrail, {passive:true});
       resizeTrail();
