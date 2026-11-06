@@ -696,7 +696,7 @@
       .vn-ac-profile-signout .vn-ac-button.danger{color:#999;border-color:#ddd}
       .vn-ac-orders-empty h2{margin:0 0 24px;font-size:22px;color:#222}
       .vn-ac-ready-row{display:flex;align-items:center;justify-content:space-between;gap:18px}
-      .vn-ac-orders-empty .vn-ac-ready-row{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;text-align:center}.vn-ac-orders-empty .vn-ac-ready-row h3{width:100%;text-align:center}
+      .vn-ac-orders-empty .vn-ac-ready-row [data-ac-section="shop"]{align-self:center;position:relative;top:0}
       .vn-ac-ready-row h3{margin:0;font-size:20px;color:#222}
       @media(max-width:700px){.vn-ac-policy-footer-row{gap:5px 10px}.vn-ac-footer-policies .vn-ac-legal-list{gap:6px 10px}}
       #profile-open.vn-ac-avatar-initial{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;box-sizing:border-box;border:1px solid #9A7955;border-radius:50%;background:#B89A76;color:#17110B;font:700 15px/1 Arial,sans-serif;text-transform:uppercase;box-shadow:0 0 0 2px rgba(184,154,118,.22),0 1px 5px rgba(0,0,0,.22)}
@@ -1129,7 +1129,7 @@
       trailCanvas.setAttribute("aria-hidden", "true");
       dashboardShell.prepend(trailCanvas);
 
-      const trailContext = trailCanvas.getContext("2d", { alpha: true, desynchronized: true });
+      const trailContext = trailCanvas.getContext("2d", { alpha: true });
       const trailPoints = [];
       let trailFrame = 0;
       let trailWidth = 0;
@@ -1139,16 +1139,14 @@
       let trailBurst = [];
       let trailPath = null;
       let trailPathDirty = true;
-      let lastTrailRender = 0;
       const TRAIL_LIFE = 620;
       const EXIT_FADE = 320;
-      const BURST_LIFE = 420;
-      const MAX_TRAIL_POINTS = 42;
-      const FRAME_INTERVAL = 1000 / 45;
+      const BURST_LIFE = 480;
+      const MAX_TRAIL_POINTS = 72;
 
       const resizeTrail = () => {
         const rect = dashboardShell.getBoundingClientRect();
-        trailDpr = Math.min(window.devicePixelRatio || 1, .85);
+        trailDpr = Math.min(window.devicePixelRatio || 1, 1);
         trailWidth = rect.width;
         trailHeight = rect.height;
         trailCanvas.width = Math.round(trailWidth * trailDpr);
@@ -1159,23 +1157,32 @@
 
       const addTrailPoint = (x, y, time) => {
         const previous = trailPoints[trailPoints.length - 1];
-        if (previous && Math.hypot(x - previous.x, y - previous.y) < 1.8) return;
+        if (previous) {
+          const dx = x - previous.x;
+          const dy = y - previous.y;
+          const distance = Math.hypot(dx, dy);
+          const steps = Math.min(32, Math.max(1, Math.ceil(distance / 6)));
+          for (let step = 1; step < steps; step++) {
+            const ratio = step / steps;
+            trailPoints.push({
+              x: previous.x + dx * ratio,
+              y: previous.y + dy * ratio,
+              time
+            });
+          }
+        }
         trailPoints.push({x, y, time});
-        if (trailPoints.length > MAX_TRAIL_POINTS) trailPoints.splice(0, trailPoints.length - MAX_TRAIL_POINTS);
+        if (trailPoints.length > MAX_TRAIL_POINTS) {
+          trailPoints.splice(0, trailPoints.length - MAX_TRAIL_POINTS);
+        }
         trailPathDirty = true;
       };
 
-      const animateTrail = timestamp => {
+      const animateTrail = () => {
         trailFrame = 0;
-        const now = timestamp || performance.now();
-        if (now - lastTrailRender < FRAME_INTERVAL - 1) {
-          trailFrame = requestAnimationFrame(animateTrail);
-          return;
-        }
-        lastTrailRender = now;
-
-        let expiredCount = 0;
-        while (expiredCount < trailPoints.length && now - trailPoints[expiredCount].time >= TRAIL_LIFE) expiredCount++;
+        const now = performance.now();
+        const firstLivePoint = trailPoints.findIndex(point => now - point.time < TRAIL_LIFE);
+        const expiredCount = firstLivePoint < 0 ? trailPoints.length : firstLivePoint;
         if (expiredCount) {
           trailPoints.splice(0, expiredCount);
           trailPathDirty = true;
@@ -1190,7 +1197,11 @@
             for (let i = 1; i < trailPoints.length - 1; i++) {
               const current = trailPoints[i];
               const next = trailPoints[i + 1];
-              trailPath.quadraticCurveTo(current.x, current.y, (current.x + next.x) / 2, (current.y + next.y) / 2);
+              trailPath.quadraticCurveTo(
+                current.x, current.y,
+                (current.x + next.x) / 2,
+                (current.y + next.y) / 2
+              );
             }
             trailPath.lineTo(last.x, last.y);
             trailPathDirty = false;
@@ -1198,29 +1209,34 @@
 
           const tailLife = Math.max(0, 1 - (now - last.time) / TRAIL_LIFE);
           const exitLife = trailExitStart ? Math.max(0, 1 - (now - trailExitStart) / EXIT_FADE) : 1;
-          const life = tailLife * exitLife;
+          const headLife = tailLife * exitLife;
           trailContext.globalCompositeOperation = "screen";
           trailContext.lineCap = "round";
           trailContext.lineJoin = "round";
 
-          // Keep the original broad pink-to-white layered trail; apply blur only once.
-          trailContext.strokeStyle = `rgba(255,105,210,${life * .19})`;
-          trailContext.lineWidth = 19 * life;
-          trailContext.shadowColor = `rgba(255,75,190,${life * .34})`;
-          trailContext.shadowBlur = 5 * life;
+          // Restore the original full-width, layered pink/white trail treatment.
+          trailContext.strokeStyle = `rgba(255,105,210,${headLife * .16})`;
+          trailContext.lineWidth = 19 * headLife;
+          trailContext.shadowColor = `rgba(255,75,190,${headLife * .28})`;
+          trailContext.shadowBlur = 5 * headLife;
           trailContext.stroke(trailPath);
 
-          trailContext.shadowBlur = 0;
-          trailContext.strokeStyle = `rgba(255,80,190,${life * .25})`;
-          trailContext.lineWidth = 10.5 * life;
+          trailContext.strokeStyle = `rgba(255,80,190,${headLife * .22})`;
+          trailContext.lineWidth = 10.5 * headLife;
+          trailContext.shadowColor = `rgba(255,65,180,${headLife * .24})`;
+          trailContext.shadowBlur = 3 * headLife;
           trailContext.stroke(trailPath);
 
-          trailContext.strokeStyle = `rgba(255,150,225,${life * .4})`;
-          trailContext.lineWidth = 6.5 * life;
+          trailContext.strokeStyle = `rgba(255,150,225,${headLife * .36})`;
+          trailContext.lineWidth = 6.5 * headLife;
+          trailContext.shadowColor = `rgba(255,115,210,${headLife * .25})`;
+          trailContext.shadowBlur = 2 * headLife;
           trailContext.stroke(trailPath);
 
-          trailContext.strokeStyle = `rgba(255,240,250,${life * .76})`;
-          trailContext.lineWidth = 3.2 * life;
+          trailContext.strokeStyle = `rgba(255,240,250,${headLife * .7})`;
+          trailContext.lineWidth = 3.2 * headLife;
+          trailContext.shadowColor = `rgba(255,190,235,${headLife * .35})`;
+          trailContext.shadowBlur = 1.5 * headLife;
           trailContext.stroke(trailPath);
         }
 
@@ -1229,9 +1245,15 @@
           const progress = Math.min(1, burstAge / BURST_LIFE);
           const origin = trailBurst[0];
           trailContext.globalCompositeOperation = "screen";
+
+          const flashRadius = 22 * (1 - progress);
+          const flash = trailContext.createRadialGradient(origin.x, origin.y, 0, origin.x, origin.y, flashRadius);
+          flash.addColorStop(0, `rgba(255,255,255,${.95 * (1 - progress)})`);
+          flash.addColorStop(.28, `rgba(255,175,230,${.65 * (1 - progress)})`);
+          flash.addColorStop(1, "rgba(255,90,195,0)");
+          trailContext.fillStyle = flash;
           trailContext.beginPath();
-          trailContext.arc(origin.x, origin.y, 15 * (1 - progress), 0, Math.PI * 2);
-          trailContext.fillStyle = `rgba(255,220,248,${.42 * (1 - progress)})`;
+          trailContext.arc(origin.x, origin.y, flashRadius, 0, Math.PI * 2);
           trailContext.fill();
 
           trailBurst.forEach(particle => {
@@ -1241,6 +1263,8 @@
             trailContext.beginPath();
             trailContext.arc(x, y, particle.radius * (1 - progress * .45), 0, Math.PI * 2);
             trailContext.fillStyle = `rgba(255,220,248,${opacity})`;
+            trailContext.shadowColor = `rgba(255,70,190,${opacity})`;
+            trailContext.shadowBlur = 10 * (1 - progress);
             trailContext.fill();
           });
         } else if (trailExitStart && burstAge >= BURST_LIFE) {
@@ -1254,8 +1278,7 @@
         trailContext.shadowBlur = 0;
         const trailFading = trailExitStart && now - trailExitStart < EXIT_FADE;
         const burstAnimating = trailExitStart && now - trailExitStart < BURST_LIFE;
-        const pointsFading = trailPoints.length > 1 && now - last.time < TRAIL_LIFE;
-        if (pointsFading || trailFading || burstAnimating) {
+        if ((trailPoints.length > 1 && (!trailExitStart || trailFading)) || burstAnimating) {
           trailFrame = requestAnimationFrame(animateTrail);
         }
       };
@@ -1292,21 +1315,10 @@
           trailExitStart = 0;
           trailBurst = [];
         }
-        const rect = dashboardShell.getBoundingClientRect();
         const samples = typeof event.getCoalescedEvents === "function" ? event.getCoalescedEvents() : [event];
         const now = performance.now();
-        const sampleCount = samples.length;
-        const stride = Math.max(1, Math.ceil(sampleCount / 10));
-        for (let i = 0; i < sampleCount; i += stride) {
-          const sample = samples[i];
-          addTrailPoint(
-            Math.max(0, Math.min(rect.width, sample.clientX - rect.left)),
-            Math.max(0, Math.min(rect.height, sample.clientY - rect.top)),
-            now
-          );
-        }
-        if (sampleCount && (sampleCount - 1) % stride !== 0) {
-          const sample = samples[sampleCount - 1];
+        const rect = dashboardShell.getBoundingClientRect();
+        for (const sample of (samples.length ? samples : [event])) {
           addTrailPoint(
             Math.max(0, Math.min(rect.width, sample.clientX - rect.left)),
             Math.max(0, Math.min(rect.height, sample.clientY - rect.top)),
@@ -1320,18 +1332,19 @@
         if (!dashboardShell.classList.contains("vn-ac-dashboard-open")) return;
         const point = getLocalPoint(event);
         const now = performance.now();
-        addTrailPoint(point.x, point.y, now);
+        if (!trailPoints.length) addTrailPoint(point.x, point.y, now);
+        else addTrailPoint(point.x, point.y, now);
         trailExitStart = now;
-        trailBurst = Array.from({length:12}, (_, index) => {
-          const angle = (Math.PI * 2 * index) / 12 + (Math.random() - .5) * .22;
-          const speed = 48 + Math.random() * 78;
+        trailBurst = Array.from({length:20}, (_, index) => {
+          const angle = (Math.PI * 2 * index) / 20 + (Math.random() - .5) * .22;
+          const speed = 55 + Math.random() * 95;
           return {
             x:point.x,
             y:point.y,
             vx:Math.cos(angle) * speed,
             vy:Math.sin(angle) * speed,
-            radius:1.2 + Math.random() * 1.5,
-            opacity:.7 + Math.random() * .3
+            radius:1.3 + Math.random() * 1.8,
+            opacity:.72 + Math.random() * .28
           };
         });
         if (!trailFrame) trailFrame = requestAnimationFrame(animateTrail);
