@@ -113,21 +113,20 @@
 
         if (state.clerk && state.authProvider !== "shop") {
           syncClerkUser(state.clerk.user || null);
-          state.screen = state.user ? "account" : "email";
         }
 
-        if (state.user) {
-          state.section = "dashboard";
-          state.message = "";
-        }
+        // An unauthenticated email screen is already rendered by openPanel().
+        // Re-rendering it here would detach and recreate the Shopify web component.
+        if (!state.user) return;
 
+        state.screen = "account";
+        state.section = "dashboard";
+        state.message = "";
         render();
 
-        if (state.user) {
-          loadAccountData()
-            .then(() => render())
-            .catch(error => console.error("[VN ACCOUNT] Account data refresh failed:", error));
-        }
+        loadAccountData()
+          .then(() => render())
+          .catch(error => console.error("[VN ACCOUNT] Account data refresh failed:", error));
       } catch (error) {
         console.error("[VN ACCOUNT] Background session refresh failed:", error);
       }
@@ -1204,7 +1203,7 @@
 
         return initialize({
           clientId: SHOP_CLIENT_ID,
-          locale: "tr",
+          locale: "en",
           features: { login: true }
         });
       }).catch(error => {
