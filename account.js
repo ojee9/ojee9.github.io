@@ -1117,10 +1117,10 @@
       let trailBurst = [];
       let trailPath = null;
       let trailPathDirty = true;
-      const TRAIL_LIFE = 620;
+      const TRAIL_LIFE = 680;
       const EXIT_FADE = 320;
       const BURST_LIFE = 480;
-      const MAX_TRAIL_POINTS = 16;
+      const MAX_TRAIL_POINTS = 18;
 
       const resizeTrail = () => {
         const rect = dashboardShell.getBoundingClientRect();
