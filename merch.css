@@ -321,15 +321,15 @@ body[data-product-page="true"] #detail-overlay .drawer *{-webkit-user-select:non
   body[data-product-page="true"] #detail-overlay .detail-thumbnails{max-height:none;overflow:visible}
 }
 /* Match the cart drawer to the poster product-card surround. */
-#cart-overlay .drawer,
-#cart-overlay .drawer-head,
-#cart-overlay .cart-summary{background:#EAE5DC}
+:is(#cart-overlay,#help-cart-overlay) .drawer,
+:is(#cart-overlay,#help-cart-overlay) .drawer-head,
+:is(#cart-overlay,#help-cart-overlay) .cart-summary{background:#EAE5DC}
 
 /* CART splash overlay — full-panel brush-splatter layer */
-#cart-overlay .drawer{
+:is(#cart-overlay,#help-cart-overlay) .drawer{
   isolation:isolate;
 }
-#cart-overlay .drawer::before{
+:is(#cart-overlay,#help-cart-overlay) .drawer::before{
   content:"";
   position:absolute;
   inset:0;
@@ -341,11 +341,11 @@ body[data-product-page="true"] #detail-overlay .drawer *{-webkit-user-select:non
   opacity:.78;
   mix-blend-mode:normal;
 }
-#cart-overlay .drawer-head{
+:is(#cart-overlay,#help-cart-overlay) .drawer-head{
   z-index:2;
   background:transparent;
 }
-#cart-overlay .drawer-content{
+:is(#cart-overlay,#help-cart-overlay) .drawer-content{
   position:relative;
   z-index:1;
 }

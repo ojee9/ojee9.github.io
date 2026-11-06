@@ -290,7 +290,7 @@
     count.textContent = quantity;
     cartTitle.textContent = "YOUR CART (" + quantity + ")";
     if (!cart.length) {
-      cartContent.innerHTML = '<div class="drawer-empty"><h2>Your cart is empty</h2><button type="button" class="secondary-button" id="help-cart-continue">CONTINUE SHOPPING</button></div>';
+      cartContent.innerHTML = '<div class="drawer-empty"><h2>Your cart is empty</h2><p></p><button type="button" class="secondary-button" id="help-cart-continue">CONTINUE SHOPPING</button></div>';
       document.getElementById("help-cart-continue").onclick = continueShopping;
       return;
     }
