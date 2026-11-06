@@ -546,7 +546,7 @@
         opacity:.72;
         mix-blend-mode:normal;
       }
-      .vn-ac-card{position:relative;z-index:1;border:1px solid #151515;border-radius:5px;padding:22px;min-height:135px;display:flex;flex-direction:column;align-items:flex-start;text-align:left;background:#000;color:#fff;cursor:pointer;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;outline:none}
+      .vn-ac-card{position:relative;z-index:1;border:1px solid #151515;border-radius:5px;padding:22px;min-height:135px;display:flex;flex-direction:column;align-items:flex-start;text-align:left;background:#494E51;color:#fff;cursor:pointer;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;outline:none}
       .vn-ac-card strong{font-size:13px;letter-spacing:.045em;margin-bottom:9px;color:#fff}
       .vn-ac-card span{font-size:13px;color:#fff}
       .vn-ac-card:hover{border-color:#888}
@@ -732,7 +732,7 @@
       .vn-ac-profile-signout{display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;gap:9px;margin-top:22px;padding-top:0;border-top:0}
       .vn-ac-profile-signout .vn-ac-button{font-size:10px;letter-spacing:.7px}
       .vn-ac-empty{padding:24px;border:1px solid #e5e5e5;color:#777;font-size:13px}
-      .vn-ac-orders-empty{background:#000;border-color:#000;color:#fff}
+      .vn-ac-orders-empty{background:#494E51;border-color:#494E51;color:#fff}
       .vn-ac-orders-empty h1,.vn-ac-orders-empty h2,.vn-ac-orders-empty h3,.vn-ac-orders-empty p{color:#fff}
       .vn-ac-orders-empty .vn-ac-button{background:#fff;color:#000;border-color:#fff}
       /* One fixed-size dashboard shell for every signed-in section, including views without .vn-ac-layout. */
