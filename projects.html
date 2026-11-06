@@ -429,10 +429,8 @@
           return;
         }
 
-        const contentHeight = projectsContent.offsetHeight;
-        const panelHeight = filterPanel.offsetHeight;
-        const centeredOffset = Math.round((contentHeight - panelHeight) / 2);
-        filterPanel.style.marginTop = `${Math.max(0, centeredOffset - 24)}px`;
+        const sectionHeading = projectsContent.querySelector(".section-heading");
+        filterPanel.style.marginTop = `${sectionHeading ? sectionHeading.offsetHeight : 0}px`;
       }
 
       window.addEventListener("resize", updateFilterPanelPosition, { passive: true });
