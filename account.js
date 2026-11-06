@@ -83,8 +83,9 @@
 
   startShopLoginPreload();
 
-  // Open the account panel immediately on click. Session/config requests must
-  // never block the visible response to the profile icon.
+  // Shop subpages do not load Clerk. Send profile clicks straight to the
+  // main shop page, where the existing Clerk instance opens the account panel.
+  // Keep the main shop page's instant panel behavior unchanged.
   document.addEventListener("click", event => {
     const target = event.target;
     const trigger = target instanceof Element ? target.closest("#profile-open") : null;
@@ -97,39 +98,7 @@
     if (!isHomePage && !isMerchPage) {
       event.preventDefault();
       event.stopImmediatePropagation();
-
-      // Preserve the instant panel open and background session restoration.
-      try {
-        openPanel();
-      } catch (error) {
-        console.error("[VN ACCOUNT] Profile panel failed to open:", error);
-        return;
-      }
-
-      const authRequestAtOpen = state.sendRequestId;
-      (async () => {
-        try {
-          if (configPromise) await configPromise;
-          if (authRequestAtOpen !== state.sendRequestId || !state.user) return;
-
-          state.screen = "account";
-          state.section = "dashboard";
-          state.message = "";
-          render();
-
-          loadAccountData()
-            .then(() => render())
-            .catch(error => console.error("[VN ACCOUNT] Account data refresh failed:", error));
-        } catch (error) {
-          console.error("[VN ACCOUNT] Background session refresh failed:", error);
-        }
-      })();
-
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          window.location.replace(new URL("/merch.html#profile", window.location.origin).href);
-        });
-      });
+      window.location.replace(new URL("/merch.html#profile", window.location.origin).href);
       return;
     }
 
