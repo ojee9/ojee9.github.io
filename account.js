@@ -708,7 +708,7 @@
       .vn-ac-save-address{background:#24170F;border-color:#24170F;color:#fff}
       .vn-ac-orders-empty h1,.vn-ac-orders-empty h2,.vn-ac-orders-empty h3,.vn-ac-orders-empty p{color:#fff}
       .vn-ac-orders-empty .vn-ac-button{background:#fff;color:#000;border-color:#fff}
-      .vn-ac-orders-empty .vn-ac-button[data-ac-section="shop"]{background:#24170F;border-color:#24170F;color:#fff}
+      .vn-ac-orders-empty .vn-ac-button[data-ac-section="shop"]{display:inline-flex;align-items:center;justify-content:center;text-align:center;min-width:112px;min-height:44px;padding:11px 20px;font-size:14px;line-height:1.2;background:#24170F;border-color:#24170F;color:#fff}
       /* One fixed-size dashboard shell for every signed-in section, including views without .vn-ac-layout. */
       .vn-ac-shell.vn-ac-dashboard-open{
         position:relative;
@@ -1160,6 +1160,7 @@
         }
         trailContext.clearRect(0, 0, trailWidth, trailHeight);
 
+        const last = trailPoints[trailPoints.length - 1];
         if (trailPoints.length > 1) {
           if (trailPathDirty || !trailPath) {
             trailPath = new Path2D();
@@ -1173,7 +1174,6 @@
                 (current.y + next.y) / 2
               );
             }
-            const last = trailPoints[trailPoints.length - 1];
             trailPath.lineTo(last.x, last.y);
             trailPathDirty = false;
           }
@@ -1250,8 +1250,16 @@
           trailBurst = [];
         }
         const rect = dashboardShell.getBoundingClientRect();
-        trailPoints.push({x:event.clientX - rect.left, y:event.clientY - rect.top, time:performance.now()});
-        if (trailPoints.length > 16) trailPoints.shift();
+        const samples = typeof event.getCoalescedEvents === "function" ? event.getCoalescedEvents() : [event];
+        const now = performance.now();
+        for (const sample of (samples.length ? samples : [event])) {
+          trailPoints.push({
+            x:sample.clientX - rect.left,
+            y:sample.clientY - rect.top,
+            time:now
+          });
+        }
+        if (trailPoints.length > 20) trailPoints.splice(0, trailPoints.length - 20);
         trailPathDirty = true;
         if (!trailFrame) trailFrame = requestAnimationFrame(animateTrail);
       }, {passive:true});
