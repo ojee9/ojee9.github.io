@@ -697,6 +697,7 @@
           return;
         }
 
+        restoreFilterPanelPositionAfterEmptyState();
         grid.innerHTML = filtered.map(event => `
           <article class="event-card">
             <a class="event-image-link"
@@ -761,6 +762,7 @@
           return;
         }
 
+        restoreFilterPanelPositionAfterEmptyState();
         grid.innerHTML = filtered.map(entry => `
           <article class="event-card" data-entry-id="${entry.id}">
             <div class="event-image-link">
@@ -812,7 +814,25 @@
         updateEntryTagScrollHints();
       }
 
+      let filterPanelMarginBeforeEmptyState = null;
+
+      function adjustFilterPanelForEmptyState() {
+        if (window.innerWidth <= 650 || filterPanelMarginBeforeEmptyState !== null) return;
+
+        filterPanelMarginBeforeEmptyState = filterPanel.style.marginTop;
+        const currentOffset = parseFloat(filterPanel.style.marginTop) || 0;
+        filterPanel.style.marginTop = `${Math.max(0, currentOffset - 28)}px`;
+      }
+
+      function restoreFilterPanelPositionAfterEmptyState() {
+        if (filterPanelMarginBeforeEmptyState === null) return;
+
+        filterPanel.style.marginTop = filterPanelMarginBeforeEmptyState;
+        filterPanelMarginBeforeEmptyState = null;
+      }
+
       function renderNoResults(message = "NO ENTRIES YET") {
+        adjustFilterPanelForEmptyState();
         resultCount.textContent = "0 ENTRIES";
 
         grid.innerHTML = `
