@@ -50,7 +50,9 @@
     shopGen: 0,
     shopTimer: null,
     authProvider: "",
-    shopSessionToken: ""
+    shopSessionToken: "",
+    workerSessionToken: "",
+    workerSessionPromise: null
   };
 
   let configPromise = null;
@@ -184,6 +186,7 @@
         if (user) {
           loadAccountData().finally(render);
         } else {
+          storeWorkerSessionToken("");
           state.profile = {};
           state.addresses = [];
           state.orders = [];
@@ -232,6 +235,74 @@
     updateAccountAvatar();
   }
 
+  const ACCOUNT_API = "https://vn-shop-account-api.9ojeez9.workers.dev";
+  const ACCOUNT_SESSION_KEY = "vn_account_session";
+
+  function readWorkerSessionToken() {
+    if (state.workerSessionToken) return state.workerSessionToken;
+    try { state.workerSessionToken = sessionStorage.getItem(ACCOUNT_SESSION_KEY) || ""; }
+    catch (_) { state.workerSessionToken = ""; }
+    return state.workerSessionToken;
+  }
+
+  function storeWorkerSessionToken(token) {
+    state.workerSessionToken = token || "";
+    try {
+      if (token) sessionStorage.setItem(ACCOUNT_SESSION_KEY, token);
+      else sessionStorage.removeItem(ACCOUNT_SESSION_KEY);
+    } catch (_) {}
+  }
+
+  async function exchangeWorkerSession() {
+    if (state.workerSessionPromise) return state.workerSessionPromise;
+    state.workerSessionPromise = (async () => {
+      const clerkSession = state.clerk?.session;
+      if (!clerkSession || typeof clerkSession.getToken !== "function") {
+        throw new Error("Your verified sign-in session is not ready. Please sign in again.");
+      }
+      const clerkToken = await clerkSession.getToken();
+      if (!clerkToken) throw new Error("Could not verify your sign-in session. Please sign in again.");
+      const response = await fetch(ACCOUNT_API + "/api/auth/exchange", {
+        method: "POST",
+        headers: { Authorization: "Bearer " + clerkToken }
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.token) throw new Error(result.error || "Could not establish your secure account session.");
+      storeWorkerSessionToken(result.token);
+      return result.token;
+    })();
+    try {
+      return await state.workerSessionPromise;
+    } finally {
+      state.workerSessionPromise = null;
+    }
+  }
+
+  async function accountApi(path, options = {}) {
+    let token = readWorkerSessionToken();
+    if (!token) token = await exchangeWorkerSession();
+    const send = currentToken => fetch(ACCOUNT_API + path, {
+      ...options,
+      headers: {
+        ...(options.body ? { "Content-Type": "application/json" } : {}),
+        ...(options.headers || {}),
+        Authorization: "Bearer " + currentToken
+      }
+    });
+    let response = await send(token);
+    if (response.status === 401 && path !== "/api/auth/exchange") {
+      storeWorkerSessionToken("");
+      token = await exchangeWorkerSession();
+      response = await send(token);
+    }
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      if (response.status === 401) storeWorkerSessionToken("");
+      throw new Error(result.error || "Account request failed (" + response.status + ").");
+    }
+    return result;
+  }
+
   function userCountry() {
     const locale = navigator.language || "";
     const region = locale.split("-")[1]?.toUpperCase();
@@ -252,20 +323,33 @@
     if (!state.clerkUser) return;
     state.loadingData = true;
     try {
+      const result = await accountApi("/api/account");
       state.profile = {
-        ...state.profile,
-        first_name: state.clerkUser.firstName || "",
-        last_name: state.clerkUser.lastName || ""
+        ...(result.profile || {}),
+        first_name: result.profile?.first_name || state.clerkUser.firstName || "",
+        last_name: result.profile?.last_name || state.clerkUser.lastName || ""
       };
+      state.addresses = Array.isArray(result.addresses) ? result.addresses : [];
       state.country = state.profile.country || userCountry();
       state.marketingUpdates = state.profile.marketing_updates !== false;
       state.orders = [];
       state.returns = [];
+      state.user.user_metadata = {
+        ...(state.user.user_metadata || {}),
+        first_name: state.profile.first_name,
+        last_name: state.profile.last_name
+      };
       updateAccountAvatar();
+    } catch (error) {
+      console.error("[VN ACCOUNT] Could not load account data from VN database:", error);
+      state.messageType = "error";
+      state.message = "Could not load your saved account data: " + (error.message || "Please try again.");
+      throw error;
     } finally {
       state.loadingData = false;
     }
   }
+
 
   function injectStyles() {
     if ($("#vnAccountStyles")) return;
@@ -2202,46 +2286,45 @@
     const data = new FormData(form);
     const email = String(data.get("email") || "").trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      state.messageType = "error";
-      state.message = "Enter a valid email address.";
-      render();
-      return;
+      state.messageType = "error"; state.message = "Enter a valid email address."; render(); return;
     }
-
     const currentEmail = String(state.user.email || state.email || "").trim().toLowerCase();
     if (email.toLowerCase() !== currentEmail) {
       state.section = "edit-contact";
       state.messageType = "error";
       state.message = "To change the sign-in email, use the email verification flow. Email changes are not available in this profile form yet.";
+      render(); return;
+    }
+    const firstName = String(data.get("first_name") || "").trim();
+    const lastName = String(data.get("last_name") || "").trim();
+    if (state.authProvider === "shop") {
+      state.profile = { ...state.profile, first_name: firstName, last_name: lastName };
+      state.user.user_metadata = { ...(state.user.user_metadata || {}), first_name: firstName, last_name: lastName };
+      state.section = "profile";
+      state.messageType = "info";
+      state.message = "Profile updated for this session only.";
       render();
       return;
     }
-
-    const firstName = String(data.get("first_name") || "").trim();
-    const lastName = String(data.get("last_name") || "").trim();
     try {
-      if (state.authProvider === "clerk" && state.clerkUser) {
-        await state.clerkUser.update({ firstName, lastName });
-        syncClerkUser(state.clerk.user || state.clerkUser);
-      }
+      await accountApi("/api/profile", { method: "PUT", body: JSON.stringify({ first_name: firstName, last_name: lastName }) });
       state.profile = { ...state.profile, first_name: firstName, last_name: lastName };
-      if (state.user) state.user.user_metadata = { ...(state.user.user_metadata || {}), first_name: firstName, last_name: lastName };
+      state.user.user_metadata = { ...(state.user.user_metadata || {}), first_name: firstName, last_name: lastName };
       state.section = "profile";
       state.messageType = "success";
-      state.message = state.authProvider === "shop" ? "Profile updated for this session only." : "Profile updated.";
+      state.message = "Profile updated.";
     } catch (error) {
       state.messageType = "error";
-      state.message = "Could not save your profile: " +
-        (error?.errors?.[0]?.message || error.message || "Please try again.");
+      state.message = "Could not save your profile: " + (error.message || "Please try again.");
     }
     render();
   }
+
 
   async function saveAddress(form) {
     if (!state.user) return;
     const data = new FormData(form);
     const address = {
-      id: "session-" + Date.now(),
       first_name: String(data.get("first_name") || "").trim(),
       last_name: String(data.get("last_name") || "").trim(),
       address: String(data.get("address") || "").trim(),
@@ -2252,32 +2335,75 @@
       phone: String(data.get("phone") || "").trim(),
       is_default: data.get("is_default") === "on"
     };
-    if (address.is_default) {
-      state.addresses = state.addresses.map(item => ({ ...item, is_default: false }));
+    if (state.authProvider === "shop") {
+      if (address.is_default) state.addresses = state.addresses.map(item => ({ ...item, is_default: false }));
+      state.addresses.unshift({ ...address, id: "session-" + Date.now() });
+      state.section = "addresses";
+      state.messageType = "info";
+      state.message = "Address added for this session only.";
+      render();
+      return;
     }
-    state.addresses.unshift(address);
-    state.section = "addresses";
-    state.messageType = "info";
-    state.message = "Address added for this session only. Secure cross-device address storage is not connected yet.";
+    try {
+      await accountApi("/api/addresses", { method: "POST", body: JSON.stringify(address) });
+      await loadAccountData();
+      state.section = "addresses";
+      state.messageType = "success";
+      state.message = "Address saved to your account.";
+    } catch (error) {
+      state.messageType = "error";
+      state.message = "Could not save your address: " + (error.message || "Please try again.");
+    }
     render();
   }
+
 
   async function deleteAddress(id) {
     if (!confirm("Delete this saved address?")) return;
-    state.addresses = state.addresses.filter(item => String(item.id) !== String(id));
-    state.messageType = "success";
-    state.message = "Address deleted from this session.";
+    if (state.authProvider === "shop") {
+      state.addresses = state.addresses.filter(item => String(item.id) !== String(id));
+      state.messageType = "info";
+      state.message = "Address deleted from this session.";
+      render();
+      return;
+    }
+    try {
+      await accountApi("/api/addresses/" + encodeURIComponent(id), { method: "DELETE" });
+      await loadAccountData();
+      state.messageType = "success";
+      state.message = "Address deleted.";
+    } catch (error) {
+      state.messageType = "error";
+      state.message = "Could not delete the address: " + (error.message || "Please try again.");
+    }
     render();
   }
 
+
   async function saveMarketingPreference(enabled) {
     if (!state.user) return;
-    state.marketingUpdates = enabled;
-    state.profile = { ...state.profile, marketing_updates: enabled };
-    state.messageType = "info";
-    state.message = "Marketing preference updated for this session only. Persistent preference storage is not connected yet.";
+    if (state.authProvider === "shop") {
+      state.marketingUpdates = Boolean(enabled);
+      state.profile = { ...state.profile, marketing_updates: Boolean(enabled) };
+      state.messageType = "info";
+      state.message = "Marketing preference updated for this session only.";
+      render();
+      return;
+    }
+    try {
+      await accountApi("/api/profile", { method: "PUT", body: JSON.stringify({ marketing_updates: Boolean(enabled) }) });
+      state.marketingUpdates = Boolean(enabled);
+      state.profile = { ...state.profile, marketing_updates: Boolean(enabled) };
+      state.messageType = "success";
+      state.message = "Marketing preference saved.";
+    } catch (error) {
+      state.marketingUpdates = !Boolean(enabled);
+      state.messageType = "error";
+      state.message = "Could not save your marketing preference: " + (error.message || "Please try again.");
+    }
     render();
   }
+
 
   async function signOut(allDevices = false) {
     if (state.authProvider === "shop") {
@@ -2298,21 +2424,26 @@
     }
     if (!state.clerk) return;
     try {
-      if (allDevices) {
-        await state.clerk.signOut();
-      } else if (state.clerk.session?.id) {
-        await state.clerk.signOut({ sessionId: state.clerk.session.id });
-      } else {
-        await state.clerk.signOut();
+      const workerToken = readWorkerSessionToken();
+      if (workerToken) {
+        try {
+          await fetch(ACCOUNT_API + "/api/auth/logout", { method: "POST", headers: { Authorization: "Bearer " + workerToken } });
+        } catch (error) {
+          console.warn("[VN ACCOUNT] VN session revocation request failed:", error);
+        }
       }
+      storeWorkerSessionToken("");
+      if (allDevices) await state.clerk.signOut();
+      else if (state.clerk.session?.id) await state.clerk.signOut({ sessionId: state.clerk.session.id });
+      else await state.clerk.signOut();
       closePanel();
     } catch (error) {
       state.messageType = "error";
-      state.message = "Could not sign out: " +
-        (error?.errors?.[0]?.message || error.message || "Please try again.");
+      state.message = "Could not sign out: " + (error?.errors?.[0]?.message || error.message || "Please try again.");
       render();
     }
   }
+
 
   async function createReturn(form) {
     state.messageType = "error";
@@ -2661,11 +2792,22 @@
     const country = event.target.closest("[data-ac-country]");
 
     if (country) {
+      const previousCountry = state.country;
       state.country = country.value;
-
-      state.profile = { ...state.profile, country: state.country };
-      state.messageType = "info";
-      state.message = "Country preference updated for this session only.";
+      try {
+        if (state.authProvider === "clerk") {
+          await accountApi("/api/profile", { method: "PUT", body: JSON.stringify({ country: state.country }) });
+        }
+        state.profile = { ...state.profile, country: state.country };
+        state.messageType = state.authProvider === "shop" ? "info" : "success";
+        state.message = state.authProvider === "shop"
+          ? "Country preference updated for this session only."
+          : "Country preference saved.";
+      } catch (error) {
+        state.country = previousCountry;
+        state.messageType = "error";
+        state.message = "Could not save your country preference: " + (error.message || "Please try again.");
+      }
       const current = document.querySelector("#vnAccountOverlay [data-ac-country]");
       if (current) current.blur();
       render();
