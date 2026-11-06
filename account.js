@@ -96,20 +96,11 @@
       event.preventDefault();
       event.stopImmediatePropagation();
 
-      const openCurrentPageDashboard = () => {
+      // Match merch.html: open immediately and restore the account session in the background.
+      try {
         openPanel();
-        state.screen = "account";
-        state.section = "dashboard";
-        state.message = "";
-        render();
-
-        loadAccountData()
-          .then(() => render())
-          .catch(error => console.error("[VN ACCOUNT] Account data refresh failed:", error));
-      };
-
-      if (state.user) {
-        openCurrentPageDashboard();
+      } catch (error) {
+        console.error("[VN ACCOUNT] Profile panel failed to open:", error);
         return;
       }
 
@@ -117,16 +108,18 @@
       (async () => {
         try {
           if (configPromise) await configPromise;
-          if (authRequestAtOpen !== state.sendRequestId) return;
+          if (authRequestAtOpen !== state.sendRequestId || !state.user) return;
 
-          if (state.user) {
-            openCurrentPageDashboard();
-          } else {
-            window.location.href = new URL("/merch.html#profile", window.location.origin).href;
-          }
+          state.screen = "account";
+          state.section = "dashboard";
+          state.message = "";
+          render();
+
+          loadAccountData()
+            .then(() => render())
+            .catch(error => console.error("[VN ACCOUNT] Account data refresh failed:", error));
         } catch (error) {
-          console.error("[VN ACCOUNT] Could not restore the VN Account session:", error);
-          window.location.href = new URL("/merch.html#profile", window.location.origin).href;
+          console.error("[VN ACCOUNT] Background session refresh failed:", error);
         }
       })();
       return;
@@ -2136,6 +2129,14 @@
     const normalizedEmail = String(email || "").trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
       state.messageType = "error"; state.message = "Enter a valid email address."; state.screen = "email"; render(); return;
+    }
+    // Email OTP remains on merch.html, where Clerk is loaded. The Shop
+    // login button is available immediately on every page through its preload.
+    if (!state.clerk?.loaded || !state.clerk.client) {
+      if (!/\/merch\.html$/i.test(window.location.pathname)) {
+        window.location.href = new URL("/merch.html#profile", window.location.origin).href;
+        return;
+      }
     }
     const requestId = ++state.sendRequestId;
     state.email = normalizedEmail; state.screen = "verify"; state.messageType = "info";
