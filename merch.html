@@ -776,7 +776,7 @@
       }
 
       renderCart();
-      closeOverlay(detail);
+      if (document.body.dataset.productPage !== "true") closeOverlay(detail);
     };
 
     if (document.body.dataset.productPage === "true") {
