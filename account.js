@@ -574,6 +574,19 @@
         pointer-events:none;
         opacity:.86;
       }
+      .vn-ac-shell.vn-ac-dashboard-open::after{
+        content:"";
+        position:absolute;
+        inset:0;
+        z-index:1;
+        pointer-events:none;
+        background:radial-gradient(
+          ellipse 70% 75% at var(--vn-ac-shade-x, 50%) var(--vn-ac-shade-y, 50%),
+          rgba(0,0,0,0) 0%,
+          rgba(0,0,0,.025) 52%,
+          rgba(0,0,0,.085) 100%
+        );
+      }
       .vn-ac-shell.vn-ac-dashboard-open::before{
         content:"";
         position:absolute;
@@ -913,6 +926,25 @@
       materialFrame.loading = "eager";
       dashboardShell.prepend(materialFrame);
     }
+    if (dashboardShell) {
+      const updateDashboardShade = event => {
+        if (!dashboardShell.classList.contains("vn-ac-dashboard-open")
+          || event.pointerType === "touch"
+          || !window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+        const rect = dashboardShell.getBoundingClientRect();
+        if (!rect.width || !rect.height) return;
+        const x = Math.max(0, Math.min(100, ((event.clientX - rect.left) / rect.width) * 100));
+        const y = Math.max(0, Math.min(100, ((event.clientY - rect.top) / rect.height) * 100));
+        dashboardShell.style.setProperty("--vn-ac-shade-x", x + "%");
+        dashboardShell.style.setProperty("--vn-ac-shade-y", y + "%");
+      };
+      dashboardShell.addEventListener("pointermove", updateDashboardShade, {passive:true});
+      dashboardShell.addEventListener("pointerleave", () => {
+        dashboardShell.style.setProperty("--vn-ac-shade-x", "50%");
+        dashboardShell.style.setProperty("--vn-ac-shade-y", "50%");
+      });
+    }
+
     if (dashboardShell && !dashboardShell.querySelector(".vn-ac-dashboard-trail")) {
       const trailCanvas = document.createElement("canvas");
       trailCanvas.className = "vn-ac-dashboard-trail";
