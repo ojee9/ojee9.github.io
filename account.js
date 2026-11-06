@@ -3012,7 +3012,13 @@
         closePanel();
       }
     }, 0);
-  } else if (openProfileHash || new URLSearchParams(window.location.search).get("account") === "register") {
+  } else if (openProfileHash) {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        window.setTimeout(() => openPanel(), 350);
+      });
+    });
+  } else if (new URLSearchParams(window.location.search).get("account") === "register") {
     window.setTimeout(() => openPanel(), 0);
   }
 })();
