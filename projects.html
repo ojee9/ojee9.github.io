@@ -432,7 +432,7 @@
         const contentHeight = projectsContent.offsetHeight;
         const panelHeight = filterPanel.offsetHeight;
         const centeredOffset = Math.round((contentHeight - panelHeight) / 2);
-        filterPanel.style.marginTop = `${Math.max(0, centeredOffset)}px`;
+        filterPanel.style.marginTop = `${Math.max(0, centeredOffset - 24)}px`;
       }
 
       window.addEventListener("resize", updateFilterPanelPosition, { passive: true });
@@ -814,25 +814,7 @@
         updateEntryTagScrollHints();
       }
 
-      let filterPanelMarginBeforeEmptyState = null;
-
-      function adjustFilterPanelForEmptyState() {
-        if (window.innerWidth <= 650 || filterPanelMarginBeforeEmptyState !== null) return;
-
-        filterPanelMarginBeforeEmptyState = filterPanel.style.marginTop;
-        const currentOffset = parseFloat(filterPanel.style.marginTop) || 0;
-        filterPanel.style.marginTop = `${Math.max(0, currentOffset - 44)}px`;
-      }
-
-      function restoreFilterPanelPositionAfterEmptyState() {
-        if (filterPanelMarginBeforeEmptyState === null) return;
-
-        filterPanel.style.marginTop = filterPanelMarginBeforeEmptyState;
-        filterPanelMarginBeforeEmptyState = null;
-      }
-
       function renderNoResults(message = "NO ENTRIES YET") {
-        adjustFilterPanelForEmptyState();
         resultCount.textContent = "0 ENTRIES";
 
         grid.innerHTML = `
