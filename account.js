@@ -1120,11 +1120,11 @@
       const TRAIL_LIFE = 620;
       const EXIT_FADE = 320;
       const BURST_LIFE = 480;
-      const MAX_TRAIL_POINTS = 72;
+      const MAX_TRAIL_POINTS = 16;
 
       const resizeTrail = () => {
         const rect = dashboardShell.getBoundingClientRect();
-        trailDpr = Math.min(window.devicePixelRatio || 1, 1);
+        trailDpr = Math.min(window.devicePixelRatio || 1, 2);
         trailWidth = rect.width;
         trailHeight = rect.height;
         trailCanvas.width = Math.round(trailWidth * trailDpr);
@@ -1134,25 +1134,8 @@
       };
 
       const addTrailPoint = (x, y, time) => {
-        const previous = trailPoints[trailPoints.length - 1];
-        if (previous) {
-          const dx = x - previous.x;
-          const dy = y - previous.y;
-          const distance = Math.hypot(dx, dy);
-          const steps = Math.min(32, Math.max(1, Math.ceil(distance / 6)));
-          for (let step = 1; step < steps; step++) {
-            const ratio = step / steps;
-            trailPoints.push({
-              x: previous.x + dx * ratio,
-              y: previous.y + dy * ratio,
-              time
-            });
-          }
-        }
         trailPoints.push({x, y, time});
-        if (trailPoints.length > MAX_TRAIL_POINTS) {
-          trailPoints.splice(0, trailPoints.length - MAX_TRAIL_POINTS);
-        }
+        if (trailPoints.length > MAX_TRAIL_POINTS) trailPoints.shift();
         trailPathDirty = true;
       };
 
@@ -1269,20 +1252,6 @@
         };
       };
 
-      dashboardShell.addEventListener("pointerenter", event => {
-        if (event.pointerType === "touch"
-          || !window.matchMedia("(hover: hover) and (pointer: fine)").matches
-          || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-        if (!trailWidth || trailWidth !== dashboardShell.clientWidth || trailHeight !== dashboardShell.clientHeight) resizeTrail();
-        const point = getLocalPoint(event);
-        if (trailExitStart) {
-          trailExitStart = 0;
-          trailBurst = [];
-        }
-        if (!trailPoints.length) addTrailPoint(point.x, point.y, performance.now());
-        if (!trailFrame) trailFrame = requestAnimationFrame(animateTrail);
-      }, {passive:true});
-
       dashboardShell.addEventListener("pointermove", event => {
         if (!dashboardShell.classList.contains("vn-ac-dashboard-open")
           || event.pointerType === "touch"
@@ -1293,16 +1262,8 @@
           trailExitStart = 0;
           trailBurst = [];
         }
-        const samples = typeof event.getCoalescedEvents === "function" ? event.getCoalescedEvents() : [event];
-        const now = performance.now();
         const rect = dashboardShell.getBoundingClientRect();
-        for (const sample of (samples.length ? samples : [event])) {
-          addTrailPoint(
-            Math.max(0, Math.min(rect.width, sample.clientX - rect.left)),
-            Math.max(0, Math.min(rect.height, sample.clientY - rect.top)),
-            now
-          );
-        }
+        addTrailPoint(event.clientX - rect.left, event.clientY - rect.top, performance.now());
         if (!trailFrame) trailFrame = requestAnimationFrame(animateTrail);
       }, {passive:true});
 
