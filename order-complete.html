@@ -766,7 +766,7 @@ const FLOW_CONFIG={
  scene1Hold:100,
  corridor:300,
  scene2Hold:150,
- transition23:130,
+ transition23:180,
  scene3Hold:100,
  transition34:70,
  bloomStrength:0,
@@ -794,8 +794,8 @@ function setSceneGeometry(){
  svhPx=svhProbe.getBoundingClientRect().height||innerHeight||1;
  scene1.style.height=(FLOW_CONFIG.scene1Hold+FLOW_CONFIG.corridor)+"svh";
  scene1.style.minHeight=scene1.style.height;
- scene2.style.height=(FLOW_CONFIG.scene2Hold+FLOW_CONFIG.transition23)+"svh";
- scene2.style.minHeight=scene2.style.height;
+ scene2.style.height="280svh";
+ scene2.style.minHeight="280svh";
  scene3.style.minHeight=(FLOW_CONFIG.scene3Hold+FLOW_CONFIG.transition34)+"svh";
  scene4.style.minHeight="100svh";
  const contentSvh=packageInner.scrollHeight/svhPx*100;
@@ -882,7 +882,7 @@ function frame(now){
  const stop=geometry.transition23Start;
  const effectiveGlitter=clamp(.05*smooth(stop-220,stop-150,p)+.95*smooth(stop-150,stop,p),0,1);
  const glitterClose=smooth(stop+70,stop+150,p);
- const studio=smooth(stop-30,stop+5,p)*(1-smooth(stop+60,stop+90,p));
+ const studio=smooth(stop-30,stop+5,p)*(1-smooth(stop+90,stop+150,p));
  updateDom(chroma,brightness,bloom,effectiveGlitter,glitterClose,t23);
  if(webglReady&&program){
   gl.useProgram(program);
@@ -984,7 +984,8 @@ vec3 sceneBackground(vec2 screenUv,float worldY,vec3 studioBase){
 }
 `;
   fragment=fragment.replace("vec3 facetLayer(vec2 pixel,",sceneFunctions+"\nvec3 facetLayer(vec2 pixel,");
-  fragment=fragment.replace("float mask=edge*step(1.0-density,hash12(cell+seed+13.9));","float densityRoll=hash12(cell+seed+13.9);\n float thr=hash12(cell+seed+53.7);\n float profile=smoothstep(thr-0.055,thr+0.055,0.0);\n float hs=hash12(cell+seed+59.7);\n float starLife=1.0-smoothstep(hs,hs+0.12,uStarsOut*1.12);\n float worldYp=uScrollY+(1.0-pixel.y/uResolution.y)*uViewportHeight;\n float feather=uViewportHeight*0.14;\n float eS=hash12(cell+seed+71.3);\n float wSheet=clamp(min(worldYp-uSheetTop,uSheetBottom-worldYp)/feather,0.0,1.0);\n float sheet=smoothstep(eS*0.85,eS*0.85+0.15,wSheet);\n float eF=hash12(cell+seed+83.1);\n float wFloat=clamp((worldYp-uSheetBottom-uViewportHeight*0.18)/feather,0.0,1.0);\n float floatLife=smoothstep(eF*0.85,eF*0.85+0.15,wFloat);\n float particleVisible=max(sheet,profile*max(starLife,floatLife));\n float mask=edge*step(1.0-density,densityRoll)*particleVisible;");
+  fragment=fragment.replace("float mask=edge*step(1.0-density,hash12(cell+seed+13.9));","float densityRoll=hash12(cell+seed+13.9);\n float thr=hash12(cell+seed+53.7);\n float profile=smoothstep(thr-0.055,thr+0.055,0.0);\n float hs=hash12(cell+seed+59.7);\n float starLife=1.0-smoothstep(hs,hs+0.12,uStarsOut*1.12);\n float worldYp=uScrollY+(1.0-pixel.y/uResolution.y)*uViewportHeight;\n float feather=uViewportHeight*0.14;\n float eS=hash12(cell+seed+71.3);\n float sheetEnd=uSheetBottom+uViewportHeight*0.5;
+ float wSheet=clamp(min(worldYp-uSheetTop,sheetEnd-worldYp)/feather,0.0,1.0);\n float sheet=smoothstep(eS*0.85,eS*0.85+0.15,wSheet);\n float eF=hash12(cell+seed+83.1);\n float wFloat=clamp((worldYp-sheetEnd-uViewportHeight*0.18)/feather,0.0,1.0);\n float floatLife=smoothstep(eF*0.85,eF*0.85+0.15,wFloat);\n float particleVisible=max(sheet,profile*max(starLife,floatLife));\n float mask=edge*step(1.0-density,densityRoll)*particleVisible;");
   fragment=fragment.replace("vec3 base=mix(vec3(0.78,0.80,0.84),baseFilm,0.13);","vec2 screenUv=vec2(pixel.x/uResolution.x,1.0-pixel.y/uResolution.y);\n float worldY=uScrollY+screenUv.y*uViewportHeight;\n vec3 studioBase=mix(vec3(0.78,0.80,0.84),baseFilm,0.13);\n vec3 base=mix(sceneBackground(screenUv,worldY,studioBase),studioBase,uStudio);");
   fragment=fragment.replace("vec3 color=base+fine+medium+micro;","vec3 color=base+fine+medium+micro;");
   if(!fragment.includes("uStarsOut")||
