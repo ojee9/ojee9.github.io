@@ -44,9 +44,11 @@
     loadingData: false,
     shopSdkPromise: null,
     shopLoginInstance: null,
-    shopLoginCreatePromise: null,
-    shopLoginMount: null,
-    shopLoginGeneration: 0,
+    shopHost: null,
+    shopStatus: "idle",
+    shopTracking: false,
+    shopGen: 0,
+    shopTimer: null,
     authProvider: "",
     shopSessionToken: ""
   };
@@ -61,22 +63,20 @@
   const SHOP_AUTH_WORKER = "https://vn-shop-auth.9ojeez9.workers.dev";
 
   function startShopLoginPreload() {
-    // account.js may execute before <body> exists; defer only the DOM mount,
-    // while keeping the preload at the earliest safe point.
     if (!document.body) {
       document.addEventListener("DOMContentLoaded", startShopLoginPreload, { once: true });
       return;
     }
+    if (state.shopHost) return;
 
-    const shopLoginPreloadMount = document.createElement("div");
-    shopLoginPreloadMount.setAttribute("aria-hidden", "true");
-    shopLoginPreloadMount.dataset.vnShopLoginPreload = "true";
-    shopLoginPreloadMount.style.cssText = "position:fixed;left:0;top:0;width:320px;height:60px;overflow:visible;opacity:0;pointer-events:none;";
-    document.body.appendChild(shopLoginPreloadMount);
-    mountShopLogin(shopLoginPreloadMount).catch(error => {
-      console.warn("[VN ACCOUNT] Shop login preload failed:", error);
-      if (shopLoginPreloadMount.isConnected) shopLoginPreloadMount.remove();
-    });
+    const host = document.createElement("div");
+    host.dataset.vnShopHost = "true";
+    host.style.cssText = "position:fixed;left:0;top:0;width:320px;height:54px;z-index:10002;opacity:0;pointer-events:none;";
+    host.setAttribute("aria-hidden", "true");
+    host.inert = true;
+    document.body.appendChild(host);
+    state.shopHost = host;
+    ensureShopLogin();
   }
 
   startShopLoginPreload();
@@ -1045,8 +1045,8 @@
           <p>Sign in or create an account</p>
         </div>
 
-        <div class="vn-ac-shop-space" hidden>
-          <div id="vnAcShopLoginMount" class="vn-ac-shop-mount" aria-label="Continue with Shop"></div>
+        <div class="vn-ac-shop-space">
+          <div id="vnAcShopLoginMount" class="vn-ac-shop-mount" style="min-height:54px" aria-label="Continue with Shop"></div>
         </div>
         <div class="vn-ac-or-divider" aria-hidden="true"><span>OR</span></div>
 
@@ -1215,201 +1215,163 @@
     return state.shopSdkPromise;
   }
 
-  async function mountShopLogin(targetMount = $("#vnAcShopLoginMount")) {
-    const mount = targetMount;
-    if (!mount || state.screen !== "email" || state.user || state.busy) return;
-
-    // Reuse the login element prepared before the account panel was opened.
-    if (state.shopLoginInstance) {
-      const previousMount = state.shopLoginMount;
-      state.shopLoginMount = mount;
-      mount.replaceChildren(state.shopLoginInstance.element);
-      if (previousMount && previousMount !== mount && previousMount.isConnected) {
-        previousMount.remove();
+  function teardownShopLogin() {
+    state.shopGen += 1;
+    clearTimeout(state.shopTimer);
+    state.shopTimer = null;
+    const instance = state.shopLoginInstance;
+    state.shopLoginInstance = null;
+    if (instance) {
+      try { instance.destroy(); } catch (error) {
+        console.warn("[VN ACCOUNT] Shop login cleanup failed:", error);
       }
-      mount.removeAttribute("aria-busy");
-      mount.dataset.ready = "true";
-      const shopSpace = mount.closest(".vn-ac-shop-space");
-      if (shopSpace) shopSpace.hidden = false;
+    }
+    if (state.shopHost) state.shopHost.replaceChildren();
+  }
+
+  function setShopError(reason) {
+    clearTimeout(state.shopTimer);
+    state.shopTimer = null;
+    state.shopStatus = "error";
+    console.warn("[VN ACCOUNT] Shop login unavailable:", reason);
+    positionShopHost();
+  }
+
+  function ensureShopLogin() {
+    if (!state.shopHost) return;
+    if (state.shopStatus === "loading" || state.shopStatus === "ready") return;
+
+    teardownShopLogin();
+    state.shopStatus = "loading";
+    const gen = state.shopGen;
+
+    state.shopTimer = window.setTimeout(() => {
+      if (gen === state.shopGen && state.shopStatus === "loading") {
+        setShopError("onLoad did not fire within 8s");
+      }
+    }, 8000);
+
+    createShopLogin(state.shopHost, gen).catch(error => {
+      if (gen === state.shopGen) setShopError(error);
+    });
+  }
+
+  function positionShopHost() {
+    const host = state.shopHost;
+    if (!host) return;
+
+    const root = document.querySelector("#vnAccountOverlay");
+    const slot = document.querySelector("#vnAcShopLoginMount");
+    const show = Boolean(
+      root && !root.hidden && !state.user && state.screen === "email" &&
+      slot && state.shopStatus === "ready"
+    );
+
+    if (!show) {
+      state.shopTracking = false;
+      host.style.opacity = "0";
+      host.style.pointerEvents = "none";
+      host.setAttribute("aria-hidden", "true");
+      host.inert = true;
       return;
     }
 
-    if (mount.dataset.ready === "true" || mount.dataset.ready === "loading") return;
+    const rect = slot.getBoundingClientRect();
+    host.style.left = rect.left + "px";
+    host.style.top = rect.top + "px";
+    host.style.width = rect.width + "px";
+    host.style.height = rect.height + "px";
+    host.style.opacity = "1";
+    host.style.pointerEvents = "auto";
+    host.removeAttribute("aria-hidden");
+    host.inert = false;
 
-    // The preload mount and visible mount must share one in-flight SDK create().
-    // Opening the panel while preload is running must never create a second login.
-    const generation = state.shopLoginGeneration;
-    state.shopLoginMount = mount;
-    mount.dataset.ready = "loading";
-    mount.setAttribute("aria-busy", "true");
-
-    // Keep the Shop mount empty until Shopify's real login element is ready.
-    // Email registration remains immediately usable; no fake button or wait state
-    // is inserted while the preloaded Shop feature finishes initializing.
-
-    try {
-      if (!state.shopLoginCreatePromise) {
-        const stagingMount = mount;
-        const creation = (async () => {
-          const sdk = await loadShopSdk();
-
-          if (
-            generation !== state.shopLoginGeneration ||
-            state.screen !== "email" ||
-            state.user ||
-            state.busy
-          ) {
-            return null;
-          }
-
-          const login = await sdk.create("login", {
-            attributes: {
-              buttonType: "continue",
-              buttonLayout: "standalone",
-              scope: "shop_app:oauth",
-              storefrontOrigin: window.location.origin,
-              uxMode: "windoid"
-            },
-            appearance: {
-              preferredLoginExperience: "popup"
-            },
-            onComplete: async event => {
-              if (generation !== state.shopLoginGeneration) return;
-
-              const shopConsentToken = String(event?.shopConsentToken || "").trim();
-              if (event?.signedIn !== true || !shopConsentToken) {
-                state.messageType = "error";
-                state.message = "Shop did not return the authorization needed to create your VN SHOP session. Please try again or continue with email.";
-                render();
-                return;
-              }
-
-              state.busy = true;
-              state.messageType = "info";
-              state.message = "Connecting your Shop account to VN SHOP…";
-              render();
-
-              try {
-                const exchanged = await shopWorkerRequest({
-                  action: "exchange",
-                  consentToken: shopConsentToken
-                });
-
-                if (!exchanged.authenticated || !exchanged.sessionToken) {
-                  throw new Error("Shop authorization could not be connected to VN SHOP.");
-                }
-
-                state.busy = false;
-                await acceptShopSession(exchanged.sessionToken);
-              } catch (error) {
-                state.busy = false;
-                state.messageType = "error";
-                state.message = error.message || "Could not connect your Shop account. Please try email sign-in instead.";
-                state.screen = "email";
-                render();
-              }
-            },
-            onError: () => {
-              if (generation !== state.shopLoginGeneration) return;
-              const currentMount = state.shopLoginMount;
-              if (!currentMount) return;
-              currentMount.removeAttribute("aria-busy");
-              currentMount.dataset.ready = "error";
-              currentMount.textContent = "Shop sign-in could not be completed. Please try again or continue with email.";
-            }
-          });
-
-          if (
-            generation !== state.shopLoginGeneration ||
-            state.screen !== "email" ||
-            state.user ||
-            state.busy
-          ) {
-            login.destroy();
-            return null;
-          }
-
-          // sdk.create() resolves when the Shopify login feature is ready.
-          // Mount the real element immediately; an additional readiness wait
-          // here only delays display without adding a useful guarantee.
-          stagingMount.replaceChildren(login.element);
-
-          if (
-            generation !== state.shopLoginGeneration ||
-            state.screen !== "email" ||
-            state.user ||
-            state.busy
-          ) {
-            login.destroy();
-            return null;
-          }
-
-          state.shopLoginInstance = login;
-          return login;
-        })();
-
-        state.shopLoginCreatePromise = creation;
-        creation.then(
-          () => {
-            if (state.shopLoginCreatePromise === creation) state.shopLoginCreatePromise = null;
-          },
-          () => {
-            if (state.shopLoginCreatePromise === creation) state.shopLoginCreatePromise = null;
-          }
-        );
-      }
-
-      const login = await state.shopLoginCreatePromise;
-
-      if (!login) {
-        // If the screen changed during creation and returned to email, retry
-        // against the new generation after the stale creation has settled.
-        if (
-          generation !== state.shopLoginGeneration &&
-          mount.isConnected &&
-          state.screen === "email" &&
-          !state.user &&
-          !state.busy
-        ) {
-          return mountShopLogin(mount);
-        }
-        return;
-      }
-
-      if (
-        generation !== state.shopLoginGeneration ||
-        !mount.isConnected ||
-        state.screen !== "email" ||
-        state.user ||
-        state.busy ||
-        state.shopLoginMount !== mount
-      ) {
-        return;
-      }
-
-      const previousMount = login.element.parentElement;
-      mount.replaceChildren(login.element);
-      if (
-        previousMount &&
-        previousMount !== mount &&
-        previousMount.dataset.vnShopLoginPreload === "true" &&
-        previousMount.isConnected
-      ) {
-        previousMount.remove();
-      }
-      mount.removeAttribute("aria-busy");
-      mount.dataset.ready = "true";
-      const shopSpace = mount.closest(".vn-ac-shop-space");
-      if (shopSpace) shopSpace.hidden = false;
-    } catch (error) {
-      if (generation !== state.shopLoginGeneration) return;
-      console.error("[VN ACCOUNT] Shop SDK initialization failed:", error);
-      state.shopSdkPromise = null;
-      mount.removeAttribute("aria-busy");
-      mount.dataset.ready = "error";
-      mount.textContent = "Shop sign-in is temporarily unavailable. Please continue with email.";
+    if (!state.shopTracking) {
+      state.shopTracking = true;
+      requestAnimationFrame(trackShopHost);
     }
   }
+
+  function trackShopHost() {
+    if (!state.shopTracking) return;
+    positionShopHost();
+    if (state.shopTracking) requestAnimationFrame(trackShopHost);
+  }
+
+  async function createShopLogin(host, gen) {
+    const sdk = await loadShopSdk();
+    if (gen !== state.shopGen) return;
+
+    const login = await sdk.create("login", {
+      attributes: {
+        buttonType: "continue",
+        buttonLayout: "standalone",
+        scope: "shop_app:oauth",
+        storefrontOrigin: window.location.origin,
+        uxMode: "windoid"
+      },
+      appearance: { preferredLoginExperience: "popup" },
+      onLoad: () => {},
+      onComplete: async event => {
+        if (gen !== state.shopGen) return;
+        const shopConsentToken = String(event?.shopConsentToken || "").trim();
+        if (event?.signedIn !== true || !shopConsentToken) {
+          state.messageType = "error";
+          state.message = "Shop did not return the authorization needed to create your VN SHOP session. Please try again or continue with email.";
+          render();
+          return;
+        }
+
+        state.busy = true;
+        state.messageType = "info";
+        state.message = "Connecting your Shop account to VN SHOP…";
+        render();
+
+        try {
+          const exchanged = await shopWorkerRequest({ action: "exchange", consentToken: shopConsentToken });
+          if (!exchanged.authenticated || !exchanged.sessionToken) {
+            throw new Error("Shop authorization could not be connected to VN SHOP.");
+          }
+          state.busy = false;
+          await acceptShopSession(exchanged.sessionToken);
+        } catch (error) {
+          state.busy = false;
+          state.messageType = "error";
+          state.message = error.message || "Could not connect your Shop account. Please try email sign-in instead.";
+          state.screen = "email";
+          render();
+        }
+      },
+      onError: () => {
+        if (gen !== state.shopGen) return;
+        if (state.shopStatus !== "ready") {
+          setShopError("error during load");
+          return;
+        }
+        state.messageType = "error";
+        state.message = "Shop sign-in could not be completed. Please try again or continue with email.";
+        const root = document.querySelector("#vnAccountOverlay");
+        if (root && !root.hidden) render();
+      }
+    });
+
+    if (gen !== state.shopGen) {
+      try { login.destroy(); } catch (_) {}
+      return;
+    }
+
+    login.element.style.cssText = "display:block;width:100%;";
+    host.replaceChildren(login.element);
+    state.shopLoginInstance = login;
+
+    // create() çözüldüğünde bileşen hazırdır; onLoad olayına bağımlı değildir.
+    clearTimeout(state.shopTimer);
+    state.shopTimer = null;
+    state.shopStatus = "ready";
+    positionShopHost();
+  }
+
+  function destroyShopLogin() {}
 
   function renderVerify() {
     return `
@@ -1906,13 +1868,12 @@
     }
 
     if (!state.user) {
-      if (state.screen !== "email") destroyShopLogin();
       content.innerHTML = state.screen === "verify" ? renderVerify() : renderEmail();
-      if (state.screen === "email") mountShopLogin();
+      positionShopHost();
       return;
     }
 
-    destroyShopLogin();
+    positionShopHost();
 
     if (state.section === "dashboard") content.innerHTML = renderDashboard();
     else if (state.section === "profile") content.innerHTML = renderProfile();
@@ -2329,6 +2290,7 @@
     const root = $("#vnAccountOverlay");
     if (root) root.hidden = true;
     document.body.style.overflow = "";
+    positionShopHost();
   }
 
   function openPanel() {
@@ -2342,6 +2304,8 @@
 
     createRoot().hidden = false;
     render();
+    ensureShopLogin();
+    positionShopHost();
     document.body.style.overflow = "hidden";
     window.setTimeout(focusEntry, 30);
   }
