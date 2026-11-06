@@ -526,9 +526,10 @@
       .vn-ac-row strong{display:block;font-size:13px}
       .vn-ac-row small{display:block;color:#F0E8DF;margin-top:5px;overflow-wrap:anywhere}
       .vn-ac-button{padding:10px 16px;min-height:40px;background:#151515;color:white;border:1px solid #151515;border-radius:4px;cursor:pointer;font:inherit}
-      .vn-ac-button.secondary{background:white;color:#333;border-color:#ccc}
+      .vn-ac-button[data-ac-section="shop"],#vnAcProfileForm .vn-ac-button[type="submit"]{background:#24170F;border-color:#24170F;color:#fff}
+      .vn-ac-button.secondary,.vn-ac-button.danger{background:#EFF5F7;color:#171411;border-color:#d7d7d7}
       .vn-ac-button.text{background:none;border:0;color:#666;text-decoration:underline;padding:6px}
-      .vn-ac-button.danger{background:white;color:#8c1d2c;border-color:#8c1d2c}
+      .vn-ac-button.danger{color:#171411}
       .vn-ac-actions{display:flex;gap:12px;flex-wrap:wrap;margin:24px 0}
       .vn-ac-field{display:flex;flex-direction:column;gap:6px;margin:13px 0}
       .vn-ac-field span{font-size:12px;color:#555}
@@ -1135,7 +1136,7 @@
 
       const resizeTrail = () => {
         const rect = dashboardShell.getBoundingClientRect();
-        trailDpr = Math.min(window.devicePixelRatio || 1, 1.5);
+        trailDpr = Math.min(window.devicePixelRatio || 1, 1);
         trailWidth = rect.width;
         trailHeight = rect.height;
         trailCanvas.width = Math.round(trailWidth * trailDpr);
@@ -1170,21 +1171,21 @@
           trailContext.lineCap = "round";
           trailContext.lineJoin = "round";
 
-          trailContext.strokeStyle = `rgba(255,105,210,${headLife * .28})`;
+          trailContext.strokeStyle = `rgba(255,105,210,${headLife * .16})`;
           trailContext.lineWidth = 19 * headLife;
-          trailContext.shadowColor = `rgba(255,75,190,${headLife * .48})`;
-          trailContext.shadowBlur = 9 * headLife;
+          trailContext.shadowColor = `rgba(255,75,190,${headLife * .28})`;
+          trailContext.shadowBlur = 5 * headLife;
           trailContext.stroke(path);
 
-          trailContext.strokeStyle = `rgba(255,80,190,${headLife * .36})`;
+          trailContext.strokeStyle = `rgba(255,80,190,${headLife * .22})`;
           trailContext.lineWidth = 10.5 * headLife;
-          trailContext.shadowColor = `rgba(255,65,180,${headLife * .38})`;
-          trailContext.shadowBlur = 6 * headLife;
+          trailContext.shadowColor = `rgba(255,65,180,${headLife * .24})`;
+          trailContext.shadowBlur = 2 * headLife;
           trailContext.stroke(path);
 
-          trailContext.strokeStyle = `rgba(255,150,225,${headLife * .52})`;
+          trailContext.strokeStyle = `rgba(255,150,225,${headLife * .36})`;
           trailContext.lineWidth = 6.5 * headLife;
-          trailContext.shadowColor = `rgba(255,115,210,${headLife * .4})`;
+          trailContext.shadowColor = `rgba(255,115,210,${headLife * .25})`;
           trailContext.shadowBlur = 3 * headLife;
           trailContext.stroke(path);
 
