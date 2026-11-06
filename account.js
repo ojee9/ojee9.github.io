@@ -490,11 +490,11 @@
       .vn-ac-email-form-wrap{width:100%;max-width:480px;margin:0 auto}.vn-ac-email-form-wrap form{display:flex;flex-direction:column;width:100%}
       .vn-ac-consent-note{margin:24px auto 0!important;max-width:480px;text-align:center;color:#a4a4a4;font-size:12px;line-height:1.75}
       .vn-ac-consent-note a{color:#fff;text-decoration:underline;text-underline-offset:2px}
-      .vn-ac-email-bar{display:flex;align-items:center;gap:4px;width:100%;min-height:60px;padding:6px 7px 6px 17px;border:1px solid #555;border-radius:2px;overflow:hidden;background:#C9D8DE;transition:border-color .18s ease,background .18s ease}
+      .vn-ac-email-bar{display:flex;align-items:center;gap:4px;width:100%;min-height:60px;padding:6px 7px 6px 17px;border:1px solid #555;border-radius:2px;overflow:hidden;background:#E3E8EF;transition:border-color .18s ease,background .18s ease}
       .vn-ac-email-bar input{flex:1;min-width:0;height:44px;padding:0;border:0;outline:0;background:transparent;color:#171411;font:16px/1.45 Arial,sans-serif}
       .vn-ac-email-bar input::placeholder{color:#59636a;opacity:1}
-      .vn-ac-email-bar input:-webkit-autofill,.vn-ac-email-bar input:-webkit-autofill:hover,.vn-ac-email-bar input:-webkit-autofill:focus,.vn-ac-email-bar input:-webkit-autofill:active{-webkit-text-fill-color:#171411!important;caret-color:#171411;-webkit-box-shadow:0 0 0 1000px #C9D8DE inset!important;box-shadow:0 0 0 1000px #C9D8DE inset!important;transition:background-color 999999s ease-out 0s}
-      .vn-ac-email-bar:focus-within{border-color:#100E13;background:#C9D8DE;box-shadow:0 0 5px rgba(151,82,255,.34),0 0 12px rgba(151,82,255,.20)}
+      .vn-ac-email-bar input:-webkit-autofill,.vn-ac-email-bar input:-webkit-autofill:hover,.vn-ac-email-bar input:-webkit-autofill:focus,.vn-ac-email-bar input:-webkit-autofill:active{-webkit-text-fill-color:#171411!important;caret-color:#171411;-webkit-box-shadow:0 0 0 1000px #E3E8EF inset!important;box-shadow:0 0 0 1000px #E3E8EF inset!important;transition:background-color 999999s ease-out 0s}
+      .vn-ac-email-bar:focus-within{border-color:#100E13;background:#E3E8EF;box-shadow:0 0 5px rgba(151,82,255,.34),0 0 12px rgba(151,82,255,.20)}
       .vn-ac-email-submit{display:flex;align-items:center;justify-content:center;width:46px;height:46px;flex:none;padding:0;border:0;border-radius:0;background:transparent;color:#f5f5f5;cursor:pointer;transition:color .16s ease,background .16s ease}
       .vn-ac-email-submit:hover{background:#242424;color:#fff}.vn-ac-email-submit svg{display:block;width:20px;height:20px}
       .vn-ac-updates{display:flex;align-items:flex-start;justify-content:flex-start;gap:10px;margin:15px 0 0;padding-left:0;color:#c5c1ca;font-size:13px;line-height:1.5}
@@ -562,7 +562,7 @@
       .vn-ac-actions{display:flex;gap:12px;flex-wrap:wrap;margin:24px 0}
       .vn-ac-field{display:flex;flex-direction:column;gap:6px;margin:13px 0}
       .vn-ac-field span{font-size:12px;color:#555}
-      .vn-ac-field input:not([type="checkbox"]):not([type="radio"]),.vn-ac-field select,.vn-ac-field textarea{box-sizing:border-box;width:100%;min-height:48px;padding:12px;border:1px solid #d7d7d7;border-radius:5px;background:#C9D8DE!important;color:#171411;font:inherit}
+      .vn-ac-field input:not([type="checkbox"]):not([type="radio"]),.vn-ac-field select,.vn-ac-field textarea{box-sizing:border-box;width:100%;min-height:48px;padding:12px;border:1px solid #d7d7d7;border-radius:5px;background:#E3E8EF!important;color:#171411;font:inherit}
       .vn-ac-field textarea{min-height:90px;resize:vertical}
       .vn-ac-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
       .vn-ac-message{margin:15px 0;padding:12px 14px;border:1px solid #ddd;background:#f7f7f7;font-size:13px;overflow-wrap:anywhere}
@@ -633,7 +633,7 @@
       .vn-ac-address-form{display:flex;flex-direction:column;gap:12px}
       .vn-ac-address-control{position:relative;display:block;min-width:0}
       .vn-ac-address-control>span{position:absolute;z-index:1;top:7px;left:13px;font-size:10px;line-height:1.1;color:#8c8c8c;pointer-events:none}
-      .vn-ac-address-control>input,.vn-ac-address-control>select{box-sizing:border-box;width:100%;min-width:0;min-height:48px;padding:20px 12px 7px;border:1px solid #d7d7d7;border-radius:5px;background:#C9D8DE!important;color:#171411;font:13px/1.3 Arial,sans-serif}
+      .vn-ac-address-control>input,.vn-ac-address-control>select{box-sizing:border-box;width:100%;min-width:0;min-height:48px;padding:20px 12px 7px;border:1px solid #d7d7d7;border-radius:5px;background:#E3E8EF!important;color:#171411;font:13px/1.3 Arial,sans-serif}
       .vn-ac-address-control>input::placeholder{color:#777;opacity:1}
       .vn-ac-address-control>select{padding-right:28px}
       .vn-ac-field{position:relative}
@@ -669,7 +669,7 @@
         outline-offset:0!important;
         border-color:#d7d7d7!important;
         box-shadow:none!important;
-        background-color:#C9D8DE!important;
+        background-color:#E3E8EF!important;
       }
       .vn-ac-address-control:focus-within{
         outline:none!important;
@@ -687,7 +687,7 @@
         outline-offset:0!important;
         border-color:#d7d7d7!important;
         box-shadow:none!important;
-        background-color:#C9D8DE!important;
+        background-color:#E3E8EF!important;
       }
       .vn-ac-phone-row select:focus,
       .vn-ac-phone-row select:focus-visible{
@@ -696,8 +696,8 @@
       .vn-ac-address-city-row{grid-template-columns:1fr 1fr 1fr;gap:10px}
       .vn-ac-phone-row{display:flex;align-items:stretch}
       .vn-ac-phone-row{position:relative;display:flex;align-items:stretch;width:100%;min-width:0}
-      .vn-ac-phone-dial{display:flex;align-items:center;flex:0 0 auto;padding:0 10px;border:1px solid #d7d7d7;border-right:0;border-radius:5px 0 0 5px;background:#C9D8DE;color:#222;font:13px Arial,sans-serif;white-space:nowrap}
-      .vn-ac-phone-row input{box-sizing:border-box;flex:1;min-width:0;width:100%;min-height:48px;padding:14px 12px;border:1px solid #d7d7d7;border-left:0;border-right:0;border-radius:0;background:#C9D8DE!important;color:#171411;font:13px Arial,sans-serif}
+      .vn-ac-phone-dial{display:flex;align-items:center;flex:0 0 auto;padding:0 10px;border:1px solid #d7d7d7;border-right:0;border-radius:5px 0 0 5px;background:#E3E8EF;color:#222;font:13px Arial,sans-serif;white-space:nowrap}
+      .vn-ac-phone-row input{box-sizing:border-box;flex:1;min-width:0;width:100%;min-height:48px;padding:14px 12px;border:1px solid #d7d7d7;border-left:0;border-right:0;border-radius:0;background:#E3E8EF!important;color:#171411;font:13px Arial,sans-serif}
       .vn-ac-phone-row select{position:relative;z-index:1;flex:0 0 42px;width:42px;min-width:0;padding:0;border:1px solid #d7d7d7;border-left:0;border-radius:0 5px 5px 0;background:transparent;color:transparent;font-size:0;cursor:pointer;appearance:none;-webkit-appearance:none}
       .vn-ac-phone-row select option{color:#111;font-size:13px}
       .vn-ac-phone-flag{position:absolute;z-index:2;right:11px;top:50%;transform:translateY(-50%);display:block;width:22px;height:16px;object-fit:cover;border:1px solid rgba(0,0,0,.12);border-radius:2px;pointer-events:none}
