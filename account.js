@@ -1129,7 +1129,7 @@
       trailCanvas.setAttribute("aria-hidden", "true");
       dashboardShell.prepend(trailCanvas);
 
-      const trailContext = trailCanvas.getContext("2d", { alpha: true, desynchronized: true });
+      const trailContext = trailCanvas.getContext("2d", { alpha: true });
       const trailPoints = [];
       let trailFrame = 0;
       let trailWidth = 0;
