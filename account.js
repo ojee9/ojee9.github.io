@@ -552,7 +552,7 @@
       .vn-ac-card:hover{border-color:#888}
       .vn-ac-card:focus:not(:focus-visible){outline:none;box-shadow:none}
       .vn-ac-card:focus-visible{outline:2px solid #777;outline-offset:3px}
-      .vn-ac-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px;align-items:center;border:1px solid #72503A;background:#72503A;color:#fff;padding:18px 20px;margin:10px 0;border-radius:4px}
+      .vn-ac-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px;align-items:center;border:1px solid #4D3528;background:#4D3528;color:#fff;padding:18px 20px;margin:10px 0;border-radius:4px}
       .vn-ac-row strong{display:block;font-size:13px}
       .vn-ac-row small{display:block;color:#F0E8DF;margin-top:5px;overflow-wrap:anywhere}
       .vn-ac-button{padding:10px 16px;min-height:40px;background:#151515;color:white;border:1px solid #151515;border-radius:4px;cursor:pointer;font:inherit}
@@ -576,7 +576,7 @@
       .vn-ac-toggle:before{content:"";position:absolute;width:19px;height:19px;border-radius:50%;background:white;left:3px;top:3px;transition:transform .15s}
       .vn-ac-toggle:checked{background:#171717}
       .vn-ac-toggle:checked:before{transform:translateX(19px)}
-      .vn-ac-preference{display:flex;align-items:center;justify-content:space-between;gap:20px;border:1px solid #72503A;background:#72503A;color:#fff;border-radius:4px;padding:18px 20px;margin:12px 0}
+      .vn-ac-preference{display:flex;align-items:center;justify-content:space-between;gap:20px;border:1px solid #4D3528;background:#4D3528;color:#fff;border-radius:4px;padding:18px 20px;margin:12px 0}
       .vn-ac-preference strong{display:inline;font-size:13px}
       .vn-ac-preference>div{display:flex;align-items:center;gap:0;white-space:nowrap}
       .vn-ac-preference small{display:block;color:#777;margin-top:5px}
@@ -732,9 +732,9 @@
       .vn-ac-profile-signout{display:flex;flex-direction:row;flex-wrap:wrap;align-items:center;gap:9px;margin-top:22px;padding-top:0;border-top:0}
       .vn-ac-profile-signout .vn-ac-button{font-size:10px;letter-spacing:.7px}
       .vn-ac-empty{padding:24px;border:1px solid #e5e5e5;color:#777;font-size:13px}
-      .vn-ac-empty-addresses{background:#72503A;border-color:#72503A;color:#fff}
+      .vn-ac-empty-addresses{background:#4D3528;border-color:#4D3528;color:#fff}
       .vn-ac-orders-empty{background:#494E51;border-color:#494E51;color:#fff}
-      .vn-ac-save-address{background:#72503A;border-color:#72503A;color:#fff}
+      .vn-ac-save-address{background:#4D3528;border-color:#4D3528;color:#fff}
       .vn-ac-orders-empty h1,.vn-ac-orders-empty h2,.vn-ac-orders-empty h3,.vn-ac-orders-empty p{color:#fff}
       .vn-ac-orders-empty .vn-ac-button{background:#fff;color:#000;border-color:#fff}
       /* One fixed-size dashboard shell for every signed-in section, including views without .vn-ac-layout. */
@@ -1165,7 +1165,7 @@
 
       const resizeTrail = () => {
         const rect = dashboardShell.getBoundingClientRect();
-        trailDpr = Math.min(window.devicePixelRatio || 1, 2);
+        trailDpr = Math.min(window.devicePixelRatio || 1, 1.25);
         trailWidth = rect.width;
         trailHeight = rect.height;
         trailCanvas.width = Math.round(trailWidth * trailDpr);
@@ -1176,7 +1176,7 @@
       const animateTrail = () => {
         trailFrame = 0;
         const now = performance.now();
-        const firstLivePoint = trailPoints.findIndex(point => now - point.time < 620);
+        const firstLivePoint = trailPoints.findIndex(point => now - point.time < 420);
         trailPoints.splice(0, firstLivePoint < 0 ? trailPoints.length : firstLivePoint);
         trailContext.clearRect(0, 0, trailWidth, trailHeight);
 
@@ -1195,33 +1195,27 @@
           const last = trailPoints[trailPoints.length - 1];
           path.lineTo(last.x, last.y);
 
-          const headLife = Math.max(0, 1 - (now - last.time) / 620);
+          const headLife = Math.max(0, 1 - (now - last.time) / 420);
           trailContext.globalCompositeOperation = "screen";
           trailContext.lineCap = "round";
           trailContext.lineJoin = "round";
 
-          trailContext.strokeStyle = `rgba(150,205,255,${headLife * .25})`;
-          trailContext.lineWidth = 19 * headLife;
-          trailContext.shadowColor = `rgba(130,155,255,${headLife * .62})`;
-          trailContext.shadowBlur = 18 * headLife;
+          trailContext.strokeStyle = `rgba(150,205,255,${headLife * .22})`;
+          trailContext.lineWidth = 12 * headLife;
+          trailContext.shadowColor = `rgba(130,155,255,${headLife * .38})`;
+          trailContext.shadowBlur = 6 * headLife;
           trailContext.stroke(path);
 
-          trailContext.strokeStyle = `rgba(255,145,220,${headLife * .3})`;
-          trailContext.lineWidth = 10.5 * headLife;
-          trailContext.shadowColor = `rgba(255,92,205,${headLife * .58})`;
-          trailContext.shadowBlur = 16 * headLife;
+          trailContext.strokeStyle = `rgba(255,145,220,${headLife * .28})`;
+          trailContext.lineWidth = 6 * headLife;
+          trailContext.shadowColor = `rgba(255,92,205,${headLife * .32})`;
+          trailContext.shadowBlur = 4 * headLife;
           trailContext.stroke(path);
 
-          trailContext.strokeStyle = `rgba(105,205,255,${headLife * .52})`;
-          trailContext.lineWidth = 6.5 * headLife;
-          trailContext.shadowColor = `rgba(75,190,255,${headLife * .62})`;
-          trailContext.shadowBlur = 5 * headLife;
-          trailContext.stroke(path);
-
-          trailContext.strokeStyle = `rgba(255,238,252,${headLife * .66})`;
-          trailContext.lineWidth = 3.2 * headLife;
-          trailContext.shadowColor = `rgba(255,170,235,${headLife * .55})`;
-          trailContext.shadowBlur = 3 * headLife;
+          trailContext.strokeStyle = `rgba(255,238,252,${headLife * .58})`;
+          trailContext.lineWidth = 2.6 * headLife;
+          trailContext.shadowColor = `rgba(255,170,235,${headLife * .3})`;
+          trailContext.shadowBlur = 1.5 * headLife;
           trailContext.stroke(path);
         }
 
@@ -1237,7 +1231,7 @@
         if (!trailWidth || trailWidth !== dashboardShell.clientWidth || trailHeight !== dashboardShell.clientHeight) resizeTrail();
         const rect = dashboardShell.getBoundingClientRect();
         trailPoints.push({x:event.clientX - rect.left, y:event.clientY - rect.top, time:performance.now()});
-        if (trailPoints.length > 16) trailPoints.shift();
+        if (trailPoints.length > 10) trailPoints.shift();
         if (!trailFrame) trailFrame = requestAnimationFrame(animateTrail);
       }, {passive:true});
 
