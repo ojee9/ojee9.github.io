@@ -90,6 +90,48 @@
     const trigger = target instanceof Element ? target.closest("#profile-open") : null;
     if (!trigger) return;
 
+    const isMerchPage = /\/merch\.html$/i.test(window.location.pathname);
+
+    if (!isMerchPage) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+
+      const openCurrentPageDashboard = () => {
+        openPanel();
+        state.screen = "account";
+        state.section = "dashboard";
+        state.message = "";
+        render();
+
+        loadAccountData()
+          .then(() => render())
+          .catch(error => console.error("[VN ACCOUNT] Account data refresh failed:", error));
+      };
+
+      if (state.user) {
+        openCurrentPageDashboard();
+        return;
+      }
+
+      const authRequestAtOpen = state.sendRequestId;
+      (async () => {
+        try {
+          if (configPromise) await configPromise;
+          if (authRequestAtOpen !== state.sendRequestId) return;
+
+          if (state.user) {
+            openCurrentPageDashboard();
+          } else {
+            window.location.href = new URL("/merch.html#profile", window.location.origin).href;
+          }
+        } catch (error) {
+          console.error("[VN ACCOUNT] Could not restore the VN Account session:", error);
+          window.location.href = new URL("/merch.html#profile", window.location.origin).href;
+        }
+      })();
+      return;
+    }
+
     event.preventDefault();
 
     try {
@@ -162,7 +204,9 @@
 
     const clerk = window.Clerk;
     if (!clerk || typeof clerk.load !== "function") {
-      console.error("[VN ACCOUNT] ClerkJS did not load. Check the Clerk CDN script and publishable key.");
+      // Clerk is intentionally loaded only on merch.html. Other shop pages
+      // restore the already-verified VN Account session through the account API.
+      await restoreWorkerAccountSession();
       return;
     }
 
@@ -170,7 +214,10 @@
       await clerk.load();
       state.clerk = clerk;
       const restoredShopSession = await restoreShopSession();
-      if (!restoredShopSession) syncClerkUser(clerk.user || null);
+      if (!restoredShopSession) {
+        syncClerkUser(clerk.user || null);
+        if (!clerk.user) await restoreWorkerAccountSession();
+      }
 
       clerk.addListener(({ user }) => {
         if (user === undefined) return;
@@ -187,6 +234,7 @@
           loadAccountData().finally(render);
         } else {
           storeWorkerSessionToken("");
+          try { sessionStorage.removeItem(ACCOUNT_IDENTITY_KEY); } catch (_) {}
           state.profile = {};
           state.addresses = [];
           state.orders = [];
@@ -201,6 +249,7 @@
     } catch (error) {
       console.error("[VN ACCOUNT] Clerk initialization failed:", error);
       state.clerk = null;
+      await restoreWorkerAccountSession();
     }
   }
 
@@ -231,12 +280,21 @@
       first_name: clerkUser.firstName || "",
       last_name: clerkUser.lastName || ""
     };
+    try {
+      sessionStorage.setItem(ACCOUNT_IDENTITY_KEY, JSON.stringify({
+        id: clerkUser.id,
+        email,
+        firstName: clerkUser.firstName || "",
+        lastName: clerkUser.lastName || ""
+      }));
+    } catch (_) {}
     state.screen = "account";
     updateAccountAvatar();
   }
 
   const ACCOUNT_API = "https://vn-shop-account-api.9ojeez9.workers.dev";
   const ACCOUNT_SESSION_KEY = "vn_account_session";
+  const ACCOUNT_IDENTITY_KEY = "vn_account_identity";
 
   function readWorkerSessionToken() {
     if (state.workerSessionToken) return state.workerSessionToken;
@@ -251,6 +309,56 @@
       if (token) sessionStorage.setItem(ACCOUNT_SESSION_KEY, token);
       else sessionStorage.removeItem(ACCOUNT_SESSION_KEY);
     } catch (_) {}
+  }
+
+  async function restoreWorkerAccountSession() {
+    const token = readWorkerSessionToken();
+    if (!token) return false;
+
+    let identity = null;
+    try {
+      identity = JSON.parse(sessionStorage.getItem(ACCOUNT_IDENTITY_KEY) || "null");
+    } catch (_) {}
+
+    // The identity data is only used to hydrate the interface. The Worker
+    // validates the session token before the dashboard is made available.
+    if (!identity?.id || !identity?.email) return false;
+
+    const clerkUser = {
+      id: identity.id,
+      firstName: identity.firstName || "",
+      lastName: identity.lastName || "",
+      primaryEmailAddress: { emailAddress: identity.email },
+      emailAddresses: [{ emailAddress: identity.email }]
+    };
+
+    state.clerkUser = clerkUser;
+    state.authProvider = "clerk";
+    state.user = {
+      id: identity.id,
+      email: identity.email,
+      user_metadata: {
+        first_name: identity.firstName || "",
+        last_name: identity.lastName || ""
+      }
+    };
+    state.email = identity.email;
+    state.screen = "account";
+
+    try {
+      await loadAccountData();
+      return true;
+    } catch (error) {
+      state.clerkUser = null;
+      state.user = null;
+      state.authProvider = "";
+      state.email = "";
+      if (!readWorkerSessionToken()) {
+        try { sessionStorage.removeItem(ACCOUNT_IDENTITY_KEY); } catch (_) {}
+      }
+      console.warn("[VN ACCOUNT] Could not restore the saved VN Account session:", error);
+      return false;
+    }
   }
 
   async function exchangeWorkerSession() {
@@ -2431,7 +2539,13 @@
       closePanel();
       return;
     }
-    if (!state.clerk) return;
+    if (!state.clerk) {
+      try {
+        sessionStorage.setItem("vn_account_signout_all_devices", allDevices ? "1" : "0");
+      } catch (_) {}
+      window.location.href = new URL("/merch.html#signout", window.location.origin).href;
+      return;
+    }
     try {
       const workerToken = readWorkerSessionToken();
       if (workerToken) {
@@ -2442,6 +2556,7 @@
         }
       }
       storeWorkerSessionToken("");
+      try { sessionStorage.removeItem(ACCOUNT_IDENTITY_KEY); } catch (_) {}
       if (allDevices) await state.clerk.signOut();
       else if (state.clerk.session?.id) await state.clerk.signOut({ sessionId: state.clerk.session.id });
       else await state.clerk.signOut();
@@ -2833,6 +2948,9 @@
     getUser: () => state.user
   };
 
+  const openProfileHash = window.location.hash === "#profile";
+  const signOutFromHash = window.location.hash === "#signout";
+
   configPromise = loadConfig();
   configPromise.then(() => {
     if (state.user) render();
@@ -2841,7 +2959,7 @@
     const callbackToken = callbackParams.get("vn_shop_session");
     const callbackError = callbackParams.get("shop_error");
 
-    if (callbackToken || callbackError) {
+    if (callbackToken || callbackError || openProfileHash || signOutFromHash) {
       history.replaceState(null, "", window.location.pathname + window.location.search);
     }
 
@@ -2853,5 +2971,23 @@
       render();
     }
   });
-  if (new URLSearchParams(window.location.search).get("account") === "register") window.setTimeout(() => openPanel(), 0);
+  if (signOutFromHash) {
+    window.setTimeout(() => {
+      const allDevices = sessionStorage.getItem("vn_account_signout_all_devices") === "1";
+      try { sessionStorage.removeItem("vn_account_signout_all_devices"); } catch (_) {}
+      if (state.clerk) {
+        signOut(allDevices);
+      } else {
+        storeWorkerSessionToken("");
+        try { sessionStorage.removeItem(ACCOUNT_IDENTITY_KEY); } catch (_) {}
+        state.clerkUser = null;
+        state.user = null;
+        state.authProvider = "";
+        state.email = "";
+        closePanel();
+      }
+    }, 0);
+  } else if (openProfileHash || new URLSearchParams(window.location.search).get("account") === "register") {
+    window.setTimeout(() => openPanel(), 0);
+  }
 })();
