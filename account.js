@@ -96,32 +96,18 @@
       event.preventDefault();
       event.stopImmediatePropagation();
 
-      // Match merch.html: open immediately and restore the account session in the background.
+      // Open immediately, paint the panel, then continue on the canonical shop page.
       try {
         openPanel();
       } catch (error) {
         console.error("[VN ACCOUNT] Profile panel failed to open:", error);
-        return;
       }
 
-      const authRequestAtOpen = state.sendRequestId;
-      (async () => {
-        try {
-          if (configPromise) await configPromise;
-          if (authRequestAtOpen !== state.sendRequestId || !state.user) return;
-
-          state.screen = "account";
-          state.section = "dashboard";
-          state.message = "";
-          render();
-
-          loadAccountData()
-            .then(() => render())
-            .catch(error => console.error("[VN ACCOUNT] Account data refresh failed:", error));
-        } catch (error) {
-          console.error("[VN ACCOUNT] Background session refresh failed:", error);
-        }
-      })();
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          window.location.replace(new URL("/merch.html#profile", window.location.origin).href);
+        });
+      });
       return;
     }
 
