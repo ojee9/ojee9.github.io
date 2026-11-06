@@ -1176,9 +1176,9 @@
           trailContext.lineJoin = "round";
 
           // Restore the original full-width, layered pink/white trail treatment.
-          trailContext.strokeStyle = `rgba(150,205,255,${headLife * .25})`;
+          trailContext.strokeStyle = `rgba(255,175,230,${headLife * .25})`;
           trailContext.lineWidth = 19 * headLife;
-          trailContext.shadowColor = `rgba(130,155,255,${headLife * .62})`;
+          trailContext.shadowColor = `rgba(255,105,215,${headLife * .62})`;
           trailContext.shadowBlur = 18 * headLife;
           trailContext.stroke(trailPath);
 
@@ -1188,9 +1188,9 @@
           trailContext.shadowBlur = 16 * headLife;
           trailContext.stroke(trailPath);
 
-          trailContext.strokeStyle = `rgba(105,205,255,${headLife * .52})`;
+          trailContext.strokeStyle = `rgba(255,135,220,${headLife * .52})`;
           trailContext.lineWidth = 6.5 * headLife;
-          trailContext.shadowColor = `rgba(75,190,255,${headLife * .62})`;
+          trailContext.shadowColor = `rgba(255,85,195,${headLife * .62})`;
           trailContext.shadowBlur = 5 * headLife;
           trailContext.stroke(trailPath);
 
