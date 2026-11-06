@@ -18,6 +18,7 @@
     config: null,
     clerk: null,
     clerkUser: null,
+    clerkSignupMount: null,
     authAttempt: null,
     authMode: "",
     user: null,
@@ -181,7 +182,9 @@
     }
 
     try {
-      await clerk.load();
+      await clerk.load({
+        ui: { ClerkUI: window.__internal_ClerkUICtor }
+      });
       state.clerk = clerk;
       const restoredShopSession = await restoreShopSession();
       if (!restoredShopSession) {
@@ -194,7 +197,7 @@
 
         // Clerk can emit a signed-out state while a passwordless attempt is
         // being prepared. Do not replace the active OTP screen during that flow.
-        if (!user && (state.screen === "verify" || state.sendingCode || state.authAttempt)) {
+        if (!user && (state.screen === "verify" || state.screen === "signup" || state.sendingCode || state.authAttempt)) {
           return;
         }
 
@@ -216,6 +219,10 @@
       });
 
       if (state.user) await loadAccountData();
+      if (state.user && window.location.hash === "#profile") {
+        history.replaceState(null, "", window.location.pathname + window.location.search);
+        openPanel();
+      }
     } catch (error) {
       console.error("[VN ACCOUNT] Clerk initialization failed:", error);
       state.clerk = null;
@@ -1672,6 +1679,25 @@
     `;
   }
 
+
+  function renderSignup() {
+    return `
+      <main class="vn-ac-main vn-ac-verify-main vn-ac-signup-main">
+        <p class="vn-ac-subtitle vn-ac-sent-to">Creating an account with <strong>${escapeHTML(state.email)}</strong> <button type="button" class="vn-ac-inline-change" data-ac-action="change-email">(change)</button></p>
+        <div id="vnAcClerkSignUpMount"></div>
+      </main>
+    `;
+  }
+
+  function unmountClerkSignUp() {
+    const mount = state.clerkSignupMount;
+    state.clerkSignupMount = null;
+    if (mount && typeof state.clerk?.unmountSignUp === "function") {
+      try { state.clerk.unmountSignUp(mount); }
+      catch (error) { console.warn("[VN ACCOUNT] Clerk sign-up cleanup failed:", error); }
+    }
+  }
+
   function sidebar() {
     const entries = [
       ["dashboard", "DASHBOARD"],
@@ -2146,11 +2172,45 @@
     }
 
     if (!state.user) {
+      if (state.screen === "signup") {
+        if (!state.clerkSignupMount?.isConnected) {
+          unmountClerkSignUp();
+          content.innerHTML = renderSignup();
+          const mount = $("#vnAcClerkSignUpMount", content);
+          if (mount && typeof state.clerk?.mountSignUp === "function") {
+            state.clerkSignupMount = mount;
+            try {
+              state.clerk.mountSignUp(mount, {
+                initialValues: { emailAddress: state.email },
+                signInUrl: "/merch.html#profile",
+                forceRedirectUrl: "/merch.html#profile"
+              });
+            } catch (error) {
+              state.clerkSignupMount = null;
+              state.screen = "email";
+              state.messageType = "error";
+              state.message = "The secure account registration form could not be loaded. Please try again.";
+              content.innerHTML = renderEmail();
+              console.error("[VN ACCOUNT] Clerk prebuilt sign-up failed to mount:", error);
+            }
+          } else {
+            state.screen = "email";
+            state.messageType = "error";
+            state.message = "The secure account registration form is unavailable. Please refresh the page and try again.";
+            content.innerHTML = renderEmail();
+          }
+        }
+        positionShopHost();
+        return;
+      }
+
+      unmountClerkSignUp();
       content.innerHTML = state.screen === "verify" ? renderVerify() : renderEmail();
       positionShopHost();
       return;
     }
 
+    unmountClerkSignUp();
     positionShopHost();
 
     if (state.section === "dashboard") content.innerHTML = renderDashboard();
@@ -2214,9 +2274,13 @@
           authAttempt = prepared || signInAttempt; authMode = "signin";
         } catch (error) {
           if (!isUnknownClerkUser(error)) throw error;
-          const signup = await state.clerk.client.signUp.create({ emailAddress: normalizedEmail });
-          const prepared = await signup.prepareEmailAddressVerification({ strategy: "email_code" });
-          authAttempt = prepared || signup; authMode = "signup";
+          state.authAttempt = null;
+          state.authMode = "";
+          state.screen = "signup";
+          state.messageType = "info";
+          state.message = "";
+          render();
+          return;
         }
         if (requestId !== state.sendRequestId) return;
         state.authAttempt = authAttempt; state.authMode = authMode; state.messageType = "info"; state.message = "";
