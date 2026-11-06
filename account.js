@@ -673,8 +673,8 @@
         background:radial-gradient(
           ellipse 140% 140% at var(--vn-ac-shade-x, 50%) var(--vn-ac-shade-y, 50%),
           rgba(0,0,0,0) 0%,
-          rgba(0,0,0,.025) 55%,
-          rgba(0,0,0,.085) 100%
+          rgba(0,0,0,.055) 55%,
+          rgba(0,0,0,.17) 100%
         );
       }
       .vn-ac-shell.vn-ac-dashboard-open::before{
@@ -1017,16 +1017,25 @@
       dashboardShell.prepend(materialFrame);
     }
     if (dashboardShell) {
+      const shadePointer = { x: 0, y: 0 };
+      let shadeFrame = 0;
+      const canTrackShade = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
       const updateDashboardShade = event => {
-        if (!dashboardShell.classList.contains("vn-ac-dashboard-open")
-          || event.pointerType === "touch"
-          || !window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
-        const rect = dashboardShell.getBoundingClientRect();
-        if (!rect.width || !rect.height) return;
-        const x = Math.max(0, Math.min(100, ((event.clientX - rect.left) / rect.width) * 100));
-        const y = Math.max(0, Math.min(100, ((event.clientY - rect.top) / rect.height) * 100));
-        dashboardShell.style.setProperty("--vn-ac-shade-x", x + "%");
-        dashboardShell.style.setProperty("--vn-ac-shade-y", y + "%");
+        if (!canTrackShade
+          || !dashboardShell.classList.contains("vn-ac-dashboard-open")
+          || event.pointerType === "touch") return;
+        shadePointer.x = event.clientX;
+        shadePointer.y = event.clientY;
+        if (shadeFrame) return;
+        shadeFrame = requestAnimationFrame(() => {
+          shadeFrame = 0;
+          const rect = dashboardShell.getBoundingClientRect();
+          if (!rect.width || !rect.height) return;
+          const x = Math.max(0, Math.min(100, ((shadePointer.x - rect.left) / rect.width) * 100));
+          const y = Math.max(0, Math.min(100, ((shadePointer.y - rect.top) / rect.height) * 100));
+          dashboardShell.style.setProperty("--vn-ac-shade-x", x + "%");
+          dashboardShell.style.setProperty("--vn-ac-shade-y", y + "%");
+        });
       };
       dashboardShell.addEventListener("pointermove", updateDashboardShade, {passive:true});
     }
