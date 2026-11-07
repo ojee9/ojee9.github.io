@@ -33,6 +33,7 @@
     profile: {},
     addresses: [],
     orders: [],
+    adminOrders: [],
     returns: [],
     isAdmin: false,
     legalKey: "",
@@ -414,6 +415,7 @@
       state.country = state.profile.country || userCountry();
       state.marketingUpdates = state.profile.marketing_updates !== false;
       state.orders = [];
+      state.adminOrders = [];
       state.returns = [];
       state.isAdmin = false;
       updateAccountAvatar();
@@ -423,13 +425,13 @@
     state.loadingData = true;
     try {
       const result = await accountApi("/api/account");
-      // ADMIN EXEMPTION: only the fixed VN administrators may import browser-created test orders.
-      // Normal customer sessions must never run the admin-only checkout import path.
+      // Admin orders are fetched from their isolated table. Pending admin checkouts
+      // remain browser-local until an administrator explicitly marks them delivered.
       state.isAdmin = Boolean(result.is_admin || result.isAdmin);
-      if (state.isAdmin) await syncCompletedCheckoutOrder();
-      const [ordersResult, returnsResult] = await Promise.all([
+      const [ordersResult, returnsResult, adminOrdersResult] = await Promise.all([
         accountApi("/api/orders"),
-        accountApi("/api/returns")
+        accountApi("/api/returns"),
+        state.isAdmin ? accountApi("/api/admin-orders") : Promise.resolve({ orders: [] })
       ]);
       state.profile = {
         ...(result.profile || {}),
@@ -440,8 +442,12 @@
       state.country = state.profile.country || userCountry();
       state.marketingUpdates = state.profile.marketing_updates !== false;
       state.orders = Array.isArray(ordersResult.orders) ? ordersResult.orders : [];
+      state.adminOrders = state.isAdmin
+        ? (Array.isArray(adminOrdersResult.orders) ? adminOrdersResult.orders
+          : Array.isArray(adminOrdersResult.admin_orders) ? adminOrdersResult.admin_orders : [])
+        : [];
       state.returns = Array.isArray(returnsResult.returns) ? returnsResult.returns : [];
-      state.isAdmin = Boolean(result.is_admin || ordersResult.is_admin || returnsResult.is_admin);
+      state.isAdmin = Boolean(result.is_admin || ordersResult.is_admin || returnsResult.is_admin || adminOrdersResult.is_admin);
       state.user.user_metadata = {
         ...(state.user.user_metadata || {}),
         first_name: state.profile.first_name,
@@ -2032,6 +2038,63 @@
 
   function renderOrders() {
     const orders = state.orders || [];
+    const adminOrders = state.isAdmin ? (state.adminOrders || []).map(normalizeAdminOrderRecord) : [];
+    const pendingAdminOrders = state.isAdmin ? getPendingAdminCheckoutOrders() : [];
+    const adminOrderSection = state.isAdmin ? `
+      <section class="vn-ac-admin-orders" aria-labelledby="vn-ac-admin-orders-title">
+        <h2 id="vn-ac-admin-orders-title">ADMIN ORDER</h2>
+        <p>Admin orders are recorded separately and never affect customer inventory.</p>
+        ${pendingAdminOrders.length ? `
+          <div class="vn-ac-admin-pending">
+            <h3>AWAITING DELIVERY CONFIRMATION</h3>
+            ${pendingAdminOrders.map(order => `
+              <article class="vn-ac-record vn-ac-order-record">
+                <div class="vn-ac-order-line">
+                  <strong class="vn-ac-order-number">${escapeHTML(order.orderNumber || order.order_number)}</strong>
+                  <div class="vn-ac-order-products">
+                    ${(Array.isArray(order.items) ? order.items : []).map(item => {
+                      const product = item.product && typeof item.product === "object" ? item.product : item;
+                      const title = product.title || product.name || product.productName || item.title || item.name || "Product";
+                      const variant = product.variant || product.size || item.variant || item.size;
+                      return `<span class="vn-ac-order-product"><span class="vn-ac-order-product-info"><strong>${escapeHTML(title)}</strong>${variant ? `<small>${escapeHTML(variant)}</small>` : ""}<small>QTY ${escapeHTML(item.quantity || item.qty || product.quantity || 1)}</small></span></span>`;
+                    }).join("")}
+                  </div>
+                  <span class="vn-ac-order-received">PENDING DELIVERY</span>
+                  <button type="button" class="vn-ac-button" data-ac-admin-deliver="${escapeHTML(order.orderNumber || order.order_number)}">MARK DELIVERED</button>
+                </div>
+              </article>
+            `).join("")}
+          </div>
+        ` : ""}
+        ${adminOrders.length ? `
+          <div class="vn-ac-admin-records">
+            <h3>DELIVERED &amp; RETURNED</h3>
+            ${adminOrders.map(order => {
+              const orderNumber = order.orderNumber || order.order_number || order.id;
+              const items = Array.isArray(order.items) ? order.items : [];
+              const status = String(order.status || "delivered").toLowerCase();
+              return `
+                <article class="vn-ac-record vn-ac-order-record">
+                  <div class="vn-ac-order-line">
+                    <strong class="vn-ac-order-number">${escapeHTML(orderNumber)}</strong>
+                    <div class="vn-ac-order-products">
+                      ${items.map(item => {
+                        const product = item.product && typeof item.product === "object" ? item.product : item;
+                        const title = product.title || product.name || product.productName || item.title || item.name || "Product";
+                        const variant = product.variant || product.size || item.variant || item.size;
+                        return `<span class="vn-ac-order-product"><span class="vn-ac-order-product-info"><strong>${escapeHTML(title)}</strong>${variant ? `<small>${escapeHTML(variant)}</small>` : ""}<small>QTY ${escapeHTML(item.quantity || item.qty || product.quantity || 1)}</small></span></span>`;
+                      }).join("")}
+                    </div>
+                    <span class="vn-ac-order-received">${status === "returned" ? "RETURNED" : "DELIVERED"}</span>
+                    ${status === "delivered" ? `<button type="button" class="vn-ac-button secondary" data-ac-admin-return="${escapeHTML(order.id)}">MARK RETURNED</button>` : ""}
+                  </div>
+                </article>
+              `;
+            }).join("")}
+          </div>
+        ` : `<p class="vn-ac-hint">No delivered admin orders yet.</p>`}
+      </section>
+    ` : "";
     const delivered = orders.filter(order => String(order.orderStatus || order.status || "").toLowerCase() === "delivered").length;
     const returned = (state.returns || []).filter(item => ["accepted", "approved", "received", "refunded", "completed"].includes(String(item.status || "").toLowerCase())).length;
     const waiting = orders.filter(order => ["received", "pending", "processing", "preparing", "paid", "shipped"].includes(String(order.orderStatus || order.status || "").toLowerCase())).length;
@@ -2042,6 +2105,7 @@
         <main class="vn-ac-main">
           <h1>My Orders</h1>
           ${messageHTML()}
+          ${adminOrderSection}
           ${orders.length ? `
             <div class="vn-ac-stats">
               <div class="vn-ac-stat"><strong>${orders.length}</strong><span>TOTAL ORDERS</span></div>
@@ -2819,6 +2883,7 @@
       state.profile = {};
       state.addresses = [];
       state.orders = [];
+      state.adminOrders = [];
       state.returns = [];
       state.isAdmin = false;
       state.screen = "email";
@@ -2856,37 +2921,103 @@
   }
 
 
-  async function syncCompletedCheckoutOrder() {
-    if (!state.user?.email || state.authProvider !== "clerk") return;
+  function safeAdminJSON(value, fallback) {
+    if (value && typeof value === "object") return value;
+    if (typeof value !== "string" || !value) return fallback;
+    try { return JSON.parse(value); } catch (_) { return fallback; }
+  }
 
+  function normalizeAdminOrderRecord(row) {
+    const order = safeAdminJSON(row?.order_json, {});
+    const customer = safeAdminJSON(row?.customer_json, order.customer || {});
+    const items = Array.isArray(row?.items) ? row.items
+      : safeAdminJSON(row?.items_json, Array.isArray(order.items) ? order.items : []);
+    return {
+      ...order,
+      ...row,
+      customer: row?.customer && typeof row.customer === "object" ? row.customer : customer,
+      items: Array.isArray(items) ? items : [],
+      orderNumber: row?.orderNumber || row?.order_number || order.orderNumber || order.order_number || row?.id,
+      status: row?.status || order.status || "delivered"
+    };
+  }
+
+  function getPendingAdminCheckoutOrders() {
+    if (!state.isAdmin || !state.user?.email || state.authProvider !== "clerk") return [];
     const candidates = [];
     for (const storage of [window.sessionStorage, window.localStorage]) {
       try {
         const raw = storage.getItem("vn-shop-order-complete");
-        if (raw) candidates.push(JSON.parse(raw));
+        const order = raw ? JSON.parse(raw) : null;
+        if (order) candidates.push(order);
       } catch (_) {}
     }
-
     const seen = new Set();
-    for (const order of candidates) {
-      const orderNumber = String(order?.orderNumber || "").trim();
-      const orderEmail = String(order?.customer?.email || "").trim().toLowerCase();
-      if (!orderNumber || seen.has(orderNumber)) continue;
-      seen.add(orderNumber);
-      if (!orderEmail || orderEmail !== String(state.user.email).trim().toLowerCase()) continue;
-
-      const marker = "vn_shop_order_saved_" + orderNumber;
+    const deliveredNumbers = new Set((state.adminOrders || []).map(row => {
+      const normalized = normalizeAdminOrderRecord(row);
+      return String(normalized.orderNumber || "").trim();
+    }));
+    return candidates.filter(order => {
+      const number = String(order?.orderNumber || order?.order_number || "").trim();
+      const email = String(order?.customer?.email || "").trim().toLowerCase();
+      if (!number || seen.has(number) || email !== String(state.user.email).trim().toLowerCase()) return false;
+      seen.add(number);
+      if (deliveredNumbers.has(number)) return false;
       try {
-        if (sessionStorage.getItem(marker) === "1") continue;
+        if (sessionStorage.getItem("vn_shop_admin_delivered_" + number) === "1") return false;
       } catch (_) {}
+      return true;
+    });
+  }
 
-      await accountApi("/api/orders", {
+  async function markAdminOrderDelivered(orderNumber, button) {
+    if (!state.isAdmin || !orderNumber) return;
+    const order = getPendingAdminCheckoutOrders().find(item =>
+      String(item.orderNumber || item.order_number) === String(orderNumber)
+    );
+    if (!order) {
+      state.messageType = "error";
+      state.message = "This pending admin order could not be found in this browser.";
+      render();
+      return;
+    }
+    if (button) button.disabled = true;
+    try {
+      await accountApi("/api/admin-orders", {
         method: "POST",
         body: JSON.stringify({ order })
       });
-
-      try { sessionStorage.setItem(marker, "1"); } catch (_) {}
+      for (const storage of [window.sessionStorage, window.localStorage]) {
+        try { storage.setItem("vn_shop_admin_delivered_" + orderNumber, "1"); } catch (_) {}
+      }
+      await loadAccountData();
+      state.messageType = "success";
+      state.message = "Admin order recorded as delivered.";
+    } catch (error) {
+      if (button) button.disabled = false;
+      state.messageType = "error";
+      state.message = error.message || "Could not record the admin order delivery.";
     }
+    render();
+  }
+
+  async function markAdminOrderReturned(orderId, button) {
+    if (!state.isAdmin || !orderId) return;
+    if (button) button.disabled = true;
+    try {
+      await accountApi("/api/admin-orders/" + encodeURIComponent(orderId), {
+        method: "PATCH",
+        body: JSON.stringify({ status: "returned" })
+      });
+      await loadAccountData();
+      state.messageType = "success";
+      state.message = "Admin order marked as returned.";
+    } catch (error) {
+      if (button) button.disabled = false;
+      state.messageType = "error";
+      state.message = error.message || "Could not update the admin order.";
+    }
+    render();
   }
 
   async function createReturn(form) {
@@ -3158,6 +3289,20 @@
             break;
         }
 
+        return;
+      }
+
+      const adminDeliverButton = event.target.closest("[data-ac-admin-deliver]");
+      if (adminDeliverButton) {
+        event.preventDefault();
+        await markAdminOrderDelivered(adminDeliverButton.dataset.acAdminDeliver, adminDeliverButton);
+        return;
+      }
+
+      const adminReturnButton = event.target.closest("[data-ac-admin-return]");
+      if (adminReturnButton) {
+        event.preventDefault();
+        await markAdminOrderReturned(adminReturnButton.dataset.acAdminReturn, adminReturnButton);
         return;
       }
 
