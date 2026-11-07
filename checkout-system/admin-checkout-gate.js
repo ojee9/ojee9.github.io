@@ -2,7 +2,7 @@
  * Canonical administrator emails are intentionally fixed to these three accounts.
  * The Worker is the authority for is_admin; a typed email or browser storage value
  * never grants administrator privileges by itself.
- * ADMIN PRIVILEGES: test checkout access and unpaid admin order receipts only.
+ * HIGH PRIORITY: checkout access and unpaid admin order receipts only.
  */
 (() => {
   "use strict";
@@ -112,7 +112,7 @@
     document.documentElement.classList.remove("vn-admin-gate-pending");
     document.documentElement.dataset.vnAdminCheckout = "authorized";
     const payButton = document.getElementById("pay-now");
-    if (payButton) payButton.textContent = "COMPLETE ADMIN TEST ORDER";
+    if (payButton) payButton.textContent = "COMPLETE ADMIN ORDER";
   }
 
   if (document.readyState === "loading") {
