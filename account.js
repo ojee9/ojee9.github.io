@@ -2038,7 +2038,6 @@
         ${sidebar()}
         <main class="vn-ac-main">
           <h1>My Orders</h1>
-          <p class="vn-ac-subtitle">View your order history and track shipments.</p>
           ${messageHTML()}
           ${orders.length ? `
             <div class="vn-ac-stats">
