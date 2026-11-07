@@ -422,6 +422,7 @@
     if (!state.clerkUser) return;
     state.loadingData = true;
     try {
+      await syncCompletedCheckoutOrder();
       const result = await accountApi("/api/account");
       const [ordersResult, returnsResult] = await Promise.all([
         accountApi("/api/orders"),
@@ -465,7 +466,7 @@
       #vnAccountOverlay{position:fixed;inset:0;z-index:10001;display:flex;align-items:center;justify-content:center;overflow:auto;padding:24px;background:rgba(0,0,0,.48);color:#151515;font:14px/1.55 Arial,sans-serif}
       #vnAccountOverlay[hidden]{display:none!important}
       #vnAccountOverlay *{box-sizing:border-box}
-      .vn-ac-admin-tools{margin-top:28px;padding:20px;border:1px dashed rgba(20,20,20,.42);background:rgba(255,255,255,.18)}.vn-ac-admin-tools>p{margin:8px 0 14px}.vn-ac-admin-form,.vn-ac-admin-edit{display:grid;gap:12px;margin-top:14px;padding:16px;border:1px solid rgba(20,20,20,.2);background:rgba(255,255,255,.2)}.vn-ac-admin-edit{margin-top:18px}.vn-ac-admin-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.vn-ac-test-label{font-size:11px!important;font-weight:700;letter-spacing:1px;color:#5a4540}.vn-ac-button.danger{border:1px solid #7b2525;background:#7b2525;color:#fff}.vn-ac-admin-tools input,.vn-ac-admin-tools select,.vn-ac-admin-edit input,.vn-ac-admin-edit select,.vn-ac-admin-edit textarea{width:100%;min-width:0;padding:10px;border:1px solid #777;background:#fff;color:#151515;font:inherit}.vn-ac-admin-edit textarea{min-height:70px}@media(max-width:600px){.vn-ac-admin-grid{grid-template-columns:1fr}.vn-ac-admin-tools,.vn-ac-admin-edit{padding:12px}}
+      .vn-ac-button.danger{border:1px solid #7b2525;background:#7b2525;color:#fff}.vn-ac-order-items{display:grid;gap:9px;margin:16px 0}.vn-ac-order-item{display:flex;align-items:center;gap:12px;padding:10px;border:1px solid rgba(20,20,20,.16);background:rgba(255,255,255,.2)}.vn-ac-order-item img{width:54px;height:64px;object-fit:contain}.vn-ac-order-item-info{display:grid;gap:3px;flex:1;min-width:0}.vn-ac-order-item-remove{width:30px;height:30px;border:0;border-radius:50%;background:#7b2525;color:#fff;font-size:22px;line-height:1;cursor:pointer}.vn-ac-order-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.vn-ac-admin-status{max-width:260px;margin-top:14px}.vn-ac-return-products{display:grid;gap:10px;margin:14px 0;padding:14px;border:1px solid rgba(20,20,20,.22)}.vn-ac-return-products legend{padding:0 6px;font-weight:700}.vn-ac-return-product{display:flex;align-items:center;gap:10px}.vn-ac-return-product small{margin-left:auto}.vn-ac-return-product input{width:16px;height:16px}@media(max-width:600px){.vn-ac-order-item{gap:8px}.vn-ac-order-item img{width:44px;height:54px}.vn-ac-order-actions{align-items:stretch}.vn-ac-order-actions .vn-ac-button{flex:1}}
       .vn-ac-shell{width:min(100%,980px);max-height:calc(100dvh - 48px);overflow:auto;margin:auto;padding:28px;background:#BFC5C8;border:1px solid #d8d8d8;box-shadow:0 24px 80px rgba(0,0,0,.25)}
       .vn-ac-shell.vn-ac-auth-shell{position:relative;isolation:isolate;display:flex;flex-direction:column;align-items:stretch;width:min(100%,760px);height:auto;min-height:min(620px,calc(100dvh - 32px));max-height:calc(100dvh - 32px);overflow-y:auto;padding:36px 72px 28px;background:#171717;color:#f5f5f5;border:0;box-shadow:0 28px 90px rgba(0,0,0,.42)}
       .vn-ac-header{position:relative;display:flex;justify-content:center;align-items:center;padding-bottom:24px;border-bottom:1px solid #e5e5e5}
@@ -1891,35 +1892,68 @@
   }
 
   function renderOrders() {
-    const orders = state.orders;
-    const delivered = orders.filter(order => String(order.status || "").toLowerCase() === "delivered").length;
-    const returned = state.returns.filter(item => ["approved", "received", "refunded", "completed"].includes(String(item.status || "").toLowerCase())).length;
-    const waiting = orders.filter(order => ["pending", "processing", "paid", "shipped"].includes(String(order.status || "").toLowerCase())).length;
+    const orders = state.orders || [];
+    const delivered = orders.filter(order => String(order.orderStatus || order.status || "").toLowerCase() === "delivered").length;
+    const returned = (state.returns || []).filter(item => ["accepted", "approved", "received", "refunded", "completed"].includes(String(item.status || "").toLowerCase())).length;
+    const waiting = orders.filter(order => ["received", "pending", "processing", "preparing", "paid", "shipped"].includes(String(order.orderStatus || order.status || "").toLowerCase())).length;
 
     return `
       <div class="vn-ac-layout">
         ${sidebar()}
         <main class="vn-ac-main">
+          <h1>My Orders</h1>
+          <p class="vn-ac-subtitle">View your order history and track shipments.</p>
+          ${messageHTML()}
           ${orders.length ? `
-            <h1>My Orders</h1><p class="vn-ac-subtitle">View your order history and track shipments.</p>
-            ${messageHTML()}
             <div class="vn-ac-stats">
               <div class="vn-ac-stat"><strong>${orders.length}</strong><span>TOTAL ORDERS</span></div>
               <div class="vn-ac-stat"><strong>${delivered}</strong><span>DELIVERED ORDERS</span></div>
               <div class="vn-ac-stat"><strong>${returned}</strong><span>RETURNED ORDERS</span></div>
               <div class="vn-ac-stat"><strong>${waiting}</strong><span>WAITING ORDERS</span></div>
             </div>
-            ${orders.map(order => `
-              <article class="vn-ac-record">
-                <div class="vn-ac-record-head"><strong>Order ${escapeHTML(order.order_number || order.id)}</strong><span class="vn-ac-badge">${escapeHTML(order.status || "Status unavailable")}</span></div>
-                <p>Placed: ${escapeHTML(order.created_at || "—")}</p>
-                <p>Total: ${escapeHTML(order.currency || "USD")} ${escapeHTML(order.grand_total ?? order.total ?? "—")}</p>
-                <p>Tracking: ${escapeHTML(order.tracking_number || "Not available yet")}</p>
-                <button class="vn-ac-button secondary" data-ac-order="${escapeHTML(order.id)}">View order</button>
-                <button class="vn-ac-button secondary" data-ac-return-order="${escapeHTML(order.id)}">Start a return</button>
-                ${state.isAdmin && order.is_test ? `<button class="vn-ac-button danger" type="button" data-ac-delete-test-order="${escapeHTML(order.id)}">Delete test order</button>` : ""}
-              </article>
-            `).join("")}
+            ${orders.map(order => {
+              const orderId = order.id;
+              const orderNumber = order.orderNumber || order.order_number || order.id;
+              const status = order.orderStatus || order.status || "Received";
+              const created = order.createdAt || order.created_at || "—";
+              const total = order.total ?? order.grand_total ?? "—";
+              const items = Array.isArray(order.items) ? order.items : [];
+              return `
+                <article class="vn-ac-record">
+                  <div class="vn-ac-record-head">
+                    <strong>Order ${escapeHTML(orderNumber)}</strong>
+                    <span class="vn-ac-badge">${escapeHTML(status)}</span>
+                  </div>
+                  <p>Placed: ${escapeHTML(created)}</p>
+                  <p>Total: ${escapeHTML(order.currency || "TRY")} ${escapeHTML(total)}</p>
+                  <div class="vn-ac-order-items">
+                    ${items.map(item => `
+                      <div class="vn-ac-order-item">
+                        ${item.image || item.imageUrl ? `<img src="${escapeHTML(item.image || item.imageUrl)}" alt="" loading="lazy">` : ""}
+                        <div class="vn-ac-order-item-info">
+                          <strong>${escapeHTML(item.title || item.name || item.productName || "Product")}</strong>
+                          ${item.variant || item.size ? `<span>${escapeHTML(item.variant || item.size)}</span>` : ""}
+                          <span>Qty: ${escapeHTML(item.quantity || item.qty || 1)}</span>
+                        </div>
+                        ${state.isAdmin ? `<button type="button" class="vn-ac-order-item-remove" aria-label="Remove product" title="Remove product" data-ac-remove-order-item="${escapeHTML(item.id)}" data-ac-order-id="${escapeHTML(orderId)}">×</button>` : ""}
+                      </div>
+                    `).join("")}
+                  </div>
+                  <div class="vn-ac-order-actions">
+                    <button class="vn-ac-button secondary" type="button" data-ac-order="${escapeHTML(orderId)}">View order</button>
+                    <button class="vn-ac-button secondary" type="button" data-ac-return-order="${escapeHTML(orderId)}">Start a return</button>
+                  </div>
+                  ${state.isAdmin ? `
+                    <label class="vn-ac-field vn-ac-admin-status">
+                      <span>Order status</span>
+                      <select data-ac-order-status="${escapeHTML(orderId)}">
+                        ${["Received","Processing","Preparing","Shipped","Delivered","Cancelled"].map(value => `<option value="${value}" ${String(status).toLowerCase() === value.toLowerCase() ? "selected" : ""}>${value}</option>`).join("")}
+                      </select>
+                    </label>
+                  ` : ""}
+                </article>
+              `;
+            }).join("")}
           ` : `
             <div class="vn-ac-empty vn-ac-orders-empty">
               <h1>Welcome${[state.profile.first_name, state.profile.last_name].filter(Boolean).join(" ").trim() ? `, ${escapeHTML([state.profile.first_name, state.profile.last_name].filter(Boolean).join(" ").trim())}` : ""}</h1>
@@ -1931,42 +1965,69 @@
     `;
   }
   function renderReturns() {
-    if (!state.returns.length) {
-      return `
-        <div class="vn-ac-layout">
-          ${sidebar()}
-          <main class="vn-ac-main">
-            <p>No return requests are available for this account.</p>
-          </main>
-        </div>
-      `;
-    }
+    const returns = state.returns || [];
+    const selectedOrder = state.orders.find(order => String(order.id) === String(state.returnOrderId || ""));
+    const selectedItems = Array.isArray(selectedOrder?.items) ? selectedOrder.items : [];
 
     return `
       <div class="vn-ac-layout">
         ${sidebar()}
         <main class="vn-ac-main">
-          <h1>My Returns</h1><p class="vn-ac-subtitle">Start or track a return.</p>
+          <h1>My Returns</h1>
+          <p class="vn-ac-subtitle">Start or track a return.</p>
           ${messageHTML()}
-          ${state.returns.map(item => `
+          ${returns.length ? returns.map(item => `
             <article class="vn-ac-record">
-              <div class="vn-ac-record-head"><strong>Return ${escapeHTML(item.return_number || item.id)}</strong><span class="vn-ac-badge">${escapeHTML(item.status || "Status unavailable")}</span></div>
-              <p>Order: ${escapeHTML(item.order_id || "—")}</p><p>Reason: ${escapeHTML(item.reason || "—")}</p>
-              <p>Created: ${escapeHTML(item.requested_at || item.created_at || "—")}</p><p>${escapeHTML(item.customer_note || "")}</p>
+              <div class="vn-ac-record-head">
+                <strong>Return ${escapeHTML(item.id)}</strong>
+                <span class="vn-ac-badge">${escapeHTML(item.status || "Pending")}</span>
+              </div>
+              <p>Order: ${escapeHTML(item.orderNumber || item.order_number || item.orderId || item.order_id || "—")}</p>
+              <p>Reason: ${escapeHTML(item.reason || "—")}</p>
+              <p>Created: ${escapeHTML(item.createdAt || item.created_at || "—")}</p>
+              ${item.customerNote || item.customer_note ? `<p>${escapeHTML(item.customerNote || item.customer_note)}</p>` : ""}
+              ${Array.isArray(item.items) ? `<div class="vn-ac-return-items">${item.items.map(product => `<p>${escapeHTML(product.title || product.name || product.productName || "Product")} · Qty: ${escapeHTML(product.quantity || 1)}</p>`).join("")}</div>` : ""}
+              ${state.isAdmin ? `
+                <div class="vn-ac-order-actions">
+                  <button type="button" class="vn-ac-button secondary" data-ac-return-status="${escapeHTML(item.id)}" data-status="Accepted">Accept</button>
+                  <button type="button" class="vn-ac-button secondary" data-ac-return-status="${escapeHTML(item.id)}" data-status="Rejected">Reject</button>
+                  <button type="button" class="vn-ac-button danger" data-ac-delete-return="${escapeHTML(item.id)}" aria-label="Delete return">×</button>
+                </div>
+              ` : ""}
             </article>
-          `).join("")}
+          `).join("") : `<p>No return requests are available for this account.</p>`}
           <h2 style="margin-top:28px">Start a return</h2>
           <form id="vnAcReturnForm">
-            <label class="vn-ac-field"><span>Order</span><select name="order_id" required><option value="">Select an order</option>
-              ${state.orders.map(order => `<option value="${escapeHTML(order.id)}">${escapeHTML(order.order_number || order.id)}</option>`).join("")}
-            </select></label>
+            <label class="vn-ac-field">
+              <span>Order</span>
+              <select name="order_id" required data-ac-return-order-select>
+                <option value="">Select an order</option>
+                ${state.orders.map(order => `<option value="${escapeHTML(order.id)}" ${String(order.id) === String(state.returnOrderId || "") ? "selected" : ""}>${escapeHTML(order.orderNumber || order.order_number || order.id)}</option>`).join("")}
+              </select>
+            </label>
+            ${selectedOrder ? `
+              <fieldset class="vn-ac-return-products">
+                <legend>Select products</legend>
+                ${selectedItems.map(item => `
+                  <label class="vn-ac-return-product">
+                    <input type="checkbox" name="item_ids" value="${escapeHTML(item.id)}">
+                    <span>${escapeHTML(item.title || item.name || item.productName || "Product")}</span>
+                    <small>Qty: ${escapeHTML(item.quantity || item.qty || 1)}</small>
+                  </label>
+                `).join("")}
+              </fieldset>
+            ` : ""}
             <label class="vn-ac-field"><span>Reason for return</span><select name="reason" required>
-              <option value="">Select a reason</option><option value="damaged">Item arrived damaged</option><option value="wrong_item">Wrong item received</option><option value="size_fit">Size or fit issue</option><option value="changed_mind">Changed my mind</option><option value="other">Other</option>
+              <option value="">Select a reason</option>
+              <option value="damaged">Item arrived damaged</option>
+              <option value="wrong_item">Wrong item received</option>
+              <option value="size_fit">Size or fit issue</option>
+              <option value="changed_mind">Changed my mind</option>
+              <option value="other">Other</option>
             </select></label>
             <label class="vn-ac-field"><span>Additional details</span><textarea name="customer_note" placeholder="Tell us more (optional)"></textarea></label>
-            <button class="vn-ac-button" type="submit">Submit return request</button>
+            <button class="vn-ac-button" type="submit" ${state.busy || !selectedOrder ? "disabled" : ""}>Submit return request</button>
           </form>
-          <p class="vn-ac-muted">Submitting a request does not guarantee approval or automatically issue a refund.</p>
         </main>
       </div>
     `;
@@ -2657,8 +2718,52 @@
   }
 
 
+  async function syncCompletedCheckoutOrder() {
+    if (!state.user?.email || state.authProvider !== "clerk") return;
+
+    const candidates = [];
+    for (const storage of [window.sessionStorage, window.localStorage]) {
+      try {
+        const raw = storage.getItem("vn-shop-order-complete");
+        if (raw) candidates.push(JSON.parse(raw));
+      } catch (_) {}
+    }
+
+    const seen = new Set();
+    for (const order of candidates) {
+      const orderNumber = String(order?.orderNumber || "").trim();
+      const orderEmail = String(order?.customer?.email || "").trim().toLowerCase();
+      if (!orderNumber || seen.has(orderNumber)) continue;
+      seen.add(orderNumber);
+      if (!orderEmail || orderEmail !== String(state.user.email).trim().toLowerCase()) continue;
+
+      const marker = "vn_shop_order_saved_" + orderNumber;
+      try {
+        if (sessionStorage.getItem(marker) === "1") continue;
+      } catch (_) {}
+
+      await accountApi("/api/orders", {
+        method: "POST",
+        body: JSON.stringify({ order })
+      });
+
+      try { sessionStorage.setItem(marker, "1"); } catch (_) {}
+    }
+  }
+
   async function createReturn(form) {
     const data = new FormData(form);
+    const itemIds = [...form.querySelectorAll('input[name="item_ids"]:checked')]
+      .map(input => input.value)
+      .filter(Boolean);
+
+    if (!itemIds.length) {
+      state.messageType = "error";
+      state.message = "Select at least one product.";
+      render();
+      return;
+    }
+
     state.busy = true;
     state.message = "";
     try {
@@ -2666,6 +2771,7 @@
         method: "POST",
         body: JSON.stringify({
           order_id: String(data.get("order_id") || ""),
+          item_ids: itemIds,
           reason: String(data.get("reason") || ""),
           customer_note: String(data.get("customer_note") || "").trim()
         })
@@ -2682,108 +2788,73 @@
     }
   }
 
-  async function createTestOrder(form) {
-    if (!state.isAdmin) return;
-    const data = new FormData(form);
-    state.busy = true;
-    state.message = "";
+  async function removeOrderItem(orderId, itemId) {
+    if (!state.isAdmin || !orderId || !itemId) return;
+    if (!window.confirm("Remove this product from the order?")) return;
+
     try {
-      const amount = Number(data.get("grand_total") || 0);
-      await accountApi("/api/orders", {
-        method: "POST",
-        body: JSON.stringify({
-          status: String(data.get("status") || "pending"),
-          currency: String(data.get("currency") || "USD"),
-          subtotal: amount,
-          shipping_total: 0,
-          tax_total: 0,
-          grand_total: amount,
-          tracking_number: String(data.get("tracking_number") || "").trim(),
-          items: data.get("item_name") ? [{
-            name: String(data.get("item_name")).trim(),
-            quantity: Math.max(1, Number(data.get("quantity") || 1)),
-            price: amount
-          }] : []
-        })
-      });
+      await accountApi(
+        "/api/orders/" + encodeURIComponent(orderId) +
+        "/items/" + encodeURIComponent(itemId),
+        { method: "DELETE" }
+      );
       await loadAccountData();
       state.messageType = "success";
-      state.message = "Test order created. It is isolated from real sales, payments and stock.";
+      state.message = "Product removed.";
     } catch (error) {
       state.messageType = "error";
-      state.message = error.message || "Could not create the test order.";
-    } finally {
-      state.busy = false;
-      render();
+      state.message = error.message || "Could not remove this product.";
     }
+    render();
   }
 
-  async function updateTestOrder(form) {
-    if (!state.isAdmin) return;
-    const data = new FormData(form);
-    const id = form.dataset.acEditOrder;
-    state.busy = true;
+  async function updateOrderStatus(orderId, status) {
+    if (!state.isAdmin || !orderId || !status) return;
     try {
-      await accountApi("/api/orders/" + encodeURIComponent(id), {
+      await accountApi("/api/orders/" + encodeURIComponent(orderId), {
         method: "PATCH",
-        body: JSON.stringify({
-          status: String(data.get("status") || ""),
-          grand_total: Number(data.get("grand_total") || 0),
-          tracking_number: String(data.get("tracking_number") || "").trim()
-        })
+        body: JSON.stringify({ status })
       });
       await loadAccountData();
       state.messageType = "success";
-      state.message = "Test order updated.";
+      state.message = "Order status updated.";
     } catch (error) {
       state.messageType = "error";
-      state.message = error.message || "Could not update the test order.";
-    } finally {
-      state.busy = false;
-      render();
+      state.message = error.message || "Could not update order status.";
     }
+    render();
   }
 
-  async function updateTestReturn(form) {
-    if (!state.isAdmin) return;
-    const data = new FormData(form);
-    const id = form.dataset.acEditReturn;
-    state.busy = true;
+  async function updateReturnStatus(returnId, status) {
+    if (!state.isAdmin || !returnId || !["Accepted", "Rejected"].includes(status)) return;
     try {
-      await accountApi("/api/returns/" + encodeURIComponent(id), {
+      await accountApi("/api/returns/" + encodeURIComponent(returnId), {
         method: "PATCH",
-        body: JSON.stringify({
-          status: String(data.get("status") || ""),
-          reason: String(data.get("reason") || ""),
-          customer_note: String(data.get("customer_note") || "")
-        })
+        body: JSON.stringify({ status })
       });
       await loadAccountData();
       state.messageType = "success";
-      state.message = "Test return updated.";
+      state.message = "Return request updated.";
     } catch (error) {
       state.messageType = "error";
-      state.message = error.message || "Could not update the test return.";
-    } finally {
-      state.busy = false;
-      render();
+      state.message = error.message || "Could not update return request.";
     }
+    render();
   }
 
-  async function deleteTestRecord(kind, id) {
-    if (!state.isAdmin || !id) return;
-    const label = kind === "order" ? "test order" : "test return";
-    if (!window.confirm("Delete this " + label + "? This action cannot be undone.")) return;
+  async function deleteReturn(returnId) {
+    if (!state.isAdmin || !returnId) return;
+    if (!window.confirm("Delete this return record?")) return;
     try {
-      await accountApi("/api/" + (kind === "order" ? "orders/" : "returns/") + encodeURIComponent(id), {
+      await accountApi("/api/returns/" + encodeURIComponent(returnId), {
         method: "DELETE"
       });
       await loadAccountData();
       state.messageType = "success";
-      state.message = "Test " + kind + " deleted.";
+      state.message = "Return record deleted.";
     } catch (error) {
       state.messageType = "error";
-      state.message = error.message || "Could not delete the test record.";
+      state.message = error.message || "Could not delete return record.";
     }
     render();
   }
@@ -2968,29 +3039,48 @@
         return;
       }
 
-      const deleteTestOrderButton = event.target.closest("[data-ac-delete-test-order]");
-      if (deleteTestOrderButton) {
+      const removeItemButton = event.target.closest("[data-ac-remove-order-item]");
+      if (removeItemButton) {
         event.preventDefault();
-        await deleteTestRecord("order", deleteTestOrderButton.dataset.acDeleteTestOrder);
+        await removeOrderItem(
+          removeItemButton.dataset.acOrderId,
+          removeItemButton.dataset.acRemoveOrderItem
+        );
         return;
       }
 
-      const deleteTestReturnButton = event.target.closest("[data-ac-delete-test-return]");
-      if (deleteTestReturnButton) {
+      const orderStatusSelect = event.target.closest("[data-ac-order-status]");
+      if (orderStatusSelect) {
+        await updateOrderStatus(
+          orderStatusSelect.dataset.acOrderStatus,
+          orderStatusSelect.value
+        );
+        return;
+      }
+
+      const returnStatusButton = event.target.closest("[data-ac-return-status]");
+      if (returnStatusButton) {
         event.preventDefault();
-        await deleteTestRecord("return", deleteTestReturnButton.dataset.acDeleteTestReturn);
+        await updateReturnStatus(
+          returnStatusButton.dataset.acReturnStatus,
+          returnStatusButton.dataset.status
+        );
+        return;
+      }
+
+      const deleteReturnButton = event.target.closest("[data-ac-delete-return]");
+      if (deleteReturnButton) {
+        event.preventDefault();
+        await deleteReturn(deleteReturnButton.dataset.acDeleteReturn);
         return;
       }
 
       const returnButton = event.target.closest("[data-ac-return-order]");
 
       if (returnButton) {
+        state.returnOrderId = returnButton.dataset.acReturnOrder;
         state.section = "returns";
         render();
-
-        const selector = $('select[name="order_id"]', $("#vnAccountOverlay"));
-        if (selector) selector.value = returnButton.dataset.acReturnOrder;
-
         return;
       }
     }
@@ -3061,22 +3151,6 @@
       return;
     }
 
-    if (form.id === "vnAcTestOrderForm") {
-      event.preventDefault();
-      await createTestOrder(form);
-      return;
-    }
-
-    if (form.matches("[data-ac-edit-order]")) {
-      event.preventDefault();
-      await updateTestOrder(form);
-      return;
-    }
-
-    if (form.matches("[data-ac-edit-return]")) {
-      event.preventDefault();
-      await updateTestReturn(form);
-    }
   });
 
   document.addEventListener("input", event => {
@@ -3139,6 +3213,12 @@
   });
 
   document.addEventListener("change", async event => {
+    const returnOrderSelect = event.target.closest("[data-ac-return-order-select]");
+    if (returnOrderSelect) {
+      state.returnOrderId = returnOrderSelect.value;
+      render();
+      return;
+    }
     const phoneCountry = event.target.closest("#vnAcAddressForm select[name='phone_country']");
     if (phoneCountry) {
       const option = phoneCountry.selectedOptions[0];
