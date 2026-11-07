@@ -823,6 +823,70 @@
         overflow:auto;
         scrollbar-gutter:stable;
       }
+      /* Refund panel: wider horizontal layout, compact fields, and no panel-level scrolling. */
+      .vn-ac-return-request form[data-ac-return-form]{
+        display:grid;
+        grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+        align-items:start;
+        gap:8px 16px;
+        max-height:none;
+        overflow:visible;
+        padding:14px 18px 16px;
+      }
+      .vn-ac-order-record .vn-ac-return-request form .vn-ac-return-products{
+        grid-column:1 / -1;
+        display:grid;
+        grid-template-columns:repeat(2,minmax(0,1fr));
+        gap:5px 18px;
+        margin:0;
+        padding:8px 10px;
+      }
+      .vn-ac-order-record .vn-ac-return-request form .vn-ac-return-products legend{
+        grid-column:1 / -1;
+      }
+      .vn-ac-order-record .vn-ac-return-request form .vn-ac-return-product{
+        min-width:0;
+        min-height:28px;
+        gap:8px;
+        font-size:12px;
+      }
+      .vn-ac-order-record .vn-ac-return-request form .vn-ac-return-product span{
+        min-width:0;
+        overflow-wrap:anywhere;
+      }
+      .vn-ac-order-record .vn-ac-return-request form .vn-ac-field{
+        min-width:0;
+        gap:4px;
+        margin:0;
+      }
+      .vn-ac-order-record .vn-ac-return-request form .vn-ac-field select{
+        height:38px;
+        min-height:38px;
+      }
+      .vn-ac-order-record .vn-ac-return-request form .vn-ac-field textarea{
+        height:58px;
+        min-height:58px;
+        resize:none;
+      }
+      .vn-ac-order-record .vn-ac-return-request form > .vn-ac-button{
+        grid-column:1 / -1;
+        justify-self:end;
+        min-height:34px;
+      }
+      @media(max-width:600px){
+        .vn-ac-return-request form[data-ac-return-form]{
+          grid-template-columns:minmax(0,1fr);
+          gap:9px;
+          padding:12px;
+        }
+        .vn-ac-order-record .vn-ac-return-request form .vn-ac-return-products{
+          grid-template-columns:minmax(0,1fr);
+        }
+        .vn-ac-order-record .vn-ac-return-request form .vn-ac-return-products legend,
+        .vn-ac-order-record .vn-ac-return-request form > .vn-ac-button{
+          grid-column:1;
+        }
+      }
       .vn-ac-shell.vn-ac-dashboard-open .vn-ac-header,
       .vn-ac-shell.vn-ac-dashboard-open .vn-ac-policy-footer-row{
         flex:0 0 auto;
@@ -3094,21 +3158,29 @@
     if (!details?.matches(".vn-ac-return-request")) return;
     const form = $("form[data-ac-return-form]", details);
     const record = details.closest(".vn-ac-order-record");
-    if (!form || !record || !details.open) return;
+    const shell = $("#vnAccountOverlay .vn-ac-shell.vn-ac-dashboard-open");
+    if (!form || !record || !details.open || !shell) return;
+
     form.removeAttribute("data-positioned");
     const rect = record.getBoundingClientRect();
-    const width = Math.min(rect.width, 520, window.innerWidth - 32);
-    const left = Math.max(16, Math.min(rect.left, window.innerWidth - width - 16));
-    const top = Math.max(0, rect.bottom);
-    const footer = $(".vn-ac-footer", $("#vnAccountOverlay"));
-    const footerTop = footer ? footer.getBoundingClientRect().top : window.innerHeight;
-    const availableBottom = Math.min(window.innerHeight - 16, footerTop - 12);
-    const maxHeight = Math.max(120, availableBottom - top);
-    form.style.setProperty("--vn-return-top", top + "px");
+    const width = Math.min(860, window.innerWidth - 32);
+    const center = rect.left + rect.width / 2;
+    const left = Math.max(16, Math.min(center - width / 2, window.innerWidth - width - 16));
+    const footer = $(".vn-ac-policy-footer-row", shell);
+    const footerTop = footer ? footer.getBoundingClientRect().top : window.innerHeight - 12;
+
     form.style.setProperty("--vn-return-left", left + "px");
     form.style.setProperty("--vn-return-width", width + "px");
-    form.style.setProperty("--vn-return-max-height", maxHeight + "px");
+    form.style.setProperty("--vn-return-top", Math.max(12, rect.bottom) + "px");
     form.setAttribute("data-positioned", "true");
+
+    const panelHeight = form.getBoundingClientRect().height;
+    const safeBottom = Math.min(window.innerHeight - 12, footerTop - 12);
+    const preferredTop = Math.max(12, rect.bottom);
+    const fittedTop = preferredTop + panelHeight <= safeBottom
+      ? preferredTop
+      : Math.max(12, safeBottom - panelHeight);
+    form.style.setProperty("--vn-return-top", fittedTop + "px");
   }
 
   document.addEventListener("toggle", event => {
