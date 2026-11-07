@@ -2396,7 +2396,9 @@
       } else {
         result = await state.authAttempt.attemptFirstFactor({ strategy: "email_code", code });
       }
-      if (result) state.authAttempt = result;
+      // The sign-up bridge returns a plain status snapshot from verifyEmailCode().
+      // Keep the bridge instance in state.authAttempt so finalize() remains available.
+      if (result && state.authMode !== "signup") state.authAttempt = result;
 
       if (result.status === "needs_second_factor" && state.authMode === "signin") {
         const emailFactor = result.supportedSecondFactors?.find(f => f.strategy === "email_code");
