@@ -1374,11 +1374,13 @@
   }
 
   function destroyShopLogin() {
-    state.shopLoginGeneration += 1;
+    state.shopGen += 1;
+    clearTimeout(state.shopTimer);
+    state.shopTimer = null;
+
     const instance = state.shopLoginInstance;
-    const mount = state.shopLoginMount;
     state.shopLoginInstance = null;
-    state.shopLoginMount = null;
+
     if (instance) {
       try {
         instance.destroy();
@@ -1386,9 +1388,9 @@
         console.warn("[VN ACCOUNT] Shop login cleanup failed:", error);
       }
     }
-    if (mount && mount.id !== "vnAcShopLoginMount" && mount.isConnected) {
-      mount.remove();
-    }
+
+    if (state.shopHost) state.shopHost.replaceChildren();
+    state.shopStatus = "idle";
   }
 
 
@@ -1661,7 +1663,7 @@
     positionShopHost();
   }
 
-  function destroyShopLogin() {}
+
 
   function renderVerify() {
     return `
@@ -2516,6 +2518,7 @@
       address: String(data.get("address") || "").trim(),
       apartment: String(data.get("apartment") || "").trim(),
       city: String(data.get("city") || "").trim(),
+      state: String(data.get("state") || "").trim(),
       postal_code: String(data.get("postal_code") || "").trim(),
       country: String(data.get("country") || state.country),
       phone: String(data.get("phone") || "").trim(),
