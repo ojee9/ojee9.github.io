@@ -61,11 +61,7 @@
   async function getClerkSignupBridge() {
     if (!clerkSignupBridgePromise) {
       clerkSignupBridgePromise = import("./clerk-signup-bridge.js")
-        .then(({ mountClerkSignupBridge }) => mountClerkSignupBridge(state.clerk))
-        .catch(error => {
-          clerkSignupBridgePromise = null;
-          throw error;
-        });
+        .then(({ mountClerkSignupBridge }) => mountClerkSignupBridge(state.clerk));
     }
     return clerkSignupBridgePromise;
   }
@@ -194,8 +190,16 @@
     }
 
     try {
-      await clerk.load();
+      // Mount the challenge-aware Clerk provider BEFORE loading the existing
+      // Clerk instance. This lets the provider attach its bundled Clerk UI
+      // during the instance's first load.
       state.clerk = clerk;
+      try {
+        await getClerkSignupBridge();
+      } catch (bridgeError) {
+        console.error("[VN ACCOUNT] Clerk Protect bridge initialization failed:", bridgeError);
+      }
+      await clerk.load();
       const restoredShopSession = await restoreShopSession();
       if (!restoredShopSession) {
         syncClerkUser(clerk.user || null);

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { createRoot } from "react-dom/client";
-import { ClerkProvider, useSignUp } from "https://esm.sh/@clerk/react@6.18.6?external=react,react-dom";
+import { ClerkProvider, useClerk, useSignUp } from "https://esm.sh/@clerk/react@6.18.6?external=react,react-dom";
+import { ui } from "https://esm.sh/@clerk/ui@1.38.1?external=react,react-dom";
 
 const PUBLISHABLE_KEY =
   document.querySelector("script[data-clerk-publishable-key]")?.dataset.clerkPublishableKey || "";
@@ -30,11 +31,14 @@ function readSignUp(signUp) {
 }
 
 function SignUpBridge({ onReady }) {
+  const clerkInstance = useClerk();
   const { signUp } = useSignUp();
   const signUpRef = useRef(signUp);
   signUpRef.current = signUp;
 
   useEffect(() => {
+    if (!clerkInstance?.loaded) return;
+
     const current = () => {
       if (!signUpRef.current) throw new Error("Clerk sign-up is not ready.");
       return signUpRef.current;
@@ -62,7 +66,7 @@ function SignUpBridge({ onReady }) {
         return readSignUp(current());
       }
     });
-  }, []);
+  }, [clerkInstance?.loaded]);
 
   return null;
 }
@@ -92,7 +96,7 @@ export function mountClerkSignupBridge(clerk) {
     };
     const timeout = window.setTimeout(() => {
       fail(new Error("Clerk sign-up is taking too long to initialize. Refresh the page and try again."));
-    }, 15000);
+    }, 30000);
 
     const onReady = bridge => {
       if (settled) return;
@@ -108,7 +112,7 @@ export function mountClerkSignupBridge(clerk) {
           {
             publishableKey: PUBLISHABLE_KEY,
             Clerk: clerk,
-            clerkUIVariant: ""
+            ui
           },
           React.createElement(SignUpBridge, { onReady })
         )
