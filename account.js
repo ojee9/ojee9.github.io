@@ -835,28 +835,47 @@
       }
       .vn-ac-order-record .vn-ac-return-request form .vn-ac-return-products{
         grid-column:1;
-        grid-row:1 / span 2;
-        align-self:stretch;
+        grid-row:auto;
+        align-self:start;
         display:grid;
-        grid-template-columns:repeat(2,minmax(0,1fr));
+        grid-template-columns:minmax(0,1fr);
         align-content:start;
-        gap:4px 12px;
+        gap:2px;
+        min-width:0;
         margin:0;
-        padding:7px 9px;
+        padding:6px 9px 7px;
       }
       .vn-ac-order-record .vn-ac-return-request form .vn-ac-return-products legend{
-        grid-column:1 / -1;
-        margin-bottom:2px;
+        margin-bottom:3px;
       }
       .vn-ac-order-record .vn-ac-return-request form .vn-ac-return-product{
+        display:grid;
+        grid-template-columns:16px minmax(0,1fr);
+        grid-template-areas:"check title" ". quantity";
+        align-items:start;
+        column-gap:8px;
+        row-gap:1px;
         min-width:0;
-        min-height:28px;
-        gap:8px;
+        min-height:0;
+        padding:4px 0;
         font-size:12px;
+        line-height:1.3;
+      }
+      .vn-ac-order-record .vn-ac-return-request form .vn-ac-return-product input{
+        grid-area:check;
+        margin:1px 0 0;
       }
       .vn-ac-order-record .vn-ac-return-request form .vn-ac-return-product span{
+        grid-area:title;
         min-width:0;
         overflow-wrap:anywhere;
+      }
+      .vn-ac-order-record .vn-ac-return-request form .vn-ac-return-product small{
+        grid-area:quantity;
+        margin:0;
+        color:#aaa;
+        font-size:10px;
+        line-height:1.25;
       }
       .vn-ac-order-record .vn-ac-return-request form .vn-ac-field{
         min-width:0;
@@ -870,30 +889,37 @@
       }
       .vn-ac-order-record .vn-ac-return-request form .vn-ac-field select,
       .vn-ac-order-record .vn-ac-return-request form .vn-ac-field textarea{
+        display:block;
         width:100%;
         min-width:0;
-        border:1px solid #d7d7d7 !important;
-        border-radius:5px;
-        background:#EFF5F7 !important;
-        color:#171411 !important;
-        -webkit-text-fill-color:#171411;
-        color-scheme:light;
-        font:13px/1.35 Arial,sans-serif;
+        border:1px solid #4b463f !important;
+        border-radius:3px;
+        background:#111 !important;
+        color:#f6f2ea !important;
+        -webkit-text-fill-color:#f6f2ea;
+        color-scheme:dark;
+        font:13px/1.45 Arial,sans-serif;
+        transition:border-color .18s ease,background .18s ease;
       }
       .vn-ac-order-record .vn-ac-return-request form .vn-ac-field select{
-        height:36px;
-        min-height:36px;
-        padding:7px 10px;
-      }
-      .vn-ac-order-record .vn-ac-return-request form .vn-ac-field select option{
-        background:#EFF5F7;
-        color:#171411;
-      }
-      .vn-ac-order-record .vn-ac-return-request form .vn-ac-field textarea{
         height:54px;
         min-height:54px;
-        padding:8px 10px;
+        padding:0 14px;
+      }
+      .vn-ac-order-record .vn-ac-return-request form .vn-ac-field select option{
+        background:#111;
+        color:#f6f2ea;
+      }
+      .vn-ac-order-record .vn-ac-return-request form .vn-ac-field textarea{
+        height:64px;
+        min-height:64px;
+        padding:10px 14px;
         resize:none;
+      }
+      .vn-ac-order-record .vn-ac-return-request form .vn-ac-field select:focus,
+      .vn-ac-order-record .vn-ac-return-request form .vn-ac-field textarea:focus{
+        border-color:#c6bba7 !important;
+        outline:0;
       }
       .vn-ac-order-record .vn-ac-return-request form > .vn-ac-button{
         grid-column:2;
@@ -3194,7 +3220,7 @@
 
     form.removeAttribute("data-positioned");
     const rect = record.getBoundingClientRect();
-    const width = Math.min(860, window.innerWidth - 32);
+    const width = Math.min(760, window.innerWidth - 32);
     const center = rect.left + rect.width / 2;
     const left = Math.max(16, Math.min(center - width / 2, window.innerWidth - width - 16));
     const footer = $(".vn-ac-policy-footer-row", shell);
