@@ -422,8 +422,11 @@
     if (!state.clerkUser) return;
     state.loadingData = true;
     try {
-      await syncCompletedCheckoutOrder();
       const result = await accountApi("/api/account");
+      // ADMIN EXEMPTION: only the fixed VN administrators may import browser-created test orders.
+      // Normal customer sessions must never run the admin-only checkout import path.
+      state.isAdmin = Boolean(result.is_admin || result.isAdmin);
+      if (state.isAdmin) await syncCompletedCheckoutOrder();
       const [ordersResult, returnsResult] = await Promise.all([
         accountApi("/api/orders"),
         accountApi("/api/returns")
