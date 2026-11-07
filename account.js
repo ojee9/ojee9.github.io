@@ -828,11 +828,11 @@
         display:grid;
         grid-template-columns:minmax(0,1fr) minmax(0,1fr);
         align-items:start;
-        gap:8px 16px;
+        gap:6px 12px;
         max-height:var(--vn-return-max-height,calc(100dvh - 32px));
         overflow-y:auto;
         overflow-x:hidden;
-        padding:14px 18px 16px;
+        padding:11px 14px 12px;
       }
       .vn-ac-order-record .vn-ac-return-request form .vn-ac-return-products{
         grid-column:1;
@@ -844,7 +844,7 @@
         gap:2px;
         min-width:0;
         margin:0;
-        padding:6px 9px 7px;
+        padding:4px 8px 5px;
       }
       .vn-ac-order-record .vn-ac-return-request form .vn-ac-return-products legend{
         margin-bottom:3px;
@@ -858,8 +858,8 @@
         row-gap:1px;
         min-width:0;
         min-height:0;
-        padding:4px 0;
-        font-size:12px;
+        padding:2px 0;
+        font-size:11.5px;
         line-height:1.3;
       }
       .vn-ac-order-record .vn-ac-return-request form .vn-ac-return-product input{
@@ -903,18 +903,18 @@
         transition:border-color .18s ease,background .18s ease;
       }
       .vn-ac-order-record .vn-ac-return-request form .vn-ac-field select{
-        height:54px;
-        min-height:54px;
-        padding:0 14px;
+        height:46px;
+        min-height:46px;
+        padding:0 12px;
       }
       .vn-ac-order-record .vn-ac-return-request form .vn-ac-field select option{
         background:#111;
         color:#f6f2ea;
       }
       .vn-ac-order-record .vn-ac-return-request form .vn-ac-field textarea{
-        height:64px;
-        min-height:64px;
-        padding:10px 14px;
+        height:54px;
+        min-height:54px;
+        padding:8px 12px;
         resize:none;
       }
       .vn-ac-order-record .vn-ac-return-request form .vn-ac-field:has(textarea){
