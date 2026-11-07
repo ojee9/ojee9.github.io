@@ -916,10 +916,15 @@
         padding:10px 14px;
         resize:none;
       }
-      .vn-ac-order-record .vn-ac-return-request form .vn-ac-field select:focus,
-      .vn-ac-order-record .vn-ac-return-request form .vn-ac-field textarea:focus{
+      .vn-ac-order-record .vn-ac-return-request form .vn-ac-field:has(textarea){
+        grid-column:2;
+      }
+      .vn-ac-order-record .vn-ac-return-request form :is(input,select,textarea,button):focus,
+      .vn-ac-order-record .vn-ac-return-request form :is(input,select,textarea,button):focus-visible{
+        outline:1px solid #c6bba7 !important;
+        outline-offset:2px;
         border-color:#c6bba7 !important;
-        outline:0;
+        box-shadow:none !important;
       }
       .vn-ac-order-record .vn-ac-return-request form > .vn-ac-button{
         grid-column:2;
@@ -938,6 +943,9 @@
           grid-column:1;
           grid-row:auto;
           grid-template-columns:minmax(0,1fr);
+        }
+        .vn-ac-order-record .vn-ac-return-request form .vn-ac-field:has(textarea){
+          grid-column:1;
         }
         .vn-ac-order-record .vn-ac-return-request form .vn-ac-return-products legend,
         .vn-ac-order-record .vn-ac-return-request form > .vn-ac-button{
