@@ -829,8 +829,9 @@
         grid-template-columns:minmax(0,1fr) minmax(0,1fr);
         align-items:start;
         gap:8px 16px;
-        max-height:none;
-        overflow:visible;
+        max-height:var(--vn-return-max-height,calc(100dvh - 32px));
+        overflow-y:auto;
+        overflow-x:hidden;
         padding:14px 18px 16px;
       }
       .vn-ac-order-record .vn-ac-return-request form .vn-ac-return-products{
@@ -918,6 +919,12 @@
       }
       .vn-ac-order-record .vn-ac-return-request form .vn-ac-field:has(textarea){
         grid-column:2;
+      }
+      /* Suppress the shared purple :focus-within pseudo-glow inside refund fields. */
+      .vn-ac-order-record .vn-ac-return-request form .vn-ac-field:focus-within::after{
+        content:none !important;
+        display:none !important;
+        box-shadow:none !important;
       }
       .vn-ac-order-record .vn-ac-return-request form :is(input,select,textarea,button):focus,
       .vn-ac-order-record .vn-ac-return-request form :is(input,select,textarea,button):focus-visible{
@@ -3233,19 +3240,15 @@
     const left = Math.max(16, Math.min(center - width / 2, window.innerWidth - width - 16));
     const footer = $(".vn-ac-policy-footer-row", shell);
     const footerTop = footer ? footer.getBoundingClientRect().top : window.innerHeight - 12;
+    const top = Math.max(12, rect.bottom);
+    const safeBottom = Math.min(window.innerHeight - 12, footerTop - 12);
+    const availableHeight = Math.max(120, safeBottom - top);
 
     form.style.setProperty("--vn-return-left", left + "px");
     form.style.setProperty("--vn-return-width", width + "px");
-    form.style.setProperty("--vn-return-top", Math.max(12, rect.bottom) + "px");
+    form.style.setProperty("--vn-return-top", top + "px");
+    form.style.setProperty("--vn-return-max-height", availableHeight + "px");
     form.setAttribute("data-positioned", "true");
-
-    const panelHeight = form.getBoundingClientRect().height;
-    const safeBottom = Math.min(window.innerHeight - 12, footerTop - 12);
-    const preferredTop = Math.max(12, rect.bottom);
-    const fittedTop = preferredTop + panelHeight <= safeBottom
-      ? preferredTop
-      : Math.max(12, safeBottom - panelHeight);
-    form.style.setProperty("--vn-return-top", fittedTop + "px");
   }
 
   document.addEventListener("toggle", event => {
