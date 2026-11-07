@@ -56,6 +56,19 @@
   };
 
   let configPromise = null;
+  let clerkSignupBridgePromise = null;
+
+  async function getClerkSignupBridge() {
+    if (!clerkSignupBridgePromise) {
+      clerkSignupBridgePromise = import("./clerk-signup-bridge.js")
+        .then(({ mountClerkSignupBridge }) => mountClerkSignupBridge(state.clerk))
+        .catch(error => {
+          clerkSignupBridgePromise = null;
+          throw error;
+        });
+    }
+    return clerkSignupBridgePromise;
+  }
 
   const $ = (selector, root = document) => root.querySelector(selector);
 
@@ -2214,9 +2227,10 @@
           authAttempt = prepared || signInAttempt; authMode = "signin";
         } catch (error) {
           if (!isUnknownClerkUser(error)) throw error;
-          const signup = await state.clerk.client.signUp.create({ emailAddress: normalizedEmail });
-          const prepared = await signup.prepareEmailAddressVerification({ strategy: "email_code" });
-          authAttempt = prepared || signup; authMode = "signup";
+          const signup = await getClerkSignupBridge();
+          await signup.create(normalizedEmail);
+          await signup.sendEmailCode();
+          authAttempt = signup; authMode = "signup";
         }
         if (requestId !== state.sendRequestId) return;
         state.authAttempt = authAttempt; state.authMode = authMode; state.messageType = "info"; state.message = "";
@@ -2239,7 +2253,7 @@
     render(); startResendTimer();
     try {
       let updated;
-      if (mode === "signup") updated = await attempt.prepareEmailAddressVerification({ strategy: "email_code" });
+      if (mode === "signup") updated = await attempt.sendEmailCode();
       else if (mode === "signin-second-factor") updated = await attempt.prepareSecondFactor({ strategy: "email_code" });
       else {
         const id = attempt.firstFactorVerification?.emailAddressId || attempt.supportedFirstFactors?.find(f => f.strategy === "email_code")?.emailAddressId;
@@ -2377,7 +2391,7 @@
     try {
       let result;
       if (state.authMode === "signup") {
-        result = await state.authAttempt.attemptEmailAddressVerification({ code });
+        result = await state.authAttempt.verifyEmailCode(code);
       } else if (state.authMode === "signin-second-factor") {
         result = await state.authAttempt.attemptSecondFactor({ strategy: "email_code", code });
       } else {
@@ -2414,6 +2428,9 @@
           : "The code was accepted, but Clerk returned an incomplete sign-in state (" + String(result.status || "unknown") + ").");
       }
 
+      if (state.authMode === "signup") {
+        await state.authAttempt.finalize();
+      }
       await activateClerkSession(result.createdSessionId);
       state.screen = "account";
       state.section = "dashboard";
