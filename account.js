@@ -466,7 +466,7 @@
       #vnAccountOverlay{position:fixed;inset:0;z-index:10001;display:flex;align-items:center;justify-content:center;overflow:auto;padding:24px;background:rgba(0,0,0,.48);color:#151515;font:14px/1.55 Arial,sans-serif}
       #vnAccountOverlay[hidden]{display:none!important}
       #vnAccountOverlay *{box-sizing:border-box}
-      .vn-ac-button.danger{border:1px solid #7b2525;background:#7b2525;color:#fff}.vn-ac-order-items{display:grid;gap:9px;margin:16px 0}.vn-ac-order-item{display:flex;align-items:center;gap:12px;padding:10px;border:1px solid rgba(20,20,20,.16);background:rgba(255,255,255,.2)}.vn-ac-order-item img{width:54px;height:64px;object-fit:contain}.vn-ac-order-item-info{display:grid;gap:3px;flex:1;min-width:0}.vn-ac-order-item-remove{width:30px;height:30px;border:0;border-radius:50%;background:#7b2525;color:#fff;font-size:22px;line-height:1;cursor:pointer}.vn-ac-order-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.vn-ac-admin-status{max-width:260px;margin-top:14px}.vn-ac-return-products{display:grid;gap:10px;margin:14px 0;padding:14px;border:1px solid rgba(20,20,20,.22)}.vn-ac-return-products legend{padding:0 6px;font-weight:700}.vn-ac-return-product{display:flex;align-items:center;gap:10px}.vn-ac-return-product small{margin-left:auto}.vn-ac-return-product input{width:16px;height:16px}@media(max-width:600px){.vn-ac-order-item{gap:8px}.vn-ac-order-item img{width:44px;height:54px}.vn-ac-order-actions{align-items:stretch}.vn-ac-order-actions .vn-ac-button{flex:1}}
+      .vn-ac-button.danger{border:1px solid #7b2525;background:#7b2525;color:#fff}.vn-ac-order-items{display:grid;gap:9px;margin:16px 0}.vn-ac-order-item{display:flex;align-items:center;gap:10px;min-width:0;flex-wrap:nowrap;padding:10px;border:1px solid rgba(20,20,20,.16);background:#E4CEA5}.vn-ac-order-item img{width:42px;height:48px;flex:none;object-fit:contain}.vn-ac-order-item-info{display:flex;align-items:center;gap:10px;flex:1;min-width:0;white-space:nowrap;overflow:hidden}.vn-ac-order-item-info strong{overflow:hidden;text-overflow:ellipsis;min-width:0}.vn-ac-order-item-info span{flex:none;font-size:12px}.vn-ac-order-item-remove{display:inline-flex;align-items:center;justify-content:center;flex:none;width:22px;height:22px;padding:0;border:0;background:transparent;color:#171411;font-size:19px;font-weight:400;line-height:1;cursor:pointer}.vn-ac-order-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.vn-ac-return-products{display:grid;gap:10px;margin:14px 0;padding:14px;border:1px solid rgba(20,20,20,.22)}.vn-ac-return-products legend{padding:0 6px;font-weight:700}.vn-ac-return-product{display:flex;align-items:center;gap:10px}.vn-ac-return-product small{margin-left:auto}.vn-ac-return-product input{width:16px;height:16px}.vn-ac-stat{background:#E4E3E1}.vn-ac-return-request{margin-top:12px;border-top:1px solid #dedede;padding-top:10px}.vn-ac-return-request>summary,.vn-ac-appeal>summary{cursor:pointer;font-size:12px;letter-spacing:.04em;text-decoration:underline;text-underline-offset:3px}.vn-ac-return-request form{margin-top:12px}.vn-ac-return-row{border:1px solid #dedede;border-radius:4px;padding:14px 16px;margin:10px 0;background:#fff}.vn-ac-return-row-main{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0}.vn-ac-return-row-main strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.vn-ac-appeal{margin-top:7px}.vn-ac-appeal>summary{display:inline-block;color:#777;font-size:10px}.vn-ac-appeal form{max-width:460px;margin-top:10px}.vn-ac-appeal .vn-ac-field textarea{min-height:78px}@media(max-width:600px){.vn-ac-order-item{gap:8px}.vn-ac-order-item img{width:38px;height:44px}.vn-ac-order-item-info{gap:6px}.vn-ac-order-item-info span{font-size:10px}.vn-ac-order-actions{align-items:stretch}.vn-ac-order-actions .vn-ac-button{flex:1}.vn-ac-return-row-main{gap:8px}}
       .vn-ac-shell{width:min(100%,980px);max-height:calc(100dvh - 48px);overflow:auto;margin:auto;padding:28px;background:#BFC5C8;border:1px solid #d8d8d8;box-shadow:0 24px 80px rgba(0,0,0,.25)}
       .vn-ac-shell.vn-ac-auth-shell{position:relative;isolation:isolate;display:flex;flex-direction:column;align-items:stretch;width:min(100%,760px);height:auto;min-height:min(620px,calc(100dvh - 32px));max-height:calc(100dvh - 32px);overflow-y:auto;padding:36px 72px 28px;background:#171717;color:#f5f5f5;border:0;box-shadow:0 28px 90px rgba(0,0,0,.42)}
       .vn-ac-header{position:relative;display:flex;justify-content:center;align-items:center;padding-bottom:24px;border-bottom:1px solid #e5e5e5}
@@ -1916,7 +1916,6 @@
               const orderNumber = order.orderNumber || order.order_number || order.id;
               const status = order.orderStatus || order.status || "Received";
               const created = order.createdAt || order.created_at || "—";
-              const total = order.total ?? order.grand_total ?? "—";
               const items = Array.isArray(order.items) ? order.items : [];
               return `
                 <article class="vn-ac-record">
@@ -1925,32 +1924,58 @@
                     <span class="vn-ac-badge">${escapeHTML(status)}</span>
                   </div>
                   <p>Placed: ${escapeHTML(created)}</p>
-                  <p>Total: ${escapeHTML(order.currency || "TRY")} ${escapeHTML(total)}</p>
                   <div class="vn-ac-order-items">
-                    ${items.map(item => `
-                      <div class="vn-ac-order-item">
-                        ${item.image || item.imageUrl ? `<img src="${escapeHTML(item.image || item.imageUrl)}" alt="" loading="lazy">` : ""}
-                        <div class="vn-ac-order-item-info">
-                          <strong>${escapeHTML(item.title || item.name || item.productName || "Product")}</strong>
-                          ${item.variant || item.size ? `<span>${escapeHTML(item.variant || item.size)}</span>` : ""}
-                          <span>Qty: ${escapeHTML(item.quantity || item.qty || 1)}</span>
+                    ${items.map(item => {
+                      const product = item.product && typeof item.product === "object" ? item.product : item;
+                      const title = product.title || product.name || product.productName || item.title || item.name || "Product";
+                      const image = product.image || product.imageUrl || item.image || item.imageUrl;
+                      const variant = product.variant || product.size || item.variant || item.size;
+                      return `
+                        <div class="vn-ac-order-item">
+                          ${image ? `<img src="${escapeHTML(image)}" alt="" loading="lazy">` : ""}
+                          <div class="vn-ac-order-item-info">
+                            <strong>${escapeHTML(title)}</strong>
+                            ${variant ? `<span>${escapeHTML(variant)}</span>` : ""}
+                            <span>Qty: ${escapeHTML(item.quantity || item.qty || product.quantity || 1)}</span>
+                          </div>
+                          ${state.isAdmin ? `<button type="button" class="vn-ac-order-item-remove" aria-label="Remove product" title="Remove product" data-ac-remove-order-item="${escapeHTML(item.id)}" data-ac-order-id="${escapeHTML(orderId)}">×</button>` : ""}
                         </div>
-                        ${state.isAdmin ? `<button type="button" class="vn-ac-order-item-remove" aria-label="Remove product" title="Remove product" data-ac-remove-order-item="${escapeHTML(item.id)}" data-ac-order-id="${escapeHTML(orderId)}">×</button>` : ""}
-                      </div>
-                    `).join("")}
+                      `;
+                    }).join("")}
                   </div>
                   <div class="vn-ac-order-actions">
                     <button class="vn-ac-button secondary" type="button" data-ac-order="${escapeHTML(orderId)}">View order</button>
-                    <button class="vn-ac-button secondary" type="button" data-ac-return-order="${escapeHTML(orderId)}">Start a return</button>
                   </div>
-                  ${state.isAdmin ? `
-                    <label class="vn-ac-field vn-ac-admin-status">
-                      <span>Order status</span>
-                      <select data-ac-order-status="${escapeHTML(orderId)}">
-                        ${["Received","Processing","Preparing","Shipped","Delivered","Cancelled"].map(value => `<option value="${value}" ${String(status).toLowerCase() === value.toLowerCase() ? "selected" : ""}>${value}</option>`).join("")}
-                      </select>
-                    </label>
-                  ` : ""}
+                  <details class="vn-ac-return-request">
+                    <summary>Start a return</summary>
+                    <form data-ac-return-form>
+                      <input type="hidden" name="order_id" value="${escapeHTML(orderId)}">
+                      <fieldset class="vn-ac-return-products">
+                        <legend>Select products</legend>
+                        ${items.map(item => {
+                          const product = item.product && typeof item.product === "object" ? item.product : item;
+                          const title = product.title || product.name || product.productName || item.title || item.name || "Product";
+                          return `
+                            <label class="vn-ac-return-product">
+                              <input type="checkbox" name="item_ids" value="${escapeHTML(item.id)}">
+                              <span>${escapeHTML(title)}</span>
+                              <small>Qty: ${escapeHTML(item.quantity || item.qty || product.quantity || 1)}</small>
+                            </label>
+                          `;
+                        }).join("")}
+                      </fieldset>
+                      <label class="vn-ac-field"><span>Reason for return</span><select name="reason" required>
+                        <option value="">Select a reason</option>
+                        <option value="damaged">Item arrived damaged</option>
+                        <option value="wrong_item">Wrong item received</option>
+                        <option value="size_fit">Size or fit issue</option>
+                        <option value="changed_mind">Changed my mind</option>
+                        <option value="other">Other</option>
+                      </select></label>
+                      <label class="vn-ac-field"><span>Additional details</span><textarea name="customer_note" placeholder="Tell us more (optional)"></textarea></label>
+                      <button class="vn-ac-button" type="submit" ${state.busy || !items.length ? "disabled" : ""}>Submit return request</button>
+                    </form>
+                  </details>
                 </article>
               `;
             }).join("")}
@@ -1964,70 +1989,56 @@
       </div>
     `;
   }
+
   function renderReturns() {
     const returns = state.returns || [];
-    const selectedOrder = state.orders.find(order => String(order.id) === String(state.returnOrderId || ""));
-    const selectedItems = Array.isArray(selectedOrder?.items) ? selectedOrder.items : [];
+    const statusLabel = status => {
+      const value = String(status || "Pending").toLowerCase();
+      if (["accepted", "approved", "received", "refunded", "completed"].includes(value)) return "REFUNDED";
+      if (value === "rejected" || value === "declined") return "REJECTED";
+      return "UNDER REVIEW";
+    };
+    const returnRows = returns.flatMap(item => {
+      const products = Array.isArray(item.items) && item.items.length ? item.items : [null];
+      return products.map(product => {
+        const nested = product?.product && typeof product.product === "object" ? product.product : product;
+        const title = nested?.title || nested?.name || nested?.productName || product?.title || product?.name || product?.productName || item.productTitle || item.product_title || "Product";
+        const status = statusLabel(item.status);
+        return `
+          <article class="vn-ac-return-row">
+            <div class="vn-ac-return-row-main">
+              <strong>${escapeHTML(title)}</strong>
+              <span class="vn-ac-badge">${status}</span>
+            </div>
+            ${status === "REJECTED" ? `
+              <details class="vn-ac-appeal">
+                <summary>PLEASE CONTACT WITH US</summary>
+                <form data-ac-appeal-form data-return-id="${escapeHTML(item.id)}" data-order-number="${escapeHTML(item.orderNumber || item.order_number || item.orderId || item.order_id || "")}">
+                  <label class="vn-ac-field"><span>Your message</span><textarea name="appeal_message" required placeholder="Write your message"></textarea></label>
+                  <button class="vn-ac-button secondary" type="submit">Send email</button>
+                </form>
+              </details>
+            ` : ""}
+            ${state.isAdmin ? `
+              <div class="vn-ac-order-actions">
+                <button type="button" class="vn-ac-button secondary" data-ac-return-status="${escapeHTML(item.id)}" data-status="Accepted">Accept</button>
+                <button type="button" class="vn-ac-button secondary" data-ac-return-status="${escapeHTML(item.id)}" data-status="Rejected">Reject</button>
+                <button type="button" class="vn-ac-order-item-remove" data-ac-delete-return="${escapeHTML(item.id)}" aria-label="Delete return">×</button>
+              </div>
+            ` : ""}
+          </article>
+        `;
+      });
+    }).join("");
 
     return `
       <div class="vn-ac-layout">
         ${sidebar()}
         <main class="vn-ac-main">
           <h1>My Returns</h1>
-          <p class="vn-ac-subtitle">Start or track a return.</p>
+          <p class="vn-ac-subtitle">View and track your return requests.</p>
           ${messageHTML()}
-          ${returns.length ? returns.map(item => `
-            <article class="vn-ac-record">
-              <div class="vn-ac-record-head">
-                <strong>Return ${escapeHTML(item.id)}</strong>
-                <span class="vn-ac-badge">${escapeHTML(item.status || "Pending")}</span>
-              </div>
-              <p>Order: ${escapeHTML(item.orderNumber || item.order_number || item.orderId || item.order_id || "—")}</p>
-              <p>Reason: ${escapeHTML(item.reason || "—")}</p>
-              <p>Created: ${escapeHTML(item.createdAt || item.created_at || "—")}</p>
-              ${item.customerNote || item.customer_note ? `<p>${escapeHTML(item.customerNote || item.customer_note)}</p>` : ""}
-              ${Array.isArray(item.items) ? `<div class="vn-ac-return-items">${item.items.map(product => `<p>${escapeHTML(product.title || product.name || product.productName || "Product")} · Qty: ${escapeHTML(product.quantity || 1)}</p>`).join("")}</div>` : ""}
-              ${state.isAdmin ? `
-                <div class="vn-ac-order-actions">
-                  <button type="button" class="vn-ac-button secondary" data-ac-return-status="${escapeHTML(item.id)}" data-status="Accepted">Accept</button>
-                  <button type="button" class="vn-ac-button secondary" data-ac-return-status="${escapeHTML(item.id)}" data-status="Rejected">Reject</button>
-                  <button type="button" class="vn-ac-button danger" data-ac-delete-return="${escapeHTML(item.id)}" aria-label="Delete return">×</button>
-                </div>
-              ` : ""}
-            </article>
-          `).join("") : `<p>No return requests are available for this account.</p>`}
-          <h2 style="margin-top:28px">Start a return</h2>
-          <form id="vnAcReturnForm">
-            <label class="vn-ac-field">
-              <span>Order</span>
-              <select name="order_id" required data-ac-return-order-select>
-                <option value="">Select an order</option>
-                ${state.orders.map(order => `<option value="${escapeHTML(order.id)}" ${String(order.id) === String(state.returnOrderId || "") ? "selected" : ""}>${escapeHTML(order.orderNumber || order.order_number || order.id)}</option>`).join("")}
-              </select>
-            </label>
-            ${selectedOrder ? `
-              <fieldset class="vn-ac-return-products">
-                <legend>Select products</legend>
-                ${selectedItems.map(item => `
-                  <label class="vn-ac-return-product">
-                    <input type="checkbox" name="item_ids" value="${escapeHTML(item.id)}">
-                    <span>${escapeHTML(item.title || item.name || item.productName || "Product")}</span>
-                    <small>Qty: ${escapeHTML(item.quantity || item.qty || 1)}</small>
-                  </label>
-                `).join("")}
-              </fieldset>
-            ` : ""}
-            <label class="vn-ac-field"><span>Reason for return</span><select name="reason" required>
-              <option value="">Select a reason</option>
-              <option value="damaged">Item arrived damaged</option>
-              <option value="wrong_item">Wrong item received</option>
-              <option value="size_fit">Size or fit issue</option>
-              <option value="changed_mind">Changed my mind</option>
-              <option value="other">Other</option>
-            </select></label>
-            <label class="vn-ac-field"><span>Additional details</span><textarea name="customer_note" placeholder="Tell us more (optional)"></textarea></label>
-            <button class="vn-ac-button" type="submit" ${state.busy || !selectedOrder ? "disabled" : ""}>Submit return request</button>
-          </form>
+          ${returnRows || '<p>No return requests are available for this account.</p>'}
         </main>
       </div>
     `;
@@ -3049,15 +3060,6 @@
         return;
       }
 
-      const orderStatusSelect = event.target.closest("[data-ac-order-status]");
-      if (orderStatusSelect) {
-        await updateOrderStatus(
-          orderStatusSelect.dataset.acOrderStatus,
-          orderStatusSelect.value
-        );
-        return;
-      }
-
       const returnStatusButton = event.target.closest("[data-ac-return-status]");
       if (returnStatusButton) {
         event.preventDefault();
@@ -3102,6 +3104,19 @@
   document.addEventListener("submit", async event => {
     const form = event.target;
 
+
+    if (form.matches("[data-ac-appeal-form]")) {
+      event.preventDefault();
+      const message = String(new FormData(form).get("appeal_message") || "").trim();
+      if (!message) return;
+      const orderNumber = form.dataset.orderNumber || "—";
+      const returnId = form.dataset.returnId || "—";
+      const subject = encodeURIComponent("VN SHOP Return Appeal — " + returnId);
+      const body = encodeURIComponent("Return ID: " + returnId + "\nOrder: " + orderNumber + "\n\n" + message);
+      window.location.href = "mailto:recordsvunion@gmail.com?subject=" + subject + "&body=" + body;
+      return;
+    }
+
     if (form.id === "vnAcEmailForm") {
       event.preventDefault();
 
@@ -3145,7 +3160,7 @@
       return;
     }
 
-    if (form.id === "vnAcReturnForm") {
+    if (form.matches("[data-ac-return-form]")) {
       event.preventDefault();
       await createReturn(form);
       return;
