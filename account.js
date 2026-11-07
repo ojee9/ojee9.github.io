@@ -1958,7 +1958,7 @@
       <h2 style="margin-top:28px">Start a return</h2>
       <form id="vnAcReturnForm">
         <label class="vn-ac-field"><span>Order</span><select name="order_id" required><option value="">Select an order</option>
-          ${state.orders.map(order => `<option value="${escapeHTML(order.id)}">${escapeHTML(order.order_number || order.id)}</option>`).join("")}
+          ${state.orders.filter(order => state.isAdmin ? order.is_test : !order.is_test).map(order => `<option value="${escapeHTML(order.id)}">${escapeHTML(order.order_number || order.id)}</option>`).join("")}
         </select></label>
         <label class="vn-ac-field"><span>Reason for return</span><select name="reason" required>
           <option value="">Select a reason</option><option value="damaged">Item arrived damaged</option><option value="wrong_item">Wrong item received</option><option value="size_fit">Size or fit issue</option><option value="changed_mind">Changed my mind</option><option value="other">Other</option>
@@ -2660,6 +2660,7 @@
       state.addresses = [];
       state.orders = [];
       state.returns = [];
+      state.isAdmin = false;
       state.screen = "email";
       state.section = "dashboard";
       closePanel();
