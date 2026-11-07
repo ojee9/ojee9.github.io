@@ -1895,29 +1895,14 @@
     const delivered = orders.filter(order => String(order.status || "").toLowerCase() === "delivered").length;
     const returned = state.returns.filter(item => ["approved", "received", "refunded", "completed"].includes(String(item.status || "").toLowerCase())).length;
     const waiting = orders.filter(order => ["pending", "processing", "paid", "shipped"].includes(String(order.status || "").toLowerCase())).length;
-    const adminTools = state.isAdmin ? `
-      <section class="vn-ac-admin-tools">
-        <div class="vn-ac-record-head"><strong>TEST ORDER CONTROLS</strong><span class="vn-ac-badge">ADMIN</span></div>
-        <p class="vn-ac-muted">Test records are isolated. They do not affect real orders, payments, stock, sales or refunds.</p>
-        <form id="vnAcTestOrderForm" class="vn-ac-admin-form">
-          <label class="vn-ac-field"><span>Item name</span><input name="item_name" maxlength="200" placeholder="Test product"></label>
-          <div class="vn-ac-admin-grid">
-            <label class="vn-ac-field"><span>Total</span><input name="grand_total" type="number" min="0" max="100000000" step="0.01" value="0" required></label>
-            <label class="vn-ac-field"><span>Currency</span><select name="currency"><option value="USD">USD</option><option value="TRY">TRY</option><option value="EUR">EUR</option><option value="GBP">GBP</option></select></label>
-            <label class="vn-ac-field"><span>Status</span><select name="status"><option value="pending">Pending</option><option value="processing">Processing</option><option value="paid">Paid</option><option value="shipped">Shipped</option><option value="delivered">Delivered</option><option value="cancelled">Cancelled</option><option value="refunded">Refunded (test only)</option></select></label>
-            <label class="vn-ac-field"><span>Quantity</span><input name="quantity" type="number" min="1" max="10000" value="1"></label>
-          </div>
-          <label class="vn-ac-field"><span>Tracking number</span><input name="tracking_number" maxlength="200" placeholder="Optional"></label>
-          <button class="vn-ac-button" type="submit" ${state.busy ? "disabled" : ""}>Create test order</button>
-        </form>
-      </section>` : "";
+
     return `
       <div class="vn-ac-layout">
         ${sidebar()}
         <main class="vn-ac-main">
-          <h1>My Orders</h1><p class="vn-ac-subtitle">View your order history and track shipments.</p>
-          ${messageHTML()}
           ${orders.length ? `
+            <h1>My Orders</h1><p class="vn-ac-subtitle">View your order history and track shipments.</p>
+            ${messageHTML()}
             <div class="vn-ac-stats">
               <div class="vn-ac-stat"><strong>${orders.length}</strong><span>TOTAL ORDERS</span></div>
               <div class="vn-ac-stat"><strong>${delivered}</strong><span>DELIVERED ORDERS</span></div>
@@ -1930,22 +1915,9 @@
                 <p>Placed: ${escapeHTML(order.created_at || "—")}</p>
                 <p>Total: ${escapeHTML(order.currency || "USD")} ${escapeHTML(order.grand_total ?? order.total ?? "—")}</p>
                 <p>Tracking: ${escapeHTML(order.tracking_number || "Not available yet")}</p>
-                ${order.is_test ? '<p class="vn-ac-test-label">TEST RECORD · No real transaction</p>' : ''}
                 <button class="vn-ac-button secondary" data-ac-order="${escapeHTML(order.id)}">View order</button>
                 <button class="vn-ac-button secondary" data-ac-return-order="${escapeHTML(order.id)}">Start a return</button>
-                ${state.isAdmin && order.is_test ? `
-                  <form class="vn-ac-admin-edit" data-ac-edit-order="${escapeHTML(order.id)}">
-                    <strong>EDIT TEST ORDER</strong>
-                    <div class="vn-ac-admin-grid">
-                      <label class="vn-ac-field"><span>Status</span><select name="status">
-                        ${["pending","processing","paid","shipped","delivered","cancelled","refunded"].map(status => `<option value="${status}" ${order.status===status?"selected":""}>${status.replace(/_/g," ")}</option>`).join("")}
-                      </select></label>
-                      <label class="vn-ac-field"><span>Total (${escapeHTML(order.currency || "USD")})</span><input name="grand_total" type="number" min="0" step="0.01" value="${escapeHTML(order.grand_total ?? 0)}"></label>
-                    </div>
-                    <label class="vn-ac-field"><span>Tracking number</span><input name="tracking_number" maxlength="200" value="${escapeHTML(order.tracking_number || "")}"></label>
-                    <button class="vn-ac-button secondary" type="submit">Save changes</button>
-                    <button class="vn-ac-button danger" type="button" data-ac-delete-test-order="${escapeHTML(order.id)}">Delete test order</button>
-                  </form>` : ''}
+                ${state.isAdmin && order.is_test ? `<button class="vn-ac-button danger" type="button" data-ac-delete-test-order="${escapeHTML(order.id)}">Delete test order</button>` : ""}
               </article>
             `).join("")}
           ` : `
@@ -1954,69 +1926,51 @@
               <div class="vn-ac-ready-row"><h3>Ready to shop?</h3><button class="vn-ac-button" data-ac-section="shop">Shop Now</button></div>
             </div>
           `}
-          ${adminTools}
         </main>
       </div>
     `;
   }
-
   function renderReturns() {
-    const returnForm = state.orders.length ? `
-      <h2 style="margin-top:28px">Start a return</h2>
-      <form id="vnAcReturnForm">
-        <label class="vn-ac-field"><span>Order</span><select name="order_id" required><option value="">Select an order</option>
-          ${state.orders.filter(order => state.isAdmin ? order.is_test : !order.is_test).map(order => `<option value="${escapeHTML(order.id)}">${escapeHTML(order.order_number || order.id)}</option>`).join("")}
-        </select></label>
-        <label class="vn-ac-field"><span>Reason for return</span><select name="reason" required>
-          <option value="">Select a reason</option><option value="damaged">Item arrived damaged</option><option value="wrong_item">Wrong item received</option><option value="size_fit">Size or fit issue</option><option value="changed_mind">Changed my mind</option><option value="other">Other</option>
-        </select></label>
-        <label class="vn-ac-field"><span>Additional details</span><textarea name="customer_note" placeholder="Tell us more (optional)"></textarea></label>
-        <button class="vn-ac-button" type="submit" ${state.busy ? "disabled" : ""}>Submit return request</button>
-      </form>
-      <p class="vn-ac-muted">Submitting a request does not guarantee approval or automatically issue a refund.</p>` : "";
+    if (!state.returns.length) {
+      return `
+        <div class="vn-ac-layout">
+          ${sidebar()}
+          <main class="vn-ac-main">
+            <p>No return requests are available for this account.</p>
+          </main>
+        </div>
+      `;
+    }
+
     return `
       <div class="vn-ac-layout">
         ${sidebar()}
         <main class="vn-ac-main">
           <h1>My Returns</h1><p class="vn-ac-subtitle">Start or track a return.</p>
           ${messageHTML()}
-          ${state.returns.length ? state.returns.map(item => `
+          ${state.returns.map(item => `
             <article class="vn-ac-record">
               <div class="vn-ac-record-head"><strong>Return ${escapeHTML(item.return_number || item.id)}</strong><span class="vn-ac-badge">${escapeHTML(item.status || "Status unavailable")}</span></div>
-              <p>Order: ${escapeHTML(item.order_number || item.order_id || "—")}</p>
-              <p>Reason: ${escapeHTML(item.reason || "—")}</p>
-              <p>Created: ${escapeHTML(item.requested_at || item.created_at || "—")}</p>
-              <p>${escapeHTML(item.customer_note || "")}</p>
-              ${item.is_test ? '<p class="vn-ac-test-label">TEST RECORD · No real refund</p>' : ''}
-              ${state.isAdmin && item.is_test ? `
-                <form class="vn-ac-admin-edit" data-ac-edit-return="${escapeHTML(item.id)}">
-                  <strong>EDIT TEST RETURN</strong>
-                  <div class="vn-ac-admin-grid">
-                    <label class="vn-ac-field"><span>Status</span><select name="status">
-                      ${["requested","pending","approved","rejected","received","refunded","completed","cancelled"].map(status => `<option value="${status}" ${item.status===status?"selected":""}>${status.replace(/_/g," ")}</option>`).join("")}
-                    </select></label>
-                    <label class="vn-ac-field"><span>Reason</span><select name="reason">
-                      ${["damaged","wrong_item","size_fit","changed_mind","other"].map(reason => `<option value="${reason}" ${item.reason===reason?"selected":""}>${reason.replace(/_/g," ")}</option>`).join("")}
-                    </select></label>
-                  </div>
-                  <label class="vn-ac-field"><span>Customer note</span><textarea name="customer_note">${escapeHTML(item.customer_note || "")}</textarea></label>
-                  <button class="vn-ac-button secondary" type="submit">Save changes</button>
-                  <button class="vn-ac-button danger" type="button" data-ac-delete-test-return="${escapeHTML(item.id)}">Delete test return</button>
-                </form>` : ''}
+              <p>Order: ${escapeHTML(item.order_id || "—")}</p><p>Reason: ${escapeHTML(item.reason || "—")}</p>
+              <p>Created: ${escapeHTML(item.requested_at || item.created_at || "—")}</p><p>${escapeHTML(item.customer_note || "")}</p>
             </article>
-          `).join("") : '<div class="vn-ac-empty"><h2>No return history</h2><p>You have no return requests yet.</p></div>'}
-          ${returnForm}
-          ${state.isAdmin ? `
-            <section class="vn-ac-admin-tools">
-              <div class="vn-ac-record-head"><strong>TEST RETURN CONTROLS</strong><span class="vn-ac-badge">ADMIN</span></div>
-              <p class="vn-ac-muted">Create test returns only for test orders. They never trigger a payment or refund.</p>
-              ${state.orders.some(order => order.is_test) ? '<p class="vn-ac-muted">Choose a test order in the return form above to create its test return.</p>' : '<p class="vn-ac-muted">Create a test order in My Orders first.</p>'}
-            </section>` : ''}
+          `).join("")}
+          <h2 style="margin-top:28px">Start a return</h2>
+          <form id="vnAcReturnForm">
+            <label class="vn-ac-field"><span>Order</span><select name="order_id" required><option value="">Select an order</option>
+              ${state.orders.map(order => `<option value="${escapeHTML(order.id)}">${escapeHTML(order.order_number || order.id)}</option>`).join("")}
+            </select></label>
+            <label class="vn-ac-field"><span>Reason for return</span><select name="reason" required>
+              <option value="">Select a reason</option><option value="damaged">Item arrived damaged</option><option value="wrong_item">Wrong item received</option><option value="size_fit">Size or fit issue</option><option value="changed_mind">Changed my mind</option><option value="other">Other</option>
+            </select></label>
+            <label class="vn-ac-field"><span>Additional details</span><textarea name="customer_note" placeholder="Tell us more (optional)"></textarea></label>
+            <button class="vn-ac-button" type="submit">Submit return request</button>
+          </form>
+          <p class="vn-ac-muted">Submitting a request does not guarantee approval or automatically issue a refund.</p>
         </main>
       </div>
     `;
   }
-
   function renderHelp() {
     const helpPath = state.config?.paths?.help || "help.html";
 
