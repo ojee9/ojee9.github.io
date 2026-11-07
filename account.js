@@ -190,15 +190,10 @@
     }
 
     try {
-      // Mount the challenge-aware Clerk provider BEFORE loading the existing
-      // Clerk instance. This lets the provider attach its bundled Clerk UI
-      // during the instance's first load.
+      // Initialize the shop's existing Clerk instance immediately.
+      // The challenge-aware sign-up bridge is loaded lazily only when a new
+      // account is created, so its React startup can never block the storefront.
       state.clerk = clerk;
-      try {
-        await getClerkSignupBridge();
-      } catch (bridgeError) {
-        console.error("[VN ACCOUNT] Clerk Protect bridge initialization failed:", bridgeError);
-      }
       await clerk.load();
       const restoredShopSession = await restoreShopSession();
       if (!restoredShopSession) {
