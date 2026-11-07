@@ -834,15 +834,19 @@
         padding:14px 18px 16px;
       }
       .vn-ac-order-record .vn-ac-return-request form .vn-ac-return-products{
-        grid-column:1 / -1;
+        grid-column:1;
+        grid-row:1 / span 2;
+        align-self:stretch;
         display:grid;
         grid-template-columns:repeat(2,minmax(0,1fr));
-        gap:5px 18px;
+        align-content:start;
+        gap:4px 12px;
         margin:0;
-        padding:8px 10px;
+        padding:7px 9px;
       }
       .vn-ac-order-record .vn-ac-return-request form .vn-ac-return-products legend{
         grid-column:1 / -1;
+        margin-bottom:2px;
       }
       .vn-ac-order-record .vn-ac-return-request form .vn-ac-return-product{
         min-width:0;
@@ -856,22 +860,47 @@
       }
       .vn-ac-order-record .vn-ac-return-request form .vn-ac-field{
         min-width:0;
-        gap:4px;
+        gap:3px;
         margin:0;
       }
+      .vn-ac-order-record .vn-ac-return-request form .vn-ac-field span{
+        color:#f4f4f4;
+        font-size:11px;
+        line-height:1.3;
+      }
+      .vn-ac-order-record .vn-ac-return-request form .vn-ac-field select,
+      .vn-ac-order-record .vn-ac-return-request form .vn-ac-field textarea{
+        width:100%;
+        min-width:0;
+        border:1px solid #d7d7d7 !important;
+        border-radius:5px;
+        background:#EFF5F7 !important;
+        color:#171411 !important;
+        -webkit-text-fill-color:#171411;
+        color-scheme:light;
+        font:13px/1.35 Arial,sans-serif;
+      }
       .vn-ac-order-record .vn-ac-return-request form .vn-ac-field select{
-        height:38px;
-        min-height:38px;
+        height:36px;
+        min-height:36px;
+        padding:7px 10px;
+      }
+      .vn-ac-order-record .vn-ac-return-request form .vn-ac-field select option{
+        background:#EFF5F7;
+        color:#171411;
       }
       .vn-ac-order-record .vn-ac-return-request form .vn-ac-field textarea{
-        height:58px;
-        min-height:58px;
+        height:54px;
+        min-height:54px;
+        padding:8px 10px;
         resize:none;
       }
       .vn-ac-order-record .vn-ac-return-request form > .vn-ac-button{
-        grid-column:1 / -1;
+        grid-column:2;
         justify-self:end;
-        min-height:34px;
+        align-self:end;
+        min-height:32px;
+        padding:7px 14px;
       }
       @media(max-width:600px){
         .vn-ac-return-request form[data-ac-return-form]{
@@ -880,6 +909,8 @@
           padding:12px;
         }
         .vn-ac-order-record .vn-ac-return-request form .vn-ac-return-products{
+          grid-column:1;
+          grid-row:auto;
           grid-template-columns:minmax(0,1fr);
         }
         .vn-ac-order-record .vn-ac-return-request form .vn-ac-return-products legend,
