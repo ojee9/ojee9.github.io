@@ -228,7 +228,14 @@
         }
       });
 
-      if (state.user) await loadAccountData();
+      // Keep Clerk initialization independent from account-data API failures.
+      // A failed orders/returns request must never invalidate a working Clerk instance.
+      if (state.user) {
+        loadAccountData().catch(error => {
+          console.error("[VN ACCOUNT] Initial account data load failed; Clerk remains initialized:", error);
+          render();
+        });
+      }
     } catch (error) {
       console.error("[VN ACCOUNT] Clerk initialization failed:", error);
       state.clerk = null;
