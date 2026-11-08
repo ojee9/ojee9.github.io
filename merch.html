@@ -388,10 +388,6 @@
             "priceCurrency": product.currency || "USD",
             "availability": product.availability || "https://schema.org/InStock",
             "hasMerchantReturnPolicy": { "@id": "https://ojee9.github.io/merch.html#vn-turkiye-return-policy" },
-            "shippingDetails": {
-              "@type": "OfferShippingDetails",
-              "hasShippingService": { "@id": "https://ojee9.github.io/merch.html#vn-turkiye-shipping-service" }
-            }
           }
         };
         if (product.seoDescription || product.description) item.description = product.seoDescription || product.description;
