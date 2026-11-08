@@ -52,6 +52,30 @@
           "https://www.wikidata.org/entity/Q141613693",
           "https://musicbrainz.org/label/ffaacedd-8eb1-42ae-9b2d-ba4b4872b53b"
         ]
+      },
+      "hasMerchantReturnPolicy": {
+        "@type": "MerchantReturnPolicy",
+        "@id": "https://ojee9.github.io/merch.html#vn-turkiye-return-policy",
+        "applicableCountry": "TR",
+        "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+        "merchantReturnDays": 14,
+        "returnMethod": "https://schema.org/ReturnByMail"
+      },
+      "hasShippingService": {
+        "@type": "ShippingService",
+        "@id": "https://ojee9.github.io/merch.html#vn-turkiye-shipping-service",
+        "name": "VN SHOP Türkiye Shipping",
+        "description": "Shipping charges are calculated during checkout according to the selected shipping address and the contents of the cart. No single flat shipping rate applies.",
+        "fulfillmentType": "https://schema.org/FulfillmentTypeDelivery",
+        "shippingConditions": [
+          {
+            "@type": "ShippingConditions",
+            "shippingDestination": {
+              "@type": "DefinedRegion",
+              "addressCountry": "TR"
+            }
+          }
+        ]
       }
     },
     {
@@ -362,13 +386,15 @@
             "url": productUrl,
             "price": String(product.price),
             "priceCurrency": product.currency || "USD",
-            ...(product.availability ? { "availability": product.availability } : {}),
-            ...(product.hasMerchantReturnPolicy ? { "hasMerchantReturnPolicy": product.hasMerchantReturnPolicy } : {}),
-            ...(product.shippingDetails ? { "shippingDetails": product.shippingDetails } : {})
+            "availability": product.availability || "https://schema.org/InStock",
+            "hasMerchantReturnPolicy": { "@id": "https://ojee9.github.io/merch.html#vn-turkiye-return-policy" },
+            "shippingDetails": {
+              "@type": "OfferShippingDetails",
+              "hasShippingService": { "@id": "https://ojee9.github.io/merch.html#vn-turkiye-shipping-service" }
+            }
           }
         };
         if (product.seoDescription || product.description) item.description = product.seoDescription || product.description;
-        if (product.hasMerchantReturnPolicy) item.hasMerchantReturnPolicy = product.hasMerchantReturnPolicy;
         return item;
       })
     ]

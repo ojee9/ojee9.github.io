@@ -53,6 +53,30 @@
           "https://www.wikidata.org/entity/Q141613693",
           "https://musicbrainz.org/label/ffaacedd-8eb1-42ae-9b2d-ba4b4872b53b"
         ]
+      },
+      "hasMerchantReturnPolicy": {
+        "@type": "MerchantReturnPolicy",
+        "@id": "https://ojee9.github.io/merch.html#vn-turkiye-return-policy",
+        "applicableCountry": "TR",
+        "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+        "merchantReturnDays": 14,
+        "returnMethod": "https://schema.org/ReturnByMail"
+      },
+      "hasShippingService": {
+        "@type": "ShippingService",
+        "@id": "https://ojee9.github.io/merch.html#vn-turkiye-shipping-service",
+        "name": "VN SHOP Türkiye Shipping",
+        "description": "Shipping charges are calculated during checkout according to the selected shipping address and the contents of the cart. No single flat shipping rate applies.",
+        "fulfillmentType": "https://schema.org/FulfillmentTypeDelivery",
+        "shippingConditions": [
+          {
+            "@type": "ShippingConditions",
+            "shippingDestination": {
+              "@type": "DefinedRegion",
+              "addressCountry": "TR"
+            }
+          }
+        ]
       }
     },
     {
@@ -83,7 +107,38 @@
   gtag('js', new Date());
   gtag('config', 'G-3EDYHGQD8N');
 </script>
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"Product","name":"GTA LOVE Poster 02","description":"GTA LOVE Poster 02 by Ojee Ka$h, an original printed GTA LOVE poster available from VN SHOP. Premium-quality printed wall art featuring the GTA LOVE visual artwork. Physical poster, non-textile art print, available in a limited production run.","image":["https://ojee9.github.io/images/9o9-shop-product-gta-love-poster-2.png"],"sku":"GTA-LOVE-POSTER-02","brand":{"@type":"Brand","name":"VN SHOP"},"offers":{"@type":"Offer","url":"https://ojee9.github.io/products/gta-love-poster-2/","price":"20.00","priceCurrency":"USD","availability":"https://schema.org/InStock"}}</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": "GTA LOVE Poster 02",
+  "description": "GTA LOVE Poster 02 by Ojee Ka$h, an original printed GTA LOVE poster available from VN SHOP. Premium-quality printed wall art featuring the GTA LOVE visual artwork. Physical poster, non-textile art print, available in a limited production run.",
+  "image": [
+    "https://ojee9.github.io/images/9o9-shop-product-gta-love-poster-2.png"
+  ],
+  "sku": "GTA-LOVE-POSTER-02",
+  "brand": {
+    "@type": "Brand",
+    "name": "VN SHOP"
+  },
+  "offers": {
+    "@type": "Offer",
+    "url": "https://ojee9.github.io/products/gta-love-poster-2/",
+    "price": "20.00",
+    "priceCurrency": "USD",
+    "availability": "https://schema.org/InStock",
+    "hasMerchantReturnPolicy": {
+      "@id": "https://ojee9.github.io/merch.html#vn-turkiye-return-policy"
+    },
+    "shippingDetails": {
+      "@type": "OfferShippingDetails",
+      "hasShippingService": {
+        "@id": "https://ojee9.github.io/merch.html#vn-turkiye-shipping-service"
+      }
+    }
+  }
+}
+</script>
 <script defer src="account.js"></script>
 </head>
 <body class="shop-loading" data-product-page="true" data-product-id="gta-love-poster-2">
