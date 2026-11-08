@@ -672,7 +672,7 @@ html.atmosphere-ready .footer-sublogo{filter:invert(1)}
         </div>
       </section>
     </article>
-    <div class="receipt-actions"><button class="shop-return" id="record-admin-delivery" type="button" hidden>RECORD DELIVERY</button><a class="shop-return" href="merch.html">RETURN TO SHOP</a><a class="shop-return" href="admin-orders.html" id="admin-orders-link" hidden>ADMIN ORDERS</a><p id="admin-delivery-message" role="status" hidden></p></div>
+    <div class="receipt-actions"><a class="shop-return" href="merch.html">RETURN TO SHOP</a></div>
     <footer class="footer">
       <nav class="footer-links" aria-label="Help and legal">
         <a href="help.html">Help &amp; Support</a>
@@ -709,8 +709,7 @@ set("vn-code",order?.vnCode||order?.vn_code||"—");
 set("order-status",order?.orderStatus||order?.order_status||"Received");
 const rawPaymentStatus=String(order?.paymentStatus||order?.payment_status||order?.payment_status_label||order?.paymentStatusLabel||"pending").trim().toLowerCase();
  const paymentIsSuccessful=["success","successful","paid","completed","succeeded","payment successful"].includes(rawPaymentStatus);
- const paymentIsNotRequired=["not required","not_required","no payment required"].includes(rawPaymentStatus);
- const paymentDisplay=paymentIsSuccessful?"Payment successful":paymentIsNotRequired?"Order received":"Payment pending";
+ const paymentDisplay=paymentIsSuccessful?"Payment successful":"Payment pending";
  set("receipt-payment-status",paymentDisplay);
 const date=order?.createdAt||order?.created_at||order?.orderDate||order?.date;
 set("order-date",date?new Intl.DateTimeFormat("en-US",{dateStyle:"long"}).format(new Date(date)):new Intl.DateTimeFormat("en-US",{dateStyle:"long"}).format(new Date()));
@@ -757,10 +756,6 @@ set("shipping-total",money(shipping??0,receiptCurrency));
 set("tax-total",money(taxes??0,receiptCurrency));
 set("grand-total",money(grand??(receiptCurrency==="TRY"?NaN:total+Number(shipping??0)+Number(taxes??0)),receiptCurrency));
 set("payment-status",!order?"ORDER DETAILS UNAVAILABLE":paymentIsSuccessful?"PAYMENT SUCCESSFUL":"ORDER RECEIVED");
-const adminDeliveryButton=$("record-admin-delivery"),adminOrdersLink=$("admin-orders-link"),adminDeliveryMessage=$("admin-delivery-message");
-const adminApi=async(path,opts={})=>{const token=sessionStorage.getItem("vn_account_session")||"";if(!token)throw Error("Admin session not found. Sign in again.");const r=await fetch("https://vn-shop-account-api.9ojeez9.workers.dev"+path,{...opts,headers:{Authorization:"Bearer "+token,"Content-Type":"application/json",...(opts.headers||{})}});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||d.message||"Request failed ("+r.status+")");return d};
-const enableAdminDelivery=async()=>{if(!order||!(order.orderNumber||order.order_number))return;try{const admin=await adminApi("/api/account");if(admin.is_admin!==true&&admin.isAdmin!==true)return;adminDeliveryButton.hidden=false;adminOrdersLink.hidden=false;adminDeliveryButton.addEventListener("click",async()=>{adminDeliveryButton.disabled=true;try{await adminApi("/api/admin-orders",{method:"POST",body:JSON.stringify({order})});adminDeliveryButton.textContent="DELIVERY RECORDED";adminDeliveryMessage.textContent="Recorded in ADMIN ORDERS as delivered.";adminDeliveryMessage.hidden=false}catch(e){adminDeliveryButton.disabled=false;adminDeliveryMessage.textContent=e.message;adminDeliveryMessage.hidden=false}},{once:true})}catch(e){console.warn("[VN ADMIN ORDERS]",e)}};
-window.addEventListener("load",enableAdminDelivery,{once:true});
 const paymentLabels={card:"Credit card",apple:"Apple Pay",paypal:"PayPal",later:"Pay over time"};
 set("payment-method",paymentLabels[order?.paymentMethod]||order?.paymentMethod||order?.payment_method||"Credit card");
 const reduced=matchMedia("(prefers-reduced-motion: reduce)").matches;
