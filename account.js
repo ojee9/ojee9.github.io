@@ -35,7 +35,6 @@
     orders: [],
     returns: [],
     issues: [],
-    isAdmin: false,
     legalKey: "",
     message: "",
     messageType: "info",
@@ -390,7 +389,6 @@
         }
       };
       state.email = state.user.email;
-      state.isAdmin = Boolean(result.isAdmin || result.is_admin);
       try {
         sessionStorage.setItem(ACCOUNT_IDENTITY_KEY, JSON.stringify({
           id: result.userId,
@@ -445,7 +443,6 @@
     state.loadingData = true;
     try {
       const result = await accountApi("/api/account");
-      state.isAdmin = Boolean(result.is_admin || result.isAdmin);
       const [ordersResult, returnsResult, issuesResult] = await Promise.all([
         accountApi("/api/orders"),
         accountApi("/api/returns"),
@@ -473,7 +470,6 @@
       state.orders = Array.isArray(ordersResult.orders) ? ordersResult.orders : [];
       state.returns = Array.isArray(returnsResult.returns) ? returnsResult.returns : [];
       state.issues = Array.isArray(issuesResult.issues) ? issuesResult.issues : [];
-      state.isAdmin = Boolean(result.is_admin || ordersResult.is_admin || returnsResult.is_admin);
       state.user.user_metadata = {
         ...(state.user.user_metadata || {}),
         first_name: state.profile.first_name,
@@ -2107,7 +2103,6 @@
                           <span class="vn-ac-order-product">
                             ${image ? `<img src="${escapeHTML(image)}" alt="" loading="lazy">` : ""}
                             <span class="vn-ac-order-product-info"><strong>${escapeHTML(title)}</strong>${variant ? `<small>${escapeHTML(variant)}</small>` : ""}<small>QTY ${escapeHTML(item.quantity || item.qty || product.quantity || 1)}</small></span>
-                            ${state.isAdmin ? `<button type="button" class="vn-ac-order-item-remove" aria-label="Remove product" title="Remove product" data-ac-remove-order-item="${escapeHTML(item.id)}" data-ac-order-id="${escapeHTML(orderId)}">×</button>` : ""}
                           </span>
                         `;
                       }).join("")}
@@ -2186,13 +2181,6 @@
                   <button class="vn-ac-button secondary" type="submit">Send email</button>
                 </form>
               </details>
-            ` : ""}
-            ${state.isAdmin ? `
-              <div class="vn-ac-order-actions">
-                <button type="button" class="vn-ac-button secondary" data-ac-return-status="${escapeHTML(item.id)}" data-status="Accepted">Accept</button>
-                <button type="button" class="vn-ac-button secondary" data-ac-return-status="${escapeHTML(item.id)}" data-status="Rejected">Reject</button>
-                <button type="button" class="vn-ac-order-item-remove" data-ac-delete-return="${escapeHTML(item.id)}" aria-label="Delete return">×</button>
-              </div>
             ` : ""}
           </article>
         `;
@@ -2862,7 +2850,6 @@
       state.orders = [];
       state.returns = [];
       state.issues = [];
-      state.isAdmin = false;
       state.screen = "email";
       state.section = "dashboard";
       closePanel();
@@ -2963,77 +2950,6 @@
       state.busy = false;
       render();
     }
-  }
-
-  async function removeOrderItem(orderId, itemId) {
-    if (!state.isAdmin || !orderId || !itemId) return;
-    if (!window.confirm("Remove this product from the order?")) return;
-
-    try {
-      await accountApi(
-        "/api/orders/" + encodeURIComponent(orderId) +
-        "/items/" + encodeURIComponent(itemId),
-        { method: "DELETE" }
-      );
-      await loadAccountData();
-      state.messageType = "success";
-      state.message = "Product removed.";
-    } catch (error) {
-      state.messageType = "error";
-      state.message = error.message || "Could not remove this product.";
-    }
-    render();
-  }
-
-  async function updateOrderStatus(orderId, status) {
-    if (!state.isAdmin || !orderId || !status) return;
-    try {
-      await accountApi("/api/orders/" + encodeURIComponent(orderId), {
-        method: "PATCH",
-        body: JSON.stringify({ status })
-      });
-      await loadAccountData();
-      state.messageType = "success";
-      state.message = "Order status updated.";
-    } catch (error) {
-      state.messageType = "error";
-      state.message = error.message || "Could not update order status.";
-    }
-    render();
-  }
-
-  async function updateReturnStatus(returnId, status) {
-    if (!state.isAdmin || !returnId || !["Accepted", "Rejected"].includes(status)) return;
-    try {
-      await accountApi("/api/returns/" + encodeURIComponent(returnId), {
-        method: "PATCH",
-        body: JSON.stringify({ status })
-      });
-      await loadAccountData();
-      state.messageType = "success";
-      state.message = "Return request updated.";
-    } catch (error) {
-      state.messageType = "error";
-      state.message = error.message || "Could not update return request.";
-    }
-    render();
-  }
-
-  async function deleteReturn(returnId) {
-    if (!state.isAdmin || !returnId) return;
-    if (!window.confirm("Delete this return record?")) return;
-    try {
-      await accountApi("/api/returns/" + encodeURIComponent(returnId), {
-        method: "DELETE"
-      });
-      await loadAccountData();
-      state.messageType = "success";
-      state.message = "Return record deleted.";
-    } catch (error) {
-      state.messageType = "error";
-      state.message = error.message || "Could not delete return record.";
-    }
-    render();
   }
 
   function closePanel() {
@@ -3213,33 +3129,6 @@
           );
         }
 
-        return;
-      }
-
-      const removeItemButton = event.target.closest("[data-ac-remove-order-item]");
-      if (removeItemButton) {
-        event.preventDefault();
-        await removeOrderItem(
-          removeItemButton.dataset.acOrderId,
-          removeItemButton.dataset.acRemoveOrderItem
-        );
-        return;
-      }
-
-      const returnStatusButton = event.target.closest("[data-ac-return-status]");
-      if (returnStatusButton) {
-        event.preventDefault();
-        await updateReturnStatus(
-          returnStatusButton.dataset.acReturnStatus,
-          returnStatusButton.dataset.status
-        );
-        return;
-      }
-
-      const deleteReturnButton = event.target.closest("[data-ac-delete-return]");
-      if (deleteReturnButton) {
-        event.preventDefault();
-        await deleteReturn(deleteReturnButton.dataset.acDeleteReturn);
         return;
       }
 
