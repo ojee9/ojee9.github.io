@@ -633,7 +633,7 @@ html.atmosphere-ready .footer-sublogo{filter:invert(1)}
     <article class="receipt-card">
       <header class="receipt-top">
         <span class="eyebrow">VN SHOP® · ORDER RECEIPT</span>
-        <h2>PAYMENT SUCCESSFUL</h2>
+        <h2 id="receipt-heading">ORDER RECEIVED</h2>
         <p>THANK YOU FOR CHOOSING VN SHOP.</p>
         <span class="receipt-status" id="payment-status">PAYMENT SUCCESSFUL</span>
       </header>
@@ -709,8 +709,10 @@ set("vn-code",order?.vnCode||order?.vn_code||"—");
 set("order-status",order?.orderStatus||order?.order_status||"Received");
 const rawPaymentStatus=String(order?.paymentStatus||order?.payment_status||order?.payment_status_label||order?.paymentStatusLabel||"pending").trim().toLowerCase();
  const paymentIsSuccessful=["success","successful","paid","completed","succeeded","payment successful"].includes(rawPaymentStatus);
- const paymentDisplay="Success";
+ const isAdminOrder=Boolean(order?.isAdminOrder||order?.adminOrder||order?.adminPaymentExempt);
+ const paymentDisplay=!order?"Unavailable":isAdminOrder?"Not required":paymentIsSuccessful?"Success":"Payment pending";
  set("receipt-payment-status",paymentDisplay);
+ set("receipt-heading",isAdminOrder||!paymentIsSuccessful?"ORDER RECEIVED":"PAYMENT SUCCESSFUL");
 const date=order?.createdAt||order?.created_at||order?.orderDate||order?.date;
 set("order-date",date?new Intl.DateTimeFormat("en-US",{dateStyle:"long"}).format(new Date(date)):new Intl.DateTimeFormat("en-US",{dateStyle:"long"}).format(new Date()));
 const customer=order?.customer||{};
@@ -755,7 +757,7 @@ const grand=order?.total??order?.grandTotal??order?.grand_total;
 set("shipping-total",money(shipping??0,receiptCurrency));
 set("tax-total",money(taxes??0,receiptCurrency));
 set("grand-total",money(grand??(receiptCurrency==="TRY"?NaN:total+Number(shipping??0)+Number(taxes??0)),receiptCurrency));
-set("payment-status",!order?"ORDER DETAILS UNAVAILABLE":"PAYMENT SUCCESSFUL");
+set("payment-status",!order?"ORDER DETAILS UNAVAILABLE":isAdminOrder?"PAYMENT NOT REQUIRED":paymentIsSuccessful?"PAYMENT SUCCESSFUL":"PAYMENT PENDING");
 const paymentLabels={card:"Credit card",apple:"Apple Pay",paypal:"PayPal",later:"Pay over time"};
 set("payment-method",paymentLabels[order?.paymentMethod]||order?.paymentMethod||order?.payment_method||"Credit card");
 const reduced=matchMedia("(prefers-reduced-motion: reduce)").matches;
