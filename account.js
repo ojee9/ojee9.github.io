@@ -450,8 +450,8 @@
       ]);
       state.profile = {
         ...(result.profile || {}),
-        first_name: result.profile?.first_name || state.user?.user_metadata?.first_name || "",
-        last_name: result.profile?.last_name || state.user?.user_metadata?.last_name || ""
+        first_name: result.profile?.first_name ?? state.user?.user_metadata?.first_name ?? "",
+        last_name: result.profile?.last_name ?? state.user?.user_metadata?.last_name ?? ""
       };
       state.user.id = result.profile?.user_id || state.user.id;
       state.user.email = result.profile?.email || state.user.email;
@@ -2753,7 +2753,10 @@
     const lastName = String(data.get("last_name") || "").trim();
     try {
       await accountApi("/api/profile", { method: "PUT", body: JSON.stringify({ first_name: firstName, last_name: lastName }) });
-      state.profile = { ...state.profile, first_name: firstName, last_name: lastName };
+      await loadAccountData();
+      if (state.profile.first_name !== firstName || state.profile.last_name !== lastName) {
+        throw new Error("VN SHOP could not confirm the saved first and last name. Please retry.");
+      }
       state.user.user_metadata = { ...(state.user.user_metadata || {}), first_name: firstName, last_name: lastName };
       state.section = "profile";
       state.messageType = "success";
@@ -2784,6 +2787,14 @@
     try {
       await accountApi("/api/addresses", { method: "POST", body: JSON.stringify(address) });
       await loadAccountData();
+      const normalize = value => String(value ?? "").trim().toLocaleLowerCase("tr-TR").replace(/\s+/g, " ");
+      const savedAddress = state.addresses.find(item =>
+        ["first_name", "last_name", "address", "apartment", "city", "state", "postal_code"].every(key => normalize(item[key]) === normalize(address[key])) &&
+        normalize(item.country).toUpperCase() === normalize(address.country).toUpperCase()
+      );
+      if (!savedAddress || (address.is_default && !savedAddress.is_default)) {
+        throw new Error("VN SHOP did not confirm that this address was saved to your account. Please retry.");
+      }
       state.section = "addresses";
       state.messageType = "success";
       state.message = "Address saved to your account.";
@@ -2800,6 +2811,9 @@
     try {
       await accountApi("/api/addresses/" + encodeURIComponent(id), { method: "DELETE" });
       await loadAccountData();
+      if (state.addresses.some(item => String(item.id) === String(id))) {
+        throw new Error("VN SHOP did not confirm that this address was deleted. Please refresh and retry.");
+      }
       state.messageType = "success";
       state.message = "Address deleted.";
     } catch (error) {
@@ -2814,8 +2828,10 @@
     if (!state.user) return;
     try {
       await accountApi("/api/profile", { method: "PUT", body: JSON.stringify({ marketing_updates: Boolean(enabled) }) });
-      state.marketingUpdates = Boolean(enabled);
-      state.profile = { ...state.profile, marketing_updates: Boolean(enabled) };
+      await loadAccountData();
+      if (state.marketingUpdates !== Boolean(enabled)) {
+        throw new Error("VN SHOP could not confirm the saved marketing preference. Please retry.");
+      }
       state.messageType = "success";
       state.message = "Marketing preference saved.";
     } catch (error) {
@@ -3363,7 +3379,10 @@
       state.country = country.value;
       try {
         await accountApi("/api/profile", { method: "PUT", body: JSON.stringify({ country: state.country }) });
-        state.profile = { ...state.profile, country: state.country };
+        await loadAccountData();
+        if (state.country !== country.value) {
+          throw new Error("VN SHOP could not confirm the saved country preference. Please retry.");
+        }
         state.messageType = "success";
         state.message = "Country preference saved.";
       } catch (error) {

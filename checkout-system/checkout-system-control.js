@@ -550,10 +550,20 @@ const persistCheckoutAccountData=async information=>{
  const profileUpdate={
   first_name:String(information.firstName||"").trim(),
   last_name:String(information.lastName||"").trim(),
+  country:String(information.country||"TR").trim(),
   marketing_updates:Boolean(information.updates)
  };
  await requestAccountApi("/api/profile",{method:"PUT",body:JSON.stringify(profileUpdate)});
- checkoutAccountProfile={...checkoutAccountProfile,...profileUpdate};
+ const profileCheck=await requestAccountApi("/api/account");
+ const verifiedProfile=profileCheck.profile||{};
+ for(const key of ["first_name","last_name","country","marketing_updates"]){
+  const matches=key==="marketing_updates"
+   ? (verifiedProfile[key]===true||verifiedProfile[key]===1||verifiedProfile[key]==="1")===profileUpdate[key]
+   : String(verifiedProfile[key]??"")===String(profileUpdate[key]??"");
+  if(!matches)throw new Error("Your VN SHOP account did not confirm the saved "+key.replace("_"," ")+" value. Refresh your account and retry.");
+ }
+ checkoutAccountProfile=verifiedProfile;
+ checkoutSavedAddresses=Array.isArray(profileCheck.addresses)?profileCheck.addresses:checkoutSavedAddresses;
  if(shopSaveOptOut)return;
  const address={
   first_name:profileUpdate.first_name,
@@ -567,12 +577,17 @@ const persistCheckoutAccountData=async information=>{
   phone:[dial(),String(information.phone||"").trim()].filter(Boolean).join(" ").trim(),
   is_default:!checkoutSavedAddresses.some(item=>item.is_default)
  };
- if(!address.address||!address.city||!address.postal_code)return;
+ if(!address.address||!address.city||!address.postal_code){
+  throw new Error("Complete the shipping address or choose NOT NOW before continuing.");
+ }
  if(checkoutSavedAddresses.some(existing=>addressMatches(existing,address)))return;
- const result=await requestAccountApi("/api/addresses",{method:"POST",body:JSON.stringify(address)});
- const saved=result.address||result;
- if(saved&&saved.id)checkoutSavedAddresses.push(saved);
- else checkoutSavedAddresses.push({...address,id:"saved-"+Date.now()});
+ await requestAccountApi("/api/addresses",{method:"POST",body:JSON.stringify(address)});
+ const refreshedAccount=await requestAccountApi("/api/account");
+ const refreshedAddresses=Array.isArray(refreshedAccount.addresses)?refreshedAccount.addresses:[];
+ if(!refreshedAddresses.some(saved=>addressMatches(saved,address))){
+  throw new Error("VN SHOP did not confirm that your checkout address was saved to your account. Please retry.");
+ }
+ checkoutSavedAddresses=refreshedAddresses;
 };
 document.getElementById("pay-now").addEventListener("click",async()=>{
  const button=document.getElementById("pay-now");
@@ -598,10 +613,11 @@ document.getElementById("pay-now").addEventListener("click",async()=>{
   const selectedShipping=document.querySelector('input[name="shipping-method"]:checked');
   const selectedPayment=document.querySelector('input[name="payment-method"]:checked');
   if(!selectedShipping)throw new Error("Select a shipping method before placing your order.");
+  if(!selectedPayment)throw new Error("Select a payment method before continuing.");
   const paymentLabels={card:"Credit card",apple:"Apple Pay",paypal:"PayPal",later:"Pay over time"};
   const customer={firstName:information.firstName||"",lastName:information.lastName||"",email:information.email||"",phone:[dial(),information.phone].filter(Boolean).join(" "),address:[information.address,information.apartment,information.city,information.state,information.postal,information.country].filter(Boolean).join(", ")};
   await persistCheckoutAccountData(information);
-  const payload={customer,items,subtotal:checkoutAmounts.subtotalTRY,shipping:checkoutAmounts.shippingPaymentTRY,taxes:checkoutAmounts.taxesTRY,total:checkoutAmounts.totalTRY,currency:"TRY",countryCode:"TR",originalSubtotalUSD:checkoutAmounts.subtotalUSD,originalShippingUSD:checkoutAmounts.shippingUSD,originalTaxesUSD:checkoutAmounts.taxesUSD,exchangeRateProvider:checkoutAmounts.fxProvider,exchangeRateTRYPerUSD:checkoutAmounts.fxRate,exchangeRateUpdatedAt:new Date(checkoutAmounts.fxUpdatedAt).toISOString(),shippingMethod:selectedShipping.value==="standard"?"Standard Shipping":selectedShipping.value,paymentMethod:paymentLabels[selectedPayment?.value]||"Credit card",paymentStatus:isAdminOrder?"Not Required":"Pending",paymentStatusLabel:isAdminOrder?"Payment not required":"Payment pending",status:"received",...(isAdminOrder?{isAdminOrder:true,adminOrder:true,adminExempt:true,adminPaymentExempt:true,adminStockExempt:true}:{isAdminOrder:false,adminExempt:false,adminPaymentExempt:false,adminStockExempt:false})};
+  const payload={customer,items,subtotal:checkoutAmounts.subtotalTRY,shipping:checkoutAmounts.shippingPaymentTRY,taxes:checkoutAmounts.taxesTRY,total:checkoutAmounts.totalTRY,currency:"TRY",countryCode:"TR",originalSubtotalUSD:checkoutAmounts.subtotalUSD,originalShippingUSD:checkoutAmounts.shippingUSD,originalTaxesUSD:checkoutAmounts.taxesUSD,exchangeRateProvider:checkoutAmounts.fxProvider,exchangeRateTRYPerUSD:checkoutAmounts.fxRate,exchangeRateUpdatedAt:new Date(checkoutAmounts.fxUpdatedAt).toISOString(),shippingMethod:selectedShipping.value==="standard"?"Standard Shipping":selectedShipping.value,paymentMethod:paymentLabels[selectedPayment.value],...(isAdminOrder?{paymentStatus:"Not Required",paymentStatusLabel:"Payment not required",isAdminOrder:true,adminOrder:true,adminExempt:true,adminPaymentExempt:true,adminStockExempt:true}:{isAdminOrder:false,adminExempt:false,adminPaymentExempt:false,adminStockExempt:false}),status:"received"};
   let idempotencyKey=sessionStorage.getItem("vn-shop-order-idempotency-key");
   if(!idempotencyKey){idempotencyKey=crypto.randomUUID();sessionStorage.setItem("vn-shop-order-idempotency-key",idempotencyKey)}
   const token=sessionStorage.getItem("vn_account_session")||"";
