@@ -356,19 +356,49 @@
   async function exchangeWorkerSession() {
     if (state.workerSessionPromise) return state.workerSessionPromise;
     state.workerSessionPromise = (async () => {
-      const clerkSession = state.clerk?.session;
-      if (!clerkSession || typeof clerkSession.getToken !== "function") {
-        throw new Error("Your verified sign-in session is not ready. Please sign in again.");
+      let response;
+      if (state.authProvider === "shop") {
+        if (!state.shopSessionToken) throw new Error("Your verified Shop session is not ready. Please sign in again.");
+        response = await fetch(ACCOUNT_API + "/api/auth/shop-exchange", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessionToken: state.shopSessionToken })
+        });
+      } else {
+        const clerkSession = state.clerk?.session;
+        if (!clerkSession || typeof clerkSession.getToken !== "function") {
+          throw new Error("Your verified email session is not ready. Please sign in again.");
+        }
+        const clerkToken = await clerkSession.getToken();
+        if (!clerkToken) throw new Error("Could not verify your email session. Please sign in again.");
+        response = await fetch(ACCOUNT_API + "/api/auth/exchange", {
+          method: "POST",
+          headers: { Authorization: "Bearer " + clerkToken }
+        });
       }
-      const clerkToken = await clerkSession.getToken();
-      if (!clerkToken) throw new Error("Could not verify your sign-in session. Please sign in again.");
-      const response = await fetch(ACCOUNT_API + "/api/auth/exchange", {
-        method: "POST",
-        headers: { Authorization: "Bearer " + clerkToken }
-      });
       const result = await response.json().catch(() => ({}));
-      if (!response.ok || !result.token) throw new Error(result.error || "Could not establish your secure account session.");
+      if (!response.ok || !result.token || !result.userId) throw new Error(result.error || "Could not establish your secure VN SHOP account session.");
       storeWorkerSessionToken(result.token);
+      state.user = {
+        ...(state.user || {}),
+        id: result.userId,
+        email: result.email || state.user?.email || state.email,
+        user_metadata: {
+          ...(state.user?.user_metadata || {}),
+          first_name: result.firstName || state.user?.user_metadata?.first_name || "",
+          last_name: result.lastName || state.user?.user_metadata?.last_name || ""
+        }
+      };
+      state.email = state.user.email;
+      state.isAdmin = Boolean(result.isAdmin || result.is_admin);
+      try {
+        sessionStorage.setItem(ACCOUNT_IDENTITY_KEY, JSON.stringify({
+          id: result.userId,
+          email: state.user.email,
+          firstName: state.user.user_metadata.first_name,
+          lastName: state.user.user_metadata.last_name
+        }));
+      } catch (_) {}
       return result.token;
     })();
     try {
@@ -412,17 +442,6 @@
 
   async function loadAccountData() {
     if (!state.user) return;
-    if (state.authProvider === "shop") {
-      state.country = state.profile.country || userCountry();
-      state.marketingUpdates = state.profile.marketing_updates === true || state.profile.marketing_updates === 1 || state.profile.marketing_updates === "1";
-      state.orders = [];
-      state.returns = [];
-      state.issues = [];
-      state.isAdmin = false;
-      updateAccountAvatar();
-      return;
-    }
-    if (!state.clerkUser) return;
     state.loadingData = true;
     try {
       const result = await accountApi("/api/account");
@@ -434,9 +453,20 @@
       ]);
       state.profile = {
         ...(result.profile || {}),
-        first_name: result.profile?.first_name || state.clerkUser.firstName || "",
-        last_name: result.profile?.last_name || state.clerkUser.lastName || ""
+        first_name: result.profile?.first_name || state.user?.user_metadata?.first_name || "",
+        last_name: result.profile?.last_name || state.user?.user_metadata?.last_name || ""
       };
+      state.user.id = result.profile?.user_id || state.user.id;
+      state.user.email = result.profile?.email || state.user.email;
+      state.email = state.user.email || state.email;
+      try {
+        sessionStorage.setItem(ACCOUNT_IDENTITY_KEY, JSON.stringify({
+          id: state.user.id,
+          email: state.user.email,
+          firstName: state.profile.first_name,
+          lastName: state.profile.last_name
+        }));
+      } catch (_) {}
       state.addresses = Array.isArray(result.addresses) ? result.addresses : [];
       state.country = state.profile.country || userCountry();
       state.marketingUpdates = state.profile.marketing_updates === true || state.profile.marketing_updates === 1 || state.profile.marketing_updates === "1";
@@ -1590,11 +1620,17 @@
       const result = await shopWorkerRequest({ action: "verify", sessionToken: token });
       const user = result.user || result.customer || result;
       if (result.authenticated === false || result.valid === false) throw new Error("Shop session expired.");
+      storeWorkerSessionToken("");
+      try { sessionStorage.removeItem(ACCOUNT_IDENTITY_KEY); } catch (_) {}
       state.shopSessionToken = token;
       applyShopUser(user);
+      await loadAccountData().catch(error => {
+        console.error("[VN ACCOUNT] Shop session is valid, but account data could not be refreshed:", error);
+      });
       return true;
     } catch (error) {
       try { sessionStorage.removeItem("vn_shop_session"); } catch (_) {}
+      storeWorkerSessionToken("");
       state.shopSessionToken = "";
       state.authProvider = "";
       state.user = null;
@@ -1623,6 +1659,8 @@
         throw new Error("The Shop session could not be verified.");
       }
 
+      storeWorkerSessionToken("");
+      try { sessionStorage.removeItem(ACCOUNT_IDENTITY_KEY); } catch (_) {}
       state.shopSessionToken = sessionToken;
       try {
         sessionStorage.setItem("vn_shop_session", sessionToken);
@@ -2836,6 +2874,16 @@
 
   async function signOut(allDevices = false) {
     if (state.authProvider === "shop") {
+      const workerToken = readWorkerSessionToken();
+      if (workerToken) {
+        try {
+          await fetch(ACCOUNT_API + "/api/auth/logout", { method: "POST", headers: { Authorization: "Bearer " + workerToken } });
+        } catch (error) {
+          console.warn("[VN ACCOUNT] VN session revocation request failed:", error);
+        }
+      }
+      storeWorkerSessionToken("");
+      try { sessionStorage.removeItem(ACCOUNT_IDENTITY_KEY); } catch (_) {}
       try { sessionStorage.removeItem("vn_shop_session"); } catch (_) {}
       state.shopSessionToken = "";
       state.authProvider = "";

@@ -583,6 +583,7 @@ document.getElementById("pay-now").addEventListener("click",async()=>{
  try{
   await checkoutAccountReady;
   const isAdminOrder=await (window.VN_CHECKOUT_ADMIN_CHECK||Promise.resolve(false));
+  if(!isAdminOrder)throw new Error("Online payment is not connected yet. Your order has not been placed. Please try again when secure payment is available.");
   const information=collectInformation();
   const readCart=(storage,key)=>{try{const value=JSON.parse(storage.getItem(key)||"[]");return Array.isArray(value)?value:[]}catch{return[]}};
   const orderCart=readCart(sessionStorage,"vn-shop-checkout-cart");
