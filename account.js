@@ -443,11 +443,11 @@
     state.loadingData = true;
     try {
       const result = await accountApi("/api/account");
-      const [ordersResult, returnsResult, issuesResult] = await Promise.all([
+      const [ordersResult, returnsResult] = await Promise.all([
         accountApi("/api/orders"),
-        accountApi("/api/returns"),
-        accountApi("/api/issues").catch(error => { console.warn("[VN ACCOUNT] Issue history is not available yet:", error); return { issues: [] }; })
+        accountApi("/api/returns")
       ]);
+      // /api/issues is not available on the current account API; avoid repeated 404s.
       state.profile = {
         ...(result.profile || {}),
         first_name: result.profile?.first_name ?? state.user?.user_metadata?.first_name ?? "",
@@ -469,7 +469,7 @@
       state.marketingUpdates = state.profile.marketing_updates === true || state.profile.marketing_updates === 1 || state.profile.marketing_updates === "1";
       state.orders = Array.isArray(ordersResult.orders) ? ordersResult.orders : [];
       state.returns = Array.isArray(returnsResult.returns) ? returnsResult.returns : [];
-      state.issues = Array.isArray(issuesResult.issues) ? issuesResult.issues : [];
+      state.issues = [];
       state.user.user_metadata = {
         ...(state.user.user_metadata || {}),
         first_name: state.profile.first_name,
@@ -615,7 +615,7 @@
       .vn-ac-stat{border:1px solid #dedede;border-radius:4px;padding:20px}
       .vn-ac-stat strong{display:block;font-size:27px;margin-bottom:4px}
       .vn-ac-stat span{font-size:11px;letter-spacing:.06em;color:#666}
-      .vn-ac-record{border:1px solid #dedede;border-radius:4px;padding:18px;margin:12px 0}
+      .vn-ac-record{border:1px solid #dedede;border-radius:4px;padding:18px;margin:12px 0}.vn-ac-address-record{background:#E4CEA5;border-color:#E4CEA5;color:#171411}.vn-ac-address-record p{color:#383126}.vn-ac-address-record .vn-ac-badge{border-color:rgba(23,20,17,.28);color:#171411}.vn-ac-confirm-overlay{position:fixed;inset:0;z-index:10040;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.68);backdrop-filter:blur(5px)}.vn-ac-confirm-panel{width:min(100%,420px);padding:26px;background:#111;border:1px solid #514633;border-radius:4px;color:#f5f5f5;box-shadow:0 18px 70px rgba(0,0,0,.45)}.vn-ac-confirm-kicker{margin:0 0 10px;color:#E4CEA5;font-size:10px;letter-spacing:.16em;text-transform:uppercase}.vn-ac-confirm-panel h2{margin:0 0 9px;font-size:21px}.vn-ac-confirm-panel p{margin:0;color:#bdb7ad;font-size:13px;line-height:1.65}.vn-ac-confirm-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:24px}.vn-ac-confirm-actions button{min-height:42px;padding:0 15px;border:1px solid #5b5142;border-radius:3px;background:transparent;color:#eee;font:inherit;font-size:11px;cursor:pointer}.vn-ac-confirm-actions .confirm-delete{background:#E4CEA5;border-color:#E4CEA5;color:#171411;font-weight:700}.vn-ac-field-error{margin:10px 0;padding:12px 14px;border-left:2px solid #E4CEA5;background:#241f17;color:#E4CEA5;font-size:12px;line-height:1.55}
       .vn-ac-record-head{display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap}
       .vn-ac-record p{font-size:13px;color:#666;margin:9px 0}
       .vn-ac-badge{display:inline-block;padding:4px 8px;border:1px solid #ddd;border-radius:20px;font-size:11px;color:#555}
@@ -2019,7 +2019,7 @@
   function renderAddresses() {
     const list = state.addresses.length
       ? state.addresses.map(address => `
-          <article class="vn-ac-record">
+          <article class="vn-ac-record vn-ac-address-record">
             <div class="vn-ac-record-head"><strong>${escapeHTML(address.label || "Address")}</strong>
               ${address.is_default ? '<span class="vn-ac-badge">DEFAULT</span>' : ""}
             </div>
@@ -2041,7 +2041,7 @@
           <h1>Addresses</h1><p class="vn-ac-subtitle">Manage your saved shipping addresses.</p>
           ${messageHTML()}${list}
           <h2 style="margin-top:28px">Add address</h2>
-          <form id="vnAcAddressForm" class="vn-ac-address-form">
+          <form id="vnAcAddressForm" class="vn-ac-address-form" novalidate>
             <label class="vn-ac-address-control"><span>Country / Region</span><select name="country" autocomplete="country-name">${countryOptions(state.country)}</select></label>
             <div class="vn-ac-form-grid">
               <label class="vn-ac-address-control"><span>First name</span><input name="first_name" placeholder="First name" autocomplete="given-name" required></label>
@@ -2773,65 +2773,43 @@
   }
 
 
+  const normAddr = value => String(value ?? "").trim().toLocaleLowerCase("tr-TR").replace(/\s+/g," ");
+  const normPhone = value => String(value ?? "").replace(/\D/g,"").replace(/^(90|0)/,"");
+  const normCountry = value => {const v=normAddr(value);return v==="türkiye"||v==="turkey"?"TR":v.toUpperCase()};
+  const sameAccountAddress = (x,y) => ["first_name","last_name","address","apartment","city","state","postal_code"].every(k=>normAddr(x[k])===normAddr(y[k]))&&normCountry(x.country)===normCountry(y.country)&&normPhone(x.phone)===normPhone(y.phone);
+  const truthyDefault = v => v===true||v===1||v==="1"||String(v).toLowerCase()==="true";
+
   async function saveAddress(form) {
-    if (!state.user) return;
-    const data = new FormData(form);
-    const address = {
-      first_name: String(data.get("first_name") || "").trim(),
-      last_name: String(data.get("last_name") || "").trim(),
-      address: String(data.get("address") || "").trim(),
-      apartment: String(data.get("apartment") || "").trim(),
-      city: String(data.get("city") || "").trim(),
-      state: String(data.get("state") || "").trim(),
-      postal_code: String(data.get("postal_code") || "").trim(),
-      country: String(data.get("country") || state.country),
-      phone: String(data.get("phone") || "").trim(),
-      is_default: data.get("is_default") === "on"
-    };
-    try {
-      await accountApi("/api/addresses", { method: "POST", body: JSON.stringify(address) });
-      const refreshed = await loadAccountData();
-      const savedAddresses = Array.isArray(refreshed.addresses) ? refreshed.addresses : [];
-      const normalize = value => String(value ?? "").trim().toLocaleLowerCase("tr-TR").replace(/\s+/g, " ");
-      const normalizeCountry = value => {
-        const country = normalize(value);
-        return ["tr", "turkey", "türkiye"].includes(country) ? "TR" : country.toUpperCase();
-      };
-      const savedAddress = savedAddresses.find(item =>
-        ["first_name", "last_name", "address", "apartment", "city", "state", "postal_code"].every(key => normalize(item[key]) === normalize(address[key])) &&
-        normalizeCountry(item.country) === normalizeCountry(address.country)
-      );
-      if (!savedAddress || (address.is_default && !savedAddress.is_default)) {
-        throw new Error("VN SHOP did not confirm that this address was saved to your account. Please retry.");
-      }
-      state.section = "addresses";
-      state.messageType = "success";
-      state.message = "Address saved to your account.";
-    } catch (error) {
-      state.messageType = "error";
-      state.message = "Could not save your address: " + (error.message || "Please try again.");
-    }
+    if(!state.user||form.dataset.saving==="true")return;
+    const data=new FormData(form), address={first_name:String(data.get("first_name")||"").trim(),last_name:String(data.get("last_name")||"").trim(),address:String(data.get("address")||"").trim(),apartment:String(data.get("apartment")||"").trim(),city:String(data.get("city")||"").trim(),state:String(data.get("state")||"").trim(),postal_code:String(data.get("postal_code")||"").trim(),country:String(data.get("country")||state.country),phone:String(data.get("phone")||"").trim(),is_default:data.get("is_default")==="on"};
+    const required=[["first_name","First name"],["last_name","Last name"],["address","Address"],["city","City"],["postal_code","Postal code"]];
+    const missing=required.find(([k])=>!address[k]);form.querySelector(".vn-ac-field-error")?.remove();
+    if(missing){const error=document.createElement("div");error.className="vn-ac-field-error";error.setAttribute("role","alert");error.textContent="Please fill in this field: "+missing[1]+".";form.prepend(error);form.elements.namedItem(missing[0])?.focus();return;}
+    const button=form.querySelector('button[type="submit"]');form.dataset.saving="true";if(button){button.disabled=true;button.textContent="Saving…";}
+    try{
+      const latest=await accountApi("/api/account"),existing=Array.isArray(latest.addresses)?latest.addresses:[];
+      if(existing.some(item=>sameAccountAddress(item,address))){await loadAccountData();state.section="addresses";state.messageType="success";state.message="This address is already saved to your account. No duplicate was added.";render();return;}
+      await accountApi("/api/addresses",{method:"POST",body:JSON.stringify(address)});
+      const refreshed=await loadAccountData(),items=Array.isArray(refreshed.addresses)?refreshed.addresses:[];
+      const saved=items.find(item=>sameAccountAddress(item,address));
+      if(!saved||(address.is_default&&!truthyDefault(saved.is_default)))throw new Error("The address was submitted, but VN SHOP could not verify its saved state. Refresh your addresses before trying again.");
+      state.section="addresses";state.messageType="success";state.message="Address saved to your account.";
+    }catch(error){state.messageType="error";state.message="Could not save your address: "+(error.message||"Please try again.");}
+    finally{delete form.dataset.saving;if(button){button.disabled=false;button.textContent="Save address";}}
     render();
   }
 
-
-  async function deleteAddress(id) {
-    if (!confirm("Delete this saved address?")) return;
-    try {
-      await accountApi("/api/addresses/" + encodeURIComponent(id), { method: "DELETE" });
-      await loadAccountData();
-      if (state.addresses.some(item => String(item.id) === String(id))) {
-        throw new Error("VN SHOP did not confirm that this address was deleted. Please refresh and retry.");
-      }
-      state.messageType = "success";
-      state.message = "Address deleted.";
-    } catch (error) {
-      state.messageType = "error";
-      state.message = "Could not delete the address: " + (error.message || "Please try again.");
-    }
+  function confirmAddressDeletion(){
+    const root=createRoot(),overlay=document.createElement("div");overlay.className="vn-ac-confirm-overlay";
+    overlay.innerHTML='<section class="vn-ac-confirm-panel" role="dialog" aria-modal="true" aria-labelledby="vnAcDeleteTitle"><p class="vn-ac-confirm-kicker">VN SHOP · ADDRESS BOOK</p><h2 id="vnAcDeleteTitle">Delete this address?</h2><p>This saved address will be removed from your VN SHOP account. This action cannot be undone.</p><div class="vn-ac-confirm-actions"><button type="button" data-confirm-cancel>KEEP ADDRESS</button><button type="button" class="confirm-delete" data-confirm-delete>DELETE ADDRESS</button></div></section>';
+    root.appendChild(overlay);return new Promise(resolve=>{const finish=v=>{overlay.remove();resolve(v)};overlay.querySelector("[data-confirm-cancel]").addEventListener("click",()=>finish(false),{once:true});overlay.querySelector("[data-confirm-delete]").addEventListener("click",()=>finish(true),{once:true});overlay.addEventListener("click",ev=>{if(ev.target===overlay)finish(false)});overlay.querySelector("[data-confirm-cancel]").focus()});
+  }
+  async function deleteAddress(id){
+    if(!await confirmAddressDeletion())return;
+    try{await accountApi("/api/addresses/"+encodeURIComponent(id),{method:"DELETE"});await loadAccountData();if(state.addresses.some(item=>String(item.id)===String(id)))throw new Error("VN SHOP did not confirm that this address was deleted. Please refresh and retry.");state.messageType="success";state.message="Address deleted."}
+    catch(error){state.messageType="error";state.message="Could not delete the address: "+(error.message||"Please try again.")}
     render();
   }
-
 
   async function saveMarketingPreference(enabled) {
     if (!state.user) return;
