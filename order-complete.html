@@ -698,6 +698,18 @@ const info=read(["vn-checkout-information"])||{};
 const cart=read(["vn-shop-checkout-cart","vn-shop-cart"],[sessionStorage,localStorage]);
 const items=Array.isArray(cart)?cart:[];
 const order=read(["vn-shop-order-complete","vn-shop-last-order","vn-order-confirmation"]);
+const rawPaymentStatus=String(order?.paymentStatus||order?.payment_status||order?.payment_status_label||order?.paymentStatusLabel||"").trim().toLowerCase();
+const paymentIsSuccessful=["success","successful","paid","completed","succeeded","payment successful"].includes(rawPaymentStatus);
+const isAdminOrder=Boolean(order?.isAdminOrder||order?.adminOrder||order?.adminPaymentExempt);
+const orderReference=order?.orderNumber||order?.order_number||order?.id||order?.order_id;
+if(!order||!orderReference||(!paymentIsSuccessful&&!isAdminOrder)){
+  ["vn-shop-order-complete","vn-shop-last-order","vn-order-confirmation"].forEach(key=>{
+    try{sessionStorage.removeItem(key)}catch(_){}
+    try{localStorage.removeItem(key)}catch(_){}
+  });
+  window.location.replace("checkout.html");
+  return;
+}
 const set=(id,value,fallback="—")=>{const node=$(id);if(node)node.textContent=value==null||value===""?fallback:String(value)};
 const receiptCurrency=order?.currency==="TRY"||order?.countryCode==="TR"?"TRY":"USD";
 const exchangeRate=Number(order?.exchangeRateTRYPerUSD);
@@ -707,12 +719,9 @@ set("subtotal",money(order?.subtotal??order?.sub_total??(receiptCurrency==="TRY"
 set("order-number",order?.orderNumber||order?.order_number||order?.id||"—");
 set("vn-code",order?.vnCode||order?.vn_code||"—");
 set("order-status",order?.orderStatus||order?.order_status||"Received");
-const rawPaymentStatus=String(order?.paymentStatus||order?.payment_status||order?.payment_status_label||order?.paymentStatusLabel||"pending").trim().toLowerCase();
- const paymentIsSuccessful=["success","successful","paid","completed","succeeded","payment successful"].includes(rawPaymentStatus);
- const isAdminOrder=Boolean(order?.isAdminOrder||order?.adminOrder||order?.adminPaymentExempt);
- const paymentDisplay=!order?"Unavailable":isAdminOrder?"Not required":paymentIsSuccessful?"Success":"Payment pending";
- set("receipt-payment-status",paymentDisplay);
- set("receipt-heading",isAdminOrder||!paymentIsSuccessful?"ORDER RECEIVED":"PAYMENT SUCCESSFUL");
+const paymentDisplay=isAdminOrder?"Not required":"Success";
+set("receipt-payment-status",paymentDisplay);
+set("receipt-heading",isAdminOrder?"ORDER RECEIVED":"PAYMENT SUCCESSFUL");
 const date=order?.createdAt||order?.created_at||order?.orderDate||order?.date;
 set("order-date",date?new Intl.DateTimeFormat("en-US",{dateStyle:"long"}).format(new Date(date)):new Intl.DateTimeFormat("en-US",{dateStyle:"long"}).format(new Date()));
 const customer=order?.customer||{};
@@ -757,7 +766,7 @@ const grand=order?.total??order?.grandTotal??order?.grand_total;
 set("shipping-total",money(shipping??0,receiptCurrency));
 set("tax-total",money(taxes??0,receiptCurrency));
 set("grand-total",money(grand??(receiptCurrency==="TRY"?NaN:total+Number(shipping??0)+Number(taxes??0)),receiptCurrency));
-set("payment-status",!order?"ORDER DETAILS UNAVAILABLE":isAdminOrder?"PAYMENT NOT REQUIRED":paymentIsSuccessful?"PAYMENT SUCCESSFUL":"PAYMENT PENDING");
+set("payment-status",isAdminOrder?"PAYMENT NOT REQUIRED":"PAYMENT SUCCESSFUL");
 const paymentLabels={card:"Credit card",apple:"Apple Pay",paypal:"PayPal",later:"Pay over time"};
 set("payment-method",paymentLabels[order?.paymentMethod]||order?.paymentMethod||order?.payment_method||"Credit card");
 const reduced=matchMedia("(prefers-reduced-motion: reduce)").matches;
