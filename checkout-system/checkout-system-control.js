@@ -428,53 +428,55 @@ saveChoiceButton.addEventListener("click",()=>{
  saveChoiceButton.setAttribute("aria-pressed",String(shopSaveOptOut));
 });
 document.getElementById("pay-now").addEventListener("click",async()=>{
- const isAdminOrder=await (window.VN_CHECKOUT_ADMIN_CHECK||Promise.resolve(false));
- const information=collectInformation();
- const readCart=(storage,key)=>{try{const value=JSON.parse(storage.getItem(key)||"[]");return Array.isArray(value)?value:[]}catch{return[]}};
- const orderCart=readCart(sessionStorage,"vn-shop-checkout-cart");
- const fallbackCart=readCart(localStorage,"vn-shop-cart");
- const items=orderCart.length?orderCart:fallbackCart;
- const now=new Date();
- const randomInteger=(min,max)=>{const range=max-min+1,limit=Math.floor(0x100000000/range)*range,buffer=new Uint32Array(1);let value;do{crypto.getRandomValues(buffer);value=buffer[0]}while(value>=limit);return min+(value%range)};
- const orderNumber=String(randomInteger(isAdminOrder?100000:10000000,isAdminOrder?999999:99999999));
- const vnCode=isAdminOrder?"VN-A"+String(randomInteger(0,99)).padStart(2,"0"):"VN-"+String(randomInteger(1,999)).padStart(3,"0");
- const cartSubtotalUSD=items.reduce((sum,line)=>{const product=line.product||line;const price=Number(String(product.price??line.price??0).replace(/[^0-9.-]/g,""))||0;return sum+price*Math.max(1,Number(line.quantity||line.qty||1))},0);
- const customer={
-  firstName:information.firstName||"",
-  lastName:information.lastName||"",
-  email:information.email||"",
-  phone:[information.phoneCountry,information.phone].filter(Boolean).join(" "),
-  address:[information.address,information.apartment,information.city,information.state,information.postal,information.country].filter(Boolean).join(", ")
- };
- const selectedShipping=document.querySelector('input[name="shipping-method"]:checked');
- const selectedPayment=document.querySelector('input[name="payment-method"]:checked');
- if(Math.abs(cartSubtotalUSD-checkoutAmounts.subtotalUSD)>0.01){
-  alert("Your cart changed after the totals were calculated. Please return to shipping and refresh the estimate.");
-  return;
- }
- if(!Number.isFinite(checkoutAmounts.fxRate)||!Number.isFinite(checkoutAmounts.subtotalTRY)||!Number.isFinite(checkoutAmounts.shippingTRY)||!Number.isFinite(checkoutAmounts.taxesTRY)||!Number.isFinite(checkoutAmounts.totalTRY)){
-  alert("The verified TRY order total is unavailable. Please return to shipping and try again.");
-  return;
- }
- const subtotal=checkoutAmounts.subtotalTRY;
- const shipping=checkoutAmounts.shippingPaymentTRY;
- const taxes=checkoutAmounts.taxesTRY;
- const total=checkoutAmounts.totalTRY;
- const paymentLabels={card:"Credit card",apple:"Apple Pay",paypal:"PayPal",later:"Pay over time"};
- const orderRecord={orderNumber,vnCode,createdAt:now.toISOString(),customer,items,subtotal,shipping,taxes,total,currency:"TRY",countryCode:"TR",originalSubtotalUSD:checkoutAmounts.subtotalUSD,originalShippingUSD:checkoutAmounts.shippingUSD,originalTaxesUSD:checkoutAmounts.taxesUSD,exchangeRateProvider:checkoutAmounts.fxProvider,exchangeRateTRYPerUSD:checkoutAmounts.fxRate,exchangeRateUpdatedAt:new Date(checkoutAmounts.fxUpdatedAt).toISOString(),shippingMethod:selectedShipping?.value==="standard"?"Standard Shipping":selectedShipping?.value||"Standard Shipping",paymentMethod:paymentLabels[selectedPayment?.value]||"Credit card",orderStatus:"Received",status:"received",paymentStatus:isAdminOrder?"Not Required":"Pending",paymentStatusLabel:isAdminOrder?"Order received":"Payment pending",...(isAdminOrder?{isAdminOrder:true,adminOrder:true,adminExempt:true,adminPaymentExempt:true,adminStockExempt:true}:{isAdminOrder:false,adminExempt:false,adminPaymentExempt:false,adminStockExempt:false})};
+ const button=document.getElementById("pay-now");
+ if(button.disabled)return;
+ button.disabled=true;
+ const originalLabel=button.textContent;
+ button.textContent="Submitting order…";
  try{
-  localStorage.setItem("vn-shop-order-complete",JSON.stringify(orderRecord));
-  sessionStorage.setItem("vn-shop-order-complete",JSON.stringify(orderRecord));
+  const isAdminOrder=await (window.VN_CHECKOUT_ADMIN_CHECK||Promise.resolve(false));
+  const information=collectInformation();
+  const readCart=(storage,key)=>{try{const value=JSON.parse(storage.getItem(key)||"[]");return Array.isArray(value)?value:[]}catch{return[]}};
+  const orderCart=readCart(sessionStorage,"vn-shop-checkout-cart");
+  const fallbackCart=readCart(localStorage,"vn-shop-cart");
+  const items=orderCart.length?orderCart:fallbackCart;
+  if(!items.length)throw new Error("Your cart is empty. Return to the shop and add a product before placing an order.");
+  if(!validEmail(information.email||""))throw new Error("Enter a valid email address before placing your order.");
+  if(information.country!=="TR")throw new Error("Checkout is currently available for Türkiye only.");
+  const cartSubtotalUSD=items.reduce((sum,line)=>{const product=line.product||line;const price=Number(String(product.price??line.price??0).replace(/[^0-9.-]/g,""))||0;return sum+price*Math.max(1,Number(line.quantity||line.qty||1))},0);
+  if(Math.abs(cartSubtotalUSD-checkoutAmounts.subtotalUSD)>0.01)throw new Error("Your cart changed after the totals were calculated. Return to shipping and refresh the estimate.");
+  if(!Number.isFinite(checkoutAmounts.fxRate)||!Number.isFinite(checkoutAmounts.subtotalTRY)||!Number.isFinite(checkoutAmounts.shippingTRY)||!Number.isFinite(checkoutAmounts.shippingPaymentTRY)||!Number.isFinite(checkoutAmounts.taxesTRY)||!Number.isFinite(checkoutAmounts.totalTRY))throw new Error("The verified TRY order total is unavailable. Return to shipping and refresh the estimate.");
+  const selectedShipping=document.querySelector('input[name="shipping-method"]:checked');
+  const selectedPayment=document.querySelector('input[name="payment-method"]:checked');
+  if(!selectedShipping)throw new Error("Select a shipping method before placing your order.");
+  const paymentLabels={card:"Credit card",apple:"Apple Pay",paypal:"PayPal",later:"Pay over time"};
+  const customer={firstName:information.firstName||"",lastName:information.lastName||"",email:information.email||"",phone:[information.phoneCountry,information.phone].filter(Boolean).join(" "),address:[information.address,information.apartment,information.city,information.state,information.postal,information.country].filter(Boolean).join(", ")};
+  const payload={customer,items,subtotal:checkoutAmounts.subtotalTRY,shipping:checkoutAmounts.shippingPaymentTRY,taxes:checkoutAmounts.taxesTRY,total:checkoutAmounts.totalTRY,currency:"TRY",countryCode:"TR",originalSubtotalUSD:checkoutAmounts.subtotalUSD,originalShippingUSD:checkoutAmounts.shippingUSD,originalTaxesUSD:checkoutAmounts.taxesUSD,exchangeRateProvider:checkoutAmounts.fxProvider,exchangeRateTRYPerUSD:checkoutAmounts.fxRate,exchangeRateUpdatedAt:new Date(checkoutAmounts.fxUpdatedAt).toISOString(),shippingMethod:selectedShipping.value==="standard"?"Standard Shipping":selectedShipping.value,paymentMethod:paymentLabels[selectedPayment?.value]||"Credit card",paymentStatus:isAdminOrder?"Not Required":"Pending",paymentStatusLabel:isAdminOrder?"Payment not required":"Payment pending",status:"received",...(isAdminOrder?{isAdminOrder:true,adminOrder:true,adminExempt:true,adminPaymentExempt:true,adminStockExempt:true}:{isAdminOrder:false,adminExempt:false,adminPaymentExempt:false,adminStockExempt:false})};
+  let idempotencyKey=sessionStorage.getItem("vn-shop-order-idempotency-key");
+  if(!idempotencyKey){idempotencyKey=crypto.randomUUID();sessionStorage.setItem("vn-shop-order-idempotency-key",idempotencyKey)}
+  const token=sessionStorage.getItem("vn_account_session")||"";
+  const endpoint=isAdminOrder?"/api/operations/admin-orders":"/api/orders";
+  const headers={"Content-Type":"application/json","Idempotency-Key":idempotencyKey};
+  if(token)headers.Authorization="Bearer "+token;
+  const response=await fetch("https://vn-shop-account-api.9ojeez9.workers.dev"+endpoint,{method:"POST",cache:"no-store",headers,body:JSON.stringify(payload)});
+  const result=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(result.error||"The order could not be recorded ("+response.status+").");
+  const order=result.order||result.admin_order||result;
+  if(!order||!(order.id||order.order_id||order.orderNumber||order.order_number))throw new Error("The order service did not return a confirmed order reference. Please contact support before retrying.");
+  const receiptRecord={...payload,...order,customer:order.customer||customer,items:Array.isArray(order.items)?order.items:items,isAdminOrder,adminOrder:isAdminOrder,createdAt:order.createdAt||order.created_at||new Date().toISOString(),paymentStatus:order.paymentStatus||order.payment_status||payload.paymentStatus};
+  sessionStorage.setItem("vn-shop-order-complete",JSON.stringify(receiptRecord));
   sessionStorage.setItem("vn-shop-checkout-cart",JSON.stringify(items));
   sessionStorage.setItem("vn-checkout-information",JSON.stringify(information));
+  sessionStorage.removeItem("vn-shop-order-idempotency-key");
+  window.location.href="order-complete.html";
  }catch(error){
-  console.error("VN receipt could not save order details:",error);
-  alert("Your order reference could not be saved in this browser. Please try again.");
-  return;
+  console.error("VN SHOP order submission failed:",error);
+  alert(error.message||"Your order could not be submitted. Please try again.");
+ }finally{
+  button.disabled=false;
+  button.textContent=originalLabel;
  }
- window.location.href="order-complete.html";
 });
-
 document.getElementById("discount").addEventListener("submit",e=>{e.preventDefault();document.getElementById("discountmsg").textContent="Discount codes are not available yet."});
 const currencyHelpToggle=document.getElementById("currency-help-toggle"),currencyHelpMessage=document.getElementById("currency-help-message");
 currencyHelpToggle.addEventListener("click",()=>{const expanded=currencyHelpToggle.getAttribute("aria-expanded")==="true";currencyHelpToggle.setAttribute("aria-expanded",String(!expanded));currencyHelpMessage.hidden=expanded});

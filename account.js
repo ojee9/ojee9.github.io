@@ -34,6 +34,7 @@
     addresses: [],
     orders: [],
     returns: [],
+    issues: [],
     isAdmin: false,
     legalKey: "",
     message: "",
@@ -222,6 +223,7 @@
           state.addresses = [];
           state.orders = [];
           state.returns = [];
+          state.issues = [];
           state.screen = "email";
           state.section = "dashboard";
           render();
@@ -415,6 +417,7 @@
       state.marketingUpdates = state.profile.marketing_updates !== false;
       state.orders = [];
       state.returns = [];
+      state.issues = [];
       state.isAdmin = false;
       updateAccountAvatar();
       return;
@@ -424,9 +427,10 @@
     try {
       const result = await accountApi("/api/account");
       state.isAdmin = Boolean(result.is_admin || result.isAdmin);
-      const [ordersResult, returnsResult] = await Promise.all([
+      const [ordersResult, returnsResult, issuesResult] = await Promise.all([
         accountApi("/api/orders"),
-        accountApi("/api/returns")
+        accountApi("/api/returns"),
+        accountApi("/api/issues").catch(error => { console.warn("[VN ACCOUNT] Issue history is not available yet:", error); return { issues: [] }; })
       ]);
       state.profile = {
         ...(result.profile || {}),
@@ -438,6 +442,7 @@
       state.marketingUpdates = state.profile.marketing_updates !== false;
       state.orders = Array.isArray(ordersResult.orders) ? ordersResult.orders : [];
       state.returns = Array.isArray(returnsResult.returns) ? returnsResult.returns : [];
+      state.issues = Array.isArray(issuesResult.issues) ? issuesResult.issues : [];
       state.isAdmin = Boolean(result.is_admin || ordersResult.is_admin || returnsResult.is_admin);
       state.user.user_metadata = {
         ...(state.user.user_metadata || {}),
@@ -2069,7 +2074,7 @@
                         `;
                       }).join("")}
                     </div>
-                    <span class="vn-ac-order-received">RECEIVED</span>
+                    <span class="vn-ac-order-received">${escapeHTML(String(order.orderStatus || order.status || order.order_status || "received").replace(/[_-]/g," ").toUpperCase())}</span>
                     <details class="vn-ac-return-request">
                       <summary>START A REFUND</summary>
                       <form data-ac-return-form>
@@ -2175,6 +2180,14 @@
         ${sidebar()}
         <main class="vn-ac-main">
           <h1>Help Center</h1><p class="vn-ac-subtitle">Find answers to common questions.</p>
+          <form data-ac-issue-form class="vn-ac-profile-section">
+            <h2>REPORT AN ORDER ISSUE</h2>
+            <label class="vn-ac-field"><span>Related order</span><select name="order_id" required><option value="">Select an order</option>${(state.orders || []).map(order => `<option value="${escapeHTML(order.id || order.order_id || "")}">${escapeHTML(order.orderNumber || order.order_number || order.id || "Order")} · ${escapeHTML(order.status || order.orderStatus || "received")}</option>`).join("")}</select></label>
+            <label class="vn-ac-field"><span>Issue type</span><select name="issue_type" required><option value="">Select an issue</option><option value="delivery">Delivery or tracking</option><option value="product">Product or item</option><option value="payment">Payment</option><option value="account">Account</option><option value="other">Other</option></select></label>
+            <label class="vn-ac-field"><span>Describe the issue</span><textarea name="description" required minlength="10" maxlength="3000" placeholder="Explain what happened and how we can help."></textarea></label>
+            <button class="vn-ac-button" type="submit" ${state.busy || !(state.orders || []).length ? "disabled" : ""}>Submit report</button>
+          </form>
+          <section class="vn-ac-profile-section"><h2>MY REPORTS</h2>${(state.issues || []).length ? (state.issues || []).map(issue => `<article class="vn-ac-return-row"><div class="vn-ac-return-row-main"><strong>${escapeHTML(issue.orderNumber || issue.order_number || "Order report")}</strong><span class="vn-ac-badge">${escapeHTML(String(issue.status || "open").replace(/[_-]/g," ").toUpperCase())}</span></div><p>${escapeHTML(issue.description || issue.issue_type || "Customer report")}</p><small>Reported: ${escapeHTML(issue.reported_at || issue.created_at || "—")} · Started: ${escapeHTML(issue.processing_started_at || "—")} · Resolved: ${escapeHTML(issue.resolved_at || "—")}</small>${issue.resolution ? `<p>${escapeHTML(issue.resolution)}</p>` : ""}</article>`).join("") : "<p>No reports submitted.</p>"}</section>
           <div class="vn-ac-card-grid">
             <a class="vn-ac-card" href="${escapeHTML(helpPath)}"><strong>ORDERS &amp; SHIPPING</strong><span>Order status, delivery estimates and tracking.</span></a>
             <a class="vn-ac-card" href="${escapeHTML(helpPath)}"><strong>RETURNS &amp; REFUNDS</strong><span>Return eligibility, requests and refund status.</span></a>
@@ -2817,6 +2830,7 @@
       state.addresses = [];
       state.orders = [];
       state.returns = [];
+      state.issues = [];
       state.isAdmin = false;
       state.screen = "email";
       state.section = "dashboard";
@@ -2884,6 +2898,36 @@
     } catch (error) {
       state.messageType = "error";
       state.message = error.message || "Could not submit your return request.";
+    } finally {
+      state.busy = false;
+      render();
+    }
+  }
+
+  async function createIssue(form) {
+    const data = new FormData(form);
+    const orderId = String(data.get("order_id") || "").trim();
+    const issueType = String(data.get("issue_type") || "").trim();
+    const description = String(data.get("description") || "").trim();
+    if (!orderId || !issueType || description.length < 10) {
+      state.messageType = "error";
+      state.message = "Select an order and issue type, then describe the issue in at least 10 characters.";
+      render();
+      return;
+    }
+    state.busy = true;
+    state.message = "";
+    try {
+      await accountApi("/api/issues", {
+        method: "POST",
+        body: JSON.stringify({ order_id: orderId, issue_type: issueType, description })
+      });
+      await loadAccountData();
+      state.messageType = "success";
+      state.message = "Your report has been submitted.";
+    } catch (error) {
+      state.messageType = "error";
+      state.message = error.message || "Could not submit your report.";
     } finally {
       state.busy = false;
       render();
@@ -3296,6 +3340,12 @@
     if (form.matches("[data-ac-return-form]")) {
       event.preventDefault();
       await createReturn(form);
+      return;
+    }
+
+    if (form.matches("[data-ac-issue-form]")) {
+      event.preventDefault();
+      await createIssue(form);
       return;
     }
 
