@@ -1,32 +1,12 @@
-/* VN SHOP ADMIN CHECKOUT EXEMPTION
- * Canonical administrator emails are intentionally fixed to these three accounts.
- * The Worker is the authority for is_admin; a typed email or browser storage value
- * never grants administrator privileges by itself.
- * HIGH PRIORITY: checkout access and unpaid admin order receipts only.
+/* VN SHOP checkout identity bridge.
+ * The Worker alone decides whether the signed-in account is an administrator.
+ * Ordinary customers are never blocked or redirected by this script.
+ * The storefront and checkout presentation remain identical for every account.
  */
 (() => {
   "use strict";
-  const ADMIN_EMAILS = new Set([
-    "9ojeez9@gmail.com",
-    "recordsvunion@gmail.com",
-    "studiovnions@gmail.com"
-  ]);
-  const ACCOUNT_API = "https://vn-shop-account-api.9ojeez9.workers.dev";
-  const isReceipt = /(?:^|\/)order-complete\.html$/i.test(location.pathname);
-  const parse = value => { try { return JSON.parse(value); } catch { return null; } };
 
-  function showCheckoutDenied() {
-    document.documentElement.classList.remove("vn-admin-gate-pending");
-    const body = document.body;
-    body.innerHTML = `
-      <main class="vn-admin-gate-message">
-        <section>
-          <h1>VN SHOP CHECKOUT</h1>
-          <p>This checkout is currently reserved for authorized VN administrators.</p>
-          <a href="/merch.html">RETURN TO VN SHOP</a>
-        </section>
-      </main>`;
-  }
+  const ACCOUNT_API = "https://vn-shop-account-api.9ojeez9.workers.dev";
 
   async function verifyWithWorker(token) {
     if (!token) return false;
@@ -44,16 +24,14 @@
     }
   }
 
-  async function verifyAdmin() {
+  async function resolveAdministrator() {
     let storedToken = "";
-    try { storedToken = sessionStorage.getItem("vn_account_session") || ""; }
-    catch (_) {}
+    try {
+      storedToken = sessionStorage.getItem("vn_account_session") || "";
+    } catch (_) {}
 
     if (await verifyWithWorker(storedToken)) return true;
 
-    // Checkout is a subpage and does not run account.js. Initialize the same
-    // Clerk session used by merch.html, then exchange its verified token with
-    // the Worker. The Worker remains the only authority for administrator access.
     const clerk = window.Clerk;
     if (!clerk || typeof clerk.load !== "function") return false;
 
@@ -73,8 +51,9 @@
       const exchangeResult = await exchangeResponse.json().catch(() => ({}));
       if (!exchangeResponse.ok || !exchangeResult.token) return false;
 
-      try { sessionStorage.setItem("vn_account_session", exchangeResult.token); }
-      catch (_) {}
+      try {
+        sessionStorage.setItem("vn_account_session", exchangeResult.token);
+      } catch (_) {}
 
       const user = clerk.user;
       const email = String(
@@ -82,6 +61,7 @@
         user?.emailAddresses?.[0]?.emailAddress ||
         ""
       ).trim().toLowerCase();
+
       if (email) {
         try {
           sessionStorage.setItem("vn_account_identity", JSON.stringify({
@@ -98,26 +78,27 @@
       return false;
     }
   }
-  async function init() {
-    const allowed = await verifyAdmin();
-    if (!allowed) {
-      if (isReceipt) {
-        location.replace("/merch.html?checkout=admin-only");
-        return;
-      }
-      showCheckoutDenied();
-      return;
-    }
 
+  const adminCheck = resolveAdministrator()
+    .then(isAdmin => {
+      try {
+        if (isAdmin) sessionStorage.setItem("vn_checkout_admin_verified", "1");
+        else sessionStorage.removeItem("vn_checkout_admin_verified");
+      } catch (_) {}
+      return isAdmin;
+    })
+    .catch(() => false);
+
+  // Checkout controller awaits this promise before assigning order type.
+  window.VN_CHECKOUT_ADMIN_CHECK = adminCheck;
+
+  const releaseCheckout = () => {
     document.documentElement.classList.remove("vn-admin-gate-pending");
-    document.documentElement.dataset.vnAdminCheckout = "authorized";
-    const payButton = document.getElementById("pay-now");
-    if (payButton) payButton.textContent = "COMPLETE ADMIN ORDER";
-  }
+    document.documentElement.removeAttribute("data-vn-admin-checkout");
+  };
 
+  adminCheck.finally(releaseCheckout);
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init, { once: true });
-  } else {
-    init();
+    document.addEventListener("DOMContentLoaded", releaseCheckout, { once: true });
   }
 })();

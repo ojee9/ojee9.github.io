@@ -427,7 +427,8 @@ saveChoiceButton.addEventListener("click",()=>{
  saveChoiceButton.textContent=shopSaveOptOut?"SAVE":"NOT NOW";
  saveChoiceButton.setAttribute("aria-pressed",String(shopSaveOptOut));
 });
-document.getElementById("pay-now").addEventListener("click",()=>{
+document.getElementById("pay-now").addEventListener("click",async()=>{
+ const isAdminOrder=await (window.VN_CHECKOUT_ADMIN_CHECK||Promise.resolve(false));
  const information=collectInformation();
  const readCart=(storage,key)=>{try{const value=JSON.parse(storage.getItem(key)||"[]");return Array.isArray(value)?value:[]}catch{return[]}};
  const orderCart=readCart(sessionStorage,"vn-shop-checkout-cart");
@@ -435,8 +436,8 @@ document.getElementById("pay-now").addEventListener("click",()=>{
  const items=orderCart.length?orderCart:fallbackCart;
  const now=new Date();
  const randomInteger=(min,max)=>{const range=max-min+1,limit=Math.floor(0x100000000/range)*range,buffer=new Uint32Array(1);let value;do{crypto.getRandomValues(buffer);value=buffer[0]}while(value>=limit);return min+(value%range)};
- const orderNumber=String(randomInteger(10000000,99999999));
- const vnCode="VN-"+String(randomInteger(1,999)).padStart(3,"0");
+ const orderNumber=String(randomInteger(isAdminOrder?100000:10000000,isAdminOrder?999999:99999999));
+ const vnCode=isAdminOrder?"VN-A"+String(randomInteger(0,99)).padStart(2,"0"):"VN-"+String(randomInteger(1,999)).padStart(3,"0");
  const cartSubtotalUSD=items.reduce((sum,line)=>{const product=line.product||line;const price=Number(String(product.price??line.price??0).replace(/[^0-9.-]/g,""))||0;return sum+price*Math.max(1,Number(line.quantity||line.qty||1))},0);
  const customer={
   firstName:information.firstName||"",
@@ -460,7 +461,7 @@ document.getElementById("pay-now").addEventListener("click",()=>{
  const taxes=checkoutAmounts.taxesTRY;
  const total=checkoutAmounts.totalTRY;
  const paymentLabels={card:"Credit card",apple:"Apple Pay",paypal:"PayPal",later:"Pay over time"};
- const orderRecord={orderNumber,vnCode,createdAt:now.toISOString(),customer,items,subtotal,shipping,taxes,total,currency:"TRY",countryCode:"TR",originalSubtotalUSD:checkoutAmounts.subtotalUSD,originalShippingUSD:checkoutAmounts.shippingUSD,originalTaxesUSD:checkoutAmounts.taxesUSD,exchangeRateProvider:checkoutAmounts.fxProvider,exchangeRateTRYPerUSD:checkoutAmounts.fxRate,exchangeRateUpdatedAt:new Date(checkoutAmounts.fxUpdatedAt).toISOString(),shippingMethod:selectedShipping?.value==="standard"?"Standard Shipping":selectedShipping?.value||"Standard Shipping",paymentMethod:paymentLabels[selectedPayment?.value]||"Credit card",orderStatus:"Received",status:"received",paymentStatus:"Not Required",paymentStatusLabel:"ADMIN ORDER — NO PAYMENT REQUIRED"};
+ const orderRecord={orderNumber,vnCode,createdAt:now.toISOString(),customer,items,subtotal,shipping,taxes,total,currency:"TRY",countryCode:"TR",originalSubtotalUSD:checkoutAmounts.subtotalUSD,originalShippingUSD:checkoutAmounts.shippingUSD,originalTaxesUSD:checkoutAmounts.taxesUSD,exchangeRateProvider:checkoutAmounts.fxProvider,exchangeRateTRYPerUSD:checkoutAmounts.fxRate,exchangeRateUpdatedAt:new Date(checkoutAmounts.fxUpdatedAt).toISOString(),shippingMethod:selectedShipping?.value==="standard"?"Standard Shipping":selectedShipping?.value||"Standard Shipping",paymentMethod:paymentLabels[selectedPayment?.value]||"Credit card",orderStatus:"Received",status:"received",paymentStatus:isAdminOrder?"Not Required":"Pending",paymentStatusLabel:isAdminOrder?"Order received":"Payment pending",...(isAdminOrder?{isAdminOrder:true,adminOrder:true,adminExempt:true,adminPaymentExempt:true,adminStockExempt:true}:{isAdminOrder:false,adminExempt:false,adminPaymentExempt:false,adminStockExempt:false})};
  try{
   localStorage.setItem("vn-shop-order-complete",JSON.stringify(orderRecord));
   sessionStorage.setItem("vn-shop-order-complete",JSON.stringify(orderRecord));
