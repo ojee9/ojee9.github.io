@@ -2070,7 +2070,7 @@
   function renderOrders() {
     const orders = state.orders || [];
     const delivered = orders.filter(order => String(order.orderStatus || order.status || "").toLowerCase() === "delivered").length;
-    const returned = (state.returns || []).filter(item => ["accepted", "approved", "received", "refunded", "completed"].includes(String(item.status || "").toLowerCase())).length;
+    const returned = (state.returns || []).filter(item => ["returned", "refunded", "completed"].includes(String(item.status || "").trim().toLowerCase().replace(/[_-]+/g, " "))).length;
     const waiting = orders.filter(order => ["received", "pending", "processing", "preparing", "paid", "shipped"].includes(String(order.orderStatus || order.status || "").toLowerCase())).length;
 
     return `
@@ -2157,10 +2157,12 @@
   function renderReturns() {
     const returns = state.returns || [];
     const statusLabel = status => {
-      const value = String(status || "Pending").toLowerCase();
-      if (["accepted", "approved", "received", "refunded", "completed"].includes(value)) return "REFUNDED";
-      if (value === "rejected" || value === "declined") return "REJECTED";
-      return "UNDER REVIEW";
+      const value = String(status || "pending").trim().toLowerCase().replace(/[_-]+/g, " ");
+      if (["returned", "refunded", "completed"].includes(value)) return "RETURNED";
+      if (["return process", "in return process", "processing"].includes(value)) return "RETURN IN PROCESS";
+      if (["accepted", "approved"].includes(value)) return "RETURN ACCEPTED";
+      if (["rejected", "declined"].includes(value)) return "REJECTED";
+      return "REQUEST RECEIVED";
     };
     const returnRows = returns.flatMap(item => {
       const products = Array.isArray(item.items) && item.items.length ? item.items : [null];
