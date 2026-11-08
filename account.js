@@ -476,6 +476,7 @@
         last_name: state.profile.last_name
       };
       updateAccountAvatar();
+      return result;
     } catch (error) {
       console.error("[VN ACCOUNT] Could not load account data from VN database:", error);
       state.messageType = "error";
@@ -2753,8 +2754,9 @@
     const lastName = String(data.get("last_name") || "").trim();
     try {
       await accountApi("/api/profile", { method: "PUT", body: JSON.stringify({ first_name: firstName, last_name: lastName }) });
-      await loadAccountData();
-      if (state.profile.first_name !== firstName || state.profile.last_name !== lastName) {
+      const refreshed = await loadAccountData();
+      const savedProfile = refreshed.profile || {};
+      if (String(savedProfile.first_name ?? "") !== firstName || String(savedProfile.last_name ?? "") !== lastName) {
         throw new Error("VN SHOP could not confirm the saved first and last name. Please retry.");
       }
       state.user.user_metadata = { ...(state.user.user_metadata || {}), first_name: firstName, last_name: lastName };
@@ -2786,9 +2788,10 @@
     };
     try {
       await accountApi("/api/addresses", { method: "POST", body: JSON.stringify(address) });
-      await loadAccountData();
+      const refreshed = await loadAccountData();
+      const savedAddresses = Array.isArray(refreshed.addresses) ? refreshed.addresses : [];
       const normalize = value => String(value ?? "").trim().toLocaleLowerCase("tr-TR").replace(/\s+/g, " ");
-      const savedAddress = state.addresses.find(item =>
+      const savedAddress = savedAddresses.find(item =>
         ["first_name", "last_name", "address", "apartment", "city", "state", "postal_code"].every(key => normalize(item[key]) === normalize(address[key])) &&
         normalize(item.country).toUpperCase() === normalize(address.country).toUpperCase()
       );
@@ -2828,8 +2831,10 @@
     if (!state.user) return;
     try {
       await accountApi("/api/profile", { method: "PUT", body: JSON.stringify({ marketing_updates: Boolean(enabled) }) });
-      await loadAccountData();
-      if (state.marketingUpdates !== Boolean(enabled)) {
+      const refreshed = await loadAccountData();
+      const savedValue = refreshed.profile?.marketing_updates;
+      const savedMarketing = savedValue === true || savedValue === 1 || savedValue === "1";
+      if (savedMarketing !== Boolean(enabled)) {
         throw new Error("VN SHOP could not confirm the saved marketing preference. Please retry.");
       }
       state.messageType = "success";
@@ -3379,8 +3384,8 @@
       state.country = country.value;
       try {
         await accountApi("/api/profile", { method: "PUT", body: JSON.stringify({ country: state.country }) });
-        await loadAccountData();
-        if (state.country !== country.value) {
+        const refreshed = await loadAccountData();
+        if (String(refreshed.profile?.country ?? "") !== String(country.value)) {
           throw new Error("VN SHOP could not confirm the saved country preference. Please retry.");
         }
         state.messageType = "success";
