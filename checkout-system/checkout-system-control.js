@@ -6,46 +6,38 @@ let checkoutAmounts={subtotalUSD:Number(document.getElementById("subtotal")?.dat
 const form=document.getElementById("info"),country=document.getElementById("country"),phoneCountry=document.getElementById("phoneCountry"),countryDialog=document.getElementById("country-modal"),policyDialog=document.getElementById("modal"),policyOptions=document.getElementById("policy-options"),policySelect=document.getElementById("policy-select");
 if(!document.getElementById("vnCheckoutValidationStyles")){
  const style=document.createElement("style");style.id="vnCheckoutValidationStyles";
- style.textContent=".vn-checkout-field-tooltip{display:block;margin:5px 0 0;padding:6px 9px;border-left:2px solid #E4CEA5;background:rgba(228,206,165,.12);color:#E4CEA5;font:10px/1.45 Arial,sans-serif;letter-spacing:.025em}.vn-ac-address-control.vn-checkout-invalid>input,.vn-ac-address-control.vn-checkout-invalid select,.vn-ac-address-control.vn-checkout-invalid .helpwrap input{border-color:#E4CEA5!important;box-shadow:0 0 0 1px rgba(228,206,165,.2)}.vn-checkout-invalid{position:relative}.vn-checkout-field-tooltip[hidden]{display:none!important}";
+ style.textContent=".vn-checkout-field-tooltip{display:block;position:relative;margin:6px 0 0;padding:7px 10px;border-left:2px solid #E4CEA5;background:rgba(228,206,165,.12);color:#E4CEA5;font:10px/1.45 Arial,sans-serif;letter-spacing:.025em}";
  document.head.appendChild(style);
 }
-form.noValidate=true;
+form.noValidate=false;
 const clearCheckoutFieldHint=field=>{
  const wrapper=field.closest(".vn-ac-address-control")||field.parentElement;
- wrapper?.classList.remove("vn-checkout-invalid");
  wrapper?.querySelector(".vn-checkout-field-tooltip")?.remove();
 };
-const validateCheckoutRequiredFields=()=>{
- form.querySelectorAll(".vn-checkout-field-tooltip").forEach(node=>node.remove());
- form.querySelectorAll(".vn-checkout-invalid").forEach(node=>node.classList.remove("vn-checkout-invalid"));
- const invalid=[...form.querySelectorAll("input[required],select[required],textarea[required]")].filter(field=>{
-  const value=String(field.value??"").trim();
-  return !value||!field.validity.valid;
- });
- invalid.forEach(field=>{
-  const wrapper=field.closest(".vn-ac-address-control")||field.parentElement;
-  if(!wrapper)return;
-  wrapper.classList.add("vn-checkout-invalid");
-  const hint=document.createElement("small");
-  hint.className="vn-checkout-field-tooltip";
-  hint.setAttribute("role","alert");
-  hint.textContent="Please fill in this field.";
-  wrapper.appendChild(hint);
- });
- if(invalid.length){
-  invalid[0].focus({preventScroll:true});
-  invalid[0].scrollIntoView({behavior:"smooth",block:"center"});
-  return false;
- }
- return true;
+const showCheckoutFieldHint=field=>{
+ const wrapper=field.closest(".vn-ac-address-control")||field.parentElement;
+ if(!wrapper||wrapper.querySelector(".vn-checkout-field-tooltip"))return;
+ const hint=document.createElement("small");
+ hint.className="vn-checkout-field-tooltip";
+ hint.setAttribute("role","alert");
+ hint.textContent="Please fill in this field.";
+ wrapper.appendChild(hint);
 };
+// Let the browser keep its native focus behavior, but replace its generic
+// validation bubble with the VN SHOP inline hint directly below the field.
+form.addEventListener("invalid",event=>{
+ const field=event.target;
+ if(!(field instanceof HTMLInputElement||field instanceof HTMLSelectElement||field instanceof HTMLTextAreaElement))return;
+ event.preventDefault();
+ showCheckoutFieldHint(field);
+},true);
 form.addEventListener("input",event=>{
  const field=event.target;
- if(field.matches("input[required],select[required],textarea[required]")&&field.value.trim()&&field.validity.valid)clearCheckoutFieldHint(field);
+ if(field.matches("input[required],select[required],textarea[required]")&&field.validity.valid)clearCheckoutFieldHint(field);
 });
 form.addEventListener("change",event=>{
  const field=event.target;
- if(field.matches("input[required],select[required],textarea[required]")&&field.value.trim()&&field.validity.valid)clearCheckoutFieldHint(field);
+ if(field.matches("input[required],select[required],textarea[required]")&&field.validity.valid)clearCheckoutFieldHint(field);
 });
 
 const dial=()=>{const m=phoneCountry.selectedOptions[0]?.textContent.match(/\+(\d{1,4})/);return m?"+"+m[1]:""};
@@ -365,7 +357,7 @@ const showShippingStep=async data=>{
 const returnToInformation=()=>{restoreShippingCurrencySummary();shippingStep.hidden=true;paymentStep.hidden=true;form.hidden=false;document.body.classList.remove("checkout-after-information");progressShipping.classList.remove("is-current","is-complete");progressShipping.removeAttribute("aria-current");setProgressLocked(progressShipping,true);progressPayment.classList.remove("is-current","is-complete");progressPayment.removeAttribute("aria-current");setProgressLocked(progressPayment,true);progressInformation.classList.remove("is-complete");progressInformation.classList.add("is-current");progressInformation.setAttribute("aria-current","step");window.scrollTo({top:0,behavior:"smooth"})};
 form.addEventListener("input",()=>{if(!addressConfirmation.hidden){addressConfirmation.hidden=true;addressConfirmed=false}});
 form.addEventListener("change",()=>{if(!addressConfirmation.hidden){addressConfirmation.hidden=true;addressConfirmed=false}});
-form.addEventListener("submit",e=>{e.preventDefault();if(!validateCheckoutRequiredFields())return;if(country.value!=="TR"){showCountry();return}if(!validEmail(document.getElementById("email").value)){document.getElementById("email").focus();return}const data=collectInformation();if(!addressConfirmed){renderAddressConfirmation(data);addressConfirmation.hidden=false;addressConfirmed=true;addressConfirmation.scrollIntoView({behavior:"smooth",block:"nearest"});return}showShippingStep(data)});
+form.addEventListener("submit",e=>{e.preventDefault();if(country.value!=="TR"){showCountry();return}if(!validEmail(document.getElementById("email").value)){document.getElementById("email").focus();return}const data=collectInformation();if(!addressConfirmed){renderAddressConfirmation(data);addressConfirmation.hidden=false;addressConfirmed=true;addressConfirmation.scrollIntoView({behavior:"smooth",block:"nearest"});return}showShippingStep(data)});
 document.querySelectorAll("[data-return-information]").forEach(button=>button.addEventListener("click",returnToInformation));
 document.getElementById("return-to-information").addEventListener("click",returnToInformation);
 
