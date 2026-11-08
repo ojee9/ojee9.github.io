@@ -633,9 +633,9 @@ html.atmosphere-ready .footer-sublogo{filter:invert(1)}
     <article class="receipt-card">
       <header class="receipt-top">
         <span class="eyebrow">VN SHOP® · ORDER RECEIPT</span>
-        <h2>PURCHASE COMPLETED</h2>
+        <h2>ORDER RECEIVED</h2>
         <p>THANK YOU FOR CHOOSING VN SHOP.</p>
-        <span class="receipt-status" id="payment-status">PAYMENT SUCCESSFUL</span>
+        <span class="receipt-status" id="payment-status">PAYMENT PENDING</span>
       </header>
       <section class="receipt-section">
         <h3>ORDER INFORMATION</h3>
@@ -644,7 +644,7 @@ html.atmosphere-ready .footer-sublogo{filter:invert(1)}
           <div><span class="meta-label">ORDER DATE</span><span class="meta-value" id="order-date">—</span></div>
           <div><span class="meta-label">VN CODE</span><span class="meta-value" id="vn-code">—</span></div>
           <div><span class="meta-label">ORDER STATUS</span><span class="meta-value" id="order-status">RECEIVED</span></div>
-          <div><span class="meta-label">PAYMENT STATUS</span><span class="meta-value" id="receipt-payment-status">SUCCESS</span></div>
+          <div><span class="meta-label">PAYMENT STATUS</span><span class="meta-value" id="receipt-payment-status">Payment pending</span></div>
         </div>
       </section>
       <section class="receipt-section">
@@ -707,7 +707,11 @@ set("subtotal",money(order?.subtotal??order?.sub_total??(receiptCurrency==="TRY"
 set("order-number",order?.orderNumber||order?.order_number||order?.id||"—");
 set("vn-code",order?.vnCode||order?.vn_code||"—");
 set("order-status",order?.orderStatus||order?.order_status||"Received");
-set("receipt-payment-status",order?.paymentStatusLabel||order?.payment_status_label||"Success");
+const rawPaymentStatus=String(order?.paymentStatus||order?.payment_status||order?.payment_status_label||order?.paymentStatusLabel||"pending").trim().toLowerCase();
+ const paymentIsSuccessful=["success","successful","paid","completed","succeeded","payment successful"].includes(rawPaymentStatus);
+ const paymentIsNotRequired=["not required","not_required","no payment required"].includes(rawPaymentStatus);
+ const paymentDisplay=paymentIsSuccessful?"Payment successful":paymentIsNotRequired?"Order received":"Payment pending";
+ set("receipt-payment-status",paymentDisplay);
 const date=order?.createdAt||order?.created_at||order?.orderDate||order?.date;
 set("order-date",date?new Intl.DateTimeFormat("en-US",{dateStyle:"long"}).format(new Date(date)):new Intl.DateTimeFormat("en-US",{dateStyle:"long"}).format(new Date()));
 const customer=order?.customer||{};
@@ -752,7 +756,7 @@ const grand=order?.total??order?.grandTotal??order?.grand_total;
 set("shipping-total",money(shipping??0,receiptCurrency));
 set("tax-total",money(taxes??0,receiptCurrency));
 set("grand-total",money(grand??(receiptCurrency==="TRY"?NaN:total+Number(shipping??0)+Number(taxes??0)),receiptCurrency));
-set("payment-status",order?"PAYMENT SUCCESSFUL":"ORDER DETAILS UNAVAILABLE");
+set("payment-status",!order?"ORDER DETAILS UNAVAILABLE":paymentIsSuccessful?"PAYMENT SUCCESSFUL":"ORDER RECEIVED");
 const adminDeliveryButton=$("record-admin-delivery"),adminOrdersLink=$("admin-orders-link"),adminDeliveryMessage=$("admin-delivery-message");
 const adminApi=async(path,opts={})=>{const token=sessionStorage.getItem("vn_account_session")||"";if(!token)throw Error("Admin session not found. Sign in again.");const r=await fetch("https://vn-shop-account-api.9ojeez9.workers.dev"+path,{...opts,headers:{Authorization:"Bearer "+token,"Content-Type":"application/json",...(opts.headers||{})}});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||d.message||"Request failed ("+r.status+")");return d};
 const enableAdminDelivery=async()=>{if(!order||!(order.orderNumber||order.order_number))return;try{const admin=await adminApi("/api/account");if(admin.is_admin!==true&&admin.isAdmin!==true)return;adminDeliveryButton.hidden=false;adminOrdersLink.hidden=false;adminDeliveryButton.addEventListener("click",async()=>{adminDeliveryButton.disabled=true;try{await adminApi("/api/admin-orders",{method:"POST",body:JSON.stringify({order})});adminDeliveryButton.textContent="DELIVERY RECORDED";adminDeliveryMessage.textContent="Recorded in ADMIN ORDERS as delivered.";adminDeliveryMessage.hidden=false}catch(e){adminDeliveryButton.disabled=false;adminDeliveryMessage.textContent=e.message;adminDeliveryMessage.hidden=false}},{once:true})}catch(e){console.warn("[VN ADMIN ORDERS]",e)}};
