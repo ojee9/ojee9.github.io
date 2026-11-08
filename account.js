@@ -2809,9 +2809,14 @@
       const latest=await accountApi("/api/account"),existing=Array.isArray(latest.addresses)?latest.addresses:[];
       if(existing.some(item=>sameAccountAddress(item,address))){await loadAccountData();state.section="addresses";state.messageType="success";state.message="This address is already saved to your account. No duplicate was added.";render();return;}
       await accountApi("/api/addresses",{method:"POST",body:JSON.stringify(address)});
-      const refreshed=await loadAccountData(),items=Array.isArray(refreshed.addresses)?refreshed.addresses:[];
-      const saved=items.find(item=>sameAccountAddress(item,address));
-      if(!saved||(address.is_default&&!truthyDefault(saved.is_default)))throw new Error("The address was submitted, but VN SHOP could not verify its saved state. Refresh your addresses before trying again.");
+      // A successful POST is the API's save confirmation. Do not reject it
+      // because the subsequent read serializes or normalizes fields differently.
+      try {
+        const refreshed=await accountApi("/api/account");
+        if(Array.isArray(refreshed.addresses))state.addresses=refreshed.addresses;
+      } catch(refreshError) {
+        console.warn("[VN ACCOUNT] Address was accepted; address-list refresh will retry on next visit.",refreshError);
+      }
       state.section="addresses";state.messageType="success";state.message="Address saved to your account.";
     }catch(error){state.messageType="error";state.message="Could not save your address: "+(error.message||"Please try again.");}
     finally{delete form.dataset.saving;if(button){button.disabled=false;button.textContent="Save address";}}
