@@ -616,9 +616,7 @@
       .vn-ac-stat strong{display:block;font-size:27px;margin-bottom:4px}
       .vn-ac-stat span{font-size:11px;letter-spacing:.06em;color:#666}
       .vn-ac-record{border:1px solid #dedede;border-radius:4px;padding:18px;margin:12px 0}.vn-ac-address-record{background:#E4CEA5;border-color:#E4CEA5;color:#171411}.vn-ac-address-record p{color:#383126}.vn-ac-address-record .vn-ac-badge{border-color:rgba(23,20,17,.28);color:#171411}.vn-ac-confirm-overlay{position:fixed;inset:0;z-index:10040;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.68);backdrop-filter:blur(5px)}.vn-ac-confirm-panel{width:min(100%,420px);padding:26px;background:#111;border:1px solid #514633;border-radius:4px;color:#f5f5f5;box-shadow:0 18px 70px rgba(0,0,0,.45)}.vn-ac-confirm-kicker{margin:0 0 10px;color:#E4CEA5;font-size:10px;letter-spacing:.16em;text-transform:uppercase}.vn-ac-confirm-panel h2{margin:0 0 9px;font-size:21px}.vn-ac-confirm-panel p{margin:0;color:#bdb7ad;font-size:13px;line-height:1.65}.vn-ac-confirm-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:24px}.vn-ac-confirm-actions button{min-height:42px;padding:0 15px;border:1px solid #5b5142;border-radius:3px;background:transparent;color:#eee;font:inherit;font-size:11px;cursor:pointer}.vn-ac-confirm-actions .confirm-delete{background:#E4CEA5;border-color:#E4CEA5;color:#171411;font-weight:700}.vn-ac-field-error{margin:10px 0;padding:12px 14px;border-left:2px solid #E4CEA5;background:#241f17;color:#E4CEA5;font-size:12px;line-height:1.55}
-      .vn-ac-field-tooltip{display:block;margin:6px 0 0;padding:6px 9px;border-left:2px solid #E4CEA5;background:rgba(228,206,165,.10);color:#E4CEA5;font-size:10px;line-height:1.45;letter-spacing:.02em}
-      .vn-ac-address-control.vn-ac-invalid>input,.vn-ac-address-control.vn-ac-invalid>select{border-color:#E4CEA5!important;box-shadow:0 0 0 1px rgba(228,206,165,.18)}
-      .vn-ac-field-tooltip[hidden]{display:none!important}
+      .vn-ac-address-control.vn-ac-invalid>input,.vn-ac-address-control.vn-ac-invalid>select{border-color:inherit!important;box-shadow:none!important}
       .vn-ac-record-head{display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap}
       .vn-ac-record p{font-size:13px;color:#666;margin:9px 0}
       .vn-ac-badge{display:inline-block;padding:4px 8px;border:1px solid #ddd;border-radius:20px;font-size:11px;color:#555}
@@ -2787,23 +2785,18 @@
     if(!state.user||form.dataset.saving==="true")return;
     const data=new FormData(form), address={first_name:String(data.get("first_name")||"").trim(),last_name:String(data.get("last_name")||"").trim(),address:String(data.get("address")||"").trim(),apartment:String(data.get("apartment")||"").trim(),city:String(data.get("city")||"").trim(),state:String(data.get("state")||"").trim(),postal_code:String(data.get("postal_code")||"").trim(),country:String(data.get("country")||state.country),phone:String(data.get("phone")||"").trim(),is_default:data.get("is_default")==="on"};
     const required=[["first_name","First name"],["last_name","Last name"],["address","Address"],["city","City"],["postal_code","ZIP Code"]];
-    form.querySelectorAll(".vn-ac-field-tooltip").forEach(node=>node.remove());
-    form.querySelectorAll(".vn-ac-invalid").forEach(node=>node.classList.remove("vn-ac-invalid"));
     const missing=required.filter(([key])=>!address[key]);
     if(missing.length){
-      missing.forEach(([key,label])=>{
-        const field=form.elements.namedItem(key),wrapper=field?.closest(".vn-ac-address-control");
-        if(!field||!wrapper)return;
-        wrapper.classList.add("vn-ac-invalid");
-        const tooltip=document.createElement("small");
-        tooltip.className="vn-ac-field-tooltip";
-        tooltip.setAttribute("role","alert");
-        tooltip.textContent="Please fill in this field.";
-        wrapper.appendChild(tooltip);
-      });
-      form.elements.namedItem(missing[0][0])?.focus();
+      const field=form.elements.namedItem(missing[0][0]);
+      if(field&&window.VNNotice){
+        window.VNNotice.show("Please fill in this field.",{
+          type:"error",anchor:field,placement:"auto",duration:0,dismissible:false
+        });
+      }
+      field?.focus();
       return;
     }
+    window.VNNotice?.hide();
     const button=form.querySelector('button[type="submit"]');form.dataset.saving="true";if(button){button.disabled=true;button.textContent="Saving…";}
     try{
       const latest=await accountApi("/api/account"),existing=Array.isArray(latest.addresses)?latest.addresses:[];
@@ -3305,8 +3298,9 @@
     if(addressField){
       const wrapper=addressField.closest(".vn-ac-address-control");
       if(addressField.value.trim()){
-        wrapper?.classList.remove("vn-ac-invalid");
-        wrapper?.querySelector(".vn-ac-field-tooltip")?.remove();
+        if(addressField.validity.valid&&String(addressField.value??"").trim()){
+        window.VNNotice?.hide();
+      }
       }
     }
     const input = event.target.closest("[data-otp-digit]");
