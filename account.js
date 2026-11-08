@@ -2793,9 +2793,13 @@
       const refreshed = await loadAccountData();
       const savedAddresses = Array.isArray(refreshed.addresses) ? refreshed.addresses : [];
       const normalize = value => String(value ?? "").trim().toLocaleLowerCase("tr-TR").replace(/\s+/g, " ");
+      const normalizeCountry = value => {
+        const country = normalize(value);
+        return ["tr", "turkey", "türkiye"].includes(country) ? "TR" : country.toUpperCase();
+      };
       const savedAddress = savedAddresses.find(item =>
         ["first_name", "last_name", "address", "apartment", "city", "state", "postal_code"].every(key => normalize(item[key]) === normalize(address[key])) &&
-        normalize(item.country).toUpperCase() === normalize(address.country).toUpperCase()
+        normalizeCountry(item.country) === normalizeCountry(address.country)
       );
       if (!savedAddress || (address.is_default && !savedAddress.is_default)) {
         throw new Error("VN SHOP did not confirm that this address was saved to your account. Please retry.");
