@@ -4,47 +4,11 @@ const roundCurrency=value=>Math.round((Number(value)+Number.EPSILON)*100)/100;
 const formatTRY=value=>new Intl.NumberFormat("tr-TR",{style:"currency",currency:"TRY"}).format(roundCurrency(value));
 let checkoutAmounts={subtotalUSD:Number(document.getElementById("subtotal")?.dataset.amount||0),shippingTRY:null,shippingUSD:null,shippingDisplayTRY:null,shippingPaymentTRY:null,taxesUSD:null,fxRate:null,fxUpdatedAt:null,fxProvider:null,subtotalTRY:null,taxesTRY:null,totalTRY:null};
 const form=document.getElementById("info"),country=document.getElementById("country"),phoneCountry=document.getElementById("phoneCountry"),countryDialog=document.getElementById("country-modal"),policyDialog=document.getElementById("modal"),policyOptions=document.getElementById("policy-options"),policySelect=document.getElementById("policy-select");
-if(!document.getElementById("vnCheckoutValidationStyles")){
- const style=document.createElement("style");style.id="vnCheckoutValidationStyles";
- style.textContent=".vn-checkout-field-tooltip{position:fixed!important;inset:auto!important;margin:0!important;z-index:2147483647!important;display:block!important;visibility:visible!important;opacity:1!important;max-width:min(280px,calc(100vw - 28px));padding:9px 12px;border:1px solid #5b554b;border-radius:5px;background:#171717;color:#f3f1ec;box-shadow:0 8px 24px rgba(0,0,0,.48);font:11px/1.45 Arial,sans-serif;letter-spacing:.01em;pointer-events:none}.vn-checkout-field-tooltip:before{content:\"\";position:absolute;left:var(--vn-tip-arrow-left,18px);width:8px;height:8px;background:#171717;transform:rotate(45deg)}.vn-checkout-field-tooltip[data-placement=below]:before{top:-5px;border-top:1px solid #5b554b;border-left:1px solid #5b554b}.vn-checkout-field-tooltip[data-placement=above]:before{bottom:-5px;border-right:1px solid #5b554b;border-bottom:1px solid #5b554b}";
- document.head.appendChild(style);
-}
 form.noValidate=true;
-let activeCheckoutHint=null,activeCheckoutHintField=null;
+let activeCheckoutHintField=null;
 const removeCheckoutFieldHint=()=>{
- activeCheckoutHint?.remove();
- activeCheckoutHint=null;
+ window.VNNotice?.hide();
  activeCheckoutHintField=null;
-};
-const positionCheckoutFieldHint=()=>{
- if(!activeCheckoutHint||!activeCheckoutHintField?.isConnected)return;
- const rect=activeCheckoutHintField.getBoundingClientRect();
- const gap=10,margin=14;
- const hintRect=activeCheckoutHint.getBoundingClientRect();
- const width=hintRect.width,height=hintRect.height;
- const below=rect.bottom+gap+height<=window.innerHeight-margin;
- const top=below?rect.bottom+gap:Math.max(margin,rect.top-gap-height);
- const left=Math.min(Math.max(margin,rect.left),window.innerWidth-width-margin);
- const arrowLeft=Math.min(Math.max(12,rect.left+Math.min(rect.width/2,24)-left),width-20);
- activeCheckoutHint.dataset.placement=below?"below":"above";
- activeCheckoutHint.style.left=left+"px";
- activeCheckoutHint.style.top=top+"px";
- activeCheckoutHint.style.setProperty("--vn-tip-arrow-left",arrowLeft+"px");
-};
-const showCheckoutFieldHint=field=>{
- removeCheckoutFieldHint();
- const hint=document.createElement("div");
- hint.className="vn-checkout-field-tooltip";
- hint.setAttribute("role","alert");
- hint.setAttribute("popover","manual");
- hint.textContent="Please fill in this field.";
- document.body.appendChild(hint);
- activeCheckoutHint=hint;
- activeCheckoutHintField=field;
- if(typeof hint.showPopover==="function"){
-  try{hint.showPopover()}catch(error){console.warn("VN SHOP field hint popover fallback:",error)}
- }
- positionCheckoutFieldHint();
 };
 const validateCheckoutRequiredFields=()=>{
  const fields=[...form.querySelectorAll("input[required],select[required],textarea[required]")];
@@ -52,6 +16,17 @@ const validateCheckoutRequiredFields=()=>{
  if(!invalid){removeCheckoutFieldHint();return true}
  showCheckoutFieldHint(invalid);
  return false;
+};
+const showCheckoutFieldHint=field=>{
+ activeCheckoutHintField=field;
+ if(!window.VNNotice){console.error("VN Notice system did not load.");return}
+ window.VNNotice.show("Please fill in this field.",{
+  type:"error",
+  anchor:field,
+  placement:"auto",
+  duration:0,
+  dismissible:false
+ });
 };
 form.addEventListener("input",event=>{
  const field=event.target;
@@ -61,8 +36,6 @@ form.addEventListener("change",event=>{
  const field=event.target;
  if(field===activeCheckoutHintField&&field.validity.valid&&String(field.value??"").trim())removeCheckoutFieldHint();
 });
-window.addEventListener("scroll",positionCheckoutFieldHint,true);
-window.addEventListener("resize",positionCheckoutFieldHint);
 
 const dial=()=>{const m=phoneCountry.selectedOptions[0]?.textContent.match(/\+(\d{1,4})/);return m?"+"+m[1]:""};
 const updatePhone=()=>{const option=phoneCountry.selectedOptions[0],code=phoneCountry.value.toLowerCase();document.querySelector("[data-phone-dial]").textContent=dial();const flag=document.querySelector(".vn-ac-phone-flag");if(flag){flag.onerror=()=>{flag.hidden=true};flag.onload=()=>{flag.hidden=false};flag.src="https://flagcdn.com/24x18/"+code+".png";flag.alt="Country flag";flag.hidden=false;phoneCountry.setAttribute("aria-label","Phone country: "+(option?.textContent||phoneCountry.value))}};
