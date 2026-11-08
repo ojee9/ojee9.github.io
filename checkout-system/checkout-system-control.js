@@ -9,7 +9,7 @@ if(!document.getElementById("vnCheckoutValidationStyles")){
  style.textContent=".vn-checkout-field-tooltip{position:fixed;z-index:100000;display:block;max-width:min(280px,calc(100vw - 28px));padding:9px 12px;border:1px solid #5b554b;border-radius:5px;background:#171717;color:#f3f1ec;box-shadow:0 8px 24px rgba(0,0,0,.48);font:11px/1.45 Arial,sans-serif;letter-spacing:.01em;pointer-events:none}.vn-checkout-field-tooltip:before{content:\"\";position:absolute;left:var(--vn-tip-arrow-left,18px);width:8px;height:8px;background:#171717;transform:rotate(45deg)}.vn-checkout-field-tooltip[data-placement=below]:before{top:-5px;border-top:1px solid #5b554b;border-left:1px solid #5b554b}.vn-checkout-field-tooltip[data-placement=above]:before{bottom:-5px;border-right:1px solid #5b554b;border-bottom:1px solid #5b554b}";
  document.head.appendChild(style);
 }
-form.noValidate=false;
+form.noValidate=true;
 let activeCheckoutHint=null,activeCheckoutHintField=null;
 const removeCheckoutFieldHint=()=>{
  activeCheckoutHint?.remove();
@@ -19,15 +19,14 @@ const removeCheckoutFieldHint=()=>{
 const positionCheckoutFieldHint=()=>{
  if(!activeCheckoutHint||!activeCheckoutHintField?.isConnected)return;
  const rect=activeCheckoutHintField.getBoundingClientRect();
- const gap=9,margin=14;
+ const gap=10,margin=14;
  const hintRect=activeCheckoutHint.getBoundingClientRect();
  const width=hintRect.width,height=hintRect.height;
  const below=rect.bottom+gap+height<=window.innerHeight-margin;
- const placement=below?"below":"above";
  const top=below?rect.bottom+gap:Math.max(margin,rect.top-gap-height);
  const left=Math.min(Math.max(margin,rect.left),window.innerWidth-width-margin);
  const arrowLeft=Math.min(Math.max(12,rect.left+Math.min(rect.width/2,24)-left),width-20);
- activeCheckoutHint.dataset.placement=placement;
+ activeCheckoutHint.dataset.placement=below?"below":"above";
  activeCheckoutHint.style.left=left+"px";
  activeCheckoutHint.style.top=top+"px";
  activeCheckoutHint.style.setProperty("--vn-tip-arrow-left",arrowLeft+"px");
@@ -43,20 +42,20 @@ const showCheckoutFieldHint=field=>{
  activeCheckoutHintField=field;
  positionCheckoutFieldHint();
 };
-form.addEventListener("invalid",event=>{
- const field=event.target;
- if(!(field instanceof HTMLInputElement||field instanceof HTMLSelectElement||field instanceof HTMLTextAreaElement))return;
- event.preventDefault();
- // Keep native first-invalid focus; show a separate popup outside the form flow.
- if(!activeCheckoutHintField)showCheckoutFieldHint(field);
-},true);
+const validateCheckoutRequiredFields=()=>{
+ const fields=[...form.querySelectorAll("input[required],select[required],textarea[required]")];
+ const invalid=fields.find(field=>!String(field.value??"").trim()||!field.validity.valid);
+ if(!invalid){removeCheckoutFieldHint();return true}
+ showCheckoutFieldHint(invalid);
+ return false;
+};
 form.addEventListener("input",event=>{
  const field=event.target;
- if(field===activeCheckoutHintField&&field.validity.valid)removeCheckoutFieldHint();
+ if(field===activeCheckoutHintField&&field.validity.valid&&String(field.value??"").trim())removeCheckoutFieldHint();
 });
 form.addEventListener("change",event=>{
  const field=event.target;
- if(field===activeCheckoutHintField&&field.validity.valid)removeCheckoutFieldHint();
+ if(field===activeCheckoutHintField&&field.validity.valid&&String(field.value??"").trim())removeCheckoutFieldHint();
 });
 window.addEventListener("scroll",positionCheckoutFieldHint,true);
 window.addEventListener("resize",positionCheckoutFieldHint);
@@ -378,7 +377,7 @@ const showShippingStep=async data=>{
 const returnToInformation=()=>{restoreShippingCurrencySummary();shippingStep.hidden=true;paymentStep.hidden=true;form.hidden=false;document.body.classList.remove("checkout-after-information");progressShipping.classList.remove("is-current","is-complete");progressShipping.removeAttribute("aria-current");setProgressLocked(progressShipping,true);progressPayment.classList.remove("is-current","is-complete");progressPayment.removeAttribute("aria-current");setProgressLocked(progressPayment,true);progressInformation.classList.remove("is-complete");progressInformation.classList.add("is-current");progressInformation.setAttribute("aria-current","step");window.scrollTo({top:0,behavior:"smooth"})};
 form.addEventListener("input",()=>{if(!addressConfirmation.hidden){addressConfirmation.hidden=true;addressConfirmed=false}});
 form.addEventListener("change",()=>{if(!addressConfirmation.hidden){addressConfirmation.hidden=true;addressConfirmed=false}});
-form.addEventListener("submit",e=>{e.preventDefault();if(country.value!=="TR"){showCountry();return}if(!validEmail(document.getElementById("email").value)){document.getElementById("email").focus();return}const data=collectInformation();if(!addressConfirmed){renderAddressConfirmation(data);addressConfirmation.hidden=false;addressConfirmed=true;addressConfirmation.scrollIntoView({behavior:"smooth",block:"nearest"});return}showShippingStep(data)});
+form.addEventListener("submit",e=>{e.preventDefault();if(!validateCheckoutRequiredFields())return;if(country.value!=="TR"){showCountry();return}if(!validEmail(document.getElementById("email").value)){document.getElementById("email").focus();return}const data=collectInformation();if(!addressConfirmed){renderAddressConfirmation(data);addressConfirmation.hidden=false;addressConfirmed=true;addressConfirmation.scrollIntoView({behavior:"smooth",block:"nearest"});return}showShippingStep(data)});
 document.querySelectorAll("[data-return-information]").forEach(button=>button.addEventListener("click",returnToInformation));
 document.getElementById("return-to-information").addEventListener("click",returnToInformation);
 
