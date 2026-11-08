@@ -6,39 +6,60 @@ let checkoutAmounts={subtotalUSD:Number(document.getElementById("subtotal")?.dat
 const form=document.getElementById("info"),country=document.getElementById("country"),phoneCountry=document.getElementById("phoneCountry"),countryDialog=document.getElementById("country-modal"),policyDialog=document.getElementById("modal"),policyOptions=document.getElementById("policy-options"),policySelect=document.getElementById("policy-select");
 if(!document.getElementById("vnCheckoutValidationStyles")){
  const style=document.createElement("style");style.id="vnCheckoutValidationStyles";
- style.textContent=".vn-checkout-field-tooltip{display:block;position:relative;margin:6px 0 0;padding:7px 10px;border-left:2px solid #E4CEA5;background:rgba(228,206,165,.12);color:#E4CEA5;font:10px/1.45 Arial,sans-serif;letter-spacing:.025em}";
+ style.textContent=".vn-checkout-field-tooltip{position:fixed;z-index:100000;display:block;max-width:min(280px,calc(100vw - 28px));padding:9px 12px;border:1px solid #5b554b;border-radius:5px;background:#171717;color:#f3f1ec;box-shadow:0 8px 24px rgba(0,0,0,.48);font:11px/1.45 Arial,sans-serif;letter-spacing:.01em;pointer-events:none}.vn-checkout-field-tooltip:before{content:\"\";position:absolute;left:var(--vn-tip-arrow-left,18px);width:8px;height:8px;background:#171717;transform:rotate(45deg)}.vn-checkout-field-tooltip[data-placement=below]:before{top:-5px;border-top:1px solid #5b554b;border-left:1px solid #5b554b}.vn-checkout-field-tooltip[data-placement=above]:before{bottom:-5px;border-right:1px solid #5b554b;border-bottom:1px solid #5b554b}";
  document.head.appendChild(style);
 }
 form.noValidate=false;
-const clearCheckoutFieldHint=field=>{
- const wrapper=field.closest(".vn-ac-address-control")||field.parentElement;
- wrapper?.querySelector(".vn-checkout-field-tooltip")?.remove();
+let activeCheckoutHint=null,activeCheckoutHintField=null;
+const removeCheckoutFieldHint=()=>{
+ activeCheckoutHint?.remove();
+ activeCheckoutHint=null;
+ activeCheckoutHintField=null;
+};
+const positionCheckoutFieldHint=()=>{
+ if(!activeCheckoutHint||!activeCheckoutHintField?.isConnected)return;
+ const rect=activeCheckoutHintField.getBoundingClientRect();
+ const gap=9,margin=14;
+ const hintRect=activeCheckoutHint.getBoundingClientRect();
+ const width=hintRect.width,height=hintRect.height;
+ const below=rect.bottom+gap+height<=window.innerHeight-margin;
+ const placement=below?"below":"above";
+ const top=below?rect.bottom+gap:Math.max(margin,rect.top-gap-height);
+ const left=Math.min(Math.max(margin,rect.left),window.innerWidth-width-margin);
+ const arrowLeft=Math.min(Math.max(12,rect.left+Math.min(rect.width/2,24)-left),width-20);
+ activeCheckoutHint.dataset.placement=placement;
+ activeCheckoutHint.style.left=left+"px";
+ activeCheckoutHint.style.top=top+"px";
+ activeCheckoutHint.style.setProperty("--vn-tip-arrow-left",arrowLeft+"px");
 };
 const showCheckoutFieldHint=field=>{
- const wrapper=field.closest(".vn-ac-address-control")||field.parentElement;
- if(!wrapper||wrapper.querySelector(".vn-checkout-field-tooltip"))return;
- const hint=document.createElement("small");
+ removeCheckoutFieldHint();
+ const hint=document.createElement("div");
  hint.className="vn-checkout-field-tooltip";
  hint.setAttribute("role","alert");
  hint.textContent="Please fill in this field.";
- wrapper.appendChild(hint);
+ document.body.appendChild(hint);
+ activeCheckoutHint=hint;
+ activeCheckoutHintField=field;
+ positionCheckoutFieldHint();
 };
-// Let the browser keep its native focus behavior, but replace its generic
-// validation bubble with the VN SHOP inline hint directly below the field.
 form.addEventListener("invalid",event=>{
  const field=event.target;
  if(!(field instanceof HTMLInputElement||field instanceof HTMLSelectElement||field instanceof HTMLTextAreaElement))return;
  event.preventDefault();
- showCheckoutFieldHint(field);
+ // Keep native first-invalid focus; show a separate popup outside the form flow.
+ if(!activeCheckoutHintField)showCheckoutFieldHint(field);
 },true);
 form.addEventListener("input",event=>{
  const field=event.target;
- if(field.matches("input[required],select[required],textarea[required]")&&field.validity.valid)clearCheckoutFieldHint(field);
+ if(field===activeCheckoutHintField&&field.validity.valid)removeCheckoutFieldHint();
 });
 form.addEventListener("change",event=>{
  const field=event.target;
- if(field.matches("input[required],select[required],textarea[required]")&&field.validity.valid)clearCheckoutFieldHint(field);
+ if(field===activeCheckoutHintField&&field.validity.valid)removeCheckoutFieldHint();
 });
+window.addEventListener("scroll",positionCheckoutFieldHint,true);
+window.addEventListener("resize",positionCheckoutFieldHint);
 
 const dial=()=>{const m=phoneCountry.selectedOptions[0]?.textContent.match(/\+(\d{1,4})/);return m?"+"+m[1]:""};
 const updatePhone=()=>{const option=phoneCountry.selectedOptions[0],code=phoneCountry.value.toLowerCase();document.querySelector("[data-phone-dial]").textContent=dial();const flag=document.querySelector(".vn-ac-phone-flag");if(flag){flag.onerror=()=>{flag.hidden=true};flag.onload=()=>{flag.hidden=false};flag.src="https://flagcdn.com/24x18/"+code+".png";flag.alt="Country flag";flag.hidden=false;phoneCountry.setAttribute("aria-label","Phone country: "+(option?.textContent||phoneCountry.value))}};
