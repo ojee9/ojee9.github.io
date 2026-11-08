@@ -2763,15 +2763,6 @@
     }
     const firstName = String(data.get("first_name") || "").trim();
     const lastName = String(data.get("last_name") || "").trim();
-    if (state.authProvider === "shop") {
-      state.profile = { ...state.profile, first_name: firstName, last_name: lastName };
-      state.user.user_metadata = { ...(state.user.user_metadata || {}), first_name: firstName, last_name: lastName };
-      state.section = "profile";
-      state.messageType = "info";
-      state.message = "Profile updated for this session only.";
-      render();
-      return;
-    }
     try {
       await accountApi("/api/profile", { method: "PUT", body: JSON.stringify({ first_name: firstName, last_name: lastName }) });
       state.profile = { ...state.profile, first_name: firstName, last_name: lastName };
@@ -2802,15 +2793,6 @@
       phone: String(data.get("phone") || "").trim(),
       is_default: data.get("is_default") === "on"
     };
-    if (state.authProvider === "shop") {
-      if (address.is_default) state.addresses = state.addresses.map(item => ({ ...item, is_default: false }));
-      state.addresses.unshift({ ...address, id: "session-" + Date.now() });
-      state.section = "addresses";
-      state.messageType = "info";
-      state.message = "Address added for this session only.";
-      render();
-      return;
-    }
     try {
       await accountApi("/api/addresses", { method: "POST", body: JSON.stringify(address) });
       await loadAccountData();
@@ -2827,13 +2809,6 @@
 
   async function deleteAddress(id) {
     if (!confirm("Delete this saved address?")) return;
-    if (state.authProvider === "shop") {
-      state.addresses = state.addresses.filter(item => String(item.id) !== String(id));
-      state.messageType = "info";
-      state.message = "Address deleted from this session.";
-      render();
-      return;
-    }
     try {
       await accountApi("/api/addresses/" + encodeURIComponent(id), { method: "DELETE" });
       await loadAccountData();
@@ -2849,14 +2824,6 @@
 
   async function saveMarketingPreference(enabled) {
     if (!state.user) return;
-    if (state.authProvider === "shop") {
-      state.marketingUpdates = Boolean(enabled);
-      state.profile = { ...state.profile, marketing_updates: Boolean(enabled) };
-      state.messageType = "info";
-      state.message = "Marketing preference updated for this session only.";
-      render();
-      return;
-    }
     try {
       await accountApi("/api/profile", { method: "PUT", body: JSON.stringify({ marketing_updates: Boolean(enabled) }) });
       state.marketingUpdates = Boolean(enabled);
@@ -3506,14 +3473,10 @@
       const previousCountry = state.country;
       state.country = country.value;
       try {
-        if (state.authProvider === "clerk") {
-          await accountApi("/api/profile", { method: "PUT", body: JSON.stringify({ country: state.country }) });
-        }
+        await accountApi("/api/profile", { method: "PUT", body: JSON.stringify({ country: state.country }) });
         state.profile = { ...state.profile, country: state.country };
-        state.messageType = state.authProvider === "shop" ? "info" : "success";
-        state.message = state.authProvider === "shop"
-          ? "Country preference updated for this session only."
-          : "Country preference saved.";
+        state.messageType = "success";
+        state.message = "Country preference saved.";
       } catch (error) {
         state.country = previousCountry;
         state.messageType = "error";
