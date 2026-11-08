@@ -6,7 +6,7 @@ let checkoutAmounts={subtotalUSD:Number(document.getElementById("subtotal")?.dat
 const form=document.getElementById("info"),country=document.getElementById("country"),phoneCountry=document.getElementById("phoneCountry"),countryDialog=document.getElementById("country-modal"),policyDialog=document.getElementById("modal"),policyOptions=document.getElementById("policy-options"),policySelect=document.getElementById("policy-select");
 if(!document.getElementById("vnCheckoutValidationStyles")){
  const style=document.createElement("style");style.id="vnCheckoutValidationStyles";
- style.textContent=".vn-checkout-field-tooltip{position:fixed;z-index:100000;display:block;max-width:min(280px,calc(100vw - 28px));padding:9px 12px;border:1px solid #5b554b;border-radius:5px;background:#171717;color:#f3f1ec;box-shadow:0 8px 24px rgba(0,0,0,.48);font:11px/1.45 Arial,sans-serif;letter-spacing:.01em;pointer-events:none}.vn-checkout-field-tooltip:before{content:\"\";position:absolute;left:var(--vn-tip-arrow-left,18px);width:8px;height:8px;background:#171717;transform:rotate(45deg)}.vn-checkout-field-tooltip[data-placement=below]:before{top:-5px;border-top:1px solid #5b554b;border-left:1px solid #5b554b}.vn-checkout-field-tooltip[data-placement=above]:before{bottom:-5px;border-right:1px solid #5b554b;border-bottom:1px solid #5b554b}";
+ style.textContent=".vn-checkout-field-tooltip{position:fixed!important;inset:auto!important;margin:0!important;z-index:2147483647!important;display:block!important;visibility:visible!important;opacity:1!important;max-width:min(280px,calc(100vw - 28px));padding:9px 12px;border:1px solid #5b554b;border-radius:5px;background:#171717;color:#f3f1ec;box-shadow:0 8px 24px rgba(0,0,0,.48);font:11px/1.45 Arial,sans-serif;letter-spacing:.01em;pointer-events:none}.vn-checkout-field-tooltip:before{content:\"\";position:absolute;left:var(--vn-tip-arrow-left,18px);width:8px;height:8px;background:#171717;transform:rotate(45deg)}.vn-checkout-field-tooltip[data-placement=below]:before{top:-5px;border-top:1px solid #5b554b;border-left:1px solid #5b554b}.vn-checkout-field-tooltip[data-placement=above]:before{bottom:-5px;border-right:1px solid #5b554b;border-bottom:1px solid #5b554b}";
  document.head.appendChild(style);
 }
 form.noValidate=true;
@@ -36,10 +36,14 @@ const showCheckoutFieldHint=field=>{
  const hint=document.createElement("div");
  hint.className="vn-checkout-field-tooltip";
  hint.setAttribute("role","alert");
+ hint.setAttribute("popover","manual");
  hint.textContent="Please fill in this field.";
  document.body.appendChild(hint);
  activeCheckoutHint=hint;
  activeCheckoutHintField=field;
+ if(typeof hint.showPopover==="function"){
+  try{hint.showPopover()}catch(error){console.warn("VN SHOP field hint popover fallback:",error)}
+ }
  positionCheckoutFieldHint();
 };
 const validateCheckoutRequiredFields=()=>{
