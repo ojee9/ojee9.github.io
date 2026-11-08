@@ -40,7 +40,7 @@
     message: "",
     messageType: "info",
     country: CONFIG.defaultCountry,
-    marketingUpdates: true,
+    marketingUpdates: false,
     signupMarketing: false,
     editing: "",
     loadingData: false,
@@ -414,7 +414,7 @@
     if (!state.user) return;
     if (state.authProvider === "shop") {
       state.country = state.profile.country || userCountry();
-      state.marketingUpdates = state.profile.marketing_updates !== false;
+      state.marketingUpdates = state.profile.marketing_updates === true || state.profile.marketing_updates === 1 || state.profile.marketing_updates === "1";
       state.orders = [];
       state.returns = [];
       state.issues = [];
@@ -439,7 +439,7 @@
       };
       state.addresses = Array.isArray(result.addresses) ? result.addresses : [];
       state.country = state.profile.country || userCountry();
-      state.marketingUpdates = state.profile.marketing_updates !== false;
+      state.marketingUpdates = state.profile.marketing_updates === true || state.profile.marketing_updates === 1 || state.profile.marketing_updates === "1";
       state.orders = Array.isArray(ordersResult.orders) ? ordersResult.orders : [];
       state.returns = Array.isArray(returnsResult.returns) ? returnsResult.returns : [];
       state.issues = Array.isArray(issuesResult.issues) ? issuesResult.issues : [];
@@ -2614,6 +2614,7 @@
     state.busy = true; state.otpCode = code; state.message = ""; render();
     let failed = false;
     try {
+      const completedSignup = state.authMode === "signup";
       let result;
       if (state.authMode === "signup") {
         result = await state.authAttempt.verifyEmailCode(code);
@@ -2665,6 +2666,21 @@
       state.authAttempt = null;
       state.authMode = "";
       await loadAccountData();
+      if (completedSignup) {
+        try {
+          const marketingUpdates = Boolean(state.signupMarketing);
+          await accountApi("/api/profile", {
+            method: "PUT",
+            body: JSON.stringify({ marketing_updates: marketingUpdates })
+          });
+          state.marketingUpdates = marketingUpdates;
+          state.profile = { ...state.profile, marketing_updates: marketingUpdates };
+        } catch (preferenceError) {
+          console.error("[VN ACCOUNT] Sign-up marketing preference could not be saved:", preferenceError);
+          state.messageType = "error";
+          state.message = "Your account is ready, but your email updates preference could not be saved. Please review it in My Profile.";
+        }
+      }
     } catch (error) {
       failed = true;
       console.error("[VN ACCOUNT] Clerk OTP verification failed:", error);

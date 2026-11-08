@@ -17,6 +17,14 @@
   gtag('config', 'G-3EDYHGQD8N');
 </script>
 <style>.vn-admin-gate-pending body{visibility:hidden!important}.vn-admin-gate-message{min-height:100vh;display:grid;place-items:center;padding:32px;background:#C6BBA7;color:#111;font:14px/1.6 Arial,sans-serif}.vn-admin-gate-message section{width:min(520px,100%);padding:32px;background:#f5f2eb;border:1px solid rgba(0,0,0,.15)}.vn-admin-gate-message h1{margin:0 0 12px;font-size:22px}.vn-admin-gate-message p{margin:0 0 22px}.vn-admin-gate-message a{display:inline-block;padding:12px 18px;background:#111;color:#fff;text-decoration:none}</style><script>document.documentElement.classList.add("vn-admin-gate-pending")</script><script defer crossorigin="anonymous" data-clerk-publishable-key="pk_test_aHVtYmxlLW94LTcwNTUuY2xlcmsuYWNjb3VudHMuZGV2JA" src="https://humble-ox-7055.clerk.accounts.dev/npm/@clerk/clerk-js@6.39.0/dist/clerk.browser.js" type="text/javascript"></script><script defer src="checkout-system/admin-checkout-gate.js"></script>
+<style>
+.vn-checkout-saved-addresses{margin:0 0 22px;padding:16px;border:1px solid #dedbd4;border-radius:10px;background:#faf9f6}
+.vn-checkout-saved-addresses h3{margin:0 0 12px;font-size:13px;font-weight:650;letter-spacing:.02em}
+.vn-checkout-saved-addresses label{display:flex;align-items:flex-start;gap:10px;padding:11px 0;border-top:1px solid #e8e5df;cursor:pointer;font-size:13px;line-height:1.5}
+.vn-checkout-saved-addresses input{flex:0 0 auto;margin:3px 0 0;accent-color:#17110b}
+.vn-checkout-saved-addresses strong{display:block;font-weight:650}
+.vn-checkout-saved-addresses small{display:block;margin-top:2px;color:#77736c;font-size:11px}
+</style>
 </head>
 <body class="checkout-page">
 <header class="header checkout-header">
@@ -38,6 +46,10 @@
         </section>
         <section class="address-section">
           <h2>Shipping address</h2>
+          <section class="vn-checkout-saved-addresses" id="saved-addresses-panel" hidden aria-label="Saved shipping addresses">
+            <h3>Saved addresses</h3>
+            <div id="saved-addresses-list" role="radiogroup" aria-label="Choose a saved shipping address"></div>
+          </section>
           <div class="address-confirmation" id="address-confirmation" hidden aria-live="polite">
             <strong class="address-warning-title">Warning</strong>
             <strong class="address-warning-question">Is the shipping address correct?</strong>
@@ -164,10 +176,10 @@
             </div>
           </div>
         </section>
-        <section class="shop-save-section">
+        <section class="shop-save-section" id="shop-save-section" hidden>
           <div class="shop-save-copy">
-            <strong>Save my information for a faster checkout</strong>
-            <p>By placing your order, you agree to create a Shop account subject to Shop’s <a href="policies/terms-of-use.html">Terms</a> and <a href="policies/privacy-policy.html">Privacy Policy</a>. Online payment is not connected yet; customer orders are submitted as payment pending.</p>
+            <strong>Save this address to your VN SHOP account</strong>
+            <p>Your name and account preferences are saved to your account. You can also save this shipping address for faster checkout. See our <a href="policies/privacy-policy.html">Privacy Policy</a>.</p>
           </div>
           <button type="button" id="not-now" class="not-now-button" aria-pressed="false">NOT NOW</button>
         </section>

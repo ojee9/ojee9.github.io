@@ -16,6 +16,122 @@ updatePhone();if(country.value!=="TR")showCountry();
 /* Country-scoped Geoapify autocomplete with VN SHOP-owned suggestion UI. */
 const addressInput=document.getElementById("address"),addressSuggestions=document.getElementById("address-suggestions");
 const cityInput=document.getElementById("city"),stateInput=document.getElementById("state"),postalInput=document.getElementById("postal");
+const ACCOUNT_API="https://vn-shop-account-api.9ojeez9.workers.dev";
+const savedAddressPanel=document.getElementById("saved-addresses-panel"),savedAddressesList=document.getElementById("saved-addresses-list"),shopSaveSection=document.getElementById("shop-save-section");
+let checkoutAccountToken="",checkoutAccountProfile={},checkoutSavedAddresses=[],marketingPreferenceTouched=false,checkoutAccountLoaded=false,checkoutAccountAuthFailed=false;
+document.getElementById("updates").addEventListener("change",()=>{marketingPreferenceTouched=true});
+const escapeAccountText=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
+const accountField=name=>form.elements.namedItem(name);
+const setAccountField=(name,value)=>{const field=accountField(name);if(!field)return;field.value=String(value??"");field.dispatchEvent(new Event("input",{bubbles:true}));field.dispatchEvent(new Event("change",{bubbles:true}))};
+const normalizedAddressValue=value=>String(value??"").trim().toLocaleLowerCase("tr-TR").replace(/\s+/g," ");
+const normalizedPhone=value=>String(value??"").replace(/\D/g,"").replace(/^(90|0)/,"");
+const normalizedCountry=value=>{const text=normalizedAddressValue(value);return text==="türkiye"||text==="turkey"?"tr":text.toUpperCase()};
+const addressMatches=(left,right)=>["first_name","last_name","address","apartment","city","state","postal_code"].every(key=>normalizedAddressValue(left[key])===normalizedAddressValue(right[key]))&&normalizedCountry(left.country)===normalizedCountry(right.country)&&normalizedPhone(left.phone)===normalizedPhone(right.phone);
+const renderSavedAddresses=(selectedId="")=>{
+ if(!Array.isArray(checkoutSavedAddresses)||!checkoutSavedAddresses.length){savedAddressPanel.hidden=true;savedAddressesList.replaceChildren();return}
+ const newChecked=selectedId==="__none__"?"checked":"";
+ savedAddressesList.innerHTML='<label><input type="radio" name="vn-saved-address" value="new" '+newChecked+'><span><strong>Enter a new address</strong><small>Use a different shipping address for this order</small></span></label>'+checkoutSavedAddresses.map((address,index)=>{
+  const id=String(address.id??index),title=[address.first_name,address.last_name].filter(Boolean).join(" ")||"Saved address";
+  const detail=[address.address,address.apartment,address.city,address.state,address.postal_code,address.country].filter(Boolean).join(", ");
+  const checked=selectedId==="__none__"?"":(selectedId?selectedId===id:!!address.is_default)?"checked":"";
+  return '<label><input type="radio" name="vn-saved-address" value="'+escapeAccountText(id)+'" data-saved-address-index="'+index+'" '+checked+'><span><strong>'+escapeAccountText(title)+(address.is_default?' · DEFAULT':'')+'</strong><small>'+escapeAccountText(detail)+'</small></span></label>';
+ }).join("");
+ savedAddressPanel.hidden=false;
+};
+const applySavedAddress=address=>{
+ if(!address)return;
+ const addressCountry=String(address.country||"TR").trim();
+ const countryOption=[...country.options].find(option=>option.value.toUpperCase()===addressCountry.toUpperCase()||option.textContent.trim().toLocaleLowerCase("tr-TR")===addressCountry.toLocaleLowerCase("tr-TR"));
+ if(countryOption)country.value=countryOption.value;
+ setAccountField("firstName",address.first_name||checkoutAccountProfile.first_name||"");
+ setAccountField("lastName",address.last_name||checkoutAccountProfile.last_name||"");
+ setAccountField("address",address.address||"");
+ setAccountField("apartment",address.apartment||"");
+ setAccountField("city",address.city||"");
+ setAccountField("state",address.state||"");
+ setAccountField("postal",address.postal_code||"");
+ const phoneCountryCode=String(address.phone_country||addressCountry||"TR").toUpperCase();
+ if(phoneCountry.querySelector('option[value="'+phoneCountryCode+'"]'))phoneCountry.value=phoneCountryCode;
+ updatePhone();
+ let phone=String(address.phone||"");
+ const prefix=dial();
+ if(prefix&&phone.trim().startsWith(prefix))phone=phone.trim().slice(prefix.length).trim();
+ setAccountField("phone",phone);
+};
+const requestAccountApi=async(path,options={})=>{
+ let token=checkoutAccountToken||sessionStorage.getItem("vn_account_session")||"";
+ if(!token)throw new Error("Your VN SHOP account session is unavailable. Sign in again and retry.");
+ const send=currentToken=>fetch(ACCOUNT_API+path,{...options,cache:"no-store",headers:{...(options.body?{"Content-Type":"application/json"}:{}),...(options.headers||{}),Authorization:"Bearer "+currentToken}});
+ let response=await send(token);
+ if(response.status===401&&window.Clerk?.session?.getToken){
+  const clerkToken=await window.Clerk.session.getToken();
+  if(clerkToken){
+   const exchange=await fetch(ACCOUNT_API+"/api/auth/exchange",{method:"POST",cache:"no-store",headers:{Authorization:"Bearer "+clerkToken}});
+   const exchanged=await exchange.json().catch(()=>({}));
+   if(exchange.ok&&exchanged.token){token=exchanged.token;checkoutAccountToken=token;sessionStorage.setItem("vn_account_session",token);response=await send(token)}
+  }
+ }
+ const result=await response.json().catch(()=>({}));
+ if(!response.ok){
+  if(response.status===401){
+   checkoutAccountAuthFailed=Boolean(window.Clerk?.user);
+   checkoutAccountToken="";
+   sessionStorage.removeItem("vn_account_session");
+   sessionStorage.removeItem("vn_account_identity");
+  }
+  throw new Error(result.error||"VN SHOP account request failed ("+response.status+").");
+ }
+ return result;
+};
+const loadCheckoutAccount=async()=>{
+ try{
+  if(window.VN_CHECKOUT_ADMIN_CHECK)await window.VN_CHECKOUT_ADMIN_CHECK;
+  checkoutAccountToken=sessionStorage.getItem("vn_account_session")||"";
+  if(!checkoutAccountToken){checkoutAccountAuthFailed=Boolean(window.Clerk?.user);return}
+  const result=await requestAccountApi("/api/account");
+  checkoutAccountProfile=result.profile||{};
+  checkoutSavedAddresses=Array.isArray(result.addresses)?result.addresses:[];
+  if(!accountField("firstName").value&&checkoutAccountProfile.first_name)setAccountField("firstName",checkoutAccountProfile.first_name);
+  if(!accountField("lastName").value&&checkoutAccountProfile.last_name)setAccountField("lastName",checkoutAccountProfile.last_name);
+  if(!document.getElementById("email").value){
+   try{const identity=JSON.parse(sessionStorage.getItem("vn_account_identity")||"null");if(identity?.email)document.getElementById("email").value=identity.email}catch{}
+  }
+  if(!marketingPreferenceTouched&&typeof checkoutAccountProfile.marketing_updates!=="undefined"){
+   const optedIn=checkoutAccountProfile.marketing_updates===true||checkoutAccountProfile.marketing_updates===1||checkoutAccountProfile.marketing_updates==="1";
+   document.getElementById("updates").checked=optedIn;
+  }
+  const hasSessionAddress=Boolean(addressInput.value||cityInput.value||postalInput.value);
+  const defaultAddress=checkoutSavedAddresses.find(address=>address.is_default)||checkoutSavedAddresses[0];
+  renderSavedAddresses(hasSessionAddress?"__none__":String(defaultAddress?.id??""));
+  if(!hasSessionAddress&&defaultAddress)applySavedAddress(defaultAddress);
+  checkoutAccountLoaded=true;
+  shopSaveSection.hidden=false;
+ }catch(error){
+  console.warn("[VN CHECKOUT] Could not load saved account information:",error);
+  shopSaveSection.hidden=true;
+  savedAddressPanel.hidden=true;
+ }
+};
+let checkoutAccountReady=loadCheckoutAccount();
+savedAddressesList.addEventListener("change",event=>{
+ const input=event.target.closest('input[name="vn-saved-address"]');
+ if(!input)return;
+ if(input.value==="new"){
+  ["address","apartment","city","state","postal"].forEach(name=>setAccountField(name,""));
+  renderSavedAddresses("__none__");
+  const newAddress=savedAddressesList.querySelector('input[name="vn-saved-address"][value="new"]');
+  if(newAddress)newAddress.checked=true;
+  return;
+ }
+ const index=Number(input.dataset.savedAddressIndex);
+ const address=checkoutSavedAddresses[index];
+ if(address){applySavedAddress(address);renderSavedAddresses(String(address.id??index))}
+});
+form.addEventListener("input",event=>{
+ if(!event.target.matches("#address,#apartment,#city,#state,#postal"))return;
+ const newAddress=savedAddressesList.querySelector('input[name="vn-saved-address"][value="new"]');
+ if(newAddress)newAddress.checked=true;
+});
 
 /* Live shipping estimate is displayed in the order summary only. */
 const normalizeShippingCity=value=>String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("tr-TR").replace(/ı/g,"i").replace(/\s+/g," ").trim();
@@ -427,6 +543,37 @@ saveChoiceButton.addEventListener("click",()=>{
  saveChoiceButton.textContent=shopSaveOptOut?"SAVE":"NOT NOW";
  saveChoiceButton.setAttribute("aria-pressed",String(shopSaveOptOut));
 });
+const persistCheckoutAccountData=async information=>{
+ if(checkoutAccountAuthFailed)throw new Error("Your VN SHOP account session needs to be refreshed. Please sign in again before placing your order.");
+ if(!checkoutAccountToken)return;
+ if(!checkoutAccountLoaded)throw new Error("We couldn't securely load your VN SHOP account data. Refresh checkout or sign in again before placing your order.");
+ const profileUpdate={
+  first_name:String(information.firstName||"").trim(),
+  last_name:String(information.lastName||"").trim(),
+  marketing_updates:Boolean(information.updates)
+ };
+ await requestAccountApi("/api/profile",{method:"PUT",body:JSON.stringify(profileUpdate)});
+ checkoutAccountProfile={...checkoutAccountProfile,...profileUpdate};
+ if(shopSaveOptOut)return;
+ const address={
+  first_name:profileUpdate.first_name,
+  last_name:profileUpdate.last_name,
+  address:String(information.address||"").trim(),
+  apartment:String(information.apartment||"").trim(),
+  city:String(information.city||"").trim(),
+  state:String(information.state||"").trim(),
+  postal_code:String(information.postal||"").trim(),
+  country:String(information.country||"TR").trim(),
+  phone:[dial(),String(information.phone||"").trim()].filter(Boolean).join(" ").trim(),
+  is_default:!checkoutSavedAddresses.some(item=>item.is_default)
+ };
+ if(!address.address||!address.city||!address.postal_code)return;
+ if(checkoutSavedAddresses.some(existing=>addressMatches(existing,address)))return;
+ const result=await requestAccountApi("/api/addresses",{method:"POST",body:JSON.stringify(address)});
+ const saved=result.address||result;
+ if(saved&&saved.id)checkoutSavedAddresses.push(saved);
+ else checkoutSavedAddresses.push({...address,id:"saved-"+Date.now()});
+};
 document.getElementById("pay-now").addEventListener("click",async()=>{
  const button=document.getElementById("pay-now");
  if(button.disabled)return;
@@ -434,6 +581,7 @@ document.getElementById("pay-now").addEventListener("click",async()=>{
  const originalLabel=button.textContent;
  button.textContent="Submitting order…";
  try{
+  await checkoutAccountReady;
   const isAdminOrder=await (window.VN_CHECKOUT_ADMIN_CHECK||Promise.resolve(false));
   const information=collectInformation();
   const readCart=(storage,key)=>{try{const value=JSON.parse(storage.getItem(key)||"[]");return Array.isArray(value)?value:[]}catch{return[]}};
@@ -450,7 +598,8 @@ document.getElementById("pay-now").addEventListener("click",async()=>{
   const selectedPayment=document.querySelector('input[name="payment-method"]:checked');
   if(!selectedShipping)throw new Error("Select a shipping method before placing your order.");
   const paymentLabels={card:"Credit card",apple:"Apple Pay",paypal:"PayPal",later:"Pay over time"};
-  const customer={firstName:information.firstName||"",lastName:information.lastName||"",email:information.email||"",phone:[information.phoneCountry,information.phone].filter(Boolean).join(" "),address:[information.address,information.apartment,information.city,information.state,information.postal,information.country].filter(Boolean).join(", ")};
+  const customer={firstName:information.firstName||"",lastName:information.lastName||"",email:information.email||"",phone:[dial(),information.phone].filter(Boolean).join(" "),address:[information.address,information.apartment,information.city,information.state,information.postal,information.country].filter(Boolean).join(", ")};
+  await persistCheckoutAccountData(information);
   const payload={customer,items,subtotal:checkoutAmounts.subtotalTRY,shipping:checkoutAmounts.shippingPaymentTRY,taxes:checkoutAmounts.taxesTRY,total:checkoutAmounts.totalTRY,currency:"TRY",countryCode:"TR",originalSubtotalUSD:checkoutAmounts.subtotalUSD,originalShippingUSD:checkoutAmounts.shippingUSD,originalTaxesUSD:checkoutAmounts.taxesUSD,exchangeRateProvider:checkoutAmounts.fxProvider,exchangeRateTRYPerUSD:checkoutAmounts.fxRate,exchangeRateUpdatedAt:new Date(checkoutAmounts.fxUpdatedAt).toISOString(),shippingMethod:selectedShipping.value==="standard"?"Standard Shipping":selectedShipping.value,paymentMethod:paymentLabels[selectedPayment?.value]||"Credit card",paymentStatus:isAdminOrder?"Not Required":"Pending",paymentStatusLabel:isAdminOrder?"Payment not required":"Payment pending",status:"received",...(isAdminOrder?{isAdminOrder:true,adminOrder:true,adminExempt:true,adminPaymentExempt:true,adminStockExempt:true}:{isAdminOrder:false,adminExempt:false,adminPaymentExempt:false,adminStockExempt:false})};
   let idempotencyKey=sessionStorage.getItem("vn-shop-order-idempotency-key");
   if(!idempotencyKey){idempotencyKey=crypto.randomUUID();sessionStorage.setItem("vn-shop-order-idempotency-key",idempotencyKey)}
