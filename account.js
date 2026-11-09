@@ -1530,7 +1530,7 @@
       if (type === "success" && window.VNNotice) {
         window.VNNotice.show(message, {
           type: "success",
-          duration: 4200,
+          duration: 2400,
           dismissible: true
         });
       }
@@ -2824,7 +2824,7 @@
       const field=form.elements.namedItem(missing[0][0]);
       if(field&&window.VNNotice){
         window.VNNotice.show("Please fill in this field.",{
-          type:"error",anchor:field,placement:"auto",duration:0,dismissible:false
+          type:"error",anchor:field,placement:"auto",duration:2800,dismissible:true
         });
       }
       field?.focus();

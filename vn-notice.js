@@ -6,14 +6,14 @@
 (() => {
   "use strict";
 
-  if (window.VNNotice?.version === "2.0.0") return;
+  if (window.VNNotice?.version === "2.1.0") return;
 
   const STYLE_ID = "vn-notice-shared-styles";
   const DEFAULT_DURATION = {
-    success: 3800,
-    info: 4400,
-    warning: 5000,
-    error: 5200
+    success: 2200,
+    info: 2400,
+    warning: 2800,
+    error: 3200
   };
   const EXIT_MS = 220;
 
@@ -28,6 +28,8 @@
         height: 100vh !important;
         max-width: none !important;
         max-height: none !important;
+        --vn-notice-safe-top: env(safe-area-inset-top, 0px);
+        --vn-notice-safe-bottom: env(safe-area-inset-bottom, 0px);
         margin: 0 !important;
         padding: 0 !important;
         border: 0 !important;
@@ -60,15 +62,15 @@
         background: linear-gradient(145deg, #242321 0%, #191919 72%, #151515 100%) !important;
         color: #f3f1ec !important;
         box-shadow: 0 12px 34px rgba(0,0,0,.34), 0 2px 8px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.055) !important;
-        font: 12px/1.55 Arial, Helvetica, sans-serif !important;
+        font: 12px/1.5 Arial, Helvetica, sans-serif !important;
         letter-spacing: .01em !important;
         text-align: left !important;
         white-space: normal !important;
         opacity: 0 !important;
         visibility: hidden !important;
-        transform: translate3d(0, 8px, 0) scale(.985) !important;
-        transform-origin: top right !important;
-        transition: opacity .19s ease, transform .22s cubic-bezier(.2,.8,.2,1), visibility .19s ease !important;
+        transform: translate3d(0, 6px, 0) scale(.99) !important;
+        transform-origin: bottom center !important;
+        transition: opacity .16s ease, transform .18s cubic-bezier(.2,.8,.2,1), visibility .16s ease !important;
         pointer-events: auto !important;
       }
       #vn-notice-bubble.vn-notice-visible {
@@ -235,12 +237,14 @@
   const position = () => {
     if (!active || !bubble.isConnected) return;
 
-    const margin = 14;
-    const gap = 10;
+    const margin = 16;
+    const gap = 8;
     const width = bubble.offsetWidth || 300;
     const height = bubble.offsetHeight || 60;
     const viewportWidth = document.documentElement.clientWidth || window.innerWidth;
-    const viewportHeight = window.innerHeight;
+    const viewportHeight = window.visualViewport?.height || window.innerHeight;
+    const safeTop = Math.max(0, parseFloat(getComputedStyle(layer).getPropertyValue("--vn-notice-safe-top")) || 0);
+    const safeBottom = Math.max(0, parseFloat(getComputedStyle(layer).getPropertyValue("--vn-notice-safe-bottom")) || 0);
 
     let left;
     let top;
@@ -265,22 +269,23 @@
         ? Math.min(rect.bottom + gap, viewportHeight - height - margin)
         : Math.max(margin, rect.top - gap - height);
 
+      const centeredLeft = rect.left + (rect.width - width) / 2;
       left = Math.min(
-        Math.max(margin, rect.left),
+        Math.max(margin, centeredLeft),
         Math.max(margin, viewportWidth - width - margin)
       );
 
       bubble.dataset.placement = placeBelow ? "below" : "above";
       bubble.style.transformOrigin = placeBelow ? "top left" : "bottom left";
     } else {
-      left = Math.max(margin, viewportWidth - width - margin);
-      top = margin + 8;
+      left = Math.max(margin, (viewportWidth - width) / 2);
+      top = Math.max(margin + safeTop, viewportHeight - height - margin - safeBottom);
       delete bubble.dataset.placement;
-      bubble.style.transformOrigin = "top right";
+      bubble.style.transformOrigin = "bottom center";
     }
 
     bubble.style.left = Math.round(left) + "px";
-    bubble.style.top = Math.round(Math.max(margin, Math.min(top, viewportHeight - height - margin))) + "px";
+    bubble.style.top = Math.round(Math.max(margin, Math.min(top, viewportHeight - height - margin - safeBottom))) + "px";
   };
 
   const finishHide = expectedSequence => {
@@ -364,7 +369,7 @@
     const duration = persistent
       ? 0
       : Number.isFinite(requestedDuration) && requestedDuration > 0
-        ? Math.min(12000, Math.max(2200, requestedDuration))
+        ? Math.min(6000, Math.max(1800, requestedDuration))
         : DEFAULT_DURATION[type];
 
     layer.style.display = "block";
@@ -445,7 +450,7 @@
   window.addEventListener("pagehide", hide);
 
   window.VNNotice = Object.freeze({
-    version: "2.0.0",
+    version: "2.1.0",
     show,
     update: (text, options = {}) => show(text, options),
     hide,

@@ -24,8 +24,8 @@ const showCheckoutFieldHint=field=>{
   type:"error",
   anchor:field,
   placement:"auto",
-  duration:0,
-  dismissible:false
+  duration:2800,
+  dismissible:true
  });
 };
 form.addEventListener("input",event=>{
