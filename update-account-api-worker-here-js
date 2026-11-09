@@ -325,32 +325,80 @@ async function authenticateRequest(request, db) {
 }
 
 async function getVerifiedClerkIdentity(env, claims) {
-  if (!env.CLERK_SECRET_KEY || !claims?.sub) throw new Error("Email verification service is not configured.");
-  const response = await fetch(`https://api.clerk.com/v1/users/${encodeURIComponent(claims.sub)}`, {
-    headers: { Authorization: `Bearer ${env.CLERK_SECRET_KEY}`, Accept: "application/json" }
-  });
-  if (!response.ok) throw new Error("Could not confirm the verified email address.");
-  const user = await response.json();
+  if (!env.CLERK_SECRET_KEY) throw new AppError("Email verification service is temporarily unavailable.", 503);
+  if (!claims?.sub) throw new AppError("Your sign-in session is invalid. Please sign in again.", 401);
+
+  let response;
+  try {
+    response = await fetch(`https://api.clerk.com/v1/users/${encodeURIComponent(claims.sub)}`, {
+      headers: { Authorization: `Bearer ${env.CLERK_SECRET_KEY}`, Accept: "application/json" }
+    });
+  } catch (err) {
+    console.error("Clerk identity lookup failed:", err);
+    throw new AppError("Email verification service is temporarily unavailable.", 503);
+  }
+
+  if (response.status === 404) throw new AppError("Your sign-in account could not be found. Please sign in again.", 401);
+  if (response.status === 401 || response.status === 403) {
+    console.error("Clerk identity lookup rejected the configured credentials.");
+    throw new AppError("Email verification service is temporarily unavailable.", 503);
+  }
+  if (!response.ok) {
+    console.error("Clerk identity lookup returned HTTP", response.status);
+    throw new AppError("Email verification service is temporarily unavailable.", 503);
+  }
+
+  let user;
+  try {
+    user = await response.json();
+  } catch (err) {
+    console.error("Clerk identity response was invalid:", err);
+    throw new AppError("Email verification service returned an invalid response.", 502);
+  }
+
   const entries = Array.isArray(user.email_addresses) ? user.email_addresses : [];
   const primary = entries.find(item => item.id === user.primary_email_address_id && item.verification?.status === "verified")
     || entries.find(item => item.verification?.status === "verified");
   const email = normalizeEmail(primary?.email_address || "");
-  if (!email) throw new Error("A verified email address is required.");
+  if (!email) throw new AppError("A verified email address is required.", 403);
   return { email, clerkUserId: claims.sub, firstName: validText(user.first_name || "", 120), lastName: validText(user.last_name || "", 120) };
 }
 
 async function getVerifiedShopIdentity(sessionToken) {
-  if (!sessionToken || typeof sessionToken !== "string") throw new Error("A valid Shop session is required.");
-  const response = await fetch("https://vn-shop-auth.9ojeez9.workers.dev", {
-    method: "POST", headers: { "Content-Type": "application/json", "Origin": ALLOWED_ORIGIN },
-    body: JSON.stringify({ action: "verify", sessionToken })
-  });
-  const result = await response.json().catch(() => ({}));
-  if (!response.ok || result.authenticated !== true) throw new Error("The Shop session could not be verified.");
+  if (!sessionToken || typeof sessionToken !== "string") throw new AppError("A valid Shop session is required.", 401);
+
+  let response;
+  try {
+    response = await fetch("https://vn-shop-auth.9ojeez9.workers.dev", {
+      method: "POST", headers: { "Content-Type": "application/json", "Origin": ALLOWED_ORIGIN },
+      body: JSON.stringify({ action: "verify", sessionToken })
+    });
+  } catch (err) {
+    console.error("Shop identity verification request failed:", err);
+    throw new AppError("Shop sign-in verification is temporarily unavailable.", 503);
+  }
+
+  let result;
+  try {
+    result = await response.json();
+  } catch (err) {
+    console.error("Shop identity verification returned invalid JSON:", err);
+    throw new AppError("Shop sign-in verification returned an invalid response.", 502);
+  }
+
+  if (!response.ok) {
+    console.error("Shop identity verification returned HTTP", response.status);
+    if (response.status === 401 || response.status === 403) {
+      throw new AppError("Your Shop session has expired. Please sign in again.", 401);
+    }
+    throw new AppError("Shop sign-in verification is temporarily unavailable.", 503);
+  }
+  if (result.authenticated !== true) throw new AppError("Your Shop session has expired. Please sign in again.", 401);
+
   const user = result.user || result.customer || result;
-  if (user.emailVerified !== true && user.email_verified !== true) throw new Error("A verified Shop email address is required.");
+  if (user.emailVerified !== true && user.email_verified !== true) throw new AppError("A verified Shop email address is required.", 403);
   const email = normalizeEmail(user.email || user.email_address || "");
-  if (!email) throw new Error("The verified Shop account did not provide an email address.");
+  if (!email) throw new AppError("The verified Shop account did not provide an email address.", 422);
   return { email, clerkUserId: null, firstName: validText(user.first_name || user.firstName || user.given_name || "", 120), lastName: validText(user.last_name || user.lastName || user.family_name || "", 120) };
 }
 
@@ -378,13 +426,13 @@ async function migrateLegacyAccount(db, legacyUserId, accountId) {
 
 async function resolveVNAccount(db, identity) {
   const email = normalizeEmail(identity.email);
-  if (!email) throw new Error("Verified email is missing.");
+  if (!email) throw new AppError("Verified email is missing.", 401);
   let account = await db.prepare("SELECT * FROM vn_accounts WHERE email = ? COLLATE NOCASE LIMIT 1").bind(email).first();
   if (!account && identity.clerkUserId) {
     account = await db.prepare("SELECT * FROM vn_accounts WHERE clerk_user_id = ? LIMIT 1").bind(identity.clerkUserId).first();
     if (account) {
       const emailOwner = await db.prepare("SELECT account_id FROM vn_accounts WHERE email = ? COLLATE NOCASE AND account_id <> ? LIMIT 1").bind(email, account.account_id).first();
-      if (emailOwner) throw new Error("This verified email is already linked to another VN SHOP account. Contact support to merge accounts safely.");
+      if (emailOwner) throw new AppError("This verified email is already linked to another VN SHOP account. Contact support to merge accounts safely.", 409);
     }
   }
   let legacyUserId = identity.clerkUserId || null;
@@ -1977,7 +2025,11 @@ async function handleRequest(request, env) {
       const account = await resolveVNAccount(env.DB, identity);
       const session = await createSession(env.DB, account.userId);
       return json({ success: true, token: session.token, expiresAt: session.expiresAt, userId: account.userId, email: account.email, firstName: account.firstName, lastName: account.lastName, isAdmin: account.isAdmin, is_admin: account.isAdmin });
-    } catch (err) { console.error("Shop account exchange failed:",err); return error("Could not establish your VN SHOP account.",401); }
+    } catch (err) {
+      if (err instanceof AppError) return error(err.message, err.status);
+      console.error("Clerk account exchange failed:", err);
+      return error("Could not establish your VN SHOP account right now. Please try again.", 500);
+    }
   }
 
   if (path === "/api/auth/shop-exchange" && method === "POST") {
@@ -1987,7 +2039,11 @@ async function handleRequest(request, env) {
       const account = await resolveVNAccount(env.DB, identity);
       const session = await createSession(env.DB, account.userId);
       return json({ success: true, token: session.token, expiresAt: session.expiresAt, userId: account.userId, email: account.email, firstName: account.firstName, lastName: account.lastName, isAdmin: account.isAdmin, is_admin: account.isAdmin });
-    } catch (err) { console.error("Shop account exchange failed:",err); return error("Could not establish your VN SHOP account.",401); }
+    } catch (err) {
+      if (err instanceof AppError) return error(err.message, err.status);
+      console.error("Shop account exchange failed:", err);
+      return error("Could not establish your VN SHOP account right now. Please try again.", 500);
+    }
   }
 
   if (path === "/api/auth/logout" && method === "POST") {
