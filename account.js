@@ -642,7 +642,6 @@
       #vnAccountOverlay{flex-direction:column;gap:13px}
       .vn-ac-policy-body h3{margin:22px 0 9px;font-size:15px;font-weight:700;line-height:1.4}.vn-ac-policy-body p{margin:0 0 13px}.vn-ac-policy-body ul{margin:0 0 15px;padding-left:22px}.vn-ac-policy-body li{margin:0 0 7px}.vn-ac-policy-body a{color:inherit;text-decoration:underline;overflow-wrap:anywhere}.vn-ac-policy-table-wrap{max-width:100%;overflow-x:auto;margin:14px 0 20px}.vn-ac-policy-table{width:100%;border-collapse:collapse;font-size:12px;line-height:1.45}.vn-ac-policy-table th,.vn-ac-policy-table td{padding:9px;border:1px solid #ddd;text-align:left;vertical-align:top}.vn-ac-policy-table th{font-weight:700}
       .vn-ac-policy-link{display:block;align-self:center;margin:18px auto 0;padding:11px 8px 0;border:0;background:transparent;color:#a8a8a8;font:10px/1.4 Arial,sans-serif;text-align:center;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
-      #vnAccountOverlay:has(.vn-ac-policy-overlay:not([hidden])){z-index:10004}
       .vn-ac-policy-overlay{position:fixed;inset:0;z-index:10003;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(0,0,0,.46);backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px)}
       .vn-ac-policy-overlay[hidden]{display:none!important}
       .vn-ac-policy-panel{position:relative;width:min(100%,680px);height:min(78dvh,720px);overflow:auto;padding:34px 38px 38px;background:#171717;color:#f5f5f5;border:1px solid #383838;box-shadow:0 24px 80px rgba(0,0,0,.6);text-align:left;opacity:0;transform:scale(.06);transform-origin:var(--policy-origin-x,50%) var(--policy-origin-y,50%);transition:transform .48s cubic-bezier(.16,1,.3,1),opacity .24s ease}
@@ -1108,7 +1107,12 @@
     injectStyles();
 
     let root = $("#vnAccountOverlay");
-    if (root) return root;
+    if (root) {
+      if (state.shopHost && state.shopHost.parentElement !== root) {
+        root.appendChild(state.shopHost);
+      }
+      return root;
+    }
 
     root = document.createElement("div");
     root.id = "vnAccountOverlay";
@@ -1506,6 +1510,9 @@
     });
 
     document.body.appendChild(root);
+    if (state.shopHost && state.shopHost.parentElement !== root) {
+      root.appendChild(state.shopHost);
+    }
     return root;
   }
 
