@@ -1765,8 +1765,9 @@
 
     const root = document.querySelector("#vnAccountOverlay");
     const slot = document.querySelector("#vnAcShopLoginMount");
+    const policyIsOpen = Boolean(root?.querySelector(".vn-ac-policy-overlay:not([hidden])"));
     const show = Boolean(
-      root && !root.hidden && !state.user && state.screen === "email" &&
+      root && !root.hidden && !policyIsOpen && !state.user && state.screen === "email" &&
       slot && state.shopStatus === "ready"
     );
 
