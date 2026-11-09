@@ -26,7 +26,10 @@ class AppError extends Error {
 
 const JSON_HEADERS = {
   "Content-Type": "application/json; charset=utf-8",
-  "Cache-Control": "no-store"
+  "Cache-Control": "no-store",
+  "X-Content-Type-Options": "nosniff",
+  "Referrer-Policy": "no-referrer",
+  "X-Frame-Options": "DENY"
 };
 
 function json(data, status = 200, extraHeaders = {}) {
@@ -220,20 +223,10 @@ async function authenticateClerk(request) {
     }
 
     const currentTime = Math.floor(Date.now() / 1000);
-
-    if (
-      !Number.isFinite(claims.exp) ||
-      claims.exp <= currentTime
-    ) {
-      return null;
-    }
-
-    if (
-      claims.nbf !== undefined &&
-      Number(claims.nbf) > currentTime
-    ) {
-      return null;
-    }
+    if (!Number.isFinite(claims.exp) || claims.exp <= currentTime) return null;
+    if (claims.iat !== undefined && (!Number.isFinite(claims.iat) || claims.iat > currentTime + 60)) return null;
+    if (claims.nbf !== undefined && (!Number.isFinite(claims.nbf) || claims.nbf > currentTime)) return null;
+    if (claims.azp !== undefined && claims.azp !== ALLOWED_ORIGIN) return null;
 
     let jwks = await getJWKS();
     let jwk = jwks.keys.find(key => key.kid === header.kid);
@@ -365,7 +358,7 @@ async function getVerifiedClerkIdentity(env, claims) {
 }
 
 async function getVerifiedShopIdentity(sessionToken) {
-  if (!sessionToken || typeof sessionToken !== "string") throw new AppError("A valid Shop session is required.", 401);
+  if (!sessionToken || typeof sessionToken !== "string" || sessionToken.length > 8192) throw new AppError("A valid Shop session is required.", 401);
 
   let response;
   try {
@@ -454,9 +447,11 @@ async function resolveVNAccount(db, identity) {
   const now = nowISO();
   if (!account) {
     const accountId = randomId("vn_");
-    await db.prepare(`INSERT INTO vn_accounts (account_id,email,clerk_user_id,role,created_at,updated_at) VALUES (?,?,?,'customer',?,?)`)
+    await db.prepare(`INSERT OR IGNORE INTO vn_accounts (account_id,email,clerk_user_id,role,created_at,updated_at) VALUES (?,?,?,'customer',?,?)`)
       .bind(accountId, email, legacyUserId, now, now).run();
-    account = { account_id: accountId, email, clerk_user_id: legacyUserId, role: "customer" };
+    account = await db.prepare("SELECT * FROM vn_accounts WHERE email = ? COLLATE NOCASE LIMIT 1").bind(email).first();
+    if (!account && identity.clerkUserId) account = await db.prepare("SELECT * FROM vn_accounts WHERE clerk_user_id = ? LIMIT 1").bind(identity.clerkUserId).first();
+    if (!account) throw new AppError("Unable to establish your VN SHOP account. Please retry sign-in.",503);
   } else if (identity.clerkUserId && account.clerk_user_id !== identity.clerkUserId) {
     await db.prepare("UPDATE vn_accounts SET clerk_user_id = ?, email = ?, updated_at = ? WHERE account_id = ?")
       .bind(identity.clerkUserId, email, now, account.account_id).run();
@@ -485,17 +480,20 @@ async function readBody(request) {
 
   const bodyText = await request.text();
 
-  if (bodyText.length > MAX_BODY_SIZE) {
+  if (new TextEncoder().encode(bodyText).byteLength > MAX_BODY_SIZE) {
     throw new AppError("Request body is too large.",413);
   }
 
   if (!bodyText.trim()) return {};
 
+  let parsed;
   try {
-    return JSON.parse(bodyText);
+    parsed = JSON.parse(bodyText);
   } catch {
     throw new AppError("Invalid JSON body.",400);
   }
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new AppError("The request body must be a JSON object.",400);
+  return parsed;
 }
 
 async function getColumns(db, tableName) {
@@ -955,7 +953,6 @@ function getAllowedProfileFields(columns) {
   return [
     "first_name",
     "last_name",
-    "email",
     "phone",
     "country",
     "country_code",
@@ -1041,16 +1038,16 @@ async function updateProfile(db, userId, body) {
 }
 
 async function addAddress(db, userId, body) {
-  const countryCode=validText(body.country_code ?? body.countryCode,5).toUpperCase();
-  const country=validText(body.country,100).toLowerCase();
+  const countryCode=validText(body.country_code ?? body.countryCode,2).toUpperCase();
+  const country=validText(body.country,100);
   const firstName=validText(body.first_name ?? body.firstName,100);
   const lastName=validText(body.last_name ?? body.lastName,100);
   const addressLine=validText(body.address_line_1 ?? body.addressLine1 ?? body.address,300);
   const city=validText(body.city,100);
   const postal=validText(body.postal_code ?? body.postalCode ?? body.postal,30);
   const phone=validText(body.phone,50);
-  if (!(countryCode==="TR" || country==="türkiye" || country==="turkey")) throw new AppError("VN SHOP currently accepts saved addresses in Türkiye only.");
-  if (!firstName || !lastName || !addressLine || !city || !postal || !phone) throw new AppError("First name, last name, street address, city, postal code, and phone are required.");
+  if (!/^[A-Z]{2}$/.test(countryCode) || !country) throw new AppError("Select a valid country and provide its two-letter country code.");
+  if (!firstName || !lastName || !addressLine || !city || !postal || !phone) throw new AppError("First name, last name, street address, city, postal code, country, and phone are required.");
   const columns = await getColumns(db, "customer_addresses");
   const allowed = getAllowedAddressFields(columns);
   const id = randomId("addr_");
@@ -1082,8 +1079,8 @@ async function addAddress(db, userId, body) {
       body.postal_code ?? body.postalCode ?? body.postal,
       30
     ),
-    country: validText(body.country, 100),
-    country_code: validText(body.country_code ?? body.countryCode, 5),
+    country,
+    country_code: countryCode,
     phone: validText(body.phone, 50),
     is_default: body.is_default || body.isDefault ? 1 : 0,
     created_at: createdAt,
@@ -1124,19 +1121,14 @@ async function setDefaultAddress(db, userId, addressId) {
 
   if (!columns.includes("is_default")) return false;
 
-  await db.prepare(`
+  const result=await db.prepare(`
     UPDATE customer_addresses
-    SET is_default = 0
-    WHERE user_id = ?
-  `).bind(userId).run();
-
-  const result = await db.prepare(`
-    UPDATE customer_addresses
-    SET is_default = 1
-    WHERE id = ? AND user_id = ?
-  `).bind(addressId, userId).run();
-
-  return Number(result.meta?.changes || 0) > 0;
+    SET is_default=CASE WHEN id=? THEN 1 ELSE 0 END
+    WHERE user_id=? AND EXISTS (
+      SELECT 1 FROM customer_addresses WHERE id=? AND user_id=?
+    )
+  `).bind(addressId,userId,addressId,userId).run();
+  return Number(result.meta?.changes||0)>0;
 }
 
 async function deleteAddress(db, userId, addressId) {
@@ -1403,10 +1395,12 @@ async function updateAdminOrderStatus(db, adminId, orderId, body) {
 
   const timestamp = nowISO();
 
-  await db.batch([
-    db.prepare(`UPDATE admin_orders SET status='returned',returned_at=?,returned_by=?,updated_at=? WHERE id=?`).bind(timestamp,adminId,timestamp,orderId),
-    db.prepare(`INSERT INTO admin_order_events (id,admin_order_id,event_type,actor_id,details_json,created_at) VALUES (?,?,?,?,?,?)`).bind(randomId("aoe_"),orderId,"status",adminId,JSON.stringify({from:record.status,to:"returned"}),timestamp)
+  const eventId=randomId("aoe_");
+  const results=await db.batch([
+    db.prepare(`UPDATE admin_orders SET status='returned',returned_at=?,returned_by=?,updated_at=? WHERE id=? AND status=?`).bind(timestamp,adminId,timestamp,orderId,record.status),
+    db.prepare(`INSERT INTO admin_order_events (id,admin_order_id,event_type,actor_id,details_json,created_at) SELECT ?,?,?,?,?,? WHERE changes()=1`).bind(eventId,orderId,"status",adminId,JSON.stringify({from:record.status,to:"returned"}),timestamp)
   ]);
+  if(!results?.[0]?.meta?.changes) throw new AppError("Admin order status changed before this update could be saved. Refresh and try again.",409);
   return true;
 }
 
@@ -1459,23 +1453,26 @@ async function removeOrderItem(db, adminId, orderId, itemId) {
 }
 
 async function updateOrderStatus(db, orderId, body, actorId = "operator") {
-  const allowed = new Set(["Received","Preparing","Delivering","Delivered","Cancelled"]);
-  const status=validText(body.orderStatus ?? body.status,60);
-  if (!allowed.has(status)) throw new AppError("Invalid order status.");
-  const timestamp=nowISO();
+  const requested=validText(body.orderStatus ?? body.status,60).toLowerCase();
+  const canonical={received:"Received",preparing:"Preparing",delivering:"Delivering",delivered:"Delivered",cancelled:"Cancelled"};
+  const status=canonical[requested];
+  if (!status) throw new AppError("Invalid order status.");
   const record=await db.prepare(`SELECT order_status FROM customer_orders WHERE id=? AND COALESCE(is_admin_order,0)=0 LIMIT 1`).bind(orderId).first();
   if (!record) return false;
   const current=String(record.order_status||"Received");
+  if (current===status) return true;
   const transitions={Received:["Preparing","Cancelled"],Preparing:["Delivering","Cancelled"],Delivering:["Delivered","Cancelled"]};
   if (!(transitions[current]||[]).includes(status)) throw new AppError("Invalid order status transition.",409);
   const reason=validText(body.cancellation_reason ?? body.reason,120);
   const reasons=["High workload","Out of stock","Suspicious purchase","Address or delivery information issue","Product unavailable","Payment could not be verified","Customer request","Other"];
   if (status==="Cancelled" && !reasons.includes(reason)) throw new AppError("Select a valid cancellation reason.");
-  await db.batch([
-    db.prepare(`UPDATE customer_orders SET order_status=?,updated_at=?,delivered_at=CASE WHEN ?='Delivered' THEN ? ELSE delivered_at END WHERE id=?`).bind(status,timestamp,status,timestamp,orderId),
-    db.prepare(`INSERT INTO order_status_history (id,order_id,from_status,to_status,actor_id,reason,created_at) VALUES (?,?,?,?,?,?,?)`).bind(randomId("osh_"),orderId,current,status,actorId,reason||null,timestamp),
-    db.prepare(`INSERT INTO order_status_events (id,order_id,from_status,to_status,actor_id,reason,created_at) VALUES (?,?,?,?,?,?,?)`).bind(randomId("ose_"),orderId,current,status,actorId,reason||null,timestamp)
+  const timestamp=nowISO(), historyId=randomId("osh_"), eventId=randomId("ose_");
+  const results=await db.batch([
+    db.prepare(`UPDATE customer_orders SET order_status=?,updated_at=?,delivered_at=CASE WHEN ?='Delivered' THEN ? ELSE delivered_at END WHERE id=? AND order_status=?`).bind(status,timestamp,status,timestamp,orderId,current),
+    db.prepare(`INSERT INTO order_status_history (id,order_id,from_status,to_status,actor_id,reason,created_at) SELECT ?,?,?,?,?,?,? WHERE changes()=1`).bind(historyId,orderId,current,status,actorId,reason||null,timestamp),
+    db.prepare(`INSERT INTO order_status_events (id,order_id,from_status,to_status,actor_id,reason,created_at) SELECT ?,?,?,?,?,?,? WHERE EXISTS (SELECT 1 FROM order_status_history WHERE id=?)`).bind(eventId,orderId,current,status,actorId,reason||null,timestamp,historyId)
   ]);
+  if (!results?.[0]?.meta?.changes) throw new AppError("Order status changed before this update could be saved. Refresh and try again.",409);
   return true;
 }
 
@@ -1489,9 +1486,10 @@ async function createReturn(db, userId, body) {
   if (!order) throw new AppError("Order not found.",404);
   if (String(order.payment_status||"").toLowerCase()!=="paid") throw new AppError("Only paid orders are eligible for a return request.",409);
   if (String(order.order_status||"").toLowerCase()!=="delivered") throw new AppError("A return can only be requested after delivery.",409);
-  if (!order.delivered_at || !Number.isFinite(Date.parse(order.delivered_at))) throw new AppError("The delivery date is not recorded for this order. Contact support.",409);
+  const deliveredAt=Date.parse(order.delivered_at||"");
+  if (!Number.isFinite(deliveredAt) || deliveredAt>Date.now()) throw new AppError("The delivery date is missing or invalid. Contact support.",409);
   const returnWindowDays=String(order.country_code||"").toUpperCase()==="TR"?14:30;
-  if (Date.now()-Date.parse(order.delivered_at)>returnWindowDays*24*60*60*1000) throw new AppError(`The ${returnWindowDays}-day return request period has expired.`,409);
+  if (Date.now()-deliveredAt>returnWindowDays*24*60*60*1000) throw new AppError(`The ${returnWindowDays}-day return request period has expired.`,409);
   const ids=[...new Set(selectedIds.map(x=>validText(x,150)).filter(Boolean))];
   if (ids.length!==selectedIds.length) throw new AppError("Duplicate or invalid item selection.");
   const placeholders=ids.map(()=>"?").join(",");
@@ -1538,25 +1536,26 @@ async function listReturns(db,userId,admin) {
 }
 
 async function updateReturnStatus(db, adminId, returnId, body) {
-  const status = validText(body.status, 40);
-  if (!["Accepted", "Rejected"].includes(status)) throw new AppError("Invalid return status.",400);
-
-  const record = await db.prepare(`SELECT id,status FROM customer_returns WHERE id=? LIMIT 1`).bind(returnId).first();
+  const requested=validText(body.status,40).toLowerCase();
+  const canonical={accepted:"Accepted",rejected:"Rejected","return process":"Return Process",returned:"Returned"};
+  const status=canonical[requested];
+  if (!status) throw new AppError("Invalid return status.",400);
+  const record=await db.prepare(`SELECT id,status FROM customer_returns WHERE id=? LIMIT 1`).bind(returnId).first();
   if (!record) return false;
   const current=String(record.status||"Pending");
   if (current===status) return true;
-  const allowed={Pending:["Accepted","Rejected"],Accepted:["Rejected"]};
+  const allowed={Pending:["Accepted","Return Process","Rejected"],Accepted:["Return Process","Rejected"],"Return Process":["Returned"]};
   if (!(allowed[current]||[]).includes(status)) throw new AppError("Invalid return status transition.",409);
-
-  const timestamp=nowISO();
-  const note=validText(body.admin_note ?? body.adminNote,3000);
+  const timestamp=nowISO(), note=validText(body.admin_note ?? body.adminNote,3000), historyId=randomId("rsh_");
   const results=await db.batch([
     db.prepare(`UPDATE customer_returns SET status=?,updated_at=?,reviewed_at=?,reviewed_by=?,admin_note=? WHERE id=? AND status=?`)
       .bind(status,timestamp,timestamp,adminId,note,returnId,current),
     db.prepare(`INSERT INTO return_status_history (id,return_id,from_status,to_status,actor_id,note,created_at) SELECT ?,?,?,?,?,?,? WHERE changes()=1`)
-      .bind(randomId("rsh_"),returnId,current,status,adminId,note||null,timestamp),
-    db.prepare(`DELETE FROM customer_return_item_claims WHERE return_id=? AND EXISTS (SELECT 1 FROM customer_returns WHERE id=? AND status='Rejected')`)
-      .bind(returnId,returnId)
+      .bind(historyId,returnId,current,status,adminId,note||null,timestamp),
+    db.prepare(`UPDATE customer_return_item_claims SET status=? WHERE return_id=? AND EXISTS (SELECT 1 FROM return_status_history WHERE id=?)`)
+      .bind(status,returnId,historyId),
+    db.prepare(`DELETE FROM customer_return_item_claims WHERE return_id=? AND status='Rejected' AND EXISTS (SELECT 1 FROM return_status_history WHERE id=?)`)
+      .bind(returnId,historyId)
   ]);
   if (!results?.[0]?.meta?.changes) throw new AppError("Return status changed before this update could be saved. Refresh and try again.",409);
   return true;
@@ -1941,6 +1940,12 @@ async function handleRequest(request, env) {
     catch (err) { if(err instanceof AppError) return error(err.message,err.status); console.error("Admin order queue failed:",err); return error("Unable to queue admin order.",500); }
   }
 
+  if (path === "/api/operations/logout" && method === "POST") {
+    const operationSession=await authenticateOperationSession(request,env.DB);
+    if (operationSession) await env.DB.prepare(`DELETE FROM vn_operation_sessions WHERE id=?`).bind(operationSession.id).run();
+    return json({success:true});
+  }
+
   if (path.startsWith("/api/operations/") && path !== "/api/operations/auth") {
     const operationSession=await authenticateOperationSession(request,env.DB);
     if (!operationSession) return error("Operations session required.", 401);
@@ -1952,23 +1957,15 @@ async function handleRequest(request, env) {
 
     if (segments[2] === "orders" && segments[3] && segments[4] === "status" && segments.length === 5 && method === "PATCH") {
       const body = await readBody(request);
-      const requested = validText(body.status, 40).toLowerCase();
-      const record = await env.DB.prepare(`SELECT id,order_status FROM customer_orders WHERE id=? AND COALESCE(is_admin_order,0)=0 LIMIT 1`).bind(segments[3]).first();
-      if (!record) return error("Order not found.", 404);
-      const current = String(record.order_status || "Received").toLowerCase();
-      const allowed = { received:["preparing","cancelled"], preparing:["delivering","cancelled"], delivering:["delivered","cancelled"] };
-      if (!(allowed[current] || []).includes(requested)) return error("Invalid order status transition.", 409);
-      const reason = validText(body.cancellation_reason || body.reason, 500);
-      const cancellationReasons=["High workload","Out of stock","Suspicious purchase","Address or delivery information issue","Product unavailable","Payment could not be verified","Customer request","Other"];
-      if (requested === "cancelled" && !cancellationReasons.includes(reason)) return error("Select a valid cancellation reason.",400);
-      const next = requested === "preparing" ? "Preparing" : requested === "delivering" ? "Delivering" : requested === "delivered" ? "Delivered" : "Cancelled";
-      const timestamp = nowISO();
-      await env.DB.batch([
-        env.DB.prepare(`UPDATE customer_orders SET order_status=?,updated_at=?,delivered_at=CASE WHEN ?='Delivered' THEN ? ELSE delivered_at END WHERE id=?`).bind(next,timestamp,next,timestamp,segments[3]),
-        env.DB.prepare(`INSERT INTO order_status_history (id,order_id,from_status,to_status,actor_id,reason,created_at) VALUES (?,?,?,?,?,?,?)`).bind(randomId("osh_"),segments[3],record.order_status,next,operationActor,reason || null,timestamp),
-        env.DB.prepare(`INSERT INTO order_status_events (id,order_id,from_status,to_status,actor_id,reason,created_at) VALUES (?,?,?,?,?,?,?)`).bind(randomId("ose_"),segments[3],record.order_status,next,operationActor,reason || null,timestamp)
-      ]);
-      return json({ success: true, status: next });
+      try {
+        const success=await updateOrderStatus(env.DB,segments[3],body,operationActor);
+        if (!success) return error("Order not found.",404);
+        const current=await env.DB.prepare(`SELECT order_status FROM customer_orders WHERE id=?`).bind(segments[3]).first();
+        return json({success:true,status:current?.order_status||null});
+      } catch(err) {
+        if(err instanceof AppError) return error(err.message,err.status);
+        throw err;
+      }
     }
 
     if (segments[2] === "admin-orders" && segments[3] && segments[4] === "status" && segments.length === 5 && method === "PATCH") {
@@ -1989,10 +1986,12 @@ async function handleRequest(request, env) {
       const next = requested === "return process" ? "Return Process" : requested === "returned" ? "Returned" : "Rejected";
       const timestamp = nowISO();
       const note=validText(body.admin_note || body.note,3000);
+      const historyId=randomId("rsh_");
       const results=await env.DB.batch([
         env.DB.prepare(`UPDATE customer_returns SET status=?,updated_at=?,reviewed_at=?,reviewed_by=?,admin_note=? WHERE id=? AND status=?`).bind(next,timestamp,timestamp,operationActor,note,segments[3],record.status),
-        env.DB.prepare(`INSERT INTO return_status_history (id,return_id,from_status,to_status,actor_id,note,created_at) SELECT ?,?,?,?,?,?,? WHERE changes()=1`).bind(randomId("rsh_"),segments[3],record.status,next,operationActor,note||null,timestamp),
-        env.DB.prepare(`DELETE FROM customer_return_item_claims WHERE return_id=? AND EXISTS (SELECT 1 FROM customer_returns WHERE id=? AND status='Rejected')`).bind(segments[3],segments[3])
+        env.DB.prepare(`INSERT INTO return_status_history (id,return_id,from_status,to_status,actor_id,note,created_at) SELECT ?,?,?,?,?,?,? WHERE changes()=1`).bind(historyId,segments[3],record.status,next,operationActor,note||null,timestamp),
+        env.DB.prepare(`UPDATE customer_return_item_claims SET status=? WHERE return_id=? AND EXISTS (SELECT 1 FROM return_status_history WHERE id=?)`).bind(next,segments[3],historyId),
+        env.DB.prepare(`DELETE FROM customer_return_item_claims WHERE return_id=? AND status='Rejected' AND EXISTS (SELECT 1 FROM return_status_history WHERE id=?)`).bind(segments[3],historyId)
       ]);
       if (!results?.[0]?.meta?.changes) return error("Return status changed before this update could be saved. Refresh and try again.",409);
       return json({ success: true, status: next });
@@ -2008,12 +2007,14 @@ async function handleRequest(request, env) {
       const timestamp = nowISO();
       const resolution=validText(body.resolution,4000);
       if(requested==="resolved" && !resolution) return error("A resolution note is required before closing a report.",400);
-      await env.DB.batch([
-        env.DB.prepare(`UPDATE issues SET status=?,updated_at=?,processing_started_at=CASE WHEN ?='in progress' THEN ? ELSE processing_started_at END,resolved_at=CASE WHEN ?='resolved' THEN ? ELSE resolved_at END,resolution=COALESCE(?,resolution) WHERE id=?`)
-          .bind(requested,timestamp,requested,timestamp,requested,timestamp,resolution || null,segments[3]),
-        env.DB.prepare(`INSERT INTO issue_status_history (id,issue_id,from_status,to_status,actor_id,resolution,created_at) VALUES (?,?,?,?,?,?,?)`)
-          .bind(randomId("ish_"),segments[3],record.status,requested,operationActor,resolution||null,timestamp)
+      const historyId=randomId("ish_");
+      const results=await env.DB.batch([
+        env.DB.prepare(`UPDATE issues SET status=?,updated_at=?,processing_started_at=CASE WHEN ?='in progress' THEN ? ELSE processing_started_at END,resolved_at=CASE WHEN ?='resolved' THEN ? ELSE resolved_at END,resolution=COALESCE(?,resolution) WHERE id=? AND status=?`)
+          .bind(requested,timestamp,requested,timestamp,requested,timestamp,resolution || null,segments[3],record.status),
+        env.DB.prepare(`INSERT INTO issue_status_history (id,issue_id,from_status,to_status,actor_id,resolution,created_at) SELECT ?,?,?,?,?,?,? WHERE changes()=1`)
+          .bind(historyId,segments[3],record.status,requested,operationActor,resolution||null,timestamp)
       ]);
+      if(!results?.[0]?.meta?.changes) return error("Report status changed before this update could be saved. Refresh and try again.",409);
       return json({ success: true, status: requested });
     }
     if (segments[2] === "admin-orders" && segments[3] && segments[4] === "payment" && segments.length === 5 && method === "PATCH") {
