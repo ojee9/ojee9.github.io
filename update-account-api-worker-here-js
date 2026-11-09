@@ -1492,6 +1492,123 @@ async function updateReturnStatus(db, adminId, returnId, body) {
 
 
 
+function removeRawControlCharactersInsideJsonStrings(value) {
+  const source = String(value ?? "").replace(/^\\uFEFF/, "");
+  let output = "";
+  let insideString = false;
+  let escaped = false;
+
+  for (let index = 0; index < source.length; index++) {
+    const character = source[index];
+    const code = source.charCodeAt(index);
+
+    if (insideString) {
+      if (escaped) {
+        output += character;
+        escaped = false;
+        continue;
+      }
+
+      if (character === "\\\\") {
+        output += character;
+        escaped = true;
+        continue;
+      }
+
+      if (character === '"') {
+        output += character;
+        insideString = false;
+        continue;
+      }
+
+      // Remove accidental raw control characters pasted into secret values.
+      // Legal JSON whitespace outside strings remains untouched.
+      if (code < 0x20 || code === 0x7f) continue;
+
+      output += character;
+      continue;
+    }
+
+    output += character;
+    if (character === '"') insideString = true;
+  }
+
+  return output.trim();
+}
+
+function parseOperationsAdminCredentials(rawValue) {
+  const raw = String(rawValue ?? "").trim();
+  if (!raw) {
+    throw new AppError("Operations credentials are not configured.", 503);
+  }
+
+  let parsed;
+  try {
+    parsed = JSON.parse(removeRawControlCharactersInsideJsonStrings(raw));
+  } catch (parseError) {
+    console.error(
+      "OPERATIONS_ADMIN_CREDENTIALS JSON parse failed:",
+      parseError instanceof Error ? parseError.message : String(parseError)
+    );
+    throw new AppError("Operations credentials are misconfigured.", 503);
+  }
+
+  if (!Array.isArray(parsed) || parsed.length === 0) {
+    throw new AppError("Operations credentials are not configured.", 503);
+  }
+
+  const ids = new Set();
+  const passwords = new Set();
+
+  const credentials = parsed.map(entry => {
+    const id = typeof entry?.id === "string" ? entry.id.trim() : "";
+    const password = typeof entry?.password === "string" ? entry.password : "";
+
+    if (!id || password.length < 24 || password.length > 512) {
+      throw new AppError(
+        "Each operator must have an id and a password between 24 and 512 characters.",
+        503
+      );
+    }
+
+    if (ids.has(id) || passwords.has(password)) {
+      throw new AppError(
+        "Each operator must have a unique id and a unique password.",
+        503
+      );
+    }
+
+    ids.add(id);
+    passwords.add(password);
+
+    return {
+      id,
+      password,
+      label: validText(entry.label || id, 80)
+    };
+  });
+
+  return credentials;
+}
+
+async function constantTimeStringEqual(leftValue, rightValue) {
+  const encoder = new TextEncoder();
+  const [leftDigest, rightDigest] = await Promise.all([
+    crypto.subtle.digest("SHA-256", encoder.encode(String(leftValue))),
+    crypto.subtle.digest("SHA-256", encoder.encode(String(rightValue)))
+  ]);
+
+  const left = new Uint8Array(leftDigest);
+  const right = new Uint8Array(rightDigest);
+  let difference = 0;
+
+  for (let index = 0; index < left.length; index++) {
+    difference |= left[index] ^ right[index];
+  }
+
+  return difference === 0;
+}
+
 async function createOperationSession(db, actorId) {
   const token=bytesToBase64Url(crypto.getRandomValues(new Uint8Array(32))), tokenHash=await sha256(token);
   const createdAt=nowISO(), expiresAt=new Date(Date.now()+8*60*60*1000).toISOString();
@@ -1658,36 +1775,83 @@ async function handleRequest(request, env) {
   }
 
   if (path === "/api/operations/auth" && method === "POST") {
-    const body=await readBody(request), supplied=typeof body.password==="string"?body.password:"";
-    if (!supplied) return error("Administrator password is required.",400);
-    const ip=request.headers.get("CF-Connecting-IP") || "unknown";
-    const attemptKey=await sha256(ip);
-    const attempt=await env.DB.prepare(`SELECT failures,window_started_at,locked_until FROM vn_operation_login_attempts WHERE attempt_key=?`).bind(attemptKey).first();
-    if (attempt?.locked_until && Date.parse(attempt.locked_until)>Date.now()) return error("Too many login attempts. Try again later.",429);
-    let credentials=[];
-try {
-  credentials = JSON.parse(env.OPERATIONS_ADMIN_CREDENTIALS || "[]");
-} catch (parseError) {
-  console.error(
-    "OPERATIONS_ADMIN_CREDENTIALS JSON parse failed:",
-    parseError instanceof Error ? parseError.message : String(parseError)
-  );
-  return error("Operations credentials are misconfigured.", 503);
-}    if (!Array.isArray(credentials) || !credentials.length) return error("Operations credentials are not configured.",503);
-    const operatorIds=credentials.map(entry=>entry?.id),operatorPasswords=credentials.map(entry=>entry?.password);
-    if(credentials.some(entry=>!entry || typeof entry.id!=="string" || !entry.id.trim() || typeof entry.password!=="string" || entry.password.length<24) || new Set(operatorIds).size!==operatorIds.length || new Set(operatorPasswords).size!==operatorPasswords.length) return error("Each operator must have a unique id and a unique password of at least 24 characters.",503);
-    const match=credentials.find(entry=>entry.password===supplied);
-    if (!match) {
-      const start=attempt?.window_started_at && Date.now()-Date.parse(attempt.window_started_at)<15*60*1000 ? attempt.window_started_at : nowISO();
-      const failures=(attempt?.window_started_at===start?Number(attempt.failures||0):0)+1;
-      const locked=failures>=5?new Date(Date.now()+15*60*1000).toISOString():null;
-      await env.DB.prepare(`INSERT INTO vn_operation_login_attempts (attempt_key,failures,window_started_at,locked_until) VALUES (?,?,?,?) ON CONFLICT(attempt_key) DO UPDATE SET failures=excluded.failures,window_started_at=excluded.window_started_at,locked_until=excluded.locked_until`).bind(attemptKey,failures,start,locked).run();
-      return error("Incorrect administrator password.",401);
+    const body = await readBody(request);
+    const supplied = typeof body.password === "string" ? body.password : "";
+
+    if (!supplied || supplied.length > 512) {
+      return error("A valid administrator password is required.", 400);
     }
-    await env.DB.prepare(`DELETE FROM vn_operation_login_attempts WHERE attempt_key=?`).bind(attemptKey).run();
-    await env.DB.prepare(`DELETE FROM vn_operation_sessions WHERE expires_at<=?`).bind(nowISO()).run();
-    const session=await createOperationSession(env.DB,match.id.trim());
-    return json({success:true,token:session.token,expiresAt:session.expiresAt,operator:validText(match.label || match.id,80)});
+
+    const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+    const attemptKey = await sha256(ip);
+    const attempt = await env.DB.prepare(`
+      SELECT failures, window_started_at, locked_until
+      FROM vn_operation_login_attempts
+      WHERE attempt_key = ?
+    `).bind(attemptKey).first();
+
+    if (attempt?.locked_until && Date.parse(attempt.locked_until) > Date.now()) {
+      return error("Too many login attempts. Try again later.", 429);
+    }
+
+    let credentials;
+    try {
+      credentials = parseOperationsAdminCredentials(env.OPERATIONS_ADMIN_CREDENTIALS);
+    } catch (parseError) {
+      if (parseError instanceof AppError) {
+        return error(parseError.message, parseError.status);
+      }
+      console.error("Operations credentials could not be loaded:", parseError);
+      return error("Operations credentials are misconfigured.", 503);
+    }
+
+    let match = null;
+    for (const credential of credentials) {
+      if (await constantTimeStringEqual(credential.password, supplied)) {
+        match = credential;
+      }
+    }
+
+    if (!match) {
+      const windowIsCurrent =
+        attempt?.window_started_at &&
+        Date.now() - Date.parse(attempt.window_started_at) < 15 * 60 * 1000;
+      const start = windowIsCurrent ? attempt.window_started_at : nowISO();
+      const failures = (windowIsCurrent ? Number(attempt.failures || 0) : 0) + 1;
+      const locked = failures >= 5
+        ? new Date(Date.now() + 15 * 60 * 1000).toISOString()
+        : null;
+
+      await env.DB.prepare(`
+        INSERT INTO vn_operation_login_attempts
+          (attempt_key, failures, window_started_at, locked_until)
+        VALUES (?, ?, ?, ?)
+        ON CONFLICT(attempt_key) DO UPDATE SET
+          failures = excluded.failures,
+          window_started_at = excluded.window_started_at,
+          locked_until = excluded.locked_until
+      `).bind(attemptKey, failures, start, locked).run();
+
+      return error("Incorrect administrator password.", 401);
+    }
+
+    await env.DB.prepare(`
+      DELETE FROM vn_operation_login_attempts
+      WHERE attempt_key = ?
+    `).bind(attemptKey).run();
+
+    await env.DB.prepare(`
+      DELETE FROM vn_operation_sessions
+      WHERE expires_at <= ?
+    `).bind(nowISO()).run();
+
+    const session = await createOperationSession(env.DB, match.id);
+    return json({
+      success: true,
+      token: session.token,
+      expiresAt: session.expiresAt,
+      operator: match.label
+    });
   }
 
   if (path === "/api/operations/admin-orders" && method === "POST") {
