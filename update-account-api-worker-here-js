@@ -1,0 +1,2205 @@
+const CLERK_ISSUER = "https://humble-ox-7055.clerk.accounts.dev";
+const ALLOWED_ORIGIN = "https://ojee9.github.io";
+const JWKS_URL = `${CLERK_ISSUER}/.well-known/jwks.json`;
+
+const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+const MAX_BODY_SIZE = 64 * 1024;
+
+const ADMIN_EMAILS = new Set([
+  "9ojeez9@gmail.com",
+  "recordsvunion@gmail.com",
+  "studiovnions@gmail.com"
+]);
+
+const ADMIN_CACHE_TTL_MS = 10 * 1000;
+const adminVerificationCache = new Map();
+
+let jwksCache = null;
+let jwksCacheExpiresAt = 0;
+let schemaReady = false;
+let schemaPromise = null;
+const columnsCache = new Map();
+
+class AppError extends Error {
+  constructor(message, status = 400) { super(message); this.name = "AppError"; this.status = status; }
+}
+
+const JSON_HEADERS = {
+  "Content-Type": "application/json; charset=utf-8",
+  "Cache-Control": "no-store"
+};
+
+function json(data, status = 200, extraHeaders = {}) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { ...JSON_HEADERS, ...extraHeaders }
+  });
+}
+
+function error(message, status = 400) {
+  return json({ error: message }, status);
+}
+
+function nowISO() {
+  return new Date().toISOString();
+}
+
+function randomId(prefix = "") {
+  return `${prefix}${crypto.randomUUID()}`;
+}
+
+function randomDigits(length) {
+  if (!Number.isInteger(length) || length < 1 || length > 9) throw new AppError("Invalid identifier length.");
+  const max = 10 ** length;
+  const limit = Math.floor(0x100000000 / max) * max;
+  const bytes = new Uint32Array(1);
+  let value;
+  do { crypto.getRandomValues(bytes); value = bytes[0]; } while (value >= limit);
+  return String(value % max).padStart(length, "0");
+}
+
+
+
+function base64UrlToBytes(value) {
+  const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = normalized.padEnd(
+    normalized.length + ((4 - normalized.length % 4) % 4),
+    "="
+  );
+
+  const binary = atob(padded);
+  const bytes = new Uint8Array(binary.length);
+
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+
+  return bytes;
+}
+
+function base64UrlToString(value) {
+  return new TextDecoder().decode(base64UrlToBytes(value));
+}
+
+function bytesToBase64Url(bytes) {
+  let binary = "";
+
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte);
+  }
+
+  return btoa(binary)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/g, "");
+}
+
+async function sha256(value) {
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(value)
+  );
+
+  return bytesToBase64Url(new Uint8Array(digest));
+}
+
+function validText(value, maxLength = 500) {
+  if (typeof value !== "string") return "";
+  return value.trim().slice(0, maxLength);
+}
+
+function validNumber(value, fallback = 0) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : fallback;
+}
+
+function normalizeEmail(value) {
+  return validText(value, 320).toLowerCase();
+}
+
+function parseJSON(value, fallback = null) {
+  if (value === null || value === undefined) return fallback;
+  if (typeof value === "object") return value;
+
+  try {
+    return JSON.parse(value);
+  } catch {
+    return fallback;
+  }
+}
+
+async function isAdmin(env, userId) {
+  if (typeof userId !== "string" || !userId.startsWith("vn_")) return false;
+  try {
+    const account = await env.DB.prepare(`
+      SELECT email, role FROM vn_accounts WHERE account_id = ? LIMIT 1
+    `).bind(userId).first();
+    return Boolean(account && (account.role === "admin" || ADMIN_EMAILS.has(normalizeEmail(account.email))));
+  } catch {
+    return false;
+  }
+}
+
+async function getJWKS() {
+  if (jwksCache && Date.now() < jwksCacheExpiresAt) {
+    return jwksCache;
+  }
+
+  const response = await fetch(JWKS_URL, {
+    headers: { Accept: "application/json" }
+  });
+
+  if (!response.ok) {
+    throw new Error("Unable to retrieve signing keys.");
+  }
+
+  const data = await response.json();
+
+  if (!Array.isArray(data.keys)) {
+    throw new Error("Invalid signing keys.");
+  }
+
+  jwksCache = data;
+  jwksCacheExpiresAt = Date.now() + 60 * 60 * 1000;
+
+  return jwksCache;
+}
+
+async function verifyClerkSignature(parts, jwk, claims) {
+  try {
+    const publicKey = await crypto.subtle.importKey(
+      "jwk",
+      jwk,
+      {
+        name: "RSASSA-PKCS1-v1_5",
+        hash: "SHA-256"
+      },
+      false,
+      ["verify"]
+    );
+
+    const signature = base64UrlToBytes(parts[2]);
+    const signedData = new TextEncoder().encode(
+      `${parts[0]}.${parts[1]}`
+    );
+
+    const valid = await crypto.subtle.verify(
+      "RSASSA-PKCS1-v1_5",
+      publicKey,
+      signature,
+      signedData
+    );
+
+    return valid ? claims : null;
+  } catch {
+    return null;
+  }
+}
+
+async function authenticateClerk(request) {
+  const authorization = request.headers.get("Authorization") || "";
+  const match = authorization.match(/^Bearer\s+(.+)$/i);
+
+  if (!match) return null;
+
+  const parts = match[1].split(".");
+  if (parts.length !== 3) return null;
+
+  try {
+    const header = JSON.parse(base64UrlToString(parts[0]));
+    const claims = JSON.parse(base64UrlToString(parts[1]));
+
+    if (header.alg !== "RS256" || !header.kid) return null;
+    if (claims.iss !== CLERK_ISSUER) return null;
+
+    if (
+      typeof claims.sub !== "string" ||
+      !claims.sub.startsWith("user_")
+    ) {
+      return null;
+    }
+
+    const currentTime = Math.floor(Date.now() / 1000);
+
+    if (
+      !Number.isFinite(claims.exp) ||
+      claims.exp <= currentTime
+    ) {
+      return null;
+    }
+
+    if (
+      claims.nbf !== undefined &&
+      Number(claims.nbf) > currentTime
+    ) {
+      return null;
+    }
+
+    let jwks = await getJWKS();
+    let jwk = jwks.keys.find(key => key.kid === header.kid);
+
+    if (!jwk) {
+      jwksCache = null;
+      jwksCacheExpiresAt = 0;
+
+      jwks = await getJWKS();
+      jwk = jwks.keys.find(key => key.kid === header.kid);
+
+      if (!jwk) return null;
+    }
+
+    return await verifyClerkSignature(parts, jwk, claims);
+  } catch {
+    return null;
+  }
+}
+
+function getBearerToken(request) {
+  const authorization = request.headers.get("Authorization") || "";
+  const match = authorization.match(/^Bearer\s+(.+)$/i);
+  return match ? match[1] : null;
+}
+
+async function createSession(db, userId) {
+  await db.prepare(`DELETE FROM customer_sessions WHERE expires_at<=?`).bind(nowISO()).run();
+  const token = bytesToBase64Url(
+    crypto.getRandomValues(new Uint8Array(32))
+  );
+
+  const tokenHash = await sha256(token);
+  const createdAt = nowISO();
+  const expiresAt = new Date(
+    Date.now() + SESSION_TTL_MS
+  ).toISOString();
+
+  await db.prepare(`
+    INSERT INTO customer_sessions (
+      user_id,
+      token_hash,
+      created_at,
+      expires_at
+    )
+    VALUES (?, ?, ?, ?)
+  `).bind(
+    userId,
+    tokenHash,
+    createdAt,
+    expiresAt
+  ).run();
+
+  return { token, expiresAt };
+}
+
+async function authenticateWorkerSession(request, db) {
+  const token = getBearerToken(request);
+  if (!token) return null;
+
+  const tokenHash = await sha256(token);
+
+  const session = await db.prepare(`
+    SELECT user_id, expires_at
+    FROM customer_sessions
+    WHERE token_hash = ?
+    LIMIT 1
+  `).bind(tokenHash).first();
+
+  if (!session) return null;
+
+  if (
+    !session.expires_at ||
+    new Date(session.expires_at).getTime() <= Date.now()
+  ) {
+    await db.prepare(`
+      DELETE FROM customer_sessions
+      WHERE token_hash = ?
+    `).bind(tokenHash).run();
+
+    return null;
+  }
+
+  return { sub: session.user_id };
+}
+
+async function authenticateRequest(request, db) {
+  return await authenticateWorkerSession(request, db);
+}
+
+async function getVerifiedClerkIdentity(env, claims) {
+  if (!env.CLERK_SECRET_KEY || !claims?.sub) throw new Error("Email verification service is not configured.");
+  const response = await fetch(`https://api.clerk.com/v1/users/${encodeURIComponent(claims.sub)}`, {
+    headers: { Authorization: `Bearer ${env.CLERK_SECRET_KEY}`, Accept: "application/json" }
+  });
+  if (!response.ok) throw new Error("Could not confirm the verified email address.");
+  const user = await response.json();
+  const entries = Array.isArray(user.email_addresses) ? user.email_addresses : [];
+  const primary = entries.find(item => item.id === user.primary_email_address_id && item.verification?.status === "verified")
+    || entries.find(item => item.verification?.status === "verified");
+  const email = normalizeEmail(primary?.email_address || "");
+  if (!email) throw new Error("A verified email address is required.");
+  return { email, clerkUserId: claims.sub, firstName: validText(user.first_name || "", 120), lastName: validText(user.last_name || "", 120) };
+}
+
+async function getVerifiedShopIdentity(sessionToken) {
+  if (!sessionToken || typeof sessionToken !== "string") throw new Error("A valid Shop session is required.");
+  const response = await fetch("https://vn-shop-auth.9ojeez9.workers.dev", {
+    method: "POST", headers: { "Content-Type": "application/json", "Origin": ALLOWED_ORIGIN },
+    body: JSON.stringify({ action: "verify", sessionToken })
+  });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok || result.authenticated !== true) throw new Error("The Shop session could not be verified.");
+  const user = result.user || result.customer || result;
+  if (user.emailVerified !== true && user.email_verified !== true) throw new Error("A verified Shop email address is required.");
+  const email = normalizeEmail(user.email || user.email_address || "");
+  if (!email) throw new Error("The verified Shop account did not provide an email address.");
+  return { email, clerkUserId: null, firstName: validText(user.first_name || user.firstName || user.given_name || "", 120), lastName: validText(user.last_name || user.lastName || user.family_name || "", 120) };
+}
+
+async function migrateLegacyAccount(db, legacyUserId, accountId) {
+  if (!legacyUserId || legacyUserId === accountId) return;
+  const profileColumns = await getColumns(db, "customer_profiles");
+  const oldProfile = await db.prepare("SELECT * FROM customer_profiles WHERE user_id = ? LIMIT 1").bind(legacyUserId).first();
+  const newProfile = await db.prepare("SELECT * FROM customer_profiles WHERE user_id = ? LIMIT 1").bind(accountId).first();
+  if (oldProfile && !newProfile) {
+    await db.prepare("UPDATE customer_profiles SET user_id = ?, updated_at = ? WHERE user_id = ?").bind(accountId, nowISO(), legacyUserId).run();
+  } else if (oldProfile && newProfile) {
+    const fields = ["first_name","last_name","phone","country","country_code","marketing_consent","date_of_birth","avatar_url"];
+    const updates = fields.filter(field => profileColumns.includes(field) && oldProfile[field] != null && oldProfile[field] !== "");
+    if (updates.length) {
+      await db.prepare(`UPDATE customer_profiles SET ${updates.map(field => `${field} = COALESCE(NULLIF(${field}, ''), ?)`).join(", ")}, updated_at = ? WHERE user_id = ?`)
+        .bind(...updates.map(field => oldProfile[field]), nowISO(), accountId).run();
+    }
+    await db.prepare("DELETE FROM customer_profiles WHERE user_id = ?").bind(legacyUserId).run();
+  }
+  for (const table of ["customer_addresses", "customer_orders", "customer_returns", "admin_orders", "admin_order_queue", "issues"]) {
+    const columns = await getColumns(db, table);
+    if (columns.includes("user_id")) await db.prepare(`UPDATE ${table} SET user_id = ? WHERE user_id = ?`).bind(accountId, legacyUserId).run();
+  }
+}
+
+async function resolveVNAccount(db, identity) {
+  const email = normalizeEmail(identity.email);
+  if (!email) throw new Error("Verified email is missing.");
+  let account = await db.prepare("SELECT * FROM vn_accounts WHERE email = ? COLLATE NOCASE LIMIT 1").bind(email).first();
+  if (!account && identity.clerkUserId) {
+    account = await db.prepare("SELECT * FROM vn_accounts WHERE clerk_user_id = ? LIMIT 1").bind(identity.clerkUserId).first();
+    if (account) {
+      const emailOwner = await db.prepare("SELECT account_id FROM vn_accounts WHERE email = ? COLLATE NOCASE AND account_id <> ? LIMIT 1").bind(email, account.account_id).first();
+      if (emailOwner) throw new Error("This verified email is already linked to another VN SHOP account. Contact support to merge accounts safely.");
+    }
+  }
+  let legacyUserId = identity.clerkUserId || null;
+  if (!account && !legacyUserId) {
+    const profileColumns = await getColumns(db, "customer_profiles");
+    if (profileColumns.includes("email")) {
+      const legacyProfile = await db.prepare("SELECT user_id FROM customer_profiles WHERE lower(email) = ? ORDER BY updated_at DESC LIMIT 1").bind(email).first();
+      if (legacyProfile?.user_id) legacyUserId = legacyProfile.user_id;
+    }
+    if (!legacyUserId) {
+      const legacyOrder = await db.prepare("SELECT user_id FROM customer_orders WHERE lower(json_extract(customer_json, '$.email')) = ? ORDER BY created_at DESC LIMIT 1").bind(email).first();
+      if (legacyOrder?.user_id) legacyUserId = legacyOrder.user_id;
+    }
+    if (!legacyUserId) {
+      const legacyAdminOrder = await db.prepare("SELECT user_id FROM admin_orders WHERE lower(json_extract(customer_json, '$.email')) = ? ORDER BY delivered_at DESC LIMIT 1").bind(email).first();
+      if (legacyAdminOrder?.user_id) legacyUserId = legacyAdminOrder.user_id;
+    }
+  }
+  const now = nowISO();
+  if (!account) {
+    const accountId = randomId("vn_");
+    await db.prepare(`INSERT INTO vn_accounts (account_id,email,clerk_user_id,role,created_at,updated_at) VALUES (?,?,?,'customer',?,?)`)
+      .bind(accountId, email, legacyUserId, now, now).run();
+    account = { account_id: accountId, email, clerk_user_id: legacyUserId, role: "customer" };
+  } else if (identity.clerkUserId && account.clerk_user_id !== identity.clerkUserId) {
+    await db.prepare("UPDATE vn_accounts SET clerk_user_id = ?, email = ?, updated_at = ? WHERE account_id = ?")
+      .bind(identity.clerkUserId, email, now, account.account_id).run();
+  } else if (account.email !== email) {
+    await db.prepare("UPDATE vn_accounts SET email = ?, updated_at = ? WHERE account_id = ?")
+      .bind(email, now, account.account_id).run();
+  }
+  if (legacyUserId) await migrateLegacyAccount(db, legacyUserId, account.account_id);
+  await ensureProfile(db, account.account_id, { email, first_name: identity.firstName, last_name: identity.lastName });
+  const columns = await getColumns(db, "customer_profiles");
+  const updates = ["email", "first_name", "last_name"].filter(field => columns.includes(field) && identity[field === "email" ? "email" : field === "first_name" ? "firstName" : "lastName"]);
+  if (updates.length) await db.prepare(`UPDATE customer_profiles SET ${updates.map(field => `${field} = ?`).join(", ")}, updated_at = ? WHERE user_id = ?`)
+    .bind(...updates.map(field => field === "email" ? email : identity[field === "first_name" ? "firstName" : "lastName"]), now, account.account_id).run();
+  if (ADMIN_EMAILS.has(email)) await db.prepare("UPDATE vn_accounts SET role = 'admin', updated_at = ? WHERE account_id = ?").bind(now, account.account_id).run();
+  return { userId: account.account_id, email, isAdmin: ADMIN_EMAILS.has(email) || account.role === "admin", firstName: identity.firstName || "", lastName: identity.lastName || "" };
+}
+
+async function readBody(request) {
+  const contentLength = Number(
+    request.headers.get("Content-Length") || 0
+  );
+
+  if (contentLength > MAX_BODY_SIZE) {
+    throw new AppError("Request body is too large.",413);
+  }
+
+  const bodyText = await request.text();
+
+  if (bodyText.length > MAX_BODY_SIZE) {
+    throw new AppError("Request body is too large.",413);
+  }
+
+  if (!bodyText.trim()) return {};
+
+  try {
+    return JSON.parse(bodyText);
+  } catch {
+    throw new AppError("Invalid JSON body.",400);
+  }
+}
+
+async function getColumns(db, tableName) {
+  if (!/^[a-zA-Z0-9_]+$/.test(tableName)) throw new AppError("Invalid schema table.", 500);
+  if (columnsCache.has(tableName)) return columnsCache.get(tableName);
+  const result = await db.prepare(`PRAGMA table_info(${tableName})`).all();
+  const columns = (result.results || []).map(column => column.name);
+  columnsCache.set(tableName, columns);
+  return columns;
+}
+
+async function ensureColumn(db, tableName, columnName, definition) {
+  const columns = await getColumns(db, tableName);
+  if (!columns.includes(columnName)) {
+    await db.prepare(`ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${definition}`).run();
+    columnsCache.delete(tableName);
+  }
+}
+
+async function ensureSchema(db) {
+  if (schemaReady) return;
+  if (schemaPromise) return schemaPromise;
+  schemaPromise = (async () => {
+  await db.batch([
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS vn_accounts (
+        account_id TEXT PRIMARY KEY,
+        email TEXT NOT NULL UNIQUE COLLATE NOCASE,
+        clerk_user_id TEXT UNIQUE,
+        role TEXT NOT NULL DEFAULT 'customer',
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL
+      )
+    `),
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS vn_operation_sessions (
+        id TEXT PRIMARY KEY,
+        token_hash TEXT NOT NULL UNIQUE,
+        created_at TEXT NOT NULL,
+        expires_at TEXT NOT NULL,
+        actor_id TEXT
+      )
+    `),
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS admin_order_queue (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        order_number TEXT NOT NULL UNIQUE,
+        vn_code TEXT NOT NULL UNIQUE,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'received',
+        customer_json TEXT NOT NULL,
+        items_json TEXT NOT NULL,
+        subtotal REAL NOT NULL DEFAULT 0,
+        shipping REAL NOT NULL DEFAULT 0,
+        taxes REAL NOT NULL DEFAULT 0,
+        total REAL NOT NULL DEFAULT 0,
+        currency TEXT NOT NULL DEFAULT 'TRY',
+        country_code TEXT,
+        shipping_method TEXT,
+        payment_method TEXT,
+        payment_status TEXT NOT NULL DEFAULT 'Pending',
+        payment_number TEXT,
+        order_json TEXT NOT NULL
+      )
+    `),
+    db.prepare(`CREATE INDEX IF NOT EXISTS idx_admin_order_queue_status ON admin_order_queue(status, created_at DESC)`),
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS order_status_history (
+        id TEXT PRIMARY KEY, order_id TEXT NOT NULL, from_status TEXT, to_status TEXT NOT NULL,
+        actor_id TEXT NOT NULL, reason TEXT, created_at TEXT NOT NULL
+      )
+    `),
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS return_status_history (
+        id TEXT PRIMARY KEY, return_id TEXT NOT NULL, from_status TEXT, to_status TEXT NOT NULL,
+        actor_id TEXT NOT NULL, note TEXT, created_at TEXT NOT NULL
+      )
+    `),
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS issues (
+        id TEXT PRIMARY KEY, user_id TEXT NOT NULL, order_id TEXT, order_number TEXT,
+        issue_type TEXT, description TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'open',
+        resolution TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL,
+        processing_started_at TEXT, resolved_at TEXT
+      )
+    `),
+    db.prepare(`CREATE INDEX IF NOT EXISTS idx_issues_user ON issues(user_id, created_at DESC)`),
+    db.prepare(`CREATE TABLE IF NOT EXISTS order_status_events (
+      id TEXT PRIMARY KEY, order_id TEXT NOT NULL, from_status TEXT, to_status TEXT NOT NULL,
+      actor_id TEXT NOT NULL, reason TEXT, created_at TEXT NOT NULL
+    )`),
+    db.prepare(`CREATE INDEX IF NOT EXISTS idx_order_status_events_order ON order_status_events(order_id, created_at)`),
+    db.prepare(`CREATE TABLE IF NOT EXISTS admin_order_code_registry (
+      code_number INTEGER PRIMARY KEY CHECK(code_number BETWEEN 1 AND 99),
+      admin_order_id TEXT NOT NULL UNIQUE, created_at TEXT NOT NULL
+    )`),
+    db.prepare(`CREATE TABLE IF NOT EXISTS admin_order_events (
+      id TEXT PRIMARY KEY, admin_order_id TEXT NOT NULL, event_type TEXT NOT NULL,
+      actor_id TEXT NOT NULL, details_json TEXT, created_at TEXT NOT NULL
+    )`),
+    db.prepare(`CREATE TABLE IF NOT EXISTS vn_operation_login_attempts (
+      attempt_key TEXT PRIMARY KEY, failures INTEGER NOT NULL DEFAULT 0,
+      window_started_at TEXT NOT NULL, locked_until TEXT
+    )`),
+    db.prepare(`CREATE TABLE IF NOT EXISTS issue_status_history (
+      id TEXT PRIMARY KEY, issue_id TEXT NOT NULL, from_status TEXT, to_status TEXT NOT NULL,
+      actor_id TEXT NOT NULL, resolution TEXT, created_at TEXT NOT NULL
+    )`),
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS customer_sessions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id TEXT NOT NULL,
+        token_hash TEXT NOT NULL UNIQUE,
+        created_at TEXT NOT NULL,
+        expires_at TEXT NOT NULL
+      )
+    `),
+
+    db.prepare(`
+      CREATE INDEX IF NOT EXISTS idx_customer_sessions_user
+      ON customer_sessions(user_id)
+    `),
+
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS customer_profiles (
+        user_id TEXT PRIMARY KEY, email TEXT, first_name TEXT, last_name TEXT,
+        phone TEXT, country TEXT, country_code TEXT, marketing_consent INTEGER NOT NULL DEFAULT 0,
+        date_of_birth TEXT, avatar_url TEXT, created_at TEXT, updated_at TEXT
+      )
+    `),
+
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS customer_addresses (
+        id TEXT PRIMARY KEY, user_id TEXT NOT NULL, label TEXT, first_name TEXT, last_name TEXT,
+        company TEXT, address TEXT, address_line_1 TEXT, address_line_2 TEXT, apartment TEXT,
+        city TEXT, state TEXT, province TEXT, postal TEXT, postal_code TEXT, country TEXT,
+        country_code TEXT, phone TEXT, is_default INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT, updated_at TEXT
+      )
+    `),
+
+    db.prepare(`
+      CREATE INDEX IF NOT EXISTS idx_customer_addresses_user
+      ON customer_addresses(user_id)
+    `),
+
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS customer_orders (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        order_number TEXT NOT NULL UNIQUE,
+        vn_code TEXT NOT NULL UNIQUE,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        customer_json TEXT NOT NULL,
+        subtotal REAL NOT NULL DEFAULT 0,
+        shipping REAL NOT NULL DEFAULT 0,
+        taxes REAL NOT NULL DEFAULT 0,
+        total REAL NOT NULL DEFAULT 0,
+        currency TEXT NOT NULL DEFAULT 'TRY',
+        country_code TEXT,
+        order_status TEXT NOT NULL DEFAULT 'Received',
+        payment_status TEXT NOT NULL DEFAULT 'Pending',
+        delivered_at TEXT,
+        shipping_method TEXT,
+        payment_method TEXT,
+        order_json TEXT NOT NULL,
+        is_test INTEGER NOT NULL DEFAULT 0,
+        is_admin_order INTEGER NOT NULL DEFAULT 0,
+        admin_payment_exempt INTEGER NOT NULL DEFAULT 0,
+        admin_stock_exempt INTEGER NOT NULL DEFAULT 0
+      )
+    `),
+
+    db.prepare(`
+      CREATE INDEX IF NOT EXISTS idx_customer_orders_user
+      ON customer_orders(user_id, created_at DESC)
+    `),
+
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS customer_order_items (
+        id TEXT PRIMARY KEY,
+        order_id TEXT NOT NULL,
+        product_id TEXT,
+        title TEXT,
+        variant TEXT,
+        quantity INTEGER NOT NULL DEFAULT 1,
+        unit_price REAL NOT NULL DEFAULT 0,
+        total_price REAL NOT NULL DEFAULT 0,
+        image TEXT,
+        item_json TEXT NOT NULL,
+        active INTEGER NOT NULL DEFAULT 1,
+        removed_at TEXT,
+        removed_by TEXT,
+        FOREIGN KEY(order_id) REFERENCES customer_orders(id)
+      )
+    `),
+
+    db.prepare(`
+      CREATE INDEX IF NOT EXISTS idx_customer_order_items_order
+      ON customer_order_items(order_id, active)
+    `),
+
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS customer_returns (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        order_id TEXT NOT NULL,
+        order_number TEXT NOT NULL,
+        reason TEXT NOT NULL,
+        customer_note TEXT,
+        status TEXT NOT NULL DEFAULT 'Pending',
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        reviewed_at TEXT,
+        reviewed_by TEXT,
+        admin_note TEXT,
+        is_test INTEGER NOT NULL DEFAULT 0,
+        FOREIGN KEY(order_id) REFERENCES customer_orders(id)
+      )
+    `),
+
+    db.prepare(`
+      CREATE INDEX IF NOT EXISTS idx_customer_returns_user
+      ON customer_returns(user_id, created_at DESC)
+    `),
+
+    db.prepare(`
+      CREATE INDEX IF NOT EXISTS idx_customer_returns_order
+      ON customer_returns(order_id)
+    `),
+
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS customer_return_items (
+        id TEXT PRIMARY KEY,
+        return_id TEXT NOT NULL,
+        order_item_id TEXT NOT NULL,
+        item_json TEXT NOT NULL,
+        quantity INTEGER NOT NULL DEFAULT 1,
+        FOREIGN KEY(return_id) REFERENCES customer_returns(id)
+      )
+    `),
+
+    db.prepare(`
+      CREATE INDEX IF NOT EXISTS idx_customer_return_items_return
+      ON customer_return_items(return_id)
+    `),
+
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS admin_orders (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL,
+        order_number TEXT NOT NULL UNIQUE,
+        vn_code TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        delivered_at TEXT NOT NULL,
+        returned_at TEXT,
+        returned_by TEXT,
+        status TEXT NOT NULL DEFAULT 'delivered',
+        customer_json TEXT NOT NULL,
+        items_json TEXT NOT NULL,
+        subtotal REAL NOT NULL DEFAULT 0,
+        shipping REAL NOT NULL DEFAULT 0,
+        taxes REAL NOT NULL DEFAULT 0,
+        total REAL NOT NULL DEFAULT 0,
+        currency TEXT NOT NULL DEFAULT 'TRY',
+        country_code TEXT,
+        shipping_method TEXT,
+        payment_method TEXT,
+        payment_status TEXT NOT NULL DEFAULT 'Pending',
+        payment_number TEXT,
+        order_json TEXT NOT NULL
+      )
+    `),
+
+    db.prepare(`
+      CREATE INDEX IF NOT EXISTS idx_admin_orders_user
+      ON admin_orders(user_id, delivered_at DESC)
+    `),
+
+    db.prepare(`
+      CREATE INDEX IF NOT EXISTS idx_admin_orders_status
+      ON admin_orders(status, delivered_at DESC)
+    `)
+  ]);
+
+  await db.batch([
+    db.prepare(`CREATE TRIGGER IF NOT EXISTS trg_admin_orders_vn_code_unique_insert BEFORE INSERT ON admin_orders
+      WHEN EXISTS (SELECT 1 FROM admin_orders WHERE vn_code=NEW.vn_code)
+      BEGIN SELECT RAISE(ABORT,'duplicate admin VN code'); END`),
+    db.prepare(`CREATE TRIGGER IF NOT EXISTS trg_admin_orders_vn_code_unique_update BEFORE UPDATE OF vn_code ON admin_orders
+      WHEN EXISTS (SELECT 1 FROM admin_orders WHERE vn_code=NEW.vn_code AND id<>NEW.id)
+      BEGIN SELECT RAISE(ABORT,'duplicate admin VN code'); END`)
+  ]);
+
+  await ensureColumn(
+    db,
+    "customer_orders",
+    "is_test",
+    "INTEGER NOT NULL DEFAULT 0"
+  );
+
+  await ensureColumn(
+    db,
+    "customer_orders",
+    "is_admin_order",
+    "INTEGER NOT NULL DEFAULT 0"
+  );
+
+  await ensureColumn(
+    db,
+    "customer_orders",
+    "admin_payment_exempt",
+    "INTEGER NOT NULL DEFAULT 0"
+  );
+
+  await ensureColumn(
+    db,
+    "customer_orders",
+    "admin_stock_exempt",
+    "INTEGER NOT NULL DEFAULT 0"
+  );
+
+  await ensureColumn(db, "customer_returns", "is_test", "INTEGER NOT NULL DEFAULT 0");
+  await ensureColumn(db, "customer_orders", "delivered_at", "TEXT");
+  await ensureColumn(db, "admin_orders", "payment_status", "TEXT NOT NULL DEFAULT 'Pending'");
+  await ensureColumn(db, "admin_orders", "payment_number", "TEXT");
+  await ensureColumn(db, "admin_order_queue", "payment_status", "TEXT NOT NULL DEFAULT 'Pending'");
+  await ensureColumn(db, "admin_order_queue", "payment_number", "TEXT");
+  await ensureColumn(db, "vn_operation_sessions", "actor_id", "TEXT");
+  for (const [column, definition] of Object.entries({
+    email:"TEXT", first_name:"TEXT", last_name:"TEXT", phone:"TEXT", country:"TEXT", country_code:"TEXT",
+    marketing_consent:"INTEGER NOT NULL DEFAULT 0", date_of_birth:"TEXT", avatar_url:"TEXT"
+  })) await ensureColumn(db, "customer_profiles", column, definition);
+  for (const [column, definition] of Object.entries({
+    label:"TEXT", first_name:"TEXT", last_name:"TEXT", company:"TEXT", address:"TEXT", address_line_1:"TEXT",
+    address_line_2:"TEXT", apartment:"TEXT", city:"TEXT", state:"TEXT", province:"TEXT", postal:"TEXT",
+    postal_code:"TEXT", country:"TEXT", country_code:"TEXT", phone:"TEXT", is_default:"INTEGER NOT NULL DEFAULT 0"
+  })) await ensureColumn(db, "customer_addresses", column, definition);
+
+  // Preserve every previously assigned VN-A number, including deleted-order history.
+  await db.prepare(`INSERT OR IGNORE INTO admin_order_code_registry (code_number, admin_order_id, created_at)
+    SELECT CAST(SUBSTR(vn_code, 6) AS INTEGER), 'legacy:' || vn_code, COALESCE(delivered_at, created_at, ?)
+    FROM admin_orders WHERE vn_code GLOB 'VN-A[0-9][0-9]' AND CAST(SUBSTR(vn_code,6) AS INTEGER) BETWEEN 1 AND 99`).bind(nowISO()).run();
+  const drafts=await db.prepare(`SELECT id FROM admin_order_queue`).all();
+  for(const draft of drafts.results||[]) {
+    const draftRef=`DRAFT-${String(draft.id).slice(-12)}`;
+    await db.prepare(`UPDATE admin_order_queue SET order_number=?,vn_code=?,order_json=json_set(order_json,'$.orderNumber',NULL,'$.vnCode',NULL) WHERE id=?`).bind(draftRef,draftRef,draft.id).run();
+  }
+  schemaReady = true;
+  })();
+  try {
+    await schemaPromise;
+  } catch (err) {
+    schemaPromise = null;
+    throw err;
+  }
+}
+
+async function ensureProfile(db, userId, claims = {}) {
+  const existing = await db.prepare(`
+    SELECT *
+    FROM customer_profiles
+    WHERE user_id = ?
+    LIMIT 1
+  `).bind(userId).first();
+
+  if (existing) return existing;
+
+  const columns = await getColumns(db, "customer_profiles");
+
+  const values = {
+    user_id: userId,
+    email: normalizeEmail(
+      claims.email || claims.email_address || ""
+    ),
+    created_at: nowISO(),
+    updated_at: nowISO()
+  };
+
+  const selectedColumns = Object.keys(values).filter(
+    column => columns.includes(column)
+  );
+
+  const placeholders = selectedColumns.map(() => "?").join(", ");
+
+  await db.prepare(`
+    INSERT OR IGNORE INTO customer_profiles (
+      ${selectedColumns.join(", ")}
+    )
+    VALUES (${placeholders})
+  `).bind(
+    ...selectedColumns.map(column => values[column])
+  ).run();
+
+  return await db.prepare(`
+    SELECT *
+    FROM customer_profiles
+    WHERE user_id = ?
+    LIMIT 1
+  `).bind(userId).first();
+}
+
+function profileResponse(profile, userId, admin) {
+  return {
+    ...(profile || {}),
+    user_id: userId,
+    is_admin: admin,
+    isAdmin: admin
+  };
+}
+
+async function getAddresses(db, userId) {
+  const columns = await getColumns(db, "customer_addresses");
+  const order = [];
+
+  if (columns.includes("is_default")) order.push("is_default DESC");
+  if (columns.includes("created_at")) order.push("created_at DESC");
+
+  return (
+    await db.prepare(`
+      SELECT *
+      FROM customer_addresses
+      WHERE user_id = ?
+      ${order.length ? `ORDER BY ${order.join(", ")}` : ""}
+    `).bind(userId).all()
+  ).results || [];
+}
+
+function getAllowedProfileFields(columns) {
+  return [
+    "first_name",
+    "last_name",
+    "email",
+    "phone",
+    "country",
+    "country_code",
+    "marketing_consent",
+    "date_of_birth",
+    "updated_at"
+  ].filter(field => columns.includes(field));
+}
+
+function getAllowedAddressFields(columns) {
+  return [
+    "label",
+    "first_name",
+    "last_name",
+    "company",
+    "address",
+    "address_line_1",
+    "address_line_2",
+    "apartment",
+    "city",
+    "state",
+    "province",
+    "postal",
+    "postal_code",
+    "country",
+    "country_code",
+    "phone",
+    "is_default",
+    "updated_at"
+  ].filter(field => columns.includes(field));
+}
+
+async function updateProfile(db, userId, body) {
+  const columns = await getColumns(db, "customer_profiles");
+  const allowed = getAllowedProfileFields(columns);
+
+  const mapping = {
+    first_name: validText(body.first_name ?? body.firstName, 100),
+    last_name: validText(body.last_name ?? body.lastName, 100),
+    email: normalizeEmail(body.email),
+    phone: validText(body.phone, 50),
+    country: validText(body.country, 100),
+    country_code: validText(body.country_code ?? body.countryCode, 5),
+    marketing_consent:
+      body.marketing_consent ?? body.marketingConsent ? 1 : 0,
+    date_of_birth: validText(
+      body.date_of_birth ?? body.dateOfBirth,
+      30
+    ),
+    updated_at: nowISO()
+  };
+
+  const updates = allowed.filter(field => (
+    Object.prototype.hasOwnProperty.call(body, field) ||
+    (field === "first_name" && body.firstName !== undefined) ||
+    (field === "last_name" && body.lastName !== undefined) ||
+    (field === "country_code" && body.countryCode !== undefined) ||
+    (field === "marketing_consent" && body.marketingConsent !== undefined) ||
+    (field === "date_of_birth" && body.dateOfBirth !== undefined)
+  ));
+
+  if (!updates.includes("updated_at") && columns.includes("updated_at")) {
+    updates.push("updated_at");
+  }
+
+  if (updates.length) {
+    await db.prepare(`
+      UPDATE customer_profiles
+      SET ${updates.map(field => `${field} = ?`).join(", ")}
+      WHERE user_id = ?
+    `).bind(
+      ...updates.map(field => mapping[field]),
+      userId
+    ).run();
+  }
+
+  return await db.prepare(`
+    SELECT *
+    FROM customer_profiles
+    WHERE user_id = ?
+    LIMIT 1
+  `).bind(userId).first();
+}
+
+async function addAddress(db, userId, body) {
+  const countryCode=validText(body.country_code ?? body.countryCode,5).toUpperCase();
+  const country=validText(body.country,100).toLowerCase();
+  const firstName=validText(body.first_name ?? body.firstName,100);
+  const lastName=validText(body.last_name ?? body.lastName,100);
+  const addressLine=validText(body.address_line_1 ?? body.addressLine1 ?? body.address,300);
+  const city=validText(body.city,100);
+  const postal=validText(body.postal_code ?? body.postalCode ?? body.postal,30);
+  const phone=validText(body.phone,50);
+  if (!(countryCode==="TR" || country==="türkiye" || country==="turkey")) throw new AppError("VN SHOP currently accepts saved addresses in Türkiye only.");
+  if (!firstName || !lastName || !addressLine || !city || !postal || !phone) throw new AppError("First name, last name, street address, city, postal code, and phone are required.");
+  const columns = await getColumns(db, "customer_addresses");
+  const allowed = getAllowedAddressFields(columns);
+  const id = randomId("addr_");
+  const createdAt = nowISO();
+
+  const mapping = {
+    label: validText(body.label, 60),
+    first_name: validText(body.first_name ?? body.firstName, 100),
+    last_name: validText(body.last_name ?? body.lastName, 100),
+    company: validText(body.company, 150),
+    address: validText(body.address, 300),
+    address_line_1: validText(
+      body.address_line_1 ?? body.addressLine1,
+      300
+    ),
+    address_line_2: validText(
+      body.address_line_2 ?? body.addressLine2,
+      300
+    ),
+    apartment: validText(body.apartment, 150),
+    city: validText(body.city, 100),
+    state: validText(body.state, 100),
+    province: validText(body.province, 100),
+    postal: validText(
+      body.postal ?? body.postal_code ?? body.postalCode,
+      30
+    ),
+    postal_code: validText(
+      body.postal_code ?? body.postalCode ?? body.postal,
+      30
+    ),
+    country: validText(body.country, 100),
+    country_code: validText(body.country_code ?? body.countryCode, 5),
+    phone: validText(body.phone, 50),
+    is_default: body.is_default || body.isDefault ? 1 : 0,
+    created_at: createdAt,
+    updated_at: createdAt
+  };
+
+  const values = { id, user_id: userId, ...mapping };
+
+  const selectedColumns = Object.keys(values).filter(
+    column => columns.includes(column)
+  );
+
+  const placeholders = selectedColumns.map(() => "?").join(", ");
+
+  await db.prepare(`
+    INSERT INTO customer_addresses (
+      ${selectedColumns.join(", ")}
+    )
+    VALUES (${placeholders})
+  `).bind(
+    ...selectedColumns.map(column => values[column])
+  ).run();
+
+  if (mapping.is_default) {
+    await setDefaultAddress(db, userId, id);
+  }
+
+  return await db.prepare(`
+    SELECT *
+    FROM customer_addresses
+    WHERE id = ? AND user_id = ?
+    LIMIT 1
+  `).bind(id, userId).first();
+}
+
+async function setDefaultAddress(db, userId, addressId) {
+  const columns = await getColumns(db, "customer_addresses");
+
+  if (!columns.includes("is_default")) return false;
+
+  await db.prepare(`
+    UPDATE customer_addresses
+    SET is_default = 0
+    WHERE user_id = ?
+  `).bind(userId).run();
+
+  const result = await db.prepare(`
+    UPDATE customer_addresses
+    SET is_default = 1
+    WHERE id = ? AND user_id = ?
+  `).bind(addressId, userId).run();
+
+  return Number(result.meta?.changes || 0) > 0;
+}
+
+async function deleteAddress(db, userId, addressId) {
+  const result = await db.prepare(`
+    DELETE FROM customer_addresses
+    WHERE id = ? AND user_id = ?
+  `).bind(addressId, userId).run();
+
+  return Number(result.meta?.changes || 0) > 0;
+}
+
+function normalizeOrderItem(item) {
+  const quantity = Math.max(
+    1,
+    Math.min(999, Math.floor(validNumber(item.quantity, 1)))
+  );
+
+  const unitPrice = Math.max(
+    0,
+    validNumber(
+      item.unitPrice ?? item.unit_price ?? item.price,
+      0
+    )
+  );
+
+  const totalPrice = Math.max(
+    0,
+    validNumber(
+      item.totalPrice ?? item.total_price,
+      unitPrice * quantity
+    )
+  );
+
+  return {
+    id: randomId("item_"),
+    productId: validText(
+      item.productId ?? item.product_id ?? item.id,
+      150
+    ),
+    title: validText(
+      item.title ?? item.name ?? item.productName,
+      250
+    ),
+    variant: validText(
+      item.variant ?? item.option ?? item.size,
+      250
+    ),
+    quantity,
+    unitPrice,
+    totalPrice,
+    image: validText(
+      item.image ?? item.imageUrl ?? item.image_url,
+      1000
+    ),
+    itemJson: JSON.stringify(item)
+  };
+}
+
+function normalizeOrderRecord(order) {
+  const customer = order.customer || {};
+  const items = Array.isArray(order.items) ? order.items : [];
+
+  if (!items.length) {
+    throw new AppError("Order information is incomplete.",400);
+  }
+
+  if (!customer.email) {
+    throw new AppError("Order customer email is missing.",400);
+  }
+
+  const normalizedItems = items.map(normalizeOrderItem);
+
+  return {
+    orderNumber: validText(order.orderNumber, 100),
+    vnCode: validText(order.vnCode, 100),
+    createdAt: validText(order.createdAt, 60) || nowISO(),
+    customer,
+    items: normalizedItems,
+    subtotal: Math.max(0, validNumber(order.subtotal)),
+    shipping: Math.max(0, validNumber(order.shipping)),
+    taxes: Math.max(0, validNumber(order.taxes)),
+    total: Math.max(0, validNumber(order.total)),
+    currency: validText(order.currency, 10) || "TRY",
+    countryCode: validText(order.countryCode, 5),
+    shippingMethod: validText(order.shippingMethod, 150),
+    paymentMethod: validText(order.paymentMethod, 150),
+    originalOrder: order
+  };
+}
+
+function serializeNormalizedOrder(order) {
+  return {
+    orderNumber: order.orderNumber,
+    vnCode: order.vnCode,
+    createdAt: order.createdAt,
+    customer: order.customer,
+    items: order.items.map(item => ({
+      id: item.id,
+      productId: item.productId,
+      title: item.title,
+      variant: item.variant,
+      quantity: item.quantity,
+      unitPrice: item.unitPrice,
+      totalPrice: item.totalPrice,
+      image: item.image
+    })),
+    subtotal: order.subtotal,
+    shipping: order.shipping,
+    taxes: order.taxes,
+    total: order.total,
+    currency: order.currency,
+    countryCode: order.countryCode,
+    shippingMethod: order.shippingMethod,
+    paymentMethod: order.paymentMethod
+  };
+}
+
+async function generateUniqueAdminOrderNumber(db) {
+  for (let attempt = 0; attempt < 100; attempt++) {
+    const orderNumber = randomDigits(6);
+
+    const existing = await db.prepare(`
+      SELECT order_number FROM admin_orders WHERE order_number = ?
+      UNION ALL
+      SELECT order_number FROM admin_order_queue WHERE order_number = ?
+      LIMIT 1
+    `).bind(orderNumber, orderNumber).first();
+
+    if (!existing) return orderNumber;
+  }
+
+  throw new AppError("Unable to generate a unique order number. Try again.",503);
+}
+
+async function generateAdminCode(db) {
+  const row=await db.prepare(`WITH RECURSIVE seq(n) AS (SELECT 1 UNION ALL SELECT n+1 FROM seq WHERE n<99) SELECT MIN(n) AS next_number FROM seq WHERE NOT EXISTS (SELECT 1 FROM admin_order_code_registry r WHERE r.code_number=n)`).first();
+  if(!row?.next_number) throw new AppError("All VN-A order codes have been allocated.",409);
+  return `VN-A${String(row.next_number).padStart(2,"0")}`;
+}
+
+async function generateUniqueCustomerOrderNumber(db) {
+  for (let attempt = 0; attempt < 100; attempt++) {
+    const orderNumber = randomDigits(8);
+
+    const existing = await db.prepare(`
+      SELECT order_number
+      FROM customer_orders
+      WHERE order_number = ?
+      LIMIT 1
+    `).bind(orderNumber).first();
+
+    if (!existing) return orderNumber;
+  }
+
+  throw new AppError("Unable to generate a unique order number. Try again.",503);
+}
+
+async function generateUniqueCustomerCode(db) {
+  const sequence = await db.prepare(`
+    SELECT MAX(CAST(SUBSTR(vn_code, 4) AS INTEGER)) AS last_code
+    FROM customer_orders
+    WHERE vn_code GLOB 'VN-[0-9]*'
+  `).first();
+
+  const nextNumber = Math.max(0, Number(sequence?.last_code || 0)) + 1;
+
+  if (nextNumber <= 999) {
+    return `VN-${String(nextNumber).padStart(3, "0")}`;
+  }
+
+  return `VN-${String(nextNumber).padStart(4, "0")}`;
+}
+
+async function prepareAdminOrder(db, userId, body) {
+  const orderInput = body.order || body;
+  const order = normalizeOrderRecord(orderInput);
+  order.createdAt = nowISO();
+  const id = randomId("admin_queue_");
+  const timestamp = nowISO();
+  const draftNumber = `DRAFT-${id.slice(-12)}`;
+  const serialized = serializeNormalizedOrder(order);
+  const queueOrder = { ...order.originalOrder, orderNumber: null, vnCode: null, status: "received", orderStatus: "Received", paymentStatus: "Pending" };
+  await db.prepare(`INSERT INTO admin_order_queue (
+    id,user_id,order_number,vn_code,created_at,updated_at,status,customer_json,items_json,
+    subtotal,shipping,taxes,total,currency,country_code,shipping_method,payment_method,payment_status,payment_number,order_json
+  ) VALUES (?,?,?,?,?,?,'received',?,?,?,?,?,?,?,?,?,?,'Pending',NULL,?)`).bind(
+    id,userId,draftNumber,draftNumber,order.createdAt,timestamp,
+    JSON.stringify(order.customer),JSON.stringify(serialized.items),order.subtotal,order.shipping,order.taxes,
+    order.total,order.currency,order.countryCode,order.shippingMethod,order.paymentMethod,JSON.stringify(queueOrder)
+  ).run();
+  return { id, orderNumber: null, vnCode: null, draftReference: draftNumber, createdAt: order.createdAt,
+    customer: order.customer, items: serialized.items, subtotal: order.subtotal, shipping: order.shipping,
+    taxes: order.taxes, total: order.total, currency: order.currency, countryCode: order.countryCode,
+    shippingMethod: order.shippingMethod, paymentMethod: order.paymentMethod, status: "received",
+    orderStatus: "Received", paymentStatus: "Pending", isAdminOrder: true,
+    order: { ...order.originalOrder, orderNumber: null, vnCode: null, createdAt: order.createdAt } };
+}
+
+
+
+async function serializeAdminOrder(record) {
+  return {
+    id: record.id,
+    orderNumber: record.order_number,
+    vnCode: record.vn_code,
+    createdAt: record.created_at,
+    updatedAt: record.updated_at,
+    deliveredAt: record.delivered_at,
+    returnedAt: record.returned_at,
+    returnedBy: record.returned_by,
+    status: record.status,
+    orderStatus: record.status === "returned" ? "Returned" : "Delivered",
+    customer: parseJSON(record.customer_json, {}),
+    items: parseJSON(record.items_json, []),
+    subtotal: record.subtotal,
+    shipping: record.shipping,
+    taxes: record.taxes,
+    total: record.total,
+    currency: record.currency,
+    countryCode: record.country_code,
+    shippingMethod: record.shipping_method,
+    paymentMethod: record.payment_method,
+    paymentStatus: record.payment_status || "Pending",
+    paymentNumber: record.payment_number || null,
+    order: parseJSON(record.order_json, {})
+  };
+}
+
+async function listAdminOrders(db) {
+  const result = await db.prepare(`
+    SELECT *
+    FROM admin_orders
+    ORDER BY delivered_at DESC
+  `).all();
+
+  const orders = [];
+
+  for (const record of result.results || []) {
+    orders.push(await serializeAdminOrder(record));
+  }
+
+  return orders;
+}
+
+async function updateAdminOrderStatus(db, adminId, orderId, body) {
+  const status = validText(
+    body.status ?? body.orderStatus,
+    40
+  ).toLowerCase();
+
+  if (status !== "returned") {
+    throw new AppError("Invalid order status.",400);
+  }
+
+  const record = await db.prepare(`
+    SELECT id, status
+    FROM admin_orders
+    WHERE id = ?
+    LIMIT 1
+  `).bind(orderId).first();
+
+  if (!record) return false;
+  if (record.status === "returned") return true;
+
+  const timestamp = nowISO();
+
+  await db.batch([
+    db.prepare(`UPDATE admin_orders SET status='returned',returned_at=?,returned_by=?,updated_at=? WHERE id=?`).bind(timestamp,adminId,timestamp,orderId),
+    db.prepare(`INSERT INTO admin_order_events (id,admin_order_id,event_type,actor_id,details_json,created_at) VALUES (?,?,?,?,?,?)`).bind(randomId("aoe_"),orderId,"status",adminId,JSON.stringify({from:record.status,to:"returned"}),timestamp)
+  ]);
+  return true;
+}
+
+
+
+
+
+async function listOrders(db,userId,admin) {
+  const query=admin
+    ? await db.prepare(`SELECT * FROM customer_orders WHERE COALESCE(is_admin_order,0)=0 ORDER BY created_at DESC`).all()
+    : await db.prepare(`SELECT * FROM customer_orders WHERE user_id=? AND COALESCE(is_admin_order,0)=0 ORDER BY created_at DESC`).bind(userId).all();
+  const orders=query.results||[]; if(!orders.length) return [];
+  const ids=orders.map(x=>x.id), marks=ids.map(()=>"?").join(",");
+  const [itemsResult,eventsResult]=await Promise.all([
+    db.prepare(`SELECT * FROM customer_order_items WHERE order_id IN (${marks}) AND active=1 ORDER BY rowid ASC`).bind(...ids).all(),
+    db.prepare(`SELECT * FROM order_status_events WHERE order_id IN (${marks}) ORDER BY created_at ASC`).bind(...ids).all()
+  ]);
+  const itemMap=new Map(),eventMap=new Map();
+  for(const item of itemsResult.results||[]){if(!itemMap.has(item.order_id))itemMap.set(item.order_id,[]);itemMap.get(item.order_id).push({id:item.id,productId:item.product_id,title:item.title,variant:item.variant,quantity:item.quantity,unitPrice:item.unit_price,totalPrice:item.total_price,image:item.image,...parseJSON(item.item_json,{})});}
+  for(const event of eventsResult.results||[]){if(!eventMap.has(event.order_id))eventMap.set(event.order_id,[]);eventMap.get(event.order_id).push({from_status:event.from_status,to_status:event.to_status,actor_id:event.actor_id,reason:event.reason,created_at:event.created_at});}
+  return orders.map(o=>({id:o.id,orderNumber:o.order_number,vnCode:o.vn_code,createdAt:o.created_at,updatedAt:o.updated_at,deliveredAt:o.delivered_at||null,customer:parseJSON(o.customer_json,{}),items:itemMap.get(o.id)||[],subtotal:o.subtotal,shipping:o.shipping,taxes:o.taxes,total:o.total,currency:o.currency,countryCode:o.country_code,orderStatus:o.order_status,status:o.order_status,paymentStatus:o.payment_status,shippingMethod:o.shipping_method,paymentMethod:o.payment_method,events:eventMap.get(o.id)||[]}));
+}
+
+async function getOrderForUser(db, userId, orderId) {
+  return await db.prepare(`
+    SELECT *
+    FROM customer_orders
+    WHERE id = ?
+      AND user_id = ?
+      AND COALESCE(is_admin_order, 0) = 0
+    LIMIT 1
+  `).bind(orderId, userId).first();
+}
+
+async function removeOrderItem(db, adminId, orderId, itemId) {
+  const item = await db.prepare(`SELECT id,order_id FROM customer_order_items WHERE id=? AND order_id=? AND active=1 LIMIT 1`).bind(itemId,orderId).first();
+  if (!item) return false;
+  const timestamp=nowISO();
+  await db.prepare(`UPDATE customer_order_items SET active=0,removed_at=?,removed_by=? WHERE id=? AND order_id=? AND active=1`).bind(timestamp,adminId,itemId,orderId).run();
+  const totals = await db.prepare(`SELECT COALESCE(SUM(total_price),0) AS subtotal FROM customer_order_items WHERE order_id=? AND active=1`).bind(orderId).first();
+  const order = await db.prepare(`SELECT shipping,taxes,total,order_json FROM customer_orders WHERE id=?`).bind(orderId).first();
+  const subtotal=Number(totals?.subtotal||0), shipping=Number(order?.shipping||0), taxes=Number(order?.taxes||0);
+  const total=subtotal+shipping+taxes;
+  const data=parseJSON(order?.order_json,{}); data.subtotal=subtotal; data.total=total;
+  await db.batch([
+    db.prepare(`UPDATE customer_orders SET subtotal=?,total=?,updated_at=?,order_json=? WHERE id=?`).bind(subtotal,total,timestamp,JSON.stringify(data),orderId),
+    db.prepare(`INSERT INTO order_status_events (id,order_id,from_status,to_status,actor_id,reason,created_at) VALUES (?,?,?,?,?,?,?)`).bind(randomId("ose_"),orderId,null,"Item removed",adminId,`Removed item ${itemId}`,timestamp)
+  ]);
+  return true;
+}
+
+async function updateOrderStatus(db, orderId, body, actorId = "operator") {
+  const allowed = new Set(["Received","Preparing","Delivering","Delivered","Cancelled"]);
+  const status=validText(body.orderStatus ?? body.status,60);
+  if (!allowed.has(status)) throw new AppError("Invalid order status.");
+  const timestamp=nowISO();
+  const record=await db.prepare(`SELECT order_status FROM customer_orders WHERE id=? AND COALESCE(is_admin_order,0)=0 LIMIT 1`).bind(orderId).first();
+  if (!record) return false;
+  const current=String(record.order_status||"Received");
+  const transitions={Received:["Preparing","Cancelled"],Preparing:["Delivering","Cancelled"],Delivering:["Delivered","Cancelled"]};
+  if (!(transitions[current]||[]).includes(status)) throw new AppError("Invalid order status transition.",409);
+  const reason=validText(body.cancellation_reason ?? body.reason,120);
+  const reasons=["High workload","Out of stock","Suspicious purchase","Address or delivery information issue","Product unavailable","Payment could not be verified","Customer request","Other"];
+  if (status==="Cancelled" && !reasons.includes(reason)) throw new AppError("Select a valid cancellation reason.");
+  await db.batch([
+    db.prepare(`UPDATE customer_orders SET order_status=?,updated_at=?,delivered_at=CASE WHEN ?='Delivered' THEN ? ELSE delivered_at END WHERE id=?`).bind(status,timestamp,status,timestamp,orderId),
+    db.prepare(`INSERT INTO order_status_history (id,order_id,from_status,to_status,actor_id,reason,created_at) VALUES (?,?,?,?,?,?,?)`).bind(randomId("osh_"),orderId,current,status,actorId,reason||null,timestamp),
+    db.prepare(`INSERT INTO order_status_events (id,order_id,from_status,to_status,actor_id,reason,created_at) VALUES (?,?,?,?,?,?,?)`).bind(randomId("ose_"),orderId,current,status,actorId,reason||null,timestamp)
+  ]);
+  return true;
+}
+
+async function createReturn(db, userId, body) {
+  const orderId=validText(body.order_id ?? body.orderId,150), reason=validText(body.reason,500);
+  const customerNote=validText(body.customer_note ?? body.customerNote,3000);
+  const selectedIds=Array.isArray(body.item_ids)?body.item_ids:Array.isArray(body.itemIds)?body.itemIds:[];
+  if (!orderId || !reason) throw new AppError("Order and return reason are required.");
+  if (!selectedIds.length || selectedIds.length>100) throw new AppError("Select at least one product.");
+  const order=await getOrderForUser(db,userId,orderId);
+  if (!order) throw new AppError("Order not found.",404);
+  if (String(order.payment_status||"").toLowerCase()!=="paid") throw new AppError("Only paid orders are eligible for a return request.",409);
+  if (String(order.order_status||"").toLowerCase()!=="delivered") throw new AppError("A return can only be requested after delivery.",409);
+  if (!order.delivered_at || !Number.isFinite(Date.parse(order.delivered_at))) throw new AppError("The delivery date is not recorded for this order. Contact support.",409);
+  const returnWindowDays=String(order.country_code||"").toUpperCase()==="TR"?14:30;
+  if (Date.now()-Date.parse(order.delivered_at)>returnWindowDays*24*60*60*1000) throw new AppError(`The ${returnWindowDays}-day return request period has expired.`,409);
+  const ids=[...new Set(selectedIds.map(x=>validText(x,150)).filter(Boolean))];
+  if (ids.length!==selectedIds.length) throw new AppError("Duplicate or invalid item selection.");
+  const placeholders=ids.map(()=>"?").join(",");
+  const selected=await db.prepare(`SELECT * FROM customer_order_items WHERE order_id=? AND active=1 AND id IN (${placeholders})`).bind(orderId,...ids).all();
+  const items=selected.results||[];
+  if (items.length!==ids.length) throw new AppError("One or more selected products are unavailable.",409);
+  const existing=await db.prepare(`SELECT ri.order_item_id FROM customer_return_items ri JOIN customer_returns r ON r.id=ri.return_id WHERE r.order_id=? AND lower(r.status) IN ('pending','accepted','return process','returned') AND ri.order_item_id IN (${placeholders})`).bind(orderId,...ids).all();
+  if ((existing.results||[]).length) throw new AppError("One or more selected products already have an active or completed return request.",409);
+  const returnId=randomId("return_"), timestamp=nowISO();
+  const statements=[db.prepare(`INSERT INTO customer_returns (id,user_id,order_id,order_number,reason,customer_note,status,created_at,updated_at,is_test) VALUES (?,?,?,?,?,?,'Pending',?,?,0)`).bind(returnId,userId,orderId,order.order_number,reason,customerNote,timestamp,timestamp)];
+  for (const item of items) statements.push(db.prepare(`INSERT INTO customer_return_items (id,return_id,order_item_id,item_json,quantity) VALUES (?,?,?,?,?)`).bind(randomId("return_item_"),returnId,item.id,item.item_json,item.quantity));
+  await db.batch(statements);
+  return {id:returnId,orderId,orderNumber:order.order_number,reason,customerNote,status:"Pending",createdAt:timestamp,updatedAt:timestamp,items:items.map(item=>({id:item.id,title:item.title,variant:item.variant,quantity:item.quantity,image:item.image}))};
+}
+
+
+
+async function listReturns(db,userId,admin) {
+  const result=admin
+    ? await db.prepare(`SELECT * FROM customer_returns ORDER BY created_at DESC`).all()
+    : await db.prepare(`SELECT * FROM customer_returns WHERE user_id=? ORDER BY created_at DESC`).bind(userId).all();
+  const rows=result.results||[]; if(!rows.length)return [];
+  const ids=rows.map(r=>r.id),marks=ids.map(()=>"?").join(",");
+  const itemRows=await db.prepare(`SELECT * FROM customer_return_items WHERE return_id IN (${marks}) ORDER BY rowid ASC`).bind(...ids).all();
+  const map=new Map();
+  for(const item of itemRows.results||[]){if(!map.has(item.return_id))map.set(item.return_id,[]);map.get(item.return_id).push({id:item.order_item_id,quantity:item.quantity,...parseJSON(item.item_json,{})});}
+  return rows.map(r=>({id:r.id,orderId:r.order_id,orderNumber:r.order_number,reason:r.reason,customerNote:r.customer_note,status:r.status,createdAt:r.created_at,updatedAt:r.updated_at,reviewedAt:r.reviewed_at,reviewedBy:r.reviewed_by,adminNote:r.admin_note,items:map.get(r.id)||[]}));
+}
+
+async function updateReturnStatus(db, adminId, returnId, body) {
+  const status = validText(body.status, 40);
+
+  if (!["Accepted", "Rejected"].includes(status)) {
+    throw new AppError("Invalid return status.",400);
+  }
+
+  const record = await db.prepare(`
+    SELECT id
+    FROM customer_returns
+    WHERE id = ?
+    LIMIT 1
+  `).bind(returnId).first();
+
+  if (!record) return false;
+
+  const timestamp = nowISO();
+
+  await db.prepare(`
+    UPDATE customer_returns
+    SET status = ?,
+        updated_at = ?,
+        reviewed_at = ?,
+        reviewed_by = ?,
+        admin_note = ?
+    WHERE id = ?
+  `).bind(
+    status,
+    timestamp,
+    timestamp,
+    adminId,
+    validText(body.admin_note ?? body.adminNote, 3000),
+    returnId
+  ).run();
+
+  return true;
+}
+
+
+
+
+
+async function createOperationSession(db, actorId) {
+  const token=bytesToBase64Url(crypto.getRandomValues(new Uint8Array(32))), tokenHash=await sha256(token);
+  const createdAt=nowISO(), expiresAt=new Date(Date.now()+8*60*60*1000).toISOString();
+  await db.prepare(`INSERT INTO vn_operation_sessions (id,token_hash,created_at,expires_at,actor_id) VALUES (?,?,?,?,?)`).bind(randomId("ops_"),tokenHash,createdAt,expiresAt,actorId).run();
+  return {token,expiresAt};
+}
+
+async function authenticateOperationSession(request, db) {
+  const token=getBearerToken(request); if(!token) return null;
+  const tokenHash=await sha256(token);
+  const row=await db.prepare(`SELECT id,actor_id,expires_at FROM vn_operation_sessions WHERE token_hash=? LIMIT 1`).bind(tokenHash).first();
+  if(!row) return null;
+  if(!row.expires_at || Date.parse(row.expires_at)<=Date.now()) {
+    await db.prepare(`DELETE FROM vn_operation_sessions WHERE token_hash=?`).bind(tokenHash).run(); return null;
+  }
+  return { id:row.id, actorId:row.actor_id || "legacy-operator" };
+}
+
+async function listOperationOrders(db) {
+  const orders=await listOrders(db,null,true);
+  return orders.map(order=>({ ...order, order_number:order.orderNumber, vn_code:order.vnCode, order_status:order.orderStatus,
+    customer_email:order.customer?.email||"", first_name:order.customer?.firstName||order.customer?.first_name||"",
+    last_name:order.customer?.lastName||order.customer?.last_name||"" }));
+}
+
+async function listOperationAdminOrders(db) {
+  const queued = await db.prepare(`SELECT * FROM admin_order_queue ORDER BY created_at DESC`).all();
+  const finalRows = await db.prepare(`SELECT * FROM admin_orders ORDER BY delivered_at DESC`).all();
+  const rows = (queued.results || []).map(row => ({
+    id: row.id, orderNumber: row.order_number, order_number: row.order_number,
+    vnCode: row.vn_code, vn_code: row.vn_code, createdAt: row.created_at, created_at: row.created_at,
+    updatedAt: row.updated_at, status: row.status, orderStatus: row.status,
+    customer: parseJSON(row.customer_json, {}), items: parseJSON(row.items_json, []),
+    subtotal: row.subtotal, shipping: row.shipping, taxes: row.taxes, total: row.total,
+    currency: row.currency, shippingMethod: row.shipping_method, paymentMethod: row.payment_method,
+    isQueue: true
+  }));
+  for (const row of finalRows.results || []) {
+    const serialized = await serializeAdminOrder(row);
+    rows.push({ ...serialized, order_number: row.order_number, vn_code: row.vn_code, created_at: row.created_at, isQueue: false });
+  }
+  return rows;
+}
+
+async function finalizeQueuedAdminOrder(db, orderId, status, actorId) {
+  const normalized = validText(status, 30).toLowerCase();
+  if (!["delivered", "returned"].includes(normalized)) throw new AppError("Admin orders can only be finalized as delivered or returned.");
+  const row = await db.prepare(`SELECT * FROM admin_order_queue WHERE id = ? LIMIT 1`).bind(orderId).first();
+  if (!row) {
+    const existing = await db.prepare(`SELECT id,status FROM admin_orders WHERE id=? LIMIT 1`).bind(orderId).first();
+    if (!existing) return false;
+    if (normalized === "returned" && existing.status !== "returned") return await updateAdminOrderStatus(db, actorId, orderId, {status:"returned"});
+    return true;
+  }
+  const timestamp = nowISO();
+  const orderNumber = await generateUniqueAdminOrderNumber(db);
+  const vnCode = await generateAdminCode(db);
+  const codeNumber = Number(vnCode.slice(5));
+  const orderObject = parseJSON(row.order_json, {});
+  const finalStatus = normalized;
+  orderObject.orderNumber = orderNumber;
+  orderObject.vnCode = vnCode;
+  orderObject.orderStatus = normalized === "returned" ? "Returned" : "Delivered";
+  orderObject.status = normalized;
+  orderObject.paymentStatus = row.payment_status || "Pending";
+  const register = db.prepare(`INSERT INTO admin_order_code_registry (code_number,admin_order_id,created_at) VALUES (?,?,?)`)
+    .bind(codeNumber,row.id,timestamp);
+  const insert = db.prepare(`INSERT INTO admin_orders (
+    id,user_id,order_number,vn_code,created_at,updated_at,delivered_at,returned_at,returned_by,status,
+    customer_json,items_json,subtotal,shipping,taxes,total,currency,country_code,shipping_method,payment_method,
+    payment_status,payment_number,order_json
+  ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
+    .bind(row.id,row.user_id,orderNumber,vnCode,row.created_at,timestamp,timestamp,
+      normalized === "returned" ? timestamp : null, normalized === "returned" ? actorId : null,finalStatus,
+      row.customer_json,row.items_json,row.subtotal,row.shipping,row.taxes,row.total,row.currency,row.country_code,
+      row.shipping_method,row.payment_method,row.payment_status || "Pending",row.payment_number || null,JSON.stringify(orderObject));
+  const audit = db.prepare(`INSERT INTO admin_order_events (id,admin_order_id,event_type,actor_id,details_json,created_at)
+    VALUES (?,?,?,?,?,?)`).bind(randomId("aoe_"),row.id,"created",actorId,JSON.stringify({status:finalStatus,order_number:orderNumber}),timestamp);
+  const remove = db.prepare(`DELETE FROM admin_order_queue WHERE id=?`).bind(orderId);
+  await db.batch([register,insert,audit,remove]);
+  return { id: row.id, orderNumber, vnCode, status: finalStatus };
+}
+
+async function listOperationReturns(db) {
+  const result=await db.prepare(`SELECT r.*,o.customer_json,o.vn_code AS order_vn_code FROM customer_returns r LEFT JOIN customer_orders o ON o.id=r.order_id ORDER BY r.created_at DESC`).all();
+  const rows=result.results||[]; if(!rows.length)return [];
+  const ids=rows.map(x=>x.id),marks=ids.map(()=>"?").join(",");
+  const itemRows=await db.prepare(`SELECT * FROM customer_return_items WHERE return_id IN (${marks}) ORDER BY rowid ASC`).bind(...ids).all();
+  const map=new Map(); for(const item of itemRows.results||[]){if(!map.has(item.return_id))map.set(item.return_id,[]);map.get(item.return_id).push({id:item.order_item_id,quantity:item.quantity,...parseJSON(item.item_json,{})});}
+  return rows.map(row=>{const customer=parseJSON(row.customer_json,{});return {id:row.id,orderId:row.order_id,orderNumber:row.order_number,reason:row.reason,customerNote:row.customer_note,status:row.status,createdAt:row.created_at,updatedAt:row.updated_at,reviewedAt:row.reviewed_at,reviewedBy:row.reviewed_by,adminNote:row.admin_note,items:map.get(row.id)||[],order_number:row.order_number,customer_email:customer.email||"",vn_code:row.order_vn_code||""};});
+}
+
+async function listOperationIssues(db) {
+  const result = await db.prepare(`SELECT i.*, o.customer_json FROM issues i LEFT JOIN customer_orders o ON o.id=i.order_id ORDER BY i.created_at DESC`).all();
+  return (result.results || []).map(row => {
+    const customer = parseJSON(row.customer_json, {});
+    return { ...row, customer_email: customer.email || "", email: customer.email || "" };
+  });
+}
+
+function corsHeaders(request) {
+  const origin = request.headers.get("Origin") || "";
+
+  return {
+    "Access-Control-Allow-Origin":
+      origin === ALLOWED_ORIGIN ? origin : ALLOWED_ORIGIN,
+    "Access-Control-Allow-Methods":
+      "GET, POST, PUT, PATCH, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers":
+      "Authorization, Content-Type",
+    "Access-Control-Max-Age": "86400",
+    "Vary": "Origin"
+  };
+}
+
+function withCors(response, request) {
+  const headers = new Headers(response.headers);
+
+  for (const [key, value] of Object.entries(corsHeaders(request))) {
+    headers.set(key, value);
+  }
+
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers
+  });
+}
+
+function getPathSegments(pathname) {
+  return pathname
+    .split("/")
+    .filter(Boolean)
+    .map(segment => decodeURIComponent(segment));
+}
+
+async function handleRequest(request, env) {
+  if (!env.DB) {
+    return error("Database is not configured.", 500);
+  }
+
+  const requestOrigin=request.headers.get("Origin") || "";
+  if (requestOrigin && requestOrigin !== ALLOWED_ORIGIN) return error("Origin not allowed.",403);
+  if (request.method.toUpperCase() === "OPTIONS") {
+    return new Response(null, {
+      status: 204,
+      headers: corsHeaders(request)
+    });
+  }
+
+  await ensureSchema(env.DB);
+
+  const url = new URL(request.url);
+  const method = request.method.toUpperCase();
+  const path = url.pathname.replace(/\/+$/, "") || "/";
+  const segments = getPathSegments(path);
+
+  if (path === "/api/health" && method === "GET") {
+    return json({
+      status: "ok",
+      service: "vn-shop-account-api",
+      timestamp: nowISO()
+    });
+  }
+
+  if (path === "/api/operations/auth" && method === "POST") {
+    const body=await readBody(request), supplied=typeof body.password==="string"?body.password:"";
+    if (!supplied) return error("Administrator password is required.",400);
+    const ip=request.headers.get("CF-Connecting-IP") || "unknown";
+    const attemptKey=await sha256(ip);
+    const attempt=await env.DB.prepare(`SELECT failures,window_started_at,locked_until FROM vn_operation_login_attempts WHERE attempt_key=?`).bind(attemptKey).first();
+    if (attempt?.locked_until && Date.parse(attempt.locked_until)>Date.now()) return error("Too many login attempts. Try again later.",429);
+    let credentials=[];
+try {
+  credentials = JSON.parse(env.OPERATIONS_ADMIN_CREDENTIALS || "[]");
+} catch (parseError) {
+  console.error(
+    "OPERATIONS_ADMIN_CREDENTIALS JSON parse failed:",
+    parseError instanceof Error ? parseError.message : String(parseError)
+  );
+  return error("Operations credentials are misconfigured.", 503);
+}    if (!Array.isArray(credentials) || !credentials.length) return error("Operations credentials are not configured.",503);
+    const operatorIds=credentials.map(entry=>entry?.id),operatorPasswords=credentials.map(entry=>entry?.password);
+    if(credentials.some(entry=>!entry || typeof entry.id!=="string" || !entry.id.trim() || typeof entry.password!=="string" || entry.password.length<24) || new Set(operatorIds).size!==operatorIds.length || new Set(operatorPasswords).size!==operatorPasswords.length) return error("Each operator must have a unique id and a unique password of at least 24 characters.",503);
+    const match=credentials.find(entry=>entry.password===supplied);
+    if (!match) {
+      const start=attempt?.window_started_at && Date.now()-Date.parse(attempt.window_started_at)<15*60*1000 ? attempt.window_started_at : nowISO();
+      const failures=(attempt?.window_started_at===start?Number(attempt.failures||0):0)+1;
+      const locked=failures>=5?new Date(Date.now()+15*60*1000).toISOString():null;
+      await env.DB.prepare(`INSERT INTO vn_operation_login_attempts (attempt_key,failures,window_started_at,locked_until) VALUES (?,?,?,?) ON CONFLICT(attempt_key) DO UPDATE SET failures=excluded.failures,window_started_at=excluded.window_started_at,locked_until=excluded.locked_until`).bind(attemptKey,failures,start,locked).run();
+      return error("Incorrect administrator password.",401);
+    }
+    await env.DB.prepare(`DELETE FROM vn_operation_login_attempts WHERE attempt_key=?`).bind(attemptKey).run();
+    await env.DB.prepare(`DELETE FROM vn_operation_sessions WHERE expires_at<=?`).bind(nowISO()).run();
+    const session=await createOperationSession(env.DB,match.id.trim());
+    return json({success:true,token:session.token,expiresAt:session.expiresAt,operator:validText(match.label || match.id,80)});
+  }
+
+  if (path === "/api/operations/admin-orders" && method === "POST") {
+    const claims = await authenticateWorkerSession(request, env.DB);
+    if (!claims || !(await isAdmin(env, claims.sub))) return error("Administrator account required.", 403);
+    const body = await readBody(request);
+    try { const order = await prepareAdminOrder(env.DB, claims.sub, body); return json({ success: true, order }, 201); }
+    catch (err) { if(err instanceof AppError) return error(err.message,err.status); console.error("Admin order queue failed:",err); return error("Unable to queue admin order.",500); }
+  }
+
+  if (path.startsWith("/api/operations/") && path !== "/api/operations/auth") {
+    const operationSession=await authenticateOperationSession(request,env.DB);
+    if (!operationSession) return error("Operations session required.", 401);
+    const operationActor=operationSession.actorId;
+    if (path === "/api/operations/orders" && method === "GET") return json({ success: true, orders: await listOperationOrders(env.DB) });
+    if (path === "/api/operations/admin-orders" && method === "GET") return json({ success: true, orders: await listOperationAdminOrders(env.DB) });
+    if (path === "/api/operations/returns" && method === "GET") return json({ success: true, returns: await listOperationReturns(env.DB) });
+    if (path === "/api/operations/issues" && method === "GET") return json({ success: true, issues: await listOperationIssues(env.DB) });
+
+    if (segments[2] === "orders" && segments[3] && segments[4] === "status" && segments.length === 5 && method === "PATCH") {
+      const body = await readBody(request);
+      const requested = validText(body.status, 40).toLowerCase();
+      const record = await env.DB.prepare(`SELECT id,order_status FROM customer_orders WHERE id=? AND COALESCE(is_admin_order,0)=0 LIMIT 1`).bind(segments[3]).first();
+      if (!record) return error("Order not found.", 404);
+      const current = String(record.order_status || "Received").toLowerCase();
+      const allowed = { received:["preparing","cancelled"], preparing:["delivering","cancelled"], delivering:["delivered","cancelled"] };
+      if (!(allowed[current] || []).includes(requested)) return error("Invalid order status transition.", 409);
+      const reason = validText(body.cancellation_reason || body.reason, 500);
+      const cancellationReasons=["High workload","Out of stock","Suspicious purchase","Address or delivery information issue","Product unavailable","Payment could not be verified","Customer request","Other"];
+      if (requested === "cancelled" && !cancellationReasons.includes(reason)) return error("Select a valid cancellation reason.",400);
+      const next = requested === "preparing" ? "Preparing" : requested === "delivering" ? "Delivering" : requested === "delivered" ? "Delivered" : "Cancelled";
+      const timestamp = nowISO();
+      await env.DB.batch([
+        env.DB.prepare(`UPDATE customer_orders SET order_status=?,updated_at=?,delivered_at=CASE WHEN ?='Delivered' THEN ? ELSE delivered_at END WHERE id=?`).bind(next,timestamp,next,timestamp,segments[3]),
+        env.DB.prepare(`INSERT INTO order_status_history (id,order_id,from_status,to_status,actor_id,reason,created_at) VALUES (?,?,?,?,?,?,?)`).bind(randomId("osh_"),segments[3],record.order_status,next,operationActor,reason || null,timestamp),
+        env.DB.prepare(`INSERT INTO order_status_events (id,order_id,from_status,to_status,actor_id,reason,created_at) VALUES (?,?,?,?,?,?,?)`).bind(randomId("ose_"),segments[3],record.order_status,next,operationActor,reason || null,timestamp)
+      ]);
+      return json({ success: true, status: next });
+    }
+
+    if (segments[2] === "admin-orders" && segments[3] && segments[4] === "status" && segments.length === 5 && method === "PATCH") {
+      const body = await readBody(request);
+      try { const ok = await finalizeQueuedAdminOrder(env.DB, segments[3], body.status, operationActor); return ok ? json({ success: true }) : error("Admin order not found.", 404); }
+      catch (err) { if(err instanceof AppError) return error(err.message,err.status); console.error("Admin order finalization failed:",err); return error("Unable to finalize admin order.",500); }
+    }
+
+    if (segments[2] === "returns" && segments[3] && segments.length === 4 && method === "PATCH") {
+      const body = await readBody(request);
+      const record = await env.DB.prepare(`SELECT id,status FROM customer_returns WHERE id=? LIMIT 1`).bind(segments[3]).first();
+      if (!record) return error("Return request not found.", 404);
+      const requested = validText(body.status,40).toLowerCase();
+      const current = String(record.status || "pending").toLowerCase();
+      const allowed = { pending:["return process","rejected"], accepted:["return process","rejected"], "return process":["returned"] };
+      if (!(allowed[current] || []).includes(requested)) return error("Invalid return status transition.", 409);
+      const next = requested === "return process" ? "Return Process" : requested === "returned" ? "Returned" : "Rejected";
+      const timestamp = nowISO();
+      await env.DB.batch([
+        env.DB.prepare(`UPDATE customer_returns SET status=?,updated_at=?,reviewed_at=?,reviewed_by=?,admin_note=? WHERE id=?`).bind(next,timestamp,timestamp,operationActor,validText(body.admin_note || body.note,3000),segments[3]),
+        env.DB.prepare(`INSERT INTO return_status_history (id,return_id,from_status,to_status,actor_id,note,created_at) VALUES (?,?,?,?,?,?,?)`).bind(randomId("rsh_"),segments[3],record.status,next,operationActor,validText(body.admin_note || body.note,3000) || null,timestamp)
+      ]);
+      return json({ success: true, status: next });
+    }
+
+    if (segments[2] === "issues" && segments[3] && segments.length === 4 && method === "PATCH") {
+      const body = await readBody(request);
+      const record = await env.DB.prepare(`SELECT id,status FROM issues WHERE id=? LIMIT 1`).bind(segments[3]).first();
+      if (!record) return error("Customer report not found.", 404);
+      const requested = validText(body.status,40).toLowerCase();
+      const current = String(record.status || "open").toLowerCase();
+      if (!((current === "open" && requested === "in progress") || (current === "in progress" && requested === "resolved"))) return error("Invalid report status transition.", 409);
+      const timestamp = nowISO();
+      const resolution=validText(body.resolution,4000);
+      if(requested==="resolved" && !resolution) return error("A resolution note is required before closing a report.",400);
+      await env.DB.batch([
+        env.DB.prepare(`UPDATE issues SET status=?,updated_at=?,processing_started_at=CASE WHEN ?='in progress' THEN ? ELSE processing_started_at END,resolved_at=CASE WHEN ?='resolved' THEN ? ELSE resolved_at END,resolution=COALESCE(?,resolution) WHERE id=?`)
+          .bind(requested,timestamp,requested,timestamp,requested,timestamp,resolution || null,segments[3]),
+        env.DB.prepare(`INSERT INTO issue_status_history (id,issue_id,from_status,to_status,actor_id,resolution,created_at) VALUES (?,?,?,?,?,?,?)`)
+          .bind(randomId("ish_"),segments[3],record.status,requested,operationActor,resolution||null,timestamp)
+      ]);
+      return json({ success: true, status: requested });
+    }
+    if (segments[2] === "admin-orders" && segments[3] && segments[4] === "payment" && segments.length === 5 && method === "PATCH") {
+      const body=await readBody(request), status=validText(body.payment_status ?? body.status,30).toLowerCase();
+      if (!["paid","unpaid","pending"].includes(status)) return error("Invalid admin order payment status.",400);
+      const paymentNumber=validText(body.payment_number ?? body.paymentNumber,120);
+      if (status==="paid" && !paymentNumber) return error("A payment number is required when marking an admin order as paid.",400);
+      let row=await env.DB.prepare(`SELECT id,payment_status FROM admin_orders WHERE id=?`).bind(segments[3]).first();
+      let targetTable="admin_orders";
+      if(!row){ row=await env.DB.prepare(`SELECT id,payment_status FROM admin_order_queue WHERE id=?`).bind(segments[3]).first(); targetTable="admin_order_queue"; }
+      if(!row) return error("Admin order not found.",404);
+      const timestamp=nowISO(), storedStatus=status==="paid"?"Paid":status==="unpaid"?"Unpaid":"Pending";
+      await env.DB.batch([
+        env.DB.prepare(`UPDATE ${targetTable} SET payment_status=?,payment_number=?,updated_at=? WHERE id=?`).bind(storedStatus,status==="paid"?paymentNumber:null,timestamp,segments[3]),
+        env.DB.prepare(`INSERT INTO admin_order_events (id,admin_order_id,event_type,actor_id,details_json,created_at) VALUES (?,?,?,?,?,?)`).bind(randomId("aoe_"),segments[3],"payment_status",operationActor,JSON.stringify({from:row.payment_status,to:status,payment_number:status==="paid"?paymentNumber:null}),timestamp)
+      ]);
+      return json({success:true,payment_status:status,payment_number:status==="paid"?paymentNumber:null});
+    }
+    if (segments[2] === "admin-orders" && segments[3] && segments.length === 4 && method === "DELETE") {
+      const row=await env.DB.prepare(`SELECT id,order_number,vn_code FROM admin_orders WHERE id=?`).bind(segments[3]).first();
+      if(!row) return error("Admin order not found.",404);
+      const timestamp=nowISO();
+      await env.DB.batch([
+        env.DB.prepare(`INSERT INTO admin_order_events (id,admin_order_id,event_type,actor_id,details_json,created_at) VALUES (?,?,?,?,?,?)`).bind(randomId("aoe_"),row.id,"deleted",operationActor,JSON.stringify({order_number:row.order_number,vn_code:row.vn_code}),timestamp),
+        env.DB.prepare(`DELETE FROM admin_orders WHERE id=?`).bind(row.id)
+      ]);
+      return json({success:true});
+    }
+    if (path === "/api/operations/history" && method === "GET") {
+      const limit=Math.min(200,Math.max(1,Number(url.searchParams.get("limit")||100)));
+      const rows=await env.DB.prepare(`SELECT id,order_id AS record_id,'order_status' AS event_type,from_status,to_status,actor_id,reason AS details,created_at FROM order_status_history UNION ALL SELECT id,return_id AS record_id,'return_status' AS event_type,from_status,to_status,actor_id,note AS details,created_at FROM return_status_history ORDER BY created_at DESC LIMIT ?`).bind(limit).all();
+      const adminEvents=await env.DB.prepare(`SELECT id,admin_order_id AS record_id,event_type,actor_id,details_json AS details,created_at FROM admin_order_events ORDER BY created_at DESC LIMIT ?`).bind(limit).all();
+      const issueEvents=await env.DB.prepare(`SELECT id,issue_id AS record_id,'issue_status' AS event_type,from_status,to_status,actor_id,resolution AS details,created_at FROM issue_status_history ORDER BY created_at DESC LIMIT ?`).bind(limit).all();
+      return json({success:true,events:[...(rows.results||[]),...(adminEvents.results||[]),...(issueEvents.results||[])].sort((a,b)=>String(b.created_at).localeCompare(String(a.created_at))).slice(0,limit)});
+    }
+    return error("Operations endpoint not found.", 404);
+  }
+
+  if (path === "/api/auth/exchange" && method === "POST") {
+    const claims = await authenticateClerk(request);
+    if (!claims) return error("Authentication failed.", 401);
+    try {
+      const identity = await getVerifiedClerkIdentity(env, claims);
+      const account = await resolveVNAccount(env.DB, identity);
+      const session = await createSession(env.DB, account.userId);
+      return json({ success: true, token: session.token, expiresAt: session.expiresAt, userId: account.userId, email: account.email, firstName: account.firstName, lastName: account.lastName, isAdmin: account.isAdmin, is_admin: account.isAdmin });
+    } catch (err) { console.error("Shop account exchange failed:",err); return error("Could not establish your VN SHOP account.",401); }
+  }
+
+  if (path === "/api/auth/shop-exchange" && method === "POST") {
+    try {
+      const body = await readBody(request);
+      const identity = await getVerifiedShopIdentity(body.sessionToken);
+      const account = await resolveVNAccount(env.DB, identity);
+      const session = await createSession(env.DB, account.userId);
+      return json({ success: true, token: session.token, expiresAt: session.expiresAt, userId: account.userId, email: account.email, firstName: account.firstName, lastName: account.lastName, isAdmin: account.isAdmin, is_admin: account.isAdmin });
+    } catch (err) { console.error("Shop account exchange failed:",err); return error("Could not establish your VN SHOP account.",401); }
+  }
+
+  if (path === "/api/auth/logout" && method === "POST") {
+    const token = getBearerToken(request);
+
+    if (token) {
+      const tokenHash = await sha256(token);
+
+      await env.DB.prepare(`
+        DELETE FROM customer_sessions
+        WHERE token_hash = ?
+      `).bind(tokenHash).run();
+    }
+
+    return json({ success: true });
+  }
+
+  const claims = await authenticateRequest(request, env.DB);
+
+  if (!claims) {
+    return error("Authentication required.", 401);
+  }
+
+  const userId = claims.sub;
+
+  if (!userId || !userId.startsWith("vn_")) {
+    return error("Invalid VN SHOP account session.", 401);
+  }
+
+  const admin = await isAdmin(env, userId);
+
+  await ensureProfile(env.DB, userId, claims);
+
+  if (path === "/api/account" && method === "GET") {
+    const profile = await env.DB.prepare(`
+      SELECT *
+      FROM customer_profiles
+      WHERE user_id = ?
+      LIMIT 1
+    `).bind(userId).first();
+
+    const addresses = await getAddresses(env.DB, userId);
+
+    return json({
+      success: true,
+      profile: profileResponse(profile, userId, admin),
+      addresses,
+      isAdmin: admin,
+      is_admin: admin
+    });
+  }
+
+  if (path === "/api/profile" && method === "PUT") {
+    const body = await readBody(request);
+
+    const profile = await updateProfile(
+      env.DB,
+      userId,
+      body
+    );
+
+    return json({
+      success: true,
+      profile: profileResponse(profile, userId, admin)
+    });
+  }
+
+  if (path === "/api/addresses" && method === "GET") {
+    return json({
+      success: true,
+      addresses: await getAddresses(env.DB, userId)
+    });
+  }
+
+  if (path === "/api/addresses" && method === "POST") {
+    const body = await readBody(request);
+
+    const address = await addAddress(
+      env.DB,
+      userId,
+      body
+    );
+
+    return json({
+      success: true,
+      address
+    }, 201);
+  }
+
+  if (
+    segments[0] === "api" &&
+    segments[1] === "addresses" &&
+    segments[2] &&
+    segments[3] === "default" &&
+    method === "PATCH"
+  ) {
+    const success = await setDefaultAddress(
+      env.DB,
+      userId,
+      segments[2]
+    );
+
+    if (!success) {
+      return error("Unable to set default address.", 404);
+    }
+
+    return json({ success: true });
+  }
+
+  if (
+    segments[0] === "api" &&
+    segments[1] === "addresses" &&
+    segments[2] &&
+    segments.length === 3 &&
+    method === "DELETE"
+  ) {
+    const success = await deleteAddress(
+      env.DB,
+      userId,
+      segments[2]
+    );
+
+    if (!success) {
+      return error("Address not found.", 404);
+    }
+
+    return json({ success: true });
+  }
+
+  if (path === "/api/orders" && method === "GET") {
+    return json({
+      success: true,
+      orders: await listOrders(env.DB, userId, admin)
+    });
+  }
+
+  if (path === "/api/orders" && method === "POST") {
+    if (!admin) {
+      return error("Order registration requires payment confirmation.", 403);
+    }
+
+    const body = await readBody(request);
+
+    try {
+      const order = await prepareAdminOrder(env.DB, userId, body);
+
+      return json({
+        success: true,
+        order
+      }, 200);
+    } catch (err) {
+      if(err instanceof AppError) return error(err.message,err.status);
+      console.error("Admin order draft failed:",err);
+      return error("Unable to prepare order.",500);
+    }
+  }
+
+  if (path === "/api/admin-orders" && method === "GET") {
+    if (!admin) {
+      return error("Access denied.", 403);
+    }
+
+    return json({
+      success: true,
+      orders: await listAdminOrders(env.DB)
+    });
+  }
+
+  if (path === "/api/admin-orders" && method === "POST") {
+    if (!admin) {
+      return error("Access denied.", 403);
+    }
+
+    const body = await readBody(request);
+
+    try {
+      const order = await prepareAdminOrder(env.DB, userId, body);
+      return json({ success: true, order }, 201);
+    } catch (err) {
+      if(err instanceof AppError) return error(err.message,err.status);
+      console.error("Admin order draft failed:",err);
+      return error("Unable to queue admin order.",500);
+    }
+  }
+
+  if (
+    segments[0] === "api" &&
+    segments[1] === "admin-orders" &&
+    segments[2] &&
+    segments.length === 3 &&
+    method === "PATCH"
+  ) {
+    if (!admin) {
+      return error("Access denied.", 403);
+    }
+
+    const body = await readBody(request);
+
+    try {
+      const success = await finalizeQueuedAdminOrder(
+        env.DB,
+        segments[2],
+        body.status || body.orderStatus,
+        userId
+      );
+
+      if (!success) {
+        return error("Order not found.", 404);
+      }
+
+      return json({ success: true });
+    } catch (err) {
+      if(err instanceof AppError) return error(err.message,err.status);
+      console.error("Order status update failed:",err);
+      return error("Unable to update order.",500);
+    }
+  }
+
+  if (
+    segments[0] === "api" &&
+    segments[1] === "orders" &&
+    segments[2] &&
+    segments[3] === "items" &&
+    segments[4] &&
+    method === "DELETE"
+  ) {
+    if (!admin) {
+      return error("Access denied.", 403);
+    }
+
+    const success = await removeOrderItem(
+      env.DB,
+      userId,
+      segments[2],
+      segments[4]
+    );
+
+    if (!success) {
+      return error("Order item not found.", 404);
+    }
+
+    return json({ success: true });
+  }
+
+  if (
+    segments[0] === "api" &&
+    segments[1] === "orders" &&
+    segments[2] &&
+    segments.length === 3 &&
+    method === "PATCH"
+  ) {
+    if (!admin) {
+      return error("Access denied.", 403);
+    }
+
+    const body = await readBody(request);
+
+    try {
+      const success = await updateOrderStatus(
+        env.DB,
+        segments[2],
+        body,
+        userId
+      );
+
+      if (!success) {
+        return error("Order not found.", 404);
+      }
+
+      return json({ success: true });
+    } catch (err) {
+      if(err instanceof AppError) return error(err.message,err.status);
+      console.error("Order status update failed:",err);
+      return error("Unable to update order.",500);
+    }
+  }
+
+  if (path === "/api/issues" && method === "GET") {
+    const result = await env.DB.prepare(`SELECT * FROM issues WHERE user_id = ? ORDER BY created_at DESC`).bind(userId).all();
+    return json({ success: true, issues: result.results || [] });
+  }
+
+  if (path === "/api/issues" && method === "POST") {
+    const body = await readBody(request);
+    const description = validText(body.description || body.message, 3000);
+    const issueType = validText(body.issue_type || body.type, 40).toLowerCase();
+    const allowedIssueTypes = ["delivery","product","payment","account","other"];
+    if (!allowedIssueTypes.includes(issueType) || description.length < 10) return error("Select a valid issue type and describe the issue in at least 10 characters.", 400);
+    const orderId = validText(body.order_id || body.orderId, 150);
+    if (!orderId) return error("Select the related order.", 400);
+    const order = await getOrderForUser(env.DB, userId, orderId);
+    if (!order) return error("Order not found.", 404);
+    const id = randomId("issue_");
+    const timestamp = nowISO();
+    await env.DB.prepare(`INSERT INTO issues (id,user_id,order_id,order_number,issue_type,description,status,created_at,updated_at) VALUES (?,?,?,?,?,?,'open',?,?)`)
+      .bind(id,userId,orderId || null,order?.order_number || null,issueType,description,timestamp,timestamp).run();
+    return json({ success: true, issue: { id, order_id: orderId || null, order_number: order?.order_number || null, description, status: "open", created_at: timestamp, updated_at: timestamp } }, 201);
+  }
+
+  if (path === "/api/returns" && method === "GET") {
+    return json({
+      success: true,
+      returns: await listReturns(env.DB, userId, admin)
+    });
+  }
+
+  if (path === "/api/returns" && method === "POST") {
+    if (admin) {
+      return error("Return request is unavailable for this account.", 403);
+    }
+
+    const body = await readBody(request);
+
+    try {
+      const returnRecord = await createReturn(
+        env.DB,
+        userId,
+        body
+      );
+
+      return json({
+        success: true,
+        return: returnRecord
+      }, 201);
+    } catch (err) {
+      if(err instanceof AppError) return error(err.message,err.status);
+      console.error("Return request creation failed:",err);
+      return error("Unable to create return request.",500);
+    }
+  }
+
+  if (
+    segments[0] === "api" &&
+    segments[1] === "returns" &&
+    segments[2] &&
+    segments.length === 3 &&
+    method === "PATCH"
+  ) {
+    if (!admin) {
+      return error("Access denied.", 403);
+    }
+
+    const body = await readBody(request);
+
+    try {
+      const success = await updateReturnStatus(
+        env.DB,
+        userId,
+        segments[2],
+        body
+      );
+
+      if (!success) {
+        return error("Return request not found.", 404);
+      }
+
+      return json({ success: true });
+    } catch (err) {
+      if(err instanceof AppError) return error(err.message,err.status);
+      console.error("Return status update failed:",err);
+      return error("Unable to update return.",500);
+    }
+  }
+
+  return error("Endpoint not found.", 404);
+}
+
+export default {
+  async fetch(request, env) {
+    try {
+      const response = await handleRequest(request, env);
+      return withCors(response, request);
+    } catch (err) {
+      if (err instanceof AppError) return withCors(error(err.message,err.status),request);
+      console.error("VN SHOP account Worker failure:",err);
+      return withCors(error("An unexpected server error occurred. Please try again.",500),request);
+    }
+  }
+};
