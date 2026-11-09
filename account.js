@@ -443,9 +443,17 @@
     state.loadingData = true;
     try {
       const result = await accountApi("/api/account");
+      // Orders and returns are independent dashboard sections. A temporary
+      // failure in either secondary endpoint must not invalidate account data.
       const [ordersResult, returnsResult] = await Promise.all([
-        accountApi("/api/orders"),
-        accountApi("/api/returns")
+        accountApi("/api/orders").catch(error => {
+          console.warn("[VN ACCOUNT] Orders could not be refreshed:", error);
+          return null;
+        }),
+        accountApi("/api/returns").catch(error => {
+          console.warn("[VN ACCOUNT] Returns could not be refreshed:", error);
+          return null;
+        })
       ]);
       // /api/issues is not available on the current account API; avoid repeated 404s.
       state.profile = {
@@ -467,8 +475,8 @@
       state.addresses = Array.isArray(result.addresses) ? result.addresses : [];
       state.country = state.profile.country || userCountry();
       state.marketingUpdates = state.profile.marketing_updates === true || state.profile.marketing_updates === 1 || state.profile.marketing_updates === "1";
-      state.orders = Array.isArray(ordersResult.orders) ? ordersResult.orders : [];
-      state.returns = Array.isArray(returnsResult.returns) ? returnsResult.returns : [];
+      if (ordersResult) state.orders = Array.isArray(ordersResult.orders) ? ordersResult.orders : state.orders;
+      if (returnsResult) state.returns = Array.isArray(returnsResult.returns) ? returnsResult.returns : state.returns;
       state.issues = [];
       state.user.user_metadata = {
         ...(state.user.user_metadata || {}),
@@ -478,9 +486,9 @@
       updateAccountAvatar();
       return result;
     } catch (error) {
-      console.error("[VN ACCOUNT] Could not load account data from VN database:", error);
-      state.messageType = "error";
-      state.message = "Could not load your saved account data: " + (error.message || "Please try again.");
+      // Keep technical refresh failures in diagnostics only. They must never
+      // become persistent or transient customer-facing dashboard messages.
+      console.error("[VN ACCOUNT] Could not refresh account data:", error);
       throw error;
     } finally {
       state.loadingData = false;
@@ -1507,14 +1515,14 @@
     // diagnostic text inside the dashboard layout.
     if (state.section === "dashboard") {
       const message = state.message;
-      const type = ["error", "success", "warning", "info"].includes(state.messageType)
-        ? state.messageType
-        : "info";
+      const type = state.messageType;
       state.message = "";
-      if (window.VNNotice) {
+      // Internal errors and warnings are diagnostic-only. Successful actions
+      // may still use the shared notice layer.
+      if (type === "success" && window.VNNotice) {
         window.VNNotice.show(message, {
-          type,
-          duration: 5200,
+          type: "success",
+          duration: 4200,
           dismissible: true
         });
       }
