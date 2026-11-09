@@ -24,7 +24,7 @@ const showCheckoutFieldHint=field=>{
   type:"error",
   anchor:field,
   placement:"auto",
-  duration:2800,
+  duration:2000,
   dismissible:true
  });
 };

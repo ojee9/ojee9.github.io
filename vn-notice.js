@@ -6,14 +6,14 @@
 (() => {
   "use strict";
 
-  if (window.VNNotice?.version === "2.1.0") return;
+  if (window.VNNotice?.version === "2.2.0") return;
 
   const STYLE_ID = "vn-notice-shared-styles";
   const DEFAULT_DURATION = {
-    success: 2200,
-    info: 2400,
-    warning: 2800,
-    error: 3200
+    success: 1600,
+    info: 1800,
+    warning: 2000,
+    error: 2200
   };
   const EXIT_MS = 220;
 
@@ -61,7 +61,7 @@
         border-radius: 7px !important;
         background: linear-gradient(145deg, #242321 0%, #191919 72%, #151515 100%) !important;
         color: #f3f1ec !important;
-        box-shadow: 0 12px 34px rgba(0,0,0,.34), 0 2px 8px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.055) !important;
+        box-shadow: none !important;
         font: 12px/1.5 Arial, Helvetica, sans-serif !important;
         letter-spacing: .01em !important;
         text-align: left !important;
@@ -127,31 +127,6 @@
         min-width: 0 !important;
         overflow-wrap: anywhere !important;
       }
-      #vn-notice-close {
-        display: inline-flex !important;
-        flex: 0 0 24px !important;
-        align-items: center !important;
-        justify-content: center !important;
-        width: 24px !important;
-        height: 24px !important;
-        margin: -3px -5px 0 0 !important;
-        padding: 0 !important;
-        border: 0 !important;
-        border-radius: 4px !important;
-        background: transparent !important;
-        color: #aaa !important;
-        font: 20px/1 Arial, sans-serif !important;
-        cursor: pointer !important;
-        transition: color .16s ease, background .16s ease !important;
-      }
-      #vn-notice-close:hover,
-      #vn-notice-close:focus-visible {
-        background: rgba(255,255,255,.08) !important;
-        color: #fff !important;
-      }
-      #vn-notice-close[hidden] {
-        display: none !important;
-      }
       @media (max-width: 600px) {
         #vn-notice-bubble {
           max-width: calc(100vw - 28px) !important;
@@ -182,14 +157,7 @@
   message.id = "vn-notice-message";
   message.setAttribute("aria-atomic", "true");
 
-  const close = document.createElement("button");
-  close.id = "vn-notice-close";
-  close.type = "button";
-  close.setAttribute("aria-label", "Dismiss notification");
-  close.title = "Dismiss";
-  close.textContent = "×";
-
-  bubble.append(message, close);
+  bubble.append(message);
   layer.appendChild(bubble);
   document.body.appendChild(layer);
 
@@ -363,7 +331,7 @@
       ? options.placement
       : "auto";
     bubble.setAttribute("aria-hidden", "false");
-    close.hidden = options.dismissible === false && !persistent;
+
 
     const requestedDuration = Number(options.duration);
     const duration = persistent
@@ -431,7 +399,6 @@
     return Object.freeze({ hide });
   };
 
-  close.addEventListener("click", hide);
   bubble.addEventListener("pointerenter", pauseAutoTimer);
   bubble.addEventListener("pointerleave", resumeAutoTimer);
   bubble.addEventListener("focusin", pauseAutoTimer);
@@ -442,7 +409,7 @@
   window.visualViewport?.addEventListener("resize", position, { passive: true });
   window.visualViewport?.addEventListener("scroll", position, { passive: true });
   document.addEventListener("keydown", event => {
-    if (event.key === "Escape" && active && !close.hidden) hide();
+    if (event.key === "Escape" && active) hide();
   });
   document.addEventListener("visibilitychange", () => {
     if (document.hidden) hide();
@@ -450,7 +417,7 @@
   window.addEventListener("pagehide", hide);
 
   window.VNNotice = Object.freeze({
-    version: "2.1.0",
+    version: "2.2.0",
     show,
     update: (text, options = {}) => show(text, options),
     hide,
