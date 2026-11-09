@@ -1,0 +1,686 @@
+const ALLOWED_ORIGIN = "https://ojee9.github.io";
+const MERCH_URL = "https://ojee9.github.io/merch.html";
+const REDIRECT_URI =
+  "https://vn-shop-auth.9ojeez9.workers.dev/customer-account/callback";
+
+const SHOP_AUTHORIZE_URL = "https://accounts.shop.app/oauth/authorize";
+const SHOP_TOKEN_URL = "https://accounts.shop.app/oauth/token";
+const SHOP_JWKS_URL = "https://accounts.shop.app/auth/jwks";
+
+const SESSION_TTL = 8 * 60 * 60;
+const OAUTH_TTL = 10 * 60;
+const OAUTH_COOKIE = "vn_shop_oauth";
+
+function json(data, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      "Cache-Control": "no-store",
+      "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+      "Vary": "Origin"
+    }
+  });
+}
+
+function base64url(bytes) {
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+
+  return btoa(binary)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/g, "");
+}
+
+function decodeBase64url(value) {
+  const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
+  const binary = atob(
+    normalized + "=".repeat((4 - normalized.length % 4) % 4)
+  );
+
+  return Uint8Array.from(binary, c => c.charCodeAt(0));
+}
+
+function encodeText(value) {
+  return base64url(new TextEncoder().encode(value));
+}
+
+function decodeText(value) {
+  return new TextDecoder().decode(decodeBase64url(value));
+}
+
+function randomValue(bytes = 32) {
+  const data = new Uint8Array(bytes);
+  crypto.getRandomValues(data);
+  return base64url(data);
+}
+
+async function sha256(value) {
+  return new Uint8Array(
+    await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(value)
+    )
+  );
+}
+
+async function importSigningKey(secret) {
+  return crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign", "verify"]
+  );
+}
+
+async function signValue(value, env) {
+  const key = await importSigningKey(env.VN_SESSION_SECRET);
+
+  const signature = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    new TextEncoder().encode(value)
+  );
+
+  return base64url(new Uint8Array(signature));
+}
+
+async function createSession(user, env) {
+  const now = Math.floor(Date.now() / 1000);
+
+  const header = encodeText(
+    JSON.stringify({ alg: "HS256", typ: "JWT" })
+  );
+
+  const payload = encodeText(
+    JSON.stringify({
+      iss: "vn-shop-auth",
+      aud: "ojee9.github.io",
+      sub: user.sub,
+      email: user.email || null,
+      emailVerified: user.emailVerified === true,
+      name: user.name || null,
+      givenName: user.givenName || null,
+      familyName: user.familyName || null,
+      avatar: user.avatar || null,
+      iat: now,
+      exp: now + SESSION_TTL
+    })
+  );
+
+  const unsigned = `${header}.${payload}`;
+  const signature = await signValue(unsigned, env);
+
+  return `${unsigned}.${signature}`;
+}
+
+async function verifySession(token, env) {
+  if (typeof token !== "string" || token.length > 5000) {
+    return null;
+  }
+
+  const parts = token.split(".");
+  if (parts.length !== 3) return null;
+
+  try {
+    const [headerPart, payloadPart, signaturePart] = parts;
+
+    const header = JSON.parse(decodeText(headerPart));
+    const payload = JSON.parse(decodeText(payloadPart));
+
+    if (header.alg !== "HS256" || header.typ !== "JWT") return null;
+    if (payload.iss !== "vn-shop-auth") return null;
+    if (payload.aud !== "ojee9.github.io") return null;
+    if (typeof payload.sub !== "string" || !payload.sub) return null;
+
+    if (
+      !Number.isFinite(payload.exp) ||
+      payload.exp <= Math.floor(Date.now() / 1000)
+    ) {
+      return null;
+    }
+
+    const key = await importSigningKey(env.VN_SESSION_SECRET);
+
+    const valid = await crypto.subtle.verify(
+      "HMAC",
+      key,
+      decodeBase64url(signaturePart),
+      new TextEncoder().encode(`${headerPart}.${payloadPart}`)
+    );
+
+    return valid ? payload : null;
+  } catch {
+    return null;
+  }
+}
+
+// Sign temporary OAuth state so it cannot be modified in the browser.
+async function createOAuthCookie(data, env) {
+  const encoded = encodeText(JSON.stringify(data));
+  const signature = await signValue(encoded, env);
+
+  return `${encoded}.${signature}`;
+}
+
+async function verifyOAuthCookie(value, env) {
+  if (!value || value.length > 5000) return null;
+
+  try {
+    const parts = value.split(".");
+    if (parts.length !== 2) return null;
+
+    const [encoded, signature] = parts;
+    const key = await importSigningKey(env.VN_SESSION_SECRET);
+
+    const valid = await crypto.subtle.verify(
+      "HMAC",
+      key,
+      decodeBase64url(signature),
+      new TextEncoder().encode(encoded)
+    );
+
+    if (!valid) return null;
+
+    const data = JSON.parse(decodeText(encoded));
+
+    if (
+      !Number.isFinite(data.exp) ||
+      data.exp <= Math.floor(Date.now() / 1000)
+    ) {
+      return null;
+    }
+
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+function getCookie(request, name) {
+  const cookieHeader = request.headers.get("Cookie") || "";
+
+  for (const item of cookieHeader.split(";")) {
+    const separator = item.indexOf("=");
+    if (separator < 0) continue;
+
+    const key = item.slice(0, separator).trim();
+    const value = item.slice(separator + 1).trim();
+
+    if (key === name) return value;
+  }
+
+  return null;
+}
+
+function redirect(url, cookie = null) {
+  const headers = new Headers({
+    "Location": url,
+    "Cache-Control": "no-store",
+    "Pragma": "no-cache"
+  });
+
+  if (cookie) {
+    headers.append("Set-Cookie", cookie);
+  }
+
+  return new Response(null, {
+    status: 302,
+    headers
+  });
+}
+
+function clearOAuthCookie() {
+  return `${OAUTH_COOKIE}=; Path=/customer-account/callback; HttpOnly; Secure; SameSite=Lax; Max-Age=0`;
+}
+
+// Return an authentication result to the opener popup.
+function popupResult(type, sessionToken = "") {
+  const payload = JSON.stringify({
+    type,
+    ...(sessionToken ? { sessionToken } : {})
+  });
+
+  const fallbackHash =
+    type === "VN_SHOP_AUTH_SUCCESS"
+      ? `vn_shop_session=${encodeURIComponent(sessionToken)}`
+      : "shop_error=authentication_failed";
+
+  const html = `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>VN SHOP Authentication</title>
+</head>
+<body>
+  <p>Completing sign-in…</p>
+  <script>
+    const payload = ${payload};
+
+    if (window.opener && !window.opener.closed) {
+      window.opener.postMessage(
+        payload,
+        "https://ojee9.github.io"
+      );
+      window.close();
+    } else {
+      window.location.replace(
+        "https://ojee9.github.io/merch.html#${fallbackHash}"
+      );
+    }
+  </script>
+</body>
+</html>`;
+
+  return new Response(html, {
+    status: 200,
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      "Cache-Control": "no-store",
+      "Pragma": "no-cache",
+      "Set-Cookie": clearOAuthCookie()
+    }
+  });
+}
+
+function loginError() {
+  return popupResult("VN_SHOP_AUTH_ERROR");
+}
+
+// Start Shop's OIDC authorization-code + PKCE flow.
+async function startShopLogin(env) {
+  if (
+    !env.SHOP_CLIENT_ID ||
+    !env.SHOP_CLIENT_SECRET ||
+    !env.VN_SESSION_SECRET
+  ) {
+    return json(
+      { error: "Shop authentication is not configured." },
+      500
+    );
+  }
+
+  const state = randomValue(32);
+  const nonce = randomValue(32);
+  const verifier = randomValue(32);
+  const challenge = base64url(await sha256(verifier));
+
+  const now = Math.floor(Date.now() / 1000);
+
+  const cookieValue = await createOAuthCookie(
+    {
+      state,
+      nonce,
+      verifier,
+      exp: now + OAUTH_TTL
+    },
+    env
+  );
+
+  const authorizationUrl = new URL(SHOP_AUTHORIZE_URL);
+
+  authorizationUrl.search = new URLSearchParams({
+    client_id: env.SHOP_CLIENT_ID,
+    redirect_uri: REDIRECT_URI,
+    response_type: "code",
+    scope: "openid email",
+    state,
+    nonce,
+    code_challenge: challenge,
+    code_challenge_method: "S256",
+    storefront_domain: "https://vn-shop-7fxaa77z.myshopify.com"
+  }).toString();
+
+  const cookie =
+    `${OAUTH_COOKIE}=${cookieValue}; Path=/customer-account/callback; HttpOnly; Secure; SameSite=Lax; Max-Age=${OAUTH_TTL}`;
+
+  return redirect(authorizationUrl.toString(), cookie);
+}
+
+// Verify the Shop ID token against its published JWKS keys.
+async function verifyShopIdToken(idToken, expectedNonce, env) {
+  if (typeof idToken !== "string" || idToken.length > 20000) {
+    throw new Error("Invalid Shop ID token.");
+  }
+
+  const parts = idToken.split(".");
+  if (parts.length !== 3) {
+    throw new Error("Malformed Shop ID token.");
+  }
+
+  const [headerPart, payloadPart, signaturePart] = parts;
+
+  const header = JSON.parse(decodeText(headerPart));
+  const claims = JSON.parse(decodeText(payloadPart));
+
+  if (!["RS256", "ES256"].includes(header.alg)) {
+    throw new Error("Unsupported Shop ID token algorithm.");
+  }
+
+  if (typeof header.kid !== "string") {
+    throw new Error("Shop ID token key ID is missing.");
+  }
+
+  const jwksResponse = await fetch(SHOP_JWKS_URL, {
+    headers: { "Accept": "application/json" }
+  });
+
+  if (!jwksResponse.ok) {
+    throw new Error("Unable to retrieve Shop signing keys.");
+  }
+
+  const jwks = await jwksResponse.json();
+
+  const jwk = jwks.keys?.find(
+    key =>
+      key.kid === header.kid &&
+      (!key.use || key.use === "sig") &&
+      (!key.alg || key.alg === header.alg)
+  );
+
+  if (!jwk) {
+    throw new Error("Shop signing key was not found.");
+  }
+
+  let cryptoKey;
+  let verifyAlgorithm;
+
+  if (header.alg === "RS256") {
+    cryptoKey = await crypto.subtle.importKey(
+      "jwk",
+      jwk,
+      {
+        name: "RSASSA-PKCS1-v1_5",
+        hash: "SHA-256"
+      },
+      false,
+      ["verify"]
+    );
+
+    verifyAlgorithm = { name: "RSASSA-PKCS1-v1_5" };
+  } else {
+    cryptoKey = await crypto.subtle.importKey(
+      "jwk",
+      jwk,
+      {
+        name: "ECDSA",
+        namedCurve: "P-256"
+      },
+      false,
+      ["verify"]
+    );
+
+    verifyAlgorithm = {
+      name: "ECDSA",
+      hash: "SHA-256"
+    };
+  }
+
+  const validSignature = await crypto.subtle.verify(
+    verifyAlgorithm,
+    cryptoKey,
+    decodeBase64url(signaturePart),
+    new TextEncoder().encode(`${headerPart}.${payloadPart}`)
+  );
+
+  if (!validSignature) {
+    throw new Error("Shop ID token signature is invalid.");
+  }
+
+  const now = Math.floor(Date.now() / 1000);
+
+  if (claims.iss !== "https://accounts.shop.app") {
+    throw new Error("Invalid Shop ID token issuer.");
+  }
+
+  const audienceValid =
+    claims.aud === env.SHOP_CLIENT_ID ||
+    (
+      Array.isArray(claims.aud) &&
+      claims.aud.includes(env.SHOP_CLIENT_ID)
+    );
+
+  if (!audienceValid) {
+    throw new Error("Invalid Shop ID token audience.");
+  }
+
+  if (
+    Array.isArray(claims.aud) &&
+    claims.aud.length > 1 &&
+    claims.azp !== env.SHOP_CLIENT_ID
+  ) {
+    throw new Error("Invalid Shop ID token authorized party.");
+  }
+
+  if (
+    !Number.isFinite(claims.exp) ||
+    claims.exp <= now
+  ) {
+    throw new Error("Shop ID token has expired.");
+  }
+
+  if (
+    !Number.isFinite(claims.iat) ||
+    claims.iat > now + 60
+  ) {
+    throw new Error("Invalid Shop ID token issue time.");
+  }
+
+  if (claims.nonce !== expectedNonce) {
+    throw new Error("Shop ID token nonce mismatch.");
+  }
+
+  if (typeof claims.sub !== "string" || !claims.sub) {
+    throw new Error("Shop user ID is missing.");
+  }
+
+  return claims;
+}
+
+// Handle Shop's callback and exchange the authorization code.
+async function finishShopLogin(request, env) {
+  if (
+    !env.SHOP_CLIENT_ID ||
+    !env.SHOP_CLIENT_SECRET ||
+    !env.VN_SESSION_SECRET
+  ) {
+    return loginError();
+  }
+
+  const url = new URL(request.url);
+
+  if (url.searchParams.has("error")) {
+    return loginError();
+  }
+
+  const code = url.searchParams.get("code");
+  const returnedState = url.searchParams.get("state");
+
+  if (!code || code.length > 8000 || !returnedState) {
+    return loginError();
+  }
+
+  const cookieValue = getCookie(request, OAUTH_COOKIE);
+  const oauth = await verifyOAuthCookie(cookieValue, env);
+
+  if (!oauth || oauth.state !== returnedState) {
+    return loginError();
+  }
+
+  let tokenResponse;
+
+  try {
+    const body = new URLSearchParams({
+      grant_type: "authorization_code",
+      code,
+      redirect_uri: REDIRECT_URI,
+      code_verifier: oauth.verifier,
+      client_id: env.SHOP_CLIENT_ID,
+      client_secret: env.SHOP_CLIENT_SECRET
+    });
+
+    const response = await fetch(SHOP_TOKEN_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Accept": "application/json"
+      },
+      body
+    });
+
+    tokenResponse = await response.json();
+
+    if (!response.ok || !tokenResponse.id_token) {
+      return loginError();
+    }
+  } catch {
+    return loginError();
+  }
+
+  try {
+    const claims = await verifyShopIdToken(
+      tokenResponse.id_token,
+      oauth.nonce,
+      env
+    );
+
+    const user = {
+      sub: claims.sub,
+      email: claims.email || null,
+      emailVerified: claims.email_verified === true,
+      name: claims.name || null,
+      givenName: claims.given_name || null,
+      familyName: claims.family_name || null,
+      avatar: claims.picture || null
+    };
+
+    const sessionToken = await createSession(user, env);
+
+    return popupResult(
+      "VN_SHOP_AUTH_SUCCESS",
+      sessionToken
+    );
+  } catch (error) {
+    console.error(
+      "[VN SHOP AUTH] Callback verification failed:",
+      error.message
+    );
+
+    return loginError();
+  }
+}
+
+export default {
+  async fetch(request, env) {
+    const url = new URL(request.url);
+    const path = url.pathname;
+
+    // Shop login start.
+    if (request.method === "GET" && path === "/shop/login") {
+      return startShopLogin(env);
+    }
+
+    // Shop OIDC callback.
+    if (
+      request.method === "GET" &&
+      path === "/customer-account/callback"
+    ) {
+      return finishShopLogin(request, env);
+    }
+
+    // Existing VN session verification endpoint.
+    const origin = request.headers.get("Origin");
+
+    if (request.method === "OPTIONS") {
+      if (origin !== ALLOWED_ORIGIN) {
+        return new Response(null, { status: 403 });
+      }
+
+      return new Response(null, {
+        status: 204,
+        headers: {
+          "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
+          "Access-Control-Allow-Methods": "POST, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type",
+          "Access-Control-Max-Age": "86400",
+          "Vary": "Origin"
+        }
+      });
+    }
+
+    if (origin !== ALLOWED_ORIGIN) {
+      return json({ error: "Origin not allowed." }, 403);
+    }
+
+    if (request.method !== "POST") {
+      return json({ error: "Method not allowed." }, 405);
+    }
+
+    if (!env.VN_SESSION_SECRET) {
+      return json(
+        { error: "Session secret is not configured." },
+        500
+      );
+    }
+
+    let body;
+
+    try {
+      if (
+        !(request.headers.get("Content-Type") || "")
+          .includes("application/json")
+      ) {
+        return json(
+          { error: "Content-Type must be application/json." },
+          415
+        );
+      }
+
+      const raw = await request.text();
+
+      if (raw.length > 12000) {
+        return json({ error: "Request too large." }, 413);
+      }
+
+      body = JSON.parse(raw);
+    } catch {
+      return json({ error: "Invalid request body." }, 400);
+    }
+
+    if (body?.action === "verify") {
+      const session = await verifySession(
+        body.sessionToken,
+        env
+      );
+
+      if (!session) {
+        return json({ authenticated: false }, 401);
+      }
+
+      return json({
+        authenticated: true,
+        provider: "shop",
+        user: {
+          id: session.sub,
+          email: session.email,
+          emailVerified: session.emailVerified,
+          name: session.name,
+          givenName: session.givenName,
+          familyName: session.familyName,
+          avatar: session.avatar
+        },
+        expiresAt: session.exp
+      });
+    }
+
+    return json(
+      { error: "Unknown authentication action." },
+      400
+    );
+  }
+};
