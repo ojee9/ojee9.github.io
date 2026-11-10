@@ -16,7 +16,16 @@
   gtag('js', new Date());
   gtag('config', 'G-3EDYHGQD8N');
 </script>
-<style>.vn-admin-gate-pending body{visibility:hidden!important}.vn-admin-gate-message{min-height:100vh;display:grid;place-items:center;padding:32px;background:#C6BBA7;color:#111;font:14px/1.6 Arial,sans-serif}.vn-admin-gate-message section{width:min(520px,100%);padding:32px;background:#f5f2eb;border:1px solid rgba(0,0,0,.15)}.vn-admin-gate-message h1{margin:0 0 12px;font-size:22px}.vn-admin-gate-message p{margin:0 0 22px}.vn-admin-gate-message a{display:inline-block;padding:12px 18px;background:#111;color:#fff;text-decoration:none}</style><script>document.documentElement.classList.add("vn-admin-gate-pending")</script><script defer crossorigin="anonymous" data-clerk-publishable-key="pk_test_aHVtYmxlLW94LTcwNTUuY2xlcmsuYWNjb3VudHMuZGV2JA" src="https://humble-ox-7055.clerk.accounts.dev/npm/@clerk/clerk-js@6.39.0/dist/clerk.browser.js" type="text/javascript"></script><script defer src="checkout-system/admin-checkout-gate.js"></script>
+<style>
+.vn-admin-order-switch{margin:22px 0 4px;padding:16px 0;border-top:1px solid #dedbd4}
+.vn-admin-order-switch-title{margin-bottom:10px;font-size:10px;font-weight:700;letter-spacing:.14em;color:#777}
+.vn-admin-order-switch-options{display:grid;grid-template-columns:1fr 1fr;border:1px solid #bdb8ae;border-radius:4px;overflow:hidden}
+.vn-admin-order-switch-options label{display:flex;align-items:center;justify-content:center;min-height:44px;padding:8px;cursor:pointer;font-size:11px;font-weight:700;letter-spacing:.08em}
+.vn-admin-order-switch-options label+label{border-left:1px solid #bdb8ae}
+.vn-admin-order-switch-options input{position:absolute;opacity:0;pointer-events:none}
+.vn-admin-order-switch-options label:has(input:checked){background:#171411;color:#f4f1eb}
+.vn-admin-order-switch-options label:focus-within{outline:2px solid #8c7c5e;outline-offset:-3px}
+.vn-admin-gate-pending body{visibility:hidden!important}.vn-admin-gate-message{min-height:100vh;display:grid;place-items:center;padding:32px;background:#C6BBA7;color:#111;font:14px/1.6 Arial,sans-serif}.vn-admin-gate-message section{width:min(520px,100%);padding:32px;background:#f5f2eb;border:1px solid rgba(0,0,0,.15)}.vn-admin-gate-message h1{margin:0 0 12px;font-size:22px}.vn-admin-gate-message p{margin:0 0 22px}.vn-admin-gate-message a{display:inline-block;padding:12px 18px;background:#111;color:#fff;text-decoration:none}</style><script>document.documentElement.classList.add("vn-admin-gate-pending")</script><script defer crossorigin="anonymous" data-clerk-publishable-key="pk_test_aHVtYmxlLW94LTcwNTUuY2xlcmsuYWNjb3VudHMuZGV2JA" src="https://humble-ox-7055.clerk.accounts.dev/npm/@clerk/clerk-js@6.39.0/dist/clerk.browser.js" type="text/javascript"></script><script defer src="checkout-system/admin-checkout-gate.js"></script>
 <style>
 .vn-checkout-saved-addresses{margin:0 0 22px;padding:16px;border:1px solid #dedbd4;border-radius:10px;background:#faf9f6}
 .vn-checkout-saved-addresses h3{margin:0 0 12px;font-size:13px;font-weight:650;letter-spacing:.02em}
@@ -182,6 +191,13 @@
             <p>Your name and account preferences are saved to your account. You can also save this shipping address for faster checkout. See our <a href="policies/privacy-policy.html">Privacy Policy</a>.</p>
           </div>
           <button type="button" id="not-now" class="not-now-button" aria-pressed="false">NOT NOW</button>
+        </section>
+        <section id="admin-order-type-switch" class="vn-admin-order-switch" hidden aria-label="Admin order type">
+          <div class="vn-admin-order-switch-title">ADMIN ORDER TYPE</div>
+          <div class="vn-admin-order-switch-options" role="radiogroup" aria-label="Choose order type">
+            <label><input type="radio" name="vn-admin-order-type" value="admin"><span>ADMIN ORDER</span></label>
+            <label><input type="radio" name="vn-admin-order-type" value="customer" checked><span>CUSTOMER ORDER</span></label>
+          </div>
         </section>
         <div class="actions payment-step-actions">
           <button type="button" class="secondary-action" id="return-to-shipping">Return to shipping</button>

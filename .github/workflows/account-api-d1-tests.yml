@@ -1,0 +1,27 @@
+name: VN SHOP Account API D1 Tests
+
+on:
+  push:
+    paths:
+      - "update-account-api-worker-here-js"
+      - "cloudflare/account-api-tests/**"
+      - ".github/workflows/account-api-d1-tests.yml"
+  pull_request:
+    paths:
+      - "update-account-api-worker-here-js"
+      - "cloudflare/account-api-tests/**"
+      - ".github/workflows/account-api-d1-tests.yml"
+
+jobs:
+  d1-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: cloudflare/account-api-tests
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install
+      - run: npm test

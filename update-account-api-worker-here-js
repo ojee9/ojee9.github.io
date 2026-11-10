@@ -428,22 +428,9 @@ async function resolveVNAccount(db, identity) {
       if (emailOwner) throw new AppError("This verified email is already linked to another VN SHOP account. Contact support to merge accounts safely.", 409);
     }
   }
-  let legacyUserId = identity.clerkUserId || null;
-  if (!account && !legacyUserId) {
-    const profileColumns = await getColumns(db, "customer_profiles");
-    if (profileColumns.includes("email")) {
-      const legacyProfile = await db.prepare("SELECT user_id FROM customer_profiles WHERE lower(email) = ? ORDER BY updated_at DESC LIMIT 1").bind(email).first();
-      if (legacyProfile?.user_id) legacyUserId = legacyProfile.user_id;
-    }
-    if (!legacyUserId) {
-      const legacyOrder = await db.prepare("SELECT user_id FROM customer_orders WHERE lower(json_extract(customer_json, '$.email')) = ? ORDER BY created_at DESC LIMIT 1").bind(email).first();
-      if (legacyOrder?.user_id) legacyUserId = legacyOrder.user_id;
-    }
-    if (!legacyUserId) {
-      const legacyAdminOrder = await db.prepare("SELECT user_id FROM admin_orders WHERE lower(json_extract(customer_json, '$.email')) = ? ORDER BY delivered_at DESC LIMIT 1").bind(email).first();
-      if (legacyAdminOrder?.user_id) legacyUserId = legacyAdminOrder.user_id;
-    }
-  }
+  // Never infer ownership from editable profile or order-form email fields.
+  // Only a verified immutable Clerk subject may identify a legacy account.
+  const legacyUserId = identity.clerkUserId || null;
   const now = nowISO();
   if (!account) {
     const accountId = randomId("vn_");
@@ -589,8 +576,18 @@ async function ensureSchema(db) {
     )`),
     db.prepare(`CREATE INDEX IF NOT EXISTS idx_order_status_events_order ON order_status_events(order_id, created_at)`),
     db.prepare(`CREATE TABLE IF NOT EXISTS admin_order_code_registry (
-      code_number INTEGER PRIMARY KEY CHECK(code_number BETWEEN 1 AND 99),
+      code_number INTEGER PRIMARY KEY CHECK(code_number >= 1),
       admin_order_id TEXT NOT NULL UNIQUE, created_at TEXT NOT NULL
+    )`),
+    db.prepare(`CREATE TABLE IF NOT EXISTS admin_order_number_registry (
+      order_number TEXT PRIMARY KEY, admin_order_id TEXT NOT NULL UNIQUE,
+      created_at TEXT NOT NULL, state TEXT NOT NULL DEFAULT 'reserved'
+    )`),
+    db.prepare(`CREATE TABLE IF NOT EXISTS admin_order_code_sequence (
+      id INTEGER PRIMARY KEY CHECK(id=1), next_number INTEGER NOT NULL CHECK(next_number >= 1)
+    )`),
+    db.prepare(`CREATE TABLE IF NOT EXISTS customer_order_code_sequence (
+      id INTEGER PRIMARY KEY CHECK(id=1), next_number INTEGER NOT NULL CHECK(next_number >= 1)
     )`),
     db.prepare(`CREATE TABLE IF NOT EXISTS admin_order_events (
       id TEXT PRIMARY KEY, admin_order_id TEXT NOT NULL, event_type TEXT NOT NULL,
@@ -833,13 +830,19 @@ async function ensureSchema(db) {
     "admin_stock_exempt",
     "INTEGER NOT NULL DEFAULT 0"
   );
+  await ensureColumn(db, "customer_orders", "created_by_admin", "INTEGER NOT NULL DEFAULT 0");
+  await ensureColumn(db, "customer_orders", "payment_source", "TEXT NOT NULL DEFAULT 'provider'");
+  await ensureColumn(db, "customer_orders", "payment_number", "TEXT");
+  await ensureColumn(db, "customer_orders", "request_key", "TEXT");
 
   await ensureColumn(db, "customer_returns", "is_test", "INTEGER NOT NULL DEFAULT 0");
   await ensureColumn(db, "customer_orders", "delivered_at", "TEXT");
   await ensureColumn(db, "admin_orders", "payment_status", "TEXT NOT NULL DEFAULT 'Pending'");
   await ensureColumn(db, "admin_orders", "payment_number", "TEXT");
+  await ensureColumn(db, "admin_orders", "payment_source", "TEXT NOT NULL DEFAULT 'admin_offline'");
   await ensureColumn(db, "admin_order_queue", "payment_status", "TEXT NOT NULL DEFAULT 'Pending'");
   await ensureColumn(db, "admin_order_queue", "payment_number", "TEXT");
+  await ensureColumn(db, "admin_order_queue", "payment_source", "TEXT NOT NULL DEFAULT 'admin_offline'");
   await ensureColumn(db, "vn_operation_sessions", "actor_id", "TEXT");
   for (const [column, definition] of Object.entries({
     email:"TEXT", first_name:"TEXT", last_name:"TEXT", phone:"TEXT", country:"TEXT", country_code:"TEXT",
@@ -856,6 +859,28 @@ async function ensureSchema(db) {
     SELECT CAST(SUBSTR(vn_code, 6) AS INTEGER), 'legacy:' || vn_code, COALESCE(delivered_at, created_at, ?)
     FROM admin_orders WHERE vn_code GLOB 'VN-A[0-9][0-9]' AND CAST(SUBSTR(vn_code,6) AS INTEGER) BETWEEN 1 AND 99`).bind(nowISO()).run();
 
+  // One-time rebuild of the legacy 1..99 registry, preserving all allocated codes.
+  const registryDefinition = await db.prepare(`SELECT sql FROM sqlite_master WHERE type='table' AND name='admin_order_code_registry' LIMIT 1`).first();
+  if (String(registryDefinition?.sql || "").includes("BETWEEN 1 AND 99")) {
+    await db.batch([
+      db.prepare(`CREATE TABLE IF NOT EXISTS admin_order_code_registry_next (code_number INTEGER PRIMARY KEY CHECK(code_number >= 1), admin_order_id TEXT NOT NULL UNIQUE, created_at TEXT NOT NULL)`),
+      db.prepare(`INSERT OR IGNORE INTO admin_order_code_registry_next SELECT code_number,admin_order_id,created_at FROM admin_order_code_registry`),
+      db.prepare(`DROP TABLE admin_order_code_registry`),
+      db.prepare(`ALTER TABLE admin_order_code_registry_next RENAME TO admin_order_code_registry`)
+    ]);
+  }
+  const maxAdminCode = await db.prepare(`SELECT COALESCE(MAX(code_number),0) AS n FROM admin_order_code_registry`).first();
+  await db.prepare(`INSERT INTO admin_order_code_sequence (id,next_number) VALUES (1,?) ON CONFLICT(id) DO UPDATE SET next_number=MAX(admin_order_code_sequence.next_number,excluded.next_number)`).bind(Number(maxAdminCode?.n || 0)+1).run();
+  const maxCustomerCode = await db.prepare(`SELECT COALESCE(MAX(CAST(SUBSTR(vn_code,4) AS INTEGER)),0) AS n FROM customer_orders WHERE SUBSTR(vn_code,1,3)=?`).bind("VN-").first();
+  await db.prepare(`INSERT INTO customer_order_code_sequence (id,next_number) VALUES (1,?) ON CONFLICT(id) DO UPDATE SET next_number=MAX(customer_order_code_sequence.next_number,excluded.next_number)`).bind(Number(maxCustomerCode?.n || 0)+1).run();
+
+  await ensureColumn(db, "admin_order_queue", "request_key", "TEXT");
+  await db.prepare(`CREATE TABLE IF NOT EXISTS payment_reference_registry (payment_number TEXT PRIMARY KEY, order_id TEXT NOT NULL, created_at TEXT NOT NULL)`).run();
+  await db.prepare(`CREATE UNIQUE INDEX IF NOT EXISTS idx_payment_reference_order ON payment_reference_registry(order_id)`).run();
+  await db.prepare(`CREATE UNIQUE INDEX IF NOT EXISTS idx_admin_order_queue_request_key ON admin_order_queue(user_id,request_key) WHERE request_key IS NOT NULL`).run();
+  await db.prepare(`CREATE UNIQUE INDEX IF NOT EXISTS idx_customer_orders_admin_request_key ON customer_orders(user_id,request_key) WHERE request_key IS NOT NULL`).run();
+  await db.prepare(`INSERT OR IGNORE INTO admin_order_number_registry(order_number,admin_order_id,created_at,state)
+    SELECT order_number,id,created_at,'permanent' FROM admin_orders`).run();
   await db.prepare(`
     INSERT OR IGNORE INTO customer_return_item_claims (order_item_id,return_id,status,created_at)
     SELECT ri.order_item_id,ri.return_id,r.status,COALESCE(r.created_at,?)
@@ -864,10 +889,26 @@ async function ensureSchema(db) {
     WHERE lower(r.status) IN ('pending','accepted','return process','returned')
   `).bind(nowISO()).run();
 
-  const drafts=await db.prepare(`SELECT id FROM admin_order_queue`).all();
+  const drafts=await db.prepare(`SELECT * FROM admin_order_queue`).all();
   for(const draft of drafts.results||[]) {
-    const draftRef=`DRAFT-${String(draft.id).slice(-12)}`;
-    await db.prepare(`UPDATE admin_order_queue SET order_number=?,vn_code=?,order_json=json_set(order_json,'$.orderNumber',NULL,'$.vnCode',NULL) WHERE id=?`).bind(draftRef,draftRef,draft.id).run();
+    if (String(draft.order_number||"").startsWith("DRAFT-") || String(draft.vn_code||"").startsWith("DRAFT-")) {
+      const identifiers=await reserveAdminIdentifiers(db,draft.id,draft.created_at||nowISO());
+      const paymentNumber=draft.payment_number||await generatePaymentNumber(db,draft.id);
+      const orderObject=parseJSON(draft.order_json,{});
+      orderObject.orderNumber=identifiers.orderNumber;
+      orderObject.vnCode=identifiers.vnCode;
+      orderObject.paymentStatus="Paid";
+      orderObject.paymentNumber=paymentNumber;
+      orderObject.paymentSource="admin_offline";
+      await db.prepare(`UPDATE admin_order_queue SET order_number=?,vn_code=?,payment_status='Paid',payment_number=?,payment_source='admin_offline',order_json=? WHERE id=?`)
+        .bind(identifiers.orderNumber,identifiers.vnCode,paymentNumber,JSON.stringify(orderObject),draft.id).run();
+    } else {
+      await db.prepare(`INSERT OR IGNORE INTO admin_order_number_registry(order_number,admin_order_id,created_at,state) VALUES (?,?,?,'reserved')`)
+        .bind(draft.order_number,draft.id,draft.created_at||nowISO()).run();
+      const codeNumber=Number(String(draft.vn_code||"").replace(/^VN-A/,""));
+      if(Number.isSafeInteger(codeNumber)&&codeNumber>0) await db.prepare(`INSERT OR IGNORE INTO admin_order_code_registry(code_number,admin_order_id,created_at) VALUES (?,?,?)`)
+        .bind(codeNumber,draft.id,draft.created_at||nowISO()).run();
+    }
   }
   schemaReady = true;
   })();
@@ -1264,9 +1305,10 @@ async function generateUniqueAdminOrderNumber(db) {
 }
 
 async function generateAdminCode(db) {
-  const row=await db.prepare(`WITH RECURSIVE seq(n) AS (SELECT 1 UNION ALL SELECT n+1 FROM seq WHERE n<99) SELECT MIN(n) AS next_number FROM seq WHERE NOT EXISTS (SELECT 1 FROM admin_order_code_registry r WHERE r.code_number=n)`).first();
-  if(!row?.next_number) throw new AppError("All VN-A order codes have been allocated.",409);
-  return `VN-A${String(row.next_number).padStart(2,"0")}`;
+  const row = await db.prepare(`UPDATE admin_order_code_sequence SET next_number=next_number+1 WHERE id=1 RETURNING next_number-1 AS allocated`).first();
+  const number = Number(row?.allocated);
+  if (!Number.isSafeInteger(number) || number < 1) throw new AppError("Unable to allocate a VN-A code.",503);
+  return `VN-A${String(number).padStart(2,"0")}`;
 }
 
 async function generateUniqueCustomerOrderNumber(db) {
@@ -1287,47 +1329,207 @@ async function generateUniqueCustomerOrderNumber(db) {
 }
 
 async function generateUniqueCustomerCode(db) {
-  const sequence = await db.prepare(`
-    SELECT MAX(CAST(SUBSTR(vn_code, 4) AS INTEGER)) AS last_code
-    FROM customer_orders
-    WHERE vn_code GLOB 'VN-[0-9]*'
-  `).first();
+  const row = await db.prepare(`UPDATE customer_order_code_sequence SET next_number=next_number+1 WHERE id=1 RETURNING next_number-1 AS allocated`).first();
+  const number = Number(row?.allocated);
+  if (!Number.isSafeInteger(number) || number < 1) throw new AppError("Unable to allocate a customer VN code.",503);
+  return "VN-" + String(number).padStart(number <= 999 ? 3 : 4, "0");
+}
 
-  const nextNumber = Math.max(0, Number(sequence?.last_code || 0)) + 1;
-
-  if (nextNumber <= 999) {
-    return `VN-${String(nextNumber).padStart(3, "0")}`;
+async function reserveAdminIdentifiers(db, orderId, createdAt=nowISO()) {
+  for (let attempt=0;attempt<120;attempt++) {
+    const orderNumber=randomDigits(6);
+    const codeNumber=Number(randomDigits(6));
+    if(!codeNumber) continue;
+    const results=await db.batch([
+      db.prepare(`INSERT OR IGNORE INTO admin_order_number_registry(order_number,admin_order_id,created_at,state) VALUES (?,?,?,'reserved')`).bind(orderNumber,orderId,createdAt),
+      db.prepare(`INSERT OR IGNORE INTO admin_order_code_registry(code_number,admin_order_id,created_at) VALUES (?,?,?)`).bind(codeNumber,orderId,createdAt)
+    ]);
+    const numberReserved=Boolean(results?.[0]?.meta?.changes);
+    const codeReserved=Boolean(results?.[1]?.meta?.changes);
+    if(numberReserved&&codeReserved) return {orderNumber,vnCode:`VN-A${String(codeNumber).padStart(2,"0")}`,codeNumber};
+    await db.batch([
+      db.prepare(`DELETE FROM admin_order_number_registry WHERE admin_order_id=?`).bind(orderId),
+      db.prepare(`DELETE FROM admin_order_code_registry WHERE admin_order_id=?`).bind(orderId)
+    ]);
   }
-
-  return `VN-${String(nextNumber).padStart(4, "0")}`;
+  throw new AppError("Unable to reserve unique admin order identifiers. Try again.",503);
 }
 
-async function prepareAdminOrder(db, userId, body) {
-  const orderInput = body.order || body;
-  const order = normalizeOrderRecord(orderInput);
-  order.createdAt = nowISO();
-  const id = randomId("admin_queue_");
-  const timestamp = nowISO();
-  const draftNumber = `DRAFT-${id.slice(-12)}`;
-  const serialized = serializeNormalizedOrder(order);
-  const queueOrder = { ...order.originalOrder, orderNumber: null, vnCode: null, status: "received", orderStatus: "Received", paymentStatus: "Pending" };
-  await db.prepare(`INSERT INTO admin_order_queue (
-    id,user_id,order_number,vn_code,created_at,updated_at,status,customer_json,items_json,
-    subtotal,shipping,taxes,total,currency,country_code,shipping_method,payment_method,payment_status,payment_number,order_json
-  ) VALUES (?,?,?,?,?,?,'received',?,?,?,?,?,?,?,?,?,?,'Pending',NULL,?)`).bind(
-    id,userId,draftNumber,draftNumber,order.createdAt,timestamp,
-    JSON.stringify(order.customer),JSON.stringify(serialized.items),order.subtotal,order.shipping,order.taxes,
-    order.total,order.currency,order.countryCode,order.shippingMethod,order.paymentMethod,JSON.stringify(queueOrder)
-  ).run();
-  return { id, orderNumber: null, vnCode: null, draftReference: draftNumber, createdAt: order.createdAt,
-    customer: order.customer, items: serialized.items, subtotal: order.subtotal, shipping: order.shipping,
-    taxes: order.taxes, total: order.total, currency: order.currency, countryCode: order.countryCode,
-    shippingMethod: order.shippingMethod, paymentMethod: order.paymentMethod, status: "received",
-    orderStatus: "Received", paymentStatus: "Pending", isAdminOrder: true,
-    order: { ...order.originalOrder, orderNumber: null, vnCode: null, createdAt: order.createdAt } };
+async function createAdminCustomerOrder(db,userId,body,requestKey=null) {
+  if(requestKey) {
+    const existing=await db.prepare(`SELECT * FROM customer_orders WHERE user_id=? AND request_key=? LIMIT 1`).bind(userId,requestKey).first();
+    if(existing) return serializeCreatedAdminCustomerOrder(existing);
+  }
+  const order=normalizeOrderRecord(body.order||body);
+  const id=randomId("order_"),timestamp=nowISO();
+  const orderNumber=await generateUniqueCustomerOrderNumber(db);
+  const vnCode=await generateUniqueCustomerCode(db);
+  const paymentNumber=await generatePaymentNumber(db,id);
+  const orderObject={...order.originalOrder,orderNumber,vnCode,createdAt:timestamp,orderStatus:"Received",status:"received",
+    paymentStatus:"Paid",paymentNumber,paymentSource:"admin_offline",createdByAdmin:true};
+  const normalizedItems=serializeNormalizedOrder(order).items;
+  const statements=[
+    db.prepare(`INSERT OR IGNORE INTO customer_orders(
+      id,user_id,order_number,vn_code,created_at,updated_at,customer_json,subtotal,shipping,taxes,total,currency,country_code,
+      order_status,payment_status,delivered_at,shipping_method,payment_method,order_json,is_test,is_admin_order,
+      admin_payment_exempt,admin_stock_exempt,payment_number,created_by_admin,payment_source,request_key
+    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,'Received','Paid',NULL,?,?,?,0,0,1,0,?,1,'admin_offline',?)`)
+      .bind(id,userId,orderNumber,vnCode,timestamp,timestamp,JSON.stringify(order.customer),order.subtotal,order.shipping,order.taxes,
+        order.total,order.currency,order.countryCode,order.shippingMethod,"Admin offline settlement",JSON.stringify(orderObject),paymentNumber,requestKey),
+    ...order.items.map(item=>db.prepare(`INSERT INTO customer_order_items
+      (id,order_id,product_id,title,variant,quantity,unit_price,total_price,image,item_json,active)
+      VALUES (?,?,?,?,?,?,?,?,?,?,1)`)
+      .bind(item.id,id,item.productId,item.title,item.variant,item.quantity,item.unitPrice,item.totalPrice,item.image,item.itemJson)),
+    db.prepare(`INSERT INTO order_status_history(id,order_id,from_status,to_status,actor_id,reason,created_at)
+      VALUES (?,?,NULL,'Received',?,'Admin offline settlement',?)`).bind(randomId("osh_"),id,userId,timestamp),
+    db.prepare(`INSERT INTO order_status_events(id,order_id,from_status,to_status,actor_id,reason,created_at)
+      VALUES (?,?,NULL,'Received',?,'Admin offline settlement',?)`).bind(randomId("ose_"),id,userId,timestamp)
+  ];
+  try {
+    await db.batch(statements);
+  } catch(err) {
+    await db.prepare(`DELETE FROM payment_reference_registry WHERE order_id=?`).bind(id).run();
+    if(requestKey) {
+      const existing=await db.prepare(`SELECT * FROM customer_orders WHERE user_id=? AND request_key=? LIMIT 1`).bind(userId,requestKey).first();
+      if(existing) return serializeCreatedAdminCustomerOrder(existing);
+    }
+    throw err;
+  }
+  const saved=await db.prepare(`SELECT * FROM customer_orders WHERE id=? LIMIT 1`).bind(id).first();
+  if(!saved) {
+    await db.prepare(`DELETE FROM payment_reference_registry WHERE order_id=?`).bind(id).run();
+    throw new AppError("Unable to create the customer order.",503);
+  }
+  return serializeCreatedAdminCustomerOrder(saved);
+}
+
+function serializeCreatedAdminCustomerOrder(row) {
+  const data=parseJSON(row.order_json,{});
+  return {id:row.id,orderNumber:row.order_number,vnCode:row.vn_code,createdAt:row.created_at,updatedAt:row.updated_at,
+    customer:parseJSON(row.customer_json,{}),items:Array.isArray(data.items)?data.items:[],subtotal:row.subtotal,shipping:row.shipping,
+    taxes:row.taxes,total:row.total,currency:row.currency,countryCode:row.country_code,orderStatus:row.order_status,
+    status:row.order_status,paymentStatus:row.payment_status,paymentNumber:row.payment_number||data.paymentNumber||null,
+    paymentSource:row.payment_source||"admin_offline",createdByAdmin:Boolean(row.created_by_admin),adminRemovable:
+    Boolean(row.created_by_admin)&&row.payment_source==="admin_offline"&&row.payment_status==="Paid",order:data};
+}
+
+async function deleteAdminCreatedCustomerOrder(db,orderId) {
+  const row=await db.prepare(`SELECT id,created_by_admin,payment_source,payment_status FROM customer_orders WHERE id=? LIMIT 1`).bind(orderId).first();
+  if(!row) return false;
+  if(Number(row.created_by_admin)!==1||row.payment_source!=="admin_offline"||row.payment_status!=="Paid")
+    throw new AppError("Only admin-created offline-paid customer orders can be removed this way.",403);
+  await db.batch([
+    db.prepare(`DELETE FROM customer_return_item_claims WHERE return_id IN (SELECT id FROM customer_returns WHERE order_id=?)`).bind(orderId),
+    db.prepare(`DELETE FROM customer_return_items WHERE return_id IN (SELECT id FROM customer_returns WHERE order_id=?)`).bind(orderId),
+    db.prepare(`DELETE FROM return_status_history WHERE return_id IN (SELECT id FROM customer_returns WHERE order_id=?)`).bind(orderId),
+    db.prepare(`DELETE FROM customer_returns WHERE order_id=?`).bind(orderId),
+    db.prepare(`DELETE FROM issue_status_history WHERE issue_id IN (SELECT id FROM issues WHERE order_id=?)`).bind(orderId),
+    db.prepare(`DELETE FROM issues WHERE order_id=?`).bind(orderId),
+    db.prepare(`DELETE FROM order_status_history WHERE order_id=?`).bind(orderId),
+    db.prepare(`DELETE FROM order_status_events WHERE order_id=?`).bind(orderId),
+    db.prepare(`DELETE FROM customer_order_items WHERE order_id=?`).bind(orderId),
+    db.prepare(`DELETE FROM payment_reference_registry WHERE order_id=?`).bind(orderId),
+    db.prepare(`DELETE FROM customer_orders WHERE id=? AND created_by_admin=1 AND payment_source='admin_offline' AND payment_status='Paid'`).bind(orderId)
+  ]);
+  return true;
+}
+
+async function deleteAdminOrder(db,orderId) {
+  const queued=await db.prepare(`SELECT id,payment_source FROM admin_order_queue WHERE id=? LIMIT 1`).bind(orderId).first();
+  if(queued) return await deleteQueuedAdminOrder(db,orderId);
+  const final=await db.prepare(`SELECT id,payment_source,payment_status FROM admin_orders WHERE id=? LIMIT 1`).bind(orderId).first();
+  if(!final) return false;
+  if(final.payment_source!=="admin_offline"||final.payment_status!=="Paid")
+    throw new AppError("Provider-paid admin orders must follow the payment provider cancellation and refund policy.",409);
+  await db.batch([
+    db.prepare(`DELETE FROM admin_order_events WHERE admin_order_id=?`).bind(orderId),
+    db.prepare(`DELETE FROM payment_reference_registry WHERE order_id=?`).bind(orderId),
+    db.prepare(`DELETE FROM admin_orders WHERE id=? AND payment_source='admin_offline' AND payment_status='Paid'`).bind(orderId)
+  ]);
+  // Delivered identifiers remain permanently allocated even if the order record is removed.
+  return true;
+}
+
+async function prepareAdminOrder(db, userId, body, requestKey = null) {
+  if (requestKey) {
+    const existing=await db.prepare(`SELECT * FROM admin_order_queue WHERE request_key=? AND user_id=? LIMIT 1`).bind(requestKey,userId).first();
+    if(existing) return {id:existing.id,orderNumber:existing.order_number,vnCode:existing.vn_code,createdAt:existing.created_at,
+      customer:parseJSON(existing.customer_json,{}),items:parseJSON(existing.items_json,[]),subtotal:existing.subtotal,shipping:existing.shipping,
+      taxes:existing.taxes,total:existing.total,currency:existing.currency,countryCode:existing.country_code,
+      shippingMethod:existing.shipping_method,paymentMethod:existing.payment_method,status:existing.status,
+      orderStatus:"Received",paymentStatus:existing.payment_status,paymentNumber:existing.payment_number,isAdminOrder:true,
+      paymentSource:existing.payment_source,order:parseJSON(existing.order_json,{})};
+  }
+  const order=normalizeOrderRecord(body.order||body);
+  const timestamp=nowISO(),id=randomId("admin_queue_");
+  const identifiers=await reserveAdminIdentifiers(db,id,timestamp);
+  let paymentNumber;
+  try {
+    paymentNumber=await generatePaymentNumber(db,id);
+    const serialized=serializeNormalizedOrder(order);
+    const queueOrder={...order.originalOrder,orderNumber:identifiers.orderNumber,vnCode:identifiers.vnCode,
+      status:"received",orderStatus:"Received",paymentStatus:"Paid",paymentNumber,paymentSource:"admin_offline"};
+    await db.prepare(`INSERT OR IGNORE INTO admin_order_queue (
+      id,user_id,order_number,vn_code,created_at,updated_at,status,customer_json,items_json,
+      subtotal,shipping,taxes,total,currency,country_code,shipping_method,payment_method,payment_status,payment_number,order_json,request_key,payment_source
+    ) VALUES (?,?,?,?,?,?,'received',?,?,?,?,?,?,?,?,?,?,'Paid',?,?,?,'admin_offline')`).bind(
+      id,userId,identifiers.orderNumber,identifiers.vnCode,timestamp,timestamp,JSON.stringify(order.customer),
+      JSON.stringify(serialized.items),order.subtotal,order.shipping,order.taxes,order.total,order.currency,order.countryCode,
+      order.shippingMethod,"Admin offline settlement",paymentNumber,JSON.stringify(queueOrder),requestKey
+    ).run();
+    const saved=requestKey
+      ? await db.prepare(`SELECT * FROM admin_order_queue WHERE user_id=? AND request_key=? LIMIT 1`).bind(userId,requestKey).first()
+      : await db.prepare(`SELECT * FROM admin_order_queue WHERE id=? LIMIT 1`).bind(id).first();
+    if(!saved) throw new AppError("Unable to save the admin order reservation.",503);
+    if(saved.id!==id) {
+      await db.batch([
+        db.prepare(`DELETE FROM admin_order_number_registry WHERE admin_order_id=?`).bind(id),
+        db.prepare(`DELETE FROM admin_order_code_registry WHERE admin_order_id=?`).bind(id),
+        db.prepare(`DELETE FROM payment_reference_registry WHERE order_id=?`).bind(id)
+      ]);
+    }
+    return {id:saved.id,orderNumber:saved.order_number,vnCode:saved.vn_code,createdAt:saved.created_at,
+      customer:parseJSON(saved.customer_json,{}),items:parseJSON(saved.items_json,[]),subtotal:saved.subtotal,shipping:saved.shipping,
+      taxes:saved.taxes,total:saved.total,currency:saved.currency,countryCode:saved.country_code,
+      shippingMethod:saved.shipping_method,paymentMethod:saved.payment_method,status:saved.status,orderStatus:"Received",
+      paymentStatus:saved.payment_status,paymentNumber:saved.payment_number,isAdminOrder:true,paymentSource:saved.payment_source,
+      order:parseJSON(saved.order_json,{})};
+  } catch(err) {
+    await db.batch([
+      db.prepare(`DELETE FROM admin_order_queue WHERE id=?`).bind(id),
+      db.prepare(`DELETE FROM admin_order_number_registry WHERE admin_order_id=?`).bind(id),
+      db.prepare(`DELETE FROM admin_order_code_registry WHERE admin_order_id=?`).bind(id),
+      db.prepare(`DELETE FROM payment_reference_registry WHERE order_id=?`).bind(id)
+    ]);
+    throw err;
+  }
 }
 
 
+
+async function generatePaymentNumber(db, orderId) {
+  for (let attempt=0;attempt<8;attempt++) {
+    const paymentNumber = "VN-PAY-" + new Date().toISOString().slice(0,10).replace(/-/g,"") + "-" + randomDigits(8);
+    await db.prepare("INSERT OR IGNORE INTO payment_reference_registry (payment_number,order_id,created_at) VALUES (?,?,?)").bind(paymentNumber,orderId,nowISO()).run();
+    const saved=await db.prepare("SELECT payment_number FROM payment_reference_registry WHERE order_id=? LIMIT 1").bind(orderId).first();
+    if (saved?.payment_number) return saved.payment_number;
+  }
+  throw new AppError("Unable to generate a unique payment number.",503);
+}
+
+async function deleteQueuedAdminOrder(db, orderId) {
+  const row=await db.prepare(`SELECT id,payment_source,payment_status FROM admin_order_queue WHERE id=? LIMIT 1`).bind(orderId).first();
+  if(!row) return false;
+  if(row.payment_source!=="admin_offline"||row.payment_status!=="Paid")
+    throw new AppError("Provider-paid admin orders must follow the payment provider cancellation and refund policy.",409);
+  await db.batch([
+    db.prepare(`DELETE FROM admin_order_queue WHERE id=?`).bind(orderId),
+    db.prepare(`DELETE FROM admin_order_number_registry WHERE admin_order_id=?`).bind(orderId),
+    db.prepare(`DELETE FROM admin_order_code_registry WHERE admin_order_id=?`).bind(orderId),
+    db.prepare(`DELETE FROM payment_reference_registry WHERE order_id=?`).bind(orderId)
+  ]);
+  return true;
+}
 
 async function serializeAdminOrder(record) {
   return {
@@ -1353,6 +1555,7 @@ async function serializeAdminOrder(record) {
     paymentMethod: record.payment_method,
     paymentStatus: record.payment_status || "Pending",
     paymentNumber: record.payment_number || null,
+    paymentSource: record.payment_source || "admin_offline",
     order: parseJSON(record.order_json, {})
   };
 }
@@ -1408,20 +1611,22 @@ async function updateAdminOrderStatus(db, adminId, orderId, body) {
 
 
 
-async function listOrders(db,userId,admin) {
+async function listOrders(db,userId,admin,includeActor=false) {
   const query=admin
     ? await db.prepare(`SELECT * FROM customer_orders WHERE COALESCE(is_admin_order,0)=0 ORDER BY created_at DESC`).all()
     : await db.prepare(`SELECT * FROM customer_orders WHERE user_id=? AND COALESCE(is_admin_order,0)=0 ORDER BY created_at DESC`).bind(userId).all();
   const orders=query.results||[]; if(!orders.length) return [];
-  const ids=orders.map(x=>x.id), marks=ids.map(()=>"?").join(",");
-  const [itemsResult,eventsResult]=await Promise.all([
-    db.prepare(`SELECT * FROM customer_order_items WHERE order_id IN (${marks}) AND active=1 ORDER BY rowid ASC`).bind(...ids).all(),
-    db.prepare(`SELECT * FROM order_status_events WHERE order_id IN (${marks}) ORDER BY created_at ASC`).bind(...ids).all()
-  ]);
   const itemMap=new Map(),eventMap=new Map();
-  for(const item of itemsResult.results||[]){if(!itemMap.has(item.order_id))itemMap.set(item.order_id,[]);itemMap.get(item.order_id).push({id:item.id,productId:item.product_id,title:item.title,variant:item.variant,quantity:item.quantity,unitPrice:item.unit_price,totalPrice:item.total_price,image:item.image,...parseJSON(item.item_json,{})});}
-  for(const event of eventsResult.results||[]){if(!eventMap.has(event.order_id))eventMap.set(event.order_id,[]);eventMap.get(event.order_id).push({from_status:event.from_status,to_status:event.to_status,actor_id:event.actor_id,reason:event.reason,created_at:event.created_at});}
-  return orders.map(o=>({id:o.id,orderNumber:o.order_number,vnCode:o.vn_code,createdAt:o.created_at,updatedAt:o.updated_at,deliveredAt:o.delivered_at||null,customer:parseJSON(o.customer_json,{}),items:itemMap.get(o.id)||[],subtotal:o.subtotal,shipping:o.shipping,taxes:o.taxes,total:o.total,currency:o.currency,countryCode:o.country_code,orderStatus:o.order_status,status:o.order_status,paymentStatus:o.payment_status,shippingMethod:o.shipping_method,paymentMethod:o.payment_method,events:eventMap.get(o.id)||[]}));
+  for(let offset=0;offset<orders.length;offset+=80){
+    const ids=orders.slice(offset,offset+80).map(x=>x.id),marks=ids.map(()=>"?").join(",");
+    const [itemsResult,eventsResult]=await Promise.all([
+      db.prepare(`SELECT * FROM customer_order_items WHERE order_id IN (${marks}) AND active=1 ORDER BY rowid ASC`).bind(...ids).all(),
+      db.prepare(`SELECT * FROM order_status_events WHERE order_id IN (${marks}) ORDER BY created_at ASC`).bind(...ids).all()
+    ]);
+    for(const item of itemsResult.results||[]){if(!itemMap.has(item.order_id))itemMap.set(item.order_id,[]);itemMap.get(item.order_id).push({id:item.id,productId:item.product_id,title:item.title,variant:item.variant,quantity:item.quantity,unitPrice:item.unit_price,totalPrice:item.total_price,image:item.image,...parseJSON(item.item_json,{})});}
+    for(const event of eventsResult.results||[]){if(!eventMap.has(event.order_id))eventMap.set(event.order_id,[]);const clean={from_status:event.from_status,to_status:event.to_status,reason:event.reason,created_at:event.created_at};if(includeActor)clean.actor_id=event.actor_id;eventMap.get(event.order_id).push(clean);}
+  }
+  return orders.map(o=>({id:o.id,orderNumber:o.order_number,vnCode:o.vn_code,createdAt:o.created_at,updatedAt:o.updated_at,deliveredAt:o.delivered_at||null,customer:parseJSON(o.customer_json,{}),items:itemMap.get(o.id)||[],subtotal:o.subtotal,shipping:o.shipping,taxes:o.taxes,total:o.total,currency:o.currency,countryCode:o.country_code,orderStatus:o.order_status,status:o.order_status,paymentStatus:o.payment_status,paymentNumber:o.payment_number||null,paymentSource:o.payment_source||null,createdByAdmin:Boolean(o.created_by_admin),adminRemovable:Number(o.created_by_admin)===1&&o.payment_source==="admin_offline"&&o.payment_status==="Paid",shippingMethod:o.shipping_method,paymentMethod:o.payment_method,events:eventMap.get(o.id)||[]}));
 }
 
 async function getOrderForUser(db, userId, orderId) {
@@ -1454,14 +1659,16 @@ async function removeOrderItem(db, adminId, orderId, itemId) {
 
 async function updateOrderStatus(db, orderId, body, actorId = "operator") {
   const requested=validText(body.orderStatus ?? body.status,60).toLowerCase();
-  const canonical={received:"Received",preparing:"Preparing",delivering:"Delivering",delivered:"Delivered",cancelled:"Cancelled"};
+  const canonical={received:"Received",preparing:"Preparing",delivering:"On Shipping","on shipping":"On Shipping",shipped:"On Shipping",delivered:"Delivered",cancelled:"Cancelled"};
   const status=canonical[requested];
   if (!status) throw new AppError("Invalid order status.");
-  const record=await db.prepare(`SELECT order_status FROM customer_orders WHERE id=? AND COALESCE(is_admin_order,0)=0 LIMIT 1`).bind(orderId).first();
+  const record=await db.prepare(`SELECT order_status,created_by_admin,payment_source,payment_status FROM customer_orders WHERE id=? AND COALESCE(is_admin_order,0)=0 LIMIT 1`).bind(orderId).first();
   if (!record) return false;
+  if(status==="Cancelled"&&Number(record.created_by_admin)===1&&record.payment_source==="admin_offline"&&record.payment_status==="Paid")
+    throw new AppError("Admin-created offline-paid orders must be removed with the × control, not cancelled.",409);
   const current=String(record.order_status||"Received");
   if (current===status) return true;
-  const transitions={Received:["Preparing","Cancelled"],Preparing:["Delivering","Cancelled"],Delivering:["Delivered","Cancelled"]};
+  const transitions={Received:["Preparing","Cancelled"],Preparing:["On Shipping","Cancelled"],"On Shipping":["Delivered","Cancelled"],Delivering:["Delivered","Cancelled"]};
   if (!(transitions[current]||[]).includes(status)) throw new AppError("Invalid order status transition.",409);
   const reason=validText(body.cancellation_reason ?? body.reason,120);
   const reasons=["High workload","Out of stock","Suspicious purchase","Address or delivery information issue","Product unavailable","Payment could not be verified","Customer request","Other"];
@@ -1524,14 +1731,16 @@ async function listReturns(db,userId,admin) {
     ? await db.prepare(`SELECT * FROM customer_returns ORDER BY created_at DESC`).all()
     : await db.prepare(`SELECT * FROM customer_returns WHERE user_id=? ORDER BY created_at DESC`).bind(userId).all();
   const rows=result.results||[]; if(!rows.length)return [];
-  const ids=rows.map(r=>r.id),marks=ids.map(()=>"?").join(",");
-  const [itemRows,historyRows]=await Promise.all([
-    db.prepare(`SELECT * FROM customer_return_items WHERE return_id IN (${marks}) ORDER BY rowid ASC`).bind(...ids).all(),
-    db.prepare(`SELECT return_id,from_status,to_status,actor_id,note,created_at FROM return_status_history WHERE return_id IN (${marks}) ORDER BY created_at ASC`).bind(...ids).all()
-  ]);
   const itemMap=new Map(),historyMap=new Map();
-  for(const item of itemRows.results||[]){if(!itemMap.has(item.return_id))itemMap.set(item.return_id,[]);itemMap.get(item.return_id).push({id:item.order_item_id,quantity:item.quantity,...parseJSON(item.item_json,{})});}
-  for(const event of historyRows.results||[]){if(!historyMap.has(event.return_id))historyMap.set(event.return_id,[]);historyMap.get(event.return_id).push({fromStatus:event.from_status,toStatus:event.to_status,actorId:event.actor_id,note:event.note,createdAt:event.created_at});}
+  for(let offset=0;offset<rows.length;offset+=80){
+    const ids=rows.slice(offset,offset+80).map(r=>r.id),marks=ids.map(()=>"?").join(",");
+    const [itemRows,historyRows]=await Promise.all([
+      db.prepare(`SELECT * FROM customer_return_items WHERE return_id IN (${marks}) ORDER BY rowid ASC`).bind(...ids).all(),
+      db.prepare(`SELECT return_id,from_status,to_status,note,created_at FROM return_status_history WHERE return_id IN (${marks}) ORDER BY created_at ASC`).bind(...ids).all()
+    ]);
+    for(const item of itemRows.results||[]){if(!itemMap.has(item.return_id))itemMap.set(item.return_id,[]);itemMap.get(item.return_id).push({id:item.order_item_id,quantity:item.quantity,...parseJSON(item.item_json,{})});}
+    for(const event of historyRows.results||[]){if(!historyMap.has(event.return_id))historyMap.set(event.return_id,[]);historyMap.get(event.return_id).push({fromStatus:event.from_status,toStatus:event.to_status,note:event.note,createdAt:event.created_at});}
+  }
   return rows.map(r=>({id:r.id,orderId:r.order_id,orderNumber:r.order_number,reason:r.reason,customerNote:r.customer_note,status:r.status,createdAt:r.created_at,updatedAt:r.updated_at,reviewedAt:r.reviewed_at,reviewedBy:r.reviewed_by,adminNote:r.admin_note,items:itemMap.get(r.id)||[],history:historyMap.get(r.id)||[]}));
 }
 
@@ -1701,7 +1910,7 @@ async function authenticateOperationSession(request, db) {
 }
 
 async function listOperationOrders(db) {
-  const orders=await listOrders(db,null,true);
+  const orders=await listOrders(db,null,true,true);
   return orders.map(order=>({ ...order, order_number:order.orderNumber, vn_code:order.vnCode, order_status:order.orderStatus,
     customer_email:order.customer?.email||"", first_name:order.customer?.firstName||order.customer?.first_name||"",
     last_name:order.customer?.lastName||order.customer?.last_name||"" }));
@@ -1717,6 +1926,7 @@ async function listOperationAdminOrders(db) {
     customer: parseJSON(row.customer_json, {}), items: parseJSON(row.items_json, []),
     subtotal: row.subtotal, shipping: row.shipping, taxes: row.taxes, total: row.total,
     currency: row.currency, shippingMethod: row.shipping_method, paymentMethod: row.payment_method,
+    paymentStatus: row.payment_status, paymentNumber: row.payment_number, paymentSource: row.payment_source || "admin_offline",
     isQueue: true
   }));
   for (const row of finalRows.results || []) {
@@ -1727,55 +1937,58 @@ async function listOperationAdminOrders(db) {
 }
 
 async function finalizeQueuedAdminOrder(db, orderId, status, actorId) {
-  const normalized = validText(status, 30).toLowerCase();
-  if (!["delivered", "returned"].includes(normalized)) throw new AppError("Admin orders can only be finalized as delivered or returned.");
-  const row = await db.prepare(`SELECT * FROM admin_order_queue WHERE id = ? LIMIT 1`).bind(orderId).first();
-  if (!row) {
-    const existing = await db.prepare(`SELECT id,status FROM admin_orders WHERE id=? LIMIT 1`).bind(orderId).first();
-    if (!existing) return false;
-    if (normalized === "returned" && existing.status !== "returned") return await updateAdminOrderStatus(db, actorId, orderId, {status:"returned"});
+  const normalized=validText(status,30).toLowerCase();
+  if(!["delivered","returned"].includes(normalized)) throw new AppError("Admin orders can only be finalized as delivered or returned.");
+  const row=await db.prepare(`SELECT * FROM admin_order_queue WHERE id=? LIMIT 1`).bind(orderId).first();
+  if(!row) {
+    const existing=await db.prepare(`SELECT id,status FROM admin_orders WHERE id=? LIMIT 1`).bind(orderId).first();
+    if(!existing) return false;
+    if(normalized==="returned"&&existing.status!=="returned") return await updateAdminOrderStatus(db,actorId,orderId,{status:"returned"});
     return true;
   }
-  const timestamp = nowISO();
-  const orderNumber = await generateUniqueAdminOrderNumber(db);
-  const vnCode = await generateAdminCode(db);
-  const codeNumber = Number(vnCode.slice(5));
-  const orderObject = parseJSON(row.order_json, {});
-  const finalStatus = normalized;
-  orderObject.orderNumber = orderNumber;
-  orderObject.vnCode = vnCode;
-  orderObject.orderStatus = normalized === "returned" ? "Returned" : "Delivered";
-  orderObject.status = normalized;
-  orderObject.paymentStatus = row.payment_status || "Pending";
-  const register = db.prepare(`INSERT INTO admin_order_code_registry (code_number,admin_order_id,created_at) VALUES (?,?,?)`)
-    .bind(codeNumber,row.id,timestamp);
-  const insert = db.prepare(`INSERT INTO admin_orders (
+  if(normalized==="returned") {
+    if(row.payment_source!=="admin_offline"||row.payment_status!=="Paid")
+      throw new AppError("A provider-paid admin order must be refunded through the payment provider before it can be released.",409);
+    await deleteQueuedAdminOrder(db,orderId);
+    return {id:row.id,status:"returned",released:true};
+  }
+  const timestamp=nowISO();
+  const orderNumber=row.order_number,vnCode=row.vn_code;
+  if(!/^\d{6}$/.test(String(orderNumber))||!/^VN-A\d{2,}$/.test(String(vnCode)))
+    throw new AppError("The reserved admin order identifiers are invalid. Refresh and retry.",409);
+  const orderObject=parseJSON(row.order_json,{});
+  orderObject.orderNumber=orderNumber;orderObject.vnCode=vnCode;
+  orderObject.orderStatus="Delivered";orderObject.status="delivered";
+  orderObject.paymentStatus="Paid";orderObject.paymentNumber=row.payment_number||null;
+  const insert=db.prepare(`INSERT INTO admin_orders (
     id,user_id,order_number,vn_code,created_at,updated_at,delivered_at,returned_at,returned_by,status,
     customer_json,items_json,subtotal,shipping,taxes,total,currency,country_code,shipping_method,payment_method,
-    payment_status,payment_number,order_json
-  ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`)
-    .bind(row.id,row.user_id,orderNumber,vnCode,row.created_at,timestamp,timestamp,
-      normalized === "returned" ? timestamp : null, normalized === "returned" ? actorId : null,finalStatus,
-      row.customer_json,row.items_json,row.subtotal,row.shipping,row.taxes,row.total,row.currency,row.country_code,
-      row.shipping_method,row.payment_method,row.payment_status || "Pending",row.payment_number || null,JSON.stringify(orderObject));
-  const audit = db.prepare(`INSERT INTO admin_order_events (id,admin_order_id,event_type,actor_id,details_json,created_at)
-    VALUES (?,?,?,?,?,?)`).bind(randomId("aoe_"),row.id,"created",actorId,JSON.stringify({status:finalStatus,order_number:orderNumber}),timestamp);
-  const remove = db.prepare(`DELETE FROM admin_order_queue WHERE id=?`).bind(orderId);
-  await db.batch([register,insert,audit,remove]);
-  return { id: row.id, orderNumber, vnCode, status: finalStatus };
+    payment_status,payment_number,order_json,payment_source
+  ) VALUES (?,?,?,?,?,?,?,NULL,NULL,'delivered',?,?,?,?,?,?,?,?,?,?,?,?,?,?,'admin_offline')`)
+    .bind(row.id,row.user_id,orderNumber,vnCode,row.created_at,timestamp,timestamp,row.customer_json,row.items_json,
+      row.subtotal,row.shipping,row.taxes,row.total,row.currency,row.country_code,row.shipping_method,row.payment_method,
+      "Paid",row.payment_number||null,JSON.stringify(orderObject));
+  const markPermanent=db.prepare(`UPDATE admin_order_number_registry SET state='permanent' WHERE admin_order_id=? AND order_number=?`).bind(row.id,orderNumber);
+  const audit=db.prepare(`INSERT INTO admin_order_events(id,admin_order_id,event_type,actor_id,details_json,created_at)
+    VALUES (?,?,?,?,?,?)`).bind(randomId("aoe_"),row.id,"created",actorId,JSON.stringify({status:"delivered",order_number:orderNumber,vn_code:vnCode}),timestamp);
+  const remove=db.prepare(`DELETE FROM admin_order_queue WHERE id=?`).bind(orderId);
+  await db.batch([insert,markPermanent,audit,remove]);
+  return {id:row.id,orderNumber,vnCode,status:"delivered"};
 }
 
 async function listOperationReturns(db) {
   const result=await db.prepare(`SELECT r.*,o.customer_json,o.vn_code AS order_vn_code FROM customer_returns r LEFT JOIN customer_orders o ON o.id=r.order_id ORDER BY r.created_at DESC`).all();
   const rows=result.results||[]; if(!rows.length)return [];
-  const ids=rows.map(x=>x.id),marks=ids.map(()=>"?").join(",");
-  const [itemRows,historyRows]=await Promise.all([
-    db.prepare(`SELECT * FROM customer_return_items WHERE return_id IN (${marks}) ORDER BY rowid ASC`).bind(...ids).all(),
-    db.prepare(`SELECT return_id,from_status,to_status,actor_id,note,created_at FROM return_status_history WHERE return_id IN (${marks}) ORDER BY created_at ASC`).bind(...ids).all()
-  ]);
   const itemMap=new Map(),historyMap=new Map();
-  for(const item of itemRows.results||[]){if(!itemMap.has(item.return_id))itemMap.set(item.return_id,[]);itemMap.get(item.return_id).push({id:item.order_item_id,quantity:item.quantity,...parseJSON(item.item_json,{})});}
-  for(const event of historyRows.results||[]){if(!historyMap.has(event.return_id))historyMap.set(event.return_id,[]);historyMap.get(event.return_id).push({fromStatus:event.from_status,toStatus:event.to_status,actorId:event.actor_id,note:event.note,createdAt:event.created_at});}
+  for(let offset=0;offset<rows.length;offset+=80) {
+    const ids=rows.slice(offset,offset+80).map(x=>x.id),marks=ids.map(()=>"?").join(",");
+    const [itemRows,historyRows]=await Promise.all([
+      db.prepare(`SELECT * FROM customer_return_items WHERE return_id IN (${marks}) ORDER BY rowid ASC`).bind(...ids).all(),
+      db.prepare(`SELECT return_id,from_status,to_status,actor_id,note,created_at FROM return_status_history WHERE return_id IN (${marks}) ORDER BY created_at ASC`).bind(...ids).all()
+    ]);
+    for(const item of itemRows.results||[]){if(!itemMap.has(item.return_id))itemMap.set(item.return_id,[]);itemMap.get(item.return_id).push({id:item.order_item_id,quantity:item.quantity,...parseJSON(item.item_json,{})});}
+    for(const event of historyRows.results||[]){if(!historyMap.has(event.return_id))historyMap.set(event.return_id,[]);historyMap.get(event.return_id).push({fromStatus:event.from_status,toStatus:event.to_status,actorId:event.actor_id,note:event.note,createdAt:event.created_at});}
+  }
   return rows.map(row=>{const customer=parseJSON(row.customer_json,{});return {id:row.id,orderId:row.order_id,orderNumber:row.order_number,reason:row.reason,customerNote:row.customer_note,status:row.status,createdAt:row.created_at,updatedAt:row.updated_at,reviewedAt:row.reviewed_at,reviewedBy:row.reviewed_by,adminNote:row.admin_note,items:itemMap.get(row.id)||[],history:historyMap.get(row.id)||[],order_number:row.order_number,customer_email:customer.email||"",vn_code:row.order_vn_code||""};});
 }
 
@@ -1936,7 +2149,7 @@ async function handleRequest(request, env) {
     const claims = await authenticateWorkerSession(request, env.DB);
     if (!claims || !(await isAdmin(env, claims.sub))) return error("Administrator account required.", 403);
     const body = await readBody(request);
-    try { const order = await prepareAdminOrder(env.DB, claims.sub, body); return json({ success: true, order }, 201); }
+    try { const requestKey=validText(request.headers.get("Idempotency-Key")||body.requestKey,120)||null; const order = await prepareAdminOrder(env.DB, claims.sub, body, requestKey); return json({ success: true, order }, 201); }
     catch (err) { if(err instanceof AppError) return error(err.message,err.status); console.error("Admin order queue failed:",err); return error("Unable to queue admin order.",500); }
   }
 
@@ -1952,6 +2165,24 @@ async function handleRequest(request, env) {
     const operationActor=operationSession.actorId;
     if (path === "/api/operations/orders" && method === "GET") return json({ success: true, orders: await listOperationOrders(env.DB) });
     if (path === "/api/operations/admin-orders" && method === "GET") return json({ success: true, orders: await listOperationAdminOrders(env.DB) });
+    if (segments[2] === "orders" && segments[3] && segments.length === 4 && method === "DELETE") {
+      try {
+        const deleted=await deleteAdminCreatedCustomerOrder(env.DB,segments[3]);
+        return deleted ? json({success:true}) : error("Admin-created customer order not found.",404);
+      } catch(err) {
+        if(err instanceof AppError) return error(err.message,err.status);
+        throw err;
+      }
+    }
+    if (segments[2] === "admin-orders" && segments[3] && segments.length === 4 && method === "DELETE") {
+      try {
+        const deleted=await deleteAdminOrder(env.DB,segments[3]);
+        return deleted ? json({success:true}) : error("Admin order not found.",404);
+      } catch(err) {
+        if(err instanceof AppError) return error(err.message,err.status);
+        throw err;
+      }
+    }
     if (path === "/api/operations/returns" && method === "GET") return json({ success: true, returns: await listOperationReturns(env.DB) });
     if (path === "/api/operations/issues" && method === "GET") return json({ success: true, issues: await listOperationIssues(env.DB) });
 
@@ -2020,12 +2251,11 @@ async function handleRequest(request, env) {
     if (segments[2] === "admin-orders" && segments[3] && segments[4] === "payment" && segments.length === 5 && method === "PATCH") {
       const body=await readBody(request), status=validText(body.payment_status ?? body.status,30).toLowerCase();
       if (!["paid","unpaid","pending"].includes(status)) return error("Invalid admin order payment status.",400);
-      const paymentNumber=validText(body.payment_number ?? body.paymentNumber,120);
-      if (status==="paid" && !paymentNumber) return error("A payment number is required when marking an admin order as paid.",400);
-      let row=await env.DB.prepare(`SELECT id,payment_status FROM admin_orders WHERE id=?`).bind(segments[3]).first();
+      let row=await env.DB.prepare(`SELECT id,payment_status,payment_number FROM admin_orders WHERE id=?`).bind(segments[3]).first();
       let targetTable="admin_orders";
-      if(!row){ row=await env.DB.prepare(`SELECT id,payment_status FROM admin_order_queue WHERE id=?`).bind(segments[3]).first(); targetTable="admin_order_queue"; }
+      if(!row){ row=await env.DB.prepare(`SELECT id,payment_status,payment_number FROM admin_order_queue WHERE id=?`).bind(segments[3]).first(); targetTable="admin_order_queue"; }
       if(!row) return error("Admin order not found.",404);
+      const paymentNumber=status==="paid"?(String(row.payment_status||"").toLowerCase()==="paid"&&row.payment_number?row.payment_number:await generatePaymentNumber(env.DB,segments[3])):null;
       const timestamp=nowISO(), storedStatus=status==="paid"?"Paid":status==="unpaid"?"Unpaid":"Pending";
       await env.DB.batch([
         env.DB.prepare(`UPDATE ${targetTable} SET payment_status=?,payment_number=?,updated_at=? WHERE id=?`).bind(storedStatus,status==="paid"?paymentNumber:null,timestamp,segments[3]),
@@ -2217,23 +2447,17 @@ async function handleRequest(request, env) {
   }
 
   if (path === "/api/orders" && method === "POST") {
-    if (!admin) {
-      return error("Order registration requires payment confirmation.", 403);
-    }
-
-    const body = await readBody(request);
-
+    if (!admin) return error("Order registration requires verified payment confirmation.",403);
+    const body=await readBody(request);
+    if(validText(body.orderType,30).toLowerCase()!=="customer") return error("Select the Customer Order flow.",400);
     try {
-      const order = await prepareAdminOrder(env.DB, userId, body);
-
-      return json({
-        success: true,
-        order
-      }, 200);
-    } catch (err) {
+      const requestKey=validText(request.headers.get("Idempotency-Key")||body.requestKey,120)||null;
+      const order=await createAdminCustomerOrder(env.DB,userId,body,requestKey);
+      return json({success:true,order},201);
+    } catch(err) {
       if(err instanceof AppError) return error(err.message,err.status);
-      console.error("Admin order draft failed:",err);
-      return error("Unable to prepare order.",500);
+      console.error("Admin customer order creation failed:",err);
+      return error("Unable to create the customer order.",500);
     }
   }
 
@@ -2256,13 +2480,20 @@ async function handleRequest(request, env) {
     const body = await readBody(request);
 
     try {
-      const order = await prepareAdminOrder(env.DB, userId, body);
+      const requestKey=validText(request.headers.get("Idempotency-Key")||body.requestKey,120)||null;
+      const order = await prepareAdminOrder(env.DB, userId, body, requestKey);
       return json({ success: true, order }, 201);
     } catch (err) {
       if(err instanceof AppError) return error(err.message,err.status);
       console.error("Admin order draft failed:",err);
       return error("Unable to queue admin order.",500);
     }
+  }
+
+  if (segments[0] === "api" && segments[1] === "admin-orders" && segments[2] && segments.length === 3 && method === "DELETE") {
+    if (!admin) return error("Access denied.",403);
+    const deleted=await deleteQueuedAdminOrder(env.DB,segments[2]);
+    return deleted ? json({success:true}) : error("Pending admin draft not found.",404);
   }
 
   if (
@@ -2459,3 +2690,6 @@ export default {
     }
   }
 };
+
+// Internal function surface for isolated D1 tests; no HTTP test route is exposed.
+export const __test = Object.freeze({ ensureSchema, isAdmin, resolveVNAccount, generateAdminCode, generateUniqueCustomerCode, generateUniqueCustomerOrderNumber, generateUniqueAdminOrderNumber, generatePaymentNumber, reserveAdminIdentifiers, prepareAdminOrder, createAdminCustomerOrder, deleteAdminCreatedCustomerOrder, deleteAdminOrder, finalizeQueuedAdminOrder, deleteQueuedAdminOrder, listOrders, listReturns, updateOrderStatus, createReturn, updateReturnStatus });

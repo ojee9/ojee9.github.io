@@ -51,7 +51,7 @@ const addressInput=document.getElementById("address"),addressSuggestions=documen
 const cityInput=document.getElementById("city"),stateInput=document.getElementById("state"),postalInput=document.getElementById("postal");
 const ACCOUNT_API="https://vn-shop-account-api.9ojeez9.workers.dev";
 const savedAddressPanel=document.getElementById("saved-addresses-panel"),savedAddressesList=document.getElementById("saved-addresses-list"),shopSaveSection=document.getElementById("shop-save-section");
-let checkoutAccountToken="",checkoutAccountProfile={},checkoutSavedAddresses=[],marketingPreferenceTouched=false,checkoutAccountLoaded=false,checkoutAccountAuthFailed=false;
+let checkoutAccountToken="",checkoutAccountProfile={},checkoutSavedAddresses=[],marketingPreferenceTouched=false,checkoutAccountLoaded=false,checkoutAccountAuthFailed=false,checkoutIsAdmin=false;
 if(!document.getElementById("vnSavedAddressStyles")){const style=document.createElement("style");style.id="vnSavedAddressStyles";style.textContent=".vn-checkout-saved-addresses{margin:0 0 20px;padding:15px;border:1px solid #494033;border-radius:4px;background:#101010}.vn-checkout-saved-addresses h3{margin:0 0 12px;color:#E4CEA5;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}#saved-addresses-list{display:grid;gap:9px}#saved-addresses-list>label{display:flex;align-items:flex-start;gap:11px;min-width:0;padding:14px 15px;border:1px solid #E4CEA5;border-radius:3px;background:#E4CEA5;color:#171411;cursor:pointer}#saved-addresses-list>label:hover{filter:brightness(.96)}#saved-addresses-list>label:has(input:checked){outline:2px solid #fff;outline-offset:2px}#saved-addresses-list>label input{flex:none;margin:3px 0 0;accent-color:#171411}#saved-addresses-list>label span{display:grid;gap:5px;min-width:0}#saved-addresses-list>label strong{color:#171411;font-size:12px;line-height:1.4}#saved-addresses-list>label small{color:#3d352a;font-size:11px;line-height:1.55;overflow-wrap:anywhere}#saved-addresses-list>label.vn-saved-address-new{background:#171717;border-color:#625846;color:#f4f4f4}#saved-addresses-list>label.vn-saved-address-new strong{color:#f4f4f4}#saved-addresses-list>label.vn-saved-address-new small{color:#aaa}";document.head.appendChild(style);}
 document.getElementById("updates").addEventListener("change",()=>{marketingPreferenceTouched=true});
 const escapeAccountText=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
@@ -124,6 +124,9 @@ const loadCheckoutAccount=async()=>{
   checkoutAccountToken=sessionStorage.getItem("vn_account_session")||"";
   if(!checkoutAccountToken){checkoutAccountAuthFailed=Boolean(window.Clerk?.user);return}
   const result=await requestAccountApi("/api/account");
+  checkoutIsAdmin=result.is_admin===true||result.isAdmin===true;
+  const adminOrderSwitch=document.getElementById("admin-order-type-switch");
+  if(adminOrderSwitch)adminOrderSwitch.hidden=!checkoutIsAdmin;
   checkoutAccountProfile=result.profile||{};
   checkoutSavedAddresses=Array.isArray(result.addresses)?result.addresses:[];
   if(!accountField("firstName").value&&checkoutAccountProfile.first_name)setAccountField("firstName",checkoutAccountProfile.first_name);
@@ -143,6 +146,9 @@ const loadCheckoutAccount=async()=>{
   shopSaveSection.hidden=false;
  }catch(error){
   console.warn("[VN CHECKOUT] Could not load saved account information:",error);
+  checkoutIsAdmin=false;
+  const adminOrderSwitch=document.getElementById("admin-order-type-switch");
+  if(adminOrderSwitch)adminOrderSwitch.hidden=true;
   shopSaveSection.hidden=true;
   savedAddressPanel.hidden=true;
  }
@@ -624,6 +630,10 @@ const persistCheckoutAccountData=async information=>{
  }
  checkoutSavedAddresses=refreshedAddresses;
 };
+document.querySelectorAll('input[name="vn-admin-order-type"]').forEach(input=>input.addEventListener("change",()=>{
+ const button=document.getElementById("pay-now");
+ if(button)button.textContent="Place order";
+}));
 document.getElementById("pay-now").addEventListener("click",async()=>{
  const button=document.getElementById("pay-now");
  if(button.disabled)return;
@@ -632,8 +642,10 @@ document.getElementById("pay-now").addEventListener("click",async()=>{
  button.textContent="Submitting order…";
  try{
   await checkoutAccountReady;
-  const isAdminOrder=await (window.VN_CHECKOUT_ADMIN_CHECK||Promise.resolve(false));
-  if(!isAdminOrder)throw new Error("Online payment is not connected yet. Your order has not been placed. Please try again when secure payment is available.");
+  const verifiedAdmin=checkoutIsAdmin&&await (window.VN_CHECKOUT_ADMIN_CHECK||Promise.resolve(false));
+  const selectedOrderType=document.querySelector('input[name="vn-admin-order-type"]:checked')?.value||"customer";
+  if(!verifiedAdmin)throw new Error("Online payment is not connected yet. Your order has not been placed. Please try again when secure payment is available.");
+  const isAdminOrder=selectedOrderType==="admin";
   const information=collectInformation();
   const readCart=(storage,key)=>{try{const value=JSON.parse(storage.getItem(key)||"[]");return Array.isArray(value)?value:[]}catch{return[]}};
   const orderCart=readCart(sessionStorage,"vn-shop-checkout-cart");
@@ -652,7 +664,7 @@ document.getElementById("pay-now").addEventListener("click",async()=>{
   const paymentLabels={card:"Credit card",apple:"Apple Pay",paypal:"PayPal",later:"Pay over time"};
   const customer={firstName:information.firstName||"",lastName:information.lastName||"",email:information.email||"",phone:[dial(),information.phone].filter(Boolean).join(" "),address:[information.address,information.apartment,information.city,information.state,information.postal,information.country].filter(Boolean).join(", ")};
   await persistCheckoutAccountData(information);
-  const payload={customer,items,subtotal:checkoutAmounts.subtotalTRY,shipping:checkoutAmounts.shippingPaymentTRY,taxes:checkoutAmounts.taxesTRY,total:checkoutAmounts.totalTRY,currency:"TRY",countryCode:"TR",originalSubtotalUSD:checkoutAmounts.subtotalUSD,originalShippingUSD:checkoutAmounts.shippingUSD,originalTaxesUSD:checkoutAmounts.taxesUSD,exchangeRateProvider:checkoutAmounts.fxProvider,exchangeRateTRYPerUSD:checkoutAmounts.fxRate,exchangeRateUpdatedAt:new Date(checkoutAmounts.fxUpdatedAt).toISOString(),shippingMethod:selectedShipping.value==="standard"?"Standard Shipping":selectedShipping.value,paymentMethod:paymentLabels[selectedPayment.value],...(isAdminOrder?{paymentStatus:"Not Required",paymentStatusLabel:"Payment not required",isAdminOrder:true,adminOrder:true,adminExempt:true,adminPaymentExempt:true,adminStockExempt:true}:{isAdminOrder:false,adminExempt:false,adminPaymentExempt:false,adminStockExempt:false}),status:"received"};
+  const payload={customer,items,subtotal:checkoutAmounts.subtotalTRY,shipping:checkoutAmounts.shippingPaymentTRY,taxes:checkoutAmounts.taxesTRY,total:checkoutAmounts.totalTRY,currency:"TRY",countryCode:"TR",originalSubtotalUSD:checkoutAmounts.subtotalUSD,originalShippingUSD:checkoutAmounts.shippingUSD,originalTaxesUSD:checkoutAmounts.taxesUSD,exchangeRateProvider:checkoutAmounts.fxProvider,exchangeRateTRYPerUSD:checkoutAmounts.fxRate,exchangeRateUpdatedAt:new Date(checkoutAmounts.fxUpdatedAt).toISOString(),shippingMethod:selectedShipping.value==="standard"?"Standard Shipping":selectedShipping.value,paymentMethod:"Admin offline settlement",orderType:isAdminOrder?"admin":"customer",status:"received"};
   let idempotencyKey=sessionStorage.getItem("vn-shop-order-idempotency-key");
   if(!idempotencyKey){idempotencyKey=crypto.randomUUID();sessionStorage.setItem("vn-shop-order-idempotency-key",idempotencyKey)}
   const token=sessionStorage.getItem("vn_account_session")||"";
@@ -664,7 +676,9 @@ document.getElementById("pay-now").addEventListener("click",async()=>{
   if(!response.ok)throw new Error(result.error||"The order could not be recorded ("+response.status+").");
   const order=result.order||result.admin_order||result;
   if(!order||!(order.id||order.order_id||order.orderNumber||order.order_number))throw new Error("The order service did not return a confirmed order reference. Please contact support before retrying.");
-  const receiptRecord={...payload,...order,customer:order.customer||customer,items:Array.isArray(order.items)?order.items:items,isAdminOrder,adminOrder:isAdminOrder,createdAt:order.createdAt||order.created_at||new Date().toISOString(),paymentStatus:order.paymentStatus||order.payment_status||payload.paymentStatus};
+  const confirmedPaymentStatus=String(order.paymentStatus||order.payment_status||"").toLowerCase();
+  if(confirmedPaymentStatus!=="paid")throw new Error("The order was not confirmed as paid. The completion screen and receipt have not been opened.");
+  const receiptRecord={...payload,...order,customer:order.customer||customer,items:Array.isArray(order.items)?order.items:items,isAdminOrder,adminOrder:isAdminOrder,createdAt:order.createdAt||order.created_at||new Date().toISOString(),paymentStatus:order.paymentStatus||order.payment_status};
   sessionStorage.setItem("vn-shop-order-complete",JSON.stringify(receiptRecord));
   sessionStorage.setItem("vn-shop-checkout-cart",JSON.stringify(items));
   sessionStorage.setItem("vn-checkout-information",JSON.stringify(information));

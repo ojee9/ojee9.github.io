@@ -1,0 +1,13 @@
+{
+  "name": "vn-shop-account-api-d1-tests",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.8.15",
+    "vitest": "^3.2.4",
+    "wrangler": "^4.45.0"
+  }
+}
