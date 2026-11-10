@@ -51,7 +51,9 @@ const addressInput=document.getElementById("address"),addressSuggestions=documen
 const cityInput=document.getElementById("city"),stateInput=document.getElementById("state"),postalInput=document.getElementById("postal");
 const ACCOUNT_API="https://vn-shop-account-api.9ojeez9.workers.dev";
 const savedAddressPanel=document.getElementById("saved-addresses-panel"),savedAddressesList=document.getElementById("saved-addresses-list"),shopSaveSection=document.getElementById("shop-save-section");
-let checkoutAccountToken="",checkoutAccountProfile={},checkoutSavedAddresses=[],marketingPreferenceTouched=false,checkoutAccountLoaded=false,checkoutAccountAuthFailed=false,checkoutIsAdmin=false;
+let checkoutAccountToken="",checkoutAccountProfile={},checkoutSavedAddresses=[],marketingPreferenceTouched=false,checkoutAccountLoaded=false,checkoutIsAdmin=false,checkoutEmailTouched=false;
+const checkoutSignInLink=document.getElementById("checkout-sign-in-link"),checkoutEmailField=document.getElementById("email");
+checkoutEmailField.addEventListener("input",()=>{checkoutEmailTouched=true});
 if(!document.getElementById("vnSavedAddressStyles")){const style=document.createElement("style");style.id="vnSavedAddressStyles";style.textContent=".vn-checkout-saved-addresses{margin:0 0 20px;padding:15px;border:1px solid #494033;border-radius:4px;background:#101010}.vn-checkout-saved-addresses h3{margin:0 0 12px;color:#E4CEA5;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}#saved-addresses-list{display:grid;gap:9px}#saved-addresses-list>label{display:flex;align-items:flex-start;gap:11px;min-width:0;padding:14px 15px;border:1px solid #E4CEA5;border-radius:3px;background:#E4CEA5;color:#171411;cursor:pointer}#saved-addresses-list>label:hover{filter:brightness(.96)}#saved-addresses-list>label:has(input:checked){outline:2px solid #fff;outline-offset:2px}#saved-addresses-list>label input{flex:none;margin:3px 0 0;accent-color:#171411}#saved-addresses-list>label span{display:grid;gap:5px;min-width:0}#saved-addresses-list>label strong{color:#171411;font-size:12px;line-height:1.4}#saved-addresses-list>label small{color:#3d352a;font-size:11px;line-height:1.55;overflow-wrap:anywhere}#saved-addresses-list>label.vn-saved-address-new{background:#171717;border-color:#625846;color:#f4f4f4}#saved-addresses-list>label.vn-saved-address-new strong{color:#f4f4f4}#saved-addresses-list>label.vn-saved-address-new small{color:#aaa}";document.head.appendChild(style);}
 document.getElementById("updates").addEventListener("change",()=>{marketingPreferenceTouched=true});
 const escapeAccountText=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
@@ -96,20 +98,10 @@ const applySavedAddress=address=>{
 const requestAccountApi=async(path,options={})=>{
  let token=checkoutAccountToken||sessionStorage.getItem("vn_account_session")||"";
  if(!token)throw new Error("Your VN SHOP account session is unavailable. Sign in again and retry.");
- const send=currentToken=>fetch(ACCOUNT_API+path,{...options,cache:"no-store",headers:{...(options.body?{"Content-Type":"application/json"}:{}),...(options.headers||{}),Authorization:"Bearer "+currentToken}});
- let response=await send(token);
- if(response.status===401&&window.Clerk?.session?.getToken){
-  const clerkToken=await window.Clerk.session.getToken();
-  if(clerkToken){
-   const exchange=await fetch(ACCOUNT_API+"/api/auth/exchange",{method:"POST",cache:"no-store",headers:{Authorization:"Bearer "+clerkToken}});
-   const exchanged=await exchange.json().catch(()=>({}));
-   if(exchange.ok&&exchanged.token){token=exchanged.token;checkoutAccountToken=token;sessionStorage.setItem("vn_account_session",token);response=await send(token)}
-  }
- }
+ const response=await fetch(ACCOUNT_API+path,{...options,cache:"no-store",headers:{...(options.body?{"Content-Type":"application/json"}:{}),...(options.headers||{}),Authorization:"Bearer "+token}});
  const result=await response.json().catch(()=>({}));
  if(!response.ok){
   if(response.status===401){
-   checkoutAccountAuthFailed=Boolean(window.Clerk?.user);
    checkoutAccountToken="";
    sessionStorage.removeItem("vn_account_session");
    sessionStorage.removeItem("vn_account_identity");
@@ -119,20 +111,25 @@ const requestAccountApi=async(path,options={})=>{
  return result;
 };
 const loadCheckoutAccount=async()=>{
+ checkoutAccountToken=sessionStorage.getItem("vn_account_session")||"";
+ if(!checkoutAccountToken){
+  checkoutAccountLoaded=true;
+  if(checkoutSignInLink)checkoutSignInLink.hidden=false;
+  return;
+ }
  try{
-  if(window.VN_CHECKOUT_ADMIN_CHECK)await window.VN_CHECKOUT_ADMIN_CHECK;
-  checkoutAccountToken=sessionStorage.getItem("vn_account_session")||"";
-  if(!checkoutAccountToken){checkoutAccountAuthFailed=Boolean(window.Clerk?.user);return}
   const result=await requestAccountApi("/api/account");
   checkoutIsAdmin=result.is_admin===true||result.isAdmin===true;
   const adminOrderSwitch=document.getElementById("admin-order-type-switch");
   if(adminOrderSwitch)adminOrderSwitch.hidden=!checkoutIsAdmin;
   checkoutAccountProfile=result.profile||{};
   checkoutSavedAddresses=Array.isArray(result.addresses)?result.addresses:[];
+  if(checkoutSignInLink)checkoutSignInLink.hidden=true;
   if(!accountField("firstName").value&&checkoutAccountProfile.first_name)setAccountField("firstName",checkoutAccountProfile.first_name);
   if(!accountField("lastName").value&&checkoutAccountProfile.last_name)setAccountField("lastName",checkoutAccountProfile.last_name);
-  if(!document.getElementById("email").value){
-   try{const identity=JSON.parse(sessionStorage.getItem("vn_account_identity")||"null");if(identity?.email)document.getElementById("email").value=identity.email}catch{}
+  if(!checkoutEmailTouched){
+   const accountEmail=String(result.email||checkoutAccountProfile.email||"").trim();
+   if(accountEmail)checkoutEmailField.value=accountEmail;
   }
   if(!marketingPreferenceTouched&&typeof checkoutAccountProfile.marketing_updates!=="undefined"){
    const optedIn=checkoutAccountProfile.marketing_updates===true||checkoutAccountProfile.marketing_updates===1||checkoutAccountProfile.marketing_updates==="1";
@@ -147,10 +144,12 @@ const loadCheckoutAccount=async()=>{
  }catch(error){
   console.warn("[VN CHECKOUT] Could not load saved account information:",error);
   checkoutIsAdmin=false;
+  checkoutAccountLoaded=!checkoutAccountToken;
   const adminOrderSwitch=document.getElementById("admin-order-type-switch");
   if(adminOrderSwitch)adminOrderSwitch.hidden=true;
   shopSaveSection.hidden=true;
   savedAddressPanel.hidden=true;
+  if(checkoutSignInLink)checkoutSignInLink.hidden=Boolean(checkoutAccountToken);
  }
 };
 let checkoutAccountReady=loadCheckoutAccount();
@@ -585,7 +584,6 @@ saveChoiceButton.addEventListener("click",()=>{
  saveChoiceButton.setAttribute("aria-pressed",String(shopSaveOptOut));
 });
 const persistCheckoutAccountData=async information=>{
- if(checkoutAccountAuthFailed)throw new Error("Your VN SHOP account session needs to be refreshed. Please sign in again before placing your order.");
  if(!checkoutAccountToken)return;
  if(!checkoutAccountLoaded)throw new Error("We couldn't securely load your VN SHOP account data. Refresh checkout or sign in again before placing your order.");
  const profileUpdate={
@@ -642,9 +640,8 @@ document.getElementById("pay-now").addEventListener("click",async()=>{
  button.textContent="Submitting order…";
  try{
   await checkoutAccountReady;
-  const verifiedAdmin=checkoutIsAdmin&&await (window.VN_CHECKOUT_ADMIN_CHECK||Promise.resolve(false));
   const selectedOrderType=document.querySelector('input[name="vn-admin-order-type"]:checked')?.value||"customer";
-  if(!verifiedAdmin)throw new Error("Online payment is not connected yet. Your order has not been placed. Please try again when secure payment is available.");
+  if(!checkoutIsAdmin)throw new Error("This offline order flow is available only to verified VN SHOP administrators.");
   const isAdminOrder=selectedOrderType==="admin";
   const information=collectInformation();
   const readCart=(storage,key)=>{try{const value=JSON.parse(storage.getItem(key)||"[]");return Array.isArray(value)?value:[]}catch{return[]}};

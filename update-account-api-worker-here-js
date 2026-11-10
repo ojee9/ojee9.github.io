@@ -2351,10 +2351,12 @@ async function handleRequest(request, env) {
       LIMIT 1
     `).bind(userId).first();
 
+    const accountIdentity = await env.DB.prepare("SELECT email FROM vn_accounts WHERE account_id = ? LIMIT 1").bind(userId).first();
     const addresses = await getAddresses(env.DB, userId);
 
     return json({
       success: true,
+      email: normalizeEmail(accountIdentity?.email || profile?.email || ""),
       profile: profileResponse(profile, userId, admin),
       addresses,
       isAdmin: admin,
