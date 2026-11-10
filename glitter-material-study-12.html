@@ -6,13 +6,13 @@
 <title>Glitter Material Study 12 — Diffraction Grating</title>
 <style>
 *{box-sizing:border-box}html,body{width:100%;height:100%;margin:0}
-body{overflow:hidden;color:#17151a;background:#e4e3e1;font-family:Arial,Helvetica,sans-serif}
+body{overflow:hidden;color:#17151a;background:#BFC5C8;font-family:Arial,Helvetica,sans-serif}
 #glitter{position:fixed;inset:0;width:100%;height:100%;display:block}
 .meta{position:fixed;left:22px;bottom:20px;z-index:2;padding:10px 13px;border:1px solid rgba(30,25,35,.16);border-radius:8px;background:rgba(255,255,255,.34);backdrop-filter:blur(10px);font-size:11px;line-height:1.55;letter-spacing:.035em;color:rgba(20,18,24,.76)}
 .meta strong{display:block;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#17151a}
 .hint{position:fixed;right:22px;bottom:24px;z-index:2;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:rgba(20,18,24,.58)}
 @media(max-width:600px){.meta{left:12px;bottom:12px}.hint{right:12px;bottom:16px;font-size:9px}}
-html.is-embedded,html.is-embedded body{overflow:hidden;background:#e4e3e1}
+html.is-embedded,html.is-embedded body{overflow:hidden;background:#BFC5C8}
 html.is-embedded .meta,html.is-embedded .hint{display:none!important}
 </style>
 </head>
@@ -106,7 +106,20 @@ try{
  let pointer=[innerWidth*0.5,innerHeight*0.5];
  function resize(){const dpr=Math.min(devicePixelRatio||1,1.5);const width=Math.max(1,Math.floor(innerWidth*dpr));const height=Math.max(1,Math.floor(innerHeight*dpr));if(canvas.width!==width||canvas.height!==height){canvas.width=width;canvas.height=height;gl.viewport(0,0,width,height);}}
  addEventListener('resize',resize);addEventListener('pointermove',event=>{pointer=[event.clientX,innerHeight-event.clientY];},{passive:true});resize();
- function draw(){resize();gl.uniform2f(resolutionLoc,canvas.width,canvas.height);gl.uniform2f(pointerLoc,pointer[0]*canvas.width/innerWidth,pointer[1]*canvas.height/innerHeight);gl.drawArrays(gl.TRIANGLES,0,3);requestAnimationFrame(draw);}
+ let readySent=false;
+ function draw(){
+  resize();
+  gl.uniform2f(resolutionLoc,canvas.width,canvas.height);
+  gl.uniform2f(pointerLoc,pointer[0]*canvas.width/innerWidth,pointer[1]*canvas.height/innerHeight);
+  gl.drawArrays(gl.TRIANGLES,0,3);
+  if(!readySent){
+   readySent=true;
+   if(new URLSearchParams(location.search).has('embed')&&window.parent!==window){
+    window.parent.postMessage({type:'VN_DASHBOARD_MATERIAL_READY'},location.origin);
+   }
+  }
+  requestAnimationFrame(draw);
+ }
  requestAnimationFrame(draw);
 }catch(error){document.querySelector('.meta').innerHTML='<strong>Material preview could not start</strong>'+String(error.message).replace(/[<>&"]/g,'');}
 })();

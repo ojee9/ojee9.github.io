@@ -541,7 +541,8 @@
       .vn-ac-email-terms a,.vn-ac-email-terms button{padding:0;border:0;background:transparent;color:#fff;font:inherit;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
       .vn-ac-auth-shell .vn-ac-message{width:100%;max-width:480px;margin:0 auto 16px}
       .vn-ac-shell.vn-ac-auth-shell:not(.vn-ac-dashboard-open)::before{content:none!important;background:none!important}
-      .vn-ac-shell.vn-ac-auth-shell .vn-ac-dashboard-background,.vn-ac-shell.vn-ac-auth-shell .vn-ac-dashboard-trail{display:none!important}
+      .vn-ac-shell.vn-ac-auth-shell .vn-ac-dashboard-background{display:block!important;opacity:0!important}
+       .vn-ac-shell.vn-ac-auth-shell .vn-ac-dashboard-trail{display:none!important}
       @media(max-width:600px){.vn-ac-shell.vn-ac-auth-shell{width:min(100%,560px);min-height:min(600px,calc(100dvh - 24px));max-height:calc(100dvh - 24px);padding:30px 24px 24px}.vn-ac-auth-shell .vn-ac-close{right:14px;top:14px;width:40px;height:40px;font-size:32px}.vn-ac-auth-shell .vn-ac-header{padding:0 0 14px}.vn-ac-auth-shell .vn-ac-brand{width:174px;height:82px}.vn-ac-auth-shell #vnAcContent{width:100%;justify-content:center}.vn-ac-auth-shell .vn-ac-main{width:100%;max-width:480px}.vn-ac-signin-heading{margin-bottom:22px}.vn-ac-signin-heading h1{font-size:28px}.vn-ac-signin-heading p{font-size:14px}.vn-ac-email-form-wrap{width:100%;max-width:480px}.vn-ac-email-bar{min-height:58px;padding-left:14px}.vn-ac-email-bar input{height:44px;font-size:16px}.vn-ac-email-submit{width:44px;height:44px}.vn-ac-email-submit svg{display:block;width:20px;height:20px}.vn-ac-updates{font-size:13px;line-height:1.5}.vn-ac-consent-note{margin-top:20px!important}.vn-ac-email-terms{margin-top:18px!important}.vn-ac-auth-shell .vn-ac-policy-footer-row{margin-top:14px}}
       .vn-ac-layout{display:grid;grid-template-columns:200px minmax(0,1fr);gap:48px;padding-top:32px}
       .vn-ac-sidebar{display:flex;flex-direction:column;gap:8px}
@@ -782,11 +783,10 @@
       /* One fixed-size dashboard shell for every signed-in section, including views without .vn-ac-layout. */
       .vn-ac-shell.vn-ac-dashboard-open{
         position:relative;
-        background-color:#E4E3E1;
+        background-color:#BFC5C8;
         background-image:
-          radial-gradient(ellipse at 26% 28%,rgba(177,218,255,.16),transparent 43%),
-          radial-gradient(ellipse at 76% 72%,rgba(255,190,226,.17),transparent 46%),
-          radial-gradient(ellipse at 52% 48%,rgba(255,255,255,.2),transparent 54%);
+          radial-gradient(ellipse at 26% 28%,rgba(177,218,255,.12),transparent 43%),
+          radial-gradient(ellipse at 52% 48%,rgba(255,255,255,.18),transparent 54%);
         box-sizing:border-box;
         width:min(1280px,calc(100vw - 40px)) !important;
         height:min(860px,calc(100dvh - 40px)) !important;
@@ -804,8 +804,7 @@
         user-select:none !important;
         -webkit-tap-highlight-color:transparent;
       }
-      .vn-ac-dashboard-background{display:none}
-      .vn-ac-shell.vn-ac-dashboard-open .vn-ac-dashboard-background{
+      .vn-ac-dashboard-background{
         display:block;
         position:absolute;
         inset:0;
@@ -814,7 +813,11 @@
         height:100%;
         border:0;
         pointer-events:none;
-        opacity:.86;
+        opacity:0;
+        transition:opacity .12s ease-out;
+      }
+      .vn-ac-shell.vn-ac-dashboard-open.vn-ac-material-ready .vn-ac-dashboard-background{
+        opacity:1;
       }
       .vn-ac-shell.vn-ac-dashboard-open::after{
         content:"";
@@ -1121,7 +1124,7 @@
     root.innerHTML = `
       <div class="vn-ac-shell vn-ac-auth-shell">
         <header class="vn-ac-header">
-          <div class="vn-ac-brand" aria-label="VN"><img src="/images/vn-logo-official.png" alt="VN"></div>
+          <div class="vn-ac-brand" aria-label="VN"><img src="/images/vn-logo-official.png" alt="VN" loading="eager" fetchpriority="high" decoding="async"></div>
           <button type="button" class="vn-ac-close" data-ac-action="close" aria-label="Close account">×</button>
         </header>
         <div id="vnAcContent"></div>
@@ -1302,11 +1305,20 @@
     if (dashboardShell && !dashboardShell.querySelector(".vn-ac-dashboard-background")) {
       const materialFrame = document.createElement("iframe");
       materialFrame.className = "vn-ac-dashboard-background";
-      materialFrame.src = "/glitter-material-study-12.html?embed=1";
       materialFrame.title = "";
       materialFrame.setAttribute("aria-hidden", "true");
       materialFrame.tabIndex = -1;
       materialFrame.loading = "eager";
+      materialFrame.setAttribute("fetchpriority", "high");
+      const handleMaterialReady = event => {
+        if (event.origin !== window.location.origin
+          || event.source !== materialFrame.contentWindow
+          || event.data?.type !== "VN_DASHBOARD_MATERIAL_READY") return;
+        dashboardShell.classList.add("vn-ac-material-ready");
+        window.removeEventListener("message", handleMaterialReady);
+      };
+      window.addEventListener("message", handleMaterialReady);
+      materialFrame.src = "/glitter-material-study-12.html?embed=1";
       dashboardShell.prepend(materialFrame);
     }
     // Cursor-following dashboard shading is intentionally disabled to avoid pointer-driven repaint cost.
@@ -3503,4 +3515,13 @@
   } else if (new URLSearchParams(window.location.search).get("account") === "register") {
     window.setTimeout(() => openPanel(), 0);
   }
+
+  // Warm the hidden account shell, logo and dashboard material before the
+  // customer opens the panel so a reset cannot expose an uninitialised state.
+  const prewarmAccountPanel = () => {
+    try { createRoot(); }
+    catch (error) { console.warn("[VN ACCOUNT] Dashboard prewarm skipped:", error); }
+  };
+  if (document.body) prewarmAccountPanel();
+  else document.addEventListener("DOMContentLoaded", prewarmAccountPanel, {once:true});
 })();
