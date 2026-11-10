@@ -500,6 +500,13 @@ async function ensureColumn(db, tableName, columnName, definition) {
   }
 }
 
+async function dropColumnIfExists(db, tableName, columnName) {
+  const columns = await getColumns(db, tableName);
+  if (!columns.includes(columnName)) return;
+  await db.prepare(`ALTER TABLE ${tableName} DROP COLUMN ${columnName}`).run();
+  columnsCache.delete(tableName);
+}
+
 async function ensureSchema(db) {
   if (schemaReady) return;
   if (schemaPromise) return schemaPromise;
@@ -660,7 +667,6 @@ async function ensureSchema(db) {
         shipping_method TEXT,
         payment_method TEXT,
         order_json TEXT NOT NULL,
-        is_test INTEGER NOT NULL DEFAULT 0,
         is_admin_order INTEGER NOT NULL DEFAULT 0,
         admin_payment_exempt INTEGER NOT NULL DEFAULT 0,
         admin_stock_exempt INTEGER NOT NULL DEFAULT 0
@@ -710,7 +716,6 @@ async function ensureSchema(db) {
         reviewed_at TEXT,
         reviewed_by TEXT,
         admin_note TEXT,
-        is_test INTEGER NOT NULL DEFAULT 0,
         FOREIGN KEY(order_id) REFERENCES customer_orders(id)
       )
     `),
@@ -803,12 +808,8 @@ async function ensureSchema(db) {
       BEGIN SELECT RAISE(ABORT,'duplicate admin VN code'); END`)
   ]);
 
-  await ensureColumn(
-    db,
-    "customer_orders",
-    "is_test",
-    "INTEGER NOT NULL DEFAULT 0"
-  );
+  await dropColumnIfExists(db, "customer_orders", "is_test");
+  await dropColumnIfExists(db, "customer_returns", "is_test");
 
   await ensureColumn(
     db,
@@ -835,7 +836,6 @@ async function ensureSchema(db) {
   await ensureColumn(db, "customer_orders", "payment_number", "TEXT");
   await ensureColumn(db, "customer_orders", "request_key", "TEXT");
 
-  await ensureColumn(db, "customer_returns", "is_test", "INTEGER NOT NULL DEFAULT 0");
   await ensureColumn(db, "customer_orders", "delivered_at", "TEXT");
   await ensureColumn(db, "admin_orders", "payment_status", "TEXT NOT NULL DEFAULT 'Pending'");
   await ensureColumn(db, "admin_orders", "payment_number", "TEXT");
@@ -1371,9 +1371,9 @@ async function createAdminCustomerOrder(db,userId,body,requestKey=null) {
   const statements=[
     db.prepare(`INSERT INTO customer_orders(
       id,user_id,order_number,vn_code,created_at,updated_at,customer_json,subtotal,shipping,taxes,total,currency,country_code,
-      order_status,payment_status,delivered_at,shipping_method,payment_method,order_json,is_test,is_admin_order,
+      order_status,payment_status,delivered_at,shipping_method,payment_method,order_json,is_admin_order,
       admin_payment_exempt,admin_stock_exempt,payment_number,created_by_admin,payment_source,request_key
-    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,'Received','Paid',NULL,?,?,?,0,0,1,0,?,1,'admin_offline',?)`)
+    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,'Received','Paid',NULL,?,?,?,0,1,0,?,1,'admin_offline',?)`)
       .bind(id,userId,orderNumber,vnCode,timestamp,timestamp,JSON.stringify(order.customer),order.subtotal,order.shipping,order.taxes,
         order.total,order.currency,order.countryCode,order.shippingMethod,"Admin offline settlement",JSON.stringify(orderObject),paymentNumber,requestKey),
     ...order.items.map(item=>db.prepare(`INSERT INTO customer_order_items
@@ -1707,7 +1707,7 @@ async function createReturn(db, userId, body) {
   if ((existing.results||[]).length) throw new AppError("One or more selected products already have an active or completed return request.",409);
   const returnId=randomId("return_"), timestamp=nowISO();
   const statements=[
-    db.prepare(`INSERT INTO customer_returns (id,user_id,order_id,order_number,reason,customer_note,status,created_at,updated_at,is_test) VALUES (?,?,?,?,?,?,'Pending',?,?,0)`).bind(returnId,userId,orderId,order.order_number,reason,customerNote,timestamp,timestamp)
+    db.prepare(`INSERT INTO customer_returns (id,user_id,order_id,order_number,reason,customer_note,status,created_at,updated_at) VALUES (?,?,?,?,?,?,'Pending',?,?)`).bind(returnId,userId,orderId,order.order_number,reason,customerNote,timestamp,timestamp)
   ];
   for (const item of items) {
     statements.push(db.prepare(`INSERT INTO customer_return_items (id,return_id,order_item_id,item_json,quantity) VALUES (?,?,?,?,?)`).bind(randomId("return_item_"),returnId,item.id,item.item_json,item.quantity));
@@ -2691,5 +2691,5 @@ export default {
   }
 };
 
-// Internal function surface for isolated D1 tests; no HTTP test route is exposed.
+// Internal function surface for isolated D1 CI validation; no HTTP route is exposed.
 export const __test = Object.freeze({ ensureSchema, isAdmin, resolveVNAccount, generateAdminCode, generateUniqueCustomerCode, generateUniqueCustomerOrderNumber, generateUniqueAdminOrderNumber, generatePaymentNumber, reserveAdminIdentifiers, prepareAdminOrder, createAdminCustomerOrder, deleteAdminCreatedCustomerOrder, deleteAdminOrder, finalizeQueuedAdminOrder, deleteQueuedAdminOrder, listOrders, listReturns, updateOrderStatus, createReturn, updateReturnStatus });
