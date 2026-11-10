@@ -184,6 +184,34 @@ describe.sequential("VN SHOP account Worker — D1 integration", () => {
     expect(await __test.isAdmin({DB:db},"vn_test_customer")).toBe(false);
   });
 
+  it("allows the checkout idempotency header during browser preflight", async () => {
+    const response = await worker.fetch(new Request("https://account-api.test/api/orders", {
+      method: "OPTIONS",
+      headers: {
+        Origin: "https://ojee9.github.io",
+        "Access-Control-Request-Method": "POST",
+        "Access-Control-Request-Headers": "authorization,content-type,idempotency-key"
+      }
+    }), { DB: db });
+    expect(response.status).toBe(204);
+    expect(response.headers.get("Access-Control-Allow-Headers")).toContain("Idempotency-Key");
+  });
+
+  it("creates only one admin Customer Order for concurrent retries of the same checkout", async () => {
+    const key = "admin-customer-concurrent-key";
+    const [first, second] = await Promise.all([
+      __test.createAdminCustomerOrder(db, "vn_test_admin_concurrent", orderBody("concurrent@example.com"), key),
+      __test.createAdminCustomerOrder(db, "vn_test_admin_concurrent", orderBody("concurrent@example.com"), key)
+    ]);
+    expect(first.id).toBe(second.id);
+    const rows = await db.prepare("SELECT id FROM customer_orders WHERE user_id=? AND request_key=?").bind("vn_test_admin_concurrent", key).all();
+    expect(rows.results).toHaveLength(1);
+    const items = await db.prepare("SELECT id FROM customer_order_items WHERE order_id=?").bind(first.id).all();
+    expect(items.results).toHaveLength(1);
+    expect(first.paymentStatus).toBe("Paid");
+    expect(first.paymentSource).toBe("admin_offline");
+  });
+
   it("rejects unauthenticated customer and admin-order requests", async () => {
     const response = await worker.fetch(new Request("https://account-api.test/api/orders"),{DB:db});
     expect(response.status).toBe(401);

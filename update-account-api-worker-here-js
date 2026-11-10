@@ -1369,7 +1369,7 @@ async function createAdminCustomerOrder(db,userId,body,requestKey=null) {
     paymentStatus:"Paid",paymentNumber,paymentSource:"admin_offline",createdByAdmin:true};
   const normalizedItems=serializeNormalizedOrder(order).items;
   const statements=[
-    db.prepare(`INSERT OR IGNORE INTO customer_orders(
+    db.prepare(`INSERT INTO customer_orders(
       id,user_id,order_number,vn_code,created_at,updated_at,customer_json,subtotal,shipping,taxes,total,currency,country_code,
       order_status,payment_status,delivered_at,shipping_method,payment_method,order_json,is_test,is_admin_order,
       admin_payment_exempt,admin_stock_exempt,payment_number,created_by_admin,payment_source,request_key
@@ -1964,7 +1964,7 @@ async function finalizeQueuedAdminOrder(db, orderId, status, actorId) {
     id,user_id,order_number,vn_code,created_at,updated_at,delivered_at,returned_at,returned_by,status,
     customer_json,items_json,subtotal,shipping,taxes,total,currency,country_code,shipping_method,payment_method,
     payment_status,payment_number,order_json,payment_source
-  ) VALUES (?,?,?,?,?,?,?,NULL,NULL,'delivered',?,?,?,?,?,?,?,?,?,?,?,?,?,?,'admin_offline')`)
+  ) VALUES (?,?,?,?,?,?,?,NULL,NULL,'delivered',?,?,?,?,?,?,?,?,?,?,?,?,?,'admin_offline')`)
     .bind(row.id,row.user_id,orderNumber,vnCode,row.created_at,timestamp,timestamp,row.customer_json,row.items_json,
       row.subtotal,row.shipping,row.taxes,row.total,row.currency,row.country_code,row.shipping_method,row.payment_method,
       "Paid",row.payment_number||null,JSON.stringify(orderObject));
@@ -2009,7 +2009,7 @@ function corsHeaders(request) {
     "Access-Control-Allow-Methods":
       "GET, POST, PUT, PATCH, DELETE, OPTIONS",
     "Access-Control-Allow-Headers":
-      "Authorization, Content-Type",
+      "Authorization, Content-Type, Idempotency-Key",
     "Access-Control-Max-Age": "86400",
     "Vary": "Origin"
   };
