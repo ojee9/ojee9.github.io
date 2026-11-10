@@ -342,7 +342,7 @@ const addBusinessDays=(date,count)=>{const result=new Date(date);let added=0;whi
 const showShippingStep=async data=>{
  await calculateOrderSummary();
  if(!Number.isFinite(checkoutAmounts.shippingUSD)||!Number.isFinite(checkoutAmounts.fxRate)){
-  alert("We couldn't calculate the USD shipping estimate with a verified exchange rate. Please check your address and try again.");
+  window.VNNotice?.show("We couldn't calculate the USD shipping estimate with a verified exchange rate. Please check your address and try again.",{type:"error",duration:2200});
   return;
  }
  document.getElementById("shipping-contact-summary").textContent=data.email||"";
@@ -686,7 +686,7 @@ document.getElementById("pay-now").addEventListener("click",async()=>{
   window.location.href="order-complete.html";
  }catch(error){
   console.error("VN SHOP order submission failed:",error);
-  alert(error.message||"Your order could not be submitted. Please try again.");
+  window.VNNotice?.show(error.message||"Your order could not be submitted. Please try again.",{type:"error",duration:2200});
  }finally{
   button.disabled=false;
   button.textContent=originalLabel;
