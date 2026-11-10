@@ -1318,7 +1318,7 @@
         window.removeEventListener("message", handleMaterialReady);
       };
       window.addEventListener("message", handleMaterialReady);
-      materialFrame.src = "/glitter-material-study-12.html?embed=1";
+      materialFrame.src = "/glitter-material-study-12-alternate.html?embed=1";
       dashboardShell.prepend(materialFrame);
     }
     // Cursor-following dashboard shading is intentionally disabled to avoid pointer-driven repaint cost.
