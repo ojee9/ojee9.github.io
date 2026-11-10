@@ -95,29 +95,52 @@ const applySavedAddress=address=>{
  if(prefix&&phone.trim().startsWith(prefix))phone=phone.trim().slice(prefix.length).trim();
  setAccountField("phone",phone);
 };
+const exchangeCheckoutShopSession=async()=>{
+ const shopToken=sessionStorage.getItem("vn_shop_session")||"";
+ if(!shopToken)return false;
+ const response=await fetch(ACCOUNT_API+"/api/auth/shop-exchange",{method:"POST",cache:"no-store",headers:{"Content-Type":"application/json"},body:JSON.stringify({sessionToken:shopToken})});
+ const result=await response.json().catch(()=>({}));
+ if(!response.ok||!result.token||!result.userId){
+  if(response.status===401||response.status===403)sessionStorage.removeItem("vn_shop_session");
+  throw new Error(result.error||"Could not verify your VN SHOP sign-in session.");
+ }
+ checkoutAccountToken=result.token;
+ sessionStorage.setItem("vn_account_session",result.token);
+ sessionStorage.setItem("vn_account_identity",JSON.stringify({id:result.userId,email:result.email||"",firstName:result.firstName||"",lastName:result.lastName||""}));
+ return true;
+};
 const requestAccountApi=async(path,options={})=>{
  let token=checkoutAccountToken||sessionStorage.getItem("vn_account_session")||"";
- if(!token)throw new Error("Your VN SHOP account session is unavailable. Sign in again and retry.");
- const response=await fetch(ACCOUNT_API+path,{...options,cache:"no-store",headers:{...(options.body?{"Content-Type":"application/json"}:{}),...(options.headers||{}),Authorization:"Bearer "+token}});
- const result=await response.json().catch(()=>({}));
- if(!response.ok){
-  if(response.status===401){
-   checkoutAccountToken="";
-   sessionStorage.removeItem("vn_account_session");
-   sessionStorage.removeItem("vn_account_identity");
-  }
-  throw new Error(result.error||"VN SHOP account request failed ("+response.status+").");
+ if(!token){
+  if(!await exchangeCheckoutShopSession())throw new Error("Your VN SHOP account session is unavailable. Sign in again and retry.");
+  token=checkoutAccountToken;
  }
+ const send=currentToken=>fetch(ACCOUNT_API+path,{...options,cache:"no-store",headers:{...(options.body?{"Content-Type":"application/json"}:{}),...(options.headers||{}),Authorization:"Bearer "+currentToken}});
+ let response=await send(token);
+ let result=await response.json().catch(()=>({}));
+ if(response.status===401){
+  checkoutAccountToken="";
+  sessionStorage.removeItem("vn_account_session");
+  sessionStorage.removeItem("vn_account_identity");
+  if(await exchangeCheckoutShopSession()){
+   token=checkoutAccountToken;
+   response=await send(token);
+   result=await response.json().catch(()=>({}));
+  }
+ }
+ if(!response.ok)throw new Error(result.error||"VN SHOP account request failed ("+response.status+").");
  return result;
 };
 const loadCheckoutAccount=async()=>{
+ if(checkoutSignInLink)checkoutSignInLink.hidden=true;
  checkoutAccountToken=sessionStorage.getItem("vn_account_session")||"";
- if(!checkoutAccountToken){
-  checkoutAccountLoaded=true;
-  if(checkoutSignInLink)checkoutSignInLink.hidden=false;
-  return;
- }
  try{
+  if(!checkoutAccountToken)await exchangeCheckoutShopSession();
+  if(!checkoutAccountToken){
+   checkoutAccountLoaded=true;
+   if(checkoutSignInLink)checkoutSignInLink.hidden=false;
+   return;
+  }
   const result=await requestAccountApi("/api/account");
   checkoutIsAdmin=result.is_admin===true||result.isAdmin===true;
   const adminOrderSwitch=document.getElementById("admin-order-type-switch");
@@ -149,7 +172,8 @@ const loadCheckoutAccount=async()=>{
   if(adminOrderSwitch)adminOrderSwitch.hidden=true;
   shopSaveSection.hidden=true;
   savedAddressPanel.hidden=true;
-  if(checkoutSignInLink)checkoutSignInLink.hidden=Boolean(checkoutAccountToken);
+  const hasLiveSession=Boolean(checkoutAccountToken||sessionStorage.getItem("vn_shop_session"));
+  if(checkoutSignInLink)checkoutSignInLink.hidden=hasLiveSession;
  }
 };
 let checkoutAccountReady=loadCheckoutAccount();
@@ -664,7 +688,7 @@ document.getElementById("pay-now").addEventListener("click",async()=>{
   const payload={customer,items,subtotal:checkoutAmounts.subtotalTRY,shipping:checkoutAmounts.shippingPaymentTRY,taxes:checkoutAmounts.taxesTRY,total:checkoutAmounts.totalTRY,currency:"TRY",countryCode:"TR",originalSubtotalUSD:checkoutAmounts.subtotalUSD,originalShippingUSD:checkoutAmounts.shippingUSD,originalTaxesUSD:checkoutAmounts.taxesUSD,exchangeRateProvider:checkoutAmounts.fxProvider,exchangeRateTRYPerUSD:checkoutAmounts.fxRate,exchangeRateUpdatedAt:new Date(checkoutAmounts.fxUpdatedAt).toISOString(),shippingMethod:selectedShipping.value==="standard"?"Standard Shipping":selectedShipping.value,paymentMethod:"Admin offline settlement",orderType:isAdminOrder?"admin":"customer",status:"received"};
   let idempotencyKey=sessionStorage.getItem("vn-shop-order-idempotency-key");
   if(!idempotencyKey){idempotencyKey=crypto.randomUUID();sessionStorage.setItem("vn-shop-order-idempotency-key",idempotencyKey)}
-  const token=sessionStorage.getItem("vn_account_session")||"";
+  const token=checkoutAccountToken||sessionStorage.getItem("vn_account_session")||"";
   const endpoint=isAdminOrder?"/api/operations/admin-orders":"/api/orders";
   const headers={"Content-Type":"application/json","Idempotency-Key":idempotencyKey};
   if(token)headers.Authorization="Bearer "+token;
