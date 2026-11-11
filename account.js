@@ -2957,7 +2957,9 @@
     if (root) {
       root.hidden = true;
       root.style.visibility = "";
+      root.style.opacity = "";
       root.style.pointerEvents = "";
+      root.setAttribute("aria-hidden", "true");
     }
     document.body.style.overflow = "";
     positionShopHost();
@@ -2969,8 +2971,10 @@
     state.shopMoreOptions = false;
     const root = createRoot();
     root.hidden = false;
-    root.style.visibility = "";
+    root.style.visibility = "visible";
+    root.style.opacity = "";
     root.style.pointerEvents = "";
+    root.removeAttribute("aria-hidden");
     startShopLoginPreload();
     render();
     ensureShopLogin();
@@ -3476,12 +3480,17 @@
   const prewarmAccountPanel = () => {
     try {
       const root = createRoot();
+      // Keep the real panel and Shopify mount connected and layout-visible.
+      // visibility:hidden prevents some embedded login widgets from completing
+      // their initialization; opacity keeps the panel invisible to customers
+      // without removing it from layout or the visibility lifecycle.
       root.hidden = false;
-      root.style.visibility = "hidden";
+      root.style.visibility = "visible";
+      root.style.opacity = "0";
       root.style.pointerEvents = "none";
+      root.setAttribute("aria-hidden", "true");
       render();
       if (!state.user && state.screen !== "verify") ensureShopLogin();
-      root.hidden = false;
     } catch (error) {
       console.warn("[VN ACCOUNT] Dashboard prewarm skipped:", error);
     }
