@@ -47,6 +47,9 @@
     shopLoginInstance: null,
     shopHost: null,
     shopStatus: "idle",
+    shopRecognized: false,
+    shopRecognitionPending: false,
+    shopMoreOptions: false,
     shopTracking: false,
     shopGen: 0,
     shopTimer: null,
@@ -101,6 +104,8 @@
   const SHOP_AUTH_WORKER = "https://vn-shop-auth.9ojeez9.workers.dev";
 
   function startShopLoginPreload() {
+    // Load the SDK early; create() must run only after the real email input
+    // and mount are connected to the document.
     loadShopSdk().catch(error => {
       console.warn("[VN ACCOUNT] Shop SDK preload failed:", error);
     });
@@ -478,6 +483,15 @@
       .vn-ac-signin-heading h1{margin:0;font-size:32px;font-weight:700;line-height:1.2;letter-spacing:-.7px;color:#f5f5f5}
       .vn-ac-signin-heading p{margin:9px 0 0;font-size:15px;line-height:1.5;color:#a9a5ad}
       .vn-ac-email-main{display:flex;flex-direction:column;align-items:stretch;width:100%;max-width:480px;margin-inline:auto}
+      .vn-ac-email-main .vn-ac-or-divider,.vn-ac-email-main .vn-ac-email-form-wrap{overflow:hidden;max-height:260px;opacity:1;transform:translateY(0);transition:max-height .34s ease,opacity .22s ease,transform .34s ease,margin .34s ease}
+      .vn-ac-email-main.is-shop-recognized .vn-ac-or-divider,.vn-ac-email-main.is-shop-recognized .vn-ac-email-form-wrap{max-height:0;margin-top:0;margin-bottom:0;opacity:0;transform:translateY(-8px);pointer-events:none}
+      .vn-ac-email-main.is-shop-recognized .vn-ac-shop-space{margin-bottom:8px}
+      .vn-ac-email-main.is-shop-recognized .vn-ac-email-bar{transform:translateY(-76px) scale(.97);opacity:0;transition:transform .38s cubic-bezier(.2,.75,.25,1),opacity .24s ease}
+      .vn-ac-email-main.is-shop-recognized .vn-ac-shop-mount{animation:vnShopMergeIn .42s cubic-bezier(.2,.75,.25,1) both}
+      @keyframes vnShopMergeIn{0%{transform:scale(.96);filter:brightness(1.25)}100%{transform:scale(1);filter:brightness(1)}}
+      .vn-ac-more-options{display:block;margin:7px auto 0;padding:8px 12px;border:0;background:transparent;color:#c5c1ca;font:500 12px/1.4 Arial,sans-serif;text-decoration:underline;text-underline-offset:3px;cursor:pointer;opacity:1;transition:opacity .2s ease}
+      .vn-ac-more-options:hover{color:#fff}
+      .vn-ac-more-options[hidden]{display:none!important}
       .vn-ac-shop-space{width:100%;max-width:480px;margin:0 auto 18px}.vn-ac-shop-mount{display:flex;align-items:stretch;justify-content:center;width:100%;min-height:54px}.vn-ac-shop-mount>*{display:block;width:100%}.vn-ac-shop-continue{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:54px;padding:0 20px;border:1px solid #d9d9d9;border-radius:4px;background:#fff;color:#111;text-decoration:none;font:600 15px/1.2 Arial,sans-serif;cursor:pointer;transition:background .16s ease,border-color .16s ease}.vn-ac-shop-continue:hover{background:#f2f2f2;border-color:#fff}.vn-ac-shop-continue:focus-visible{outline:2px solid #fff;outline-offset:3px}.vn-ac-shop-continue svg{width:19px;height:19px;flex:0 0 19px}.vn-ac-or-divider{display:flex;align-items:center;gap:13px;width:100%;max-width:480px;margin:0 auto 18px;color:#a9a5ad;font-size:11px;line-height:1;letter-spacing:1.5px}.vn-ac-or-divider:before,.vn-ac-or-divider:after{content:"";height:1px;flex:1;background:#39343e}
       .vn-ac-email-form-wrap{width:100%;max-width:480px;margin:0 auto}.vn-ac-email-form-wrap form{display:flex;flex-direction:column;width:100%}
       .vn-ac-consent-note{margin:24px auto 0!important;max-width:480px;text-align:center;color:#a4a4a4;font-size:12px;line-height:1.75}
@@ -1512,7 +1526,7 @@
 
   function renderEmail() {
     return `
-      <main class="vn-ac-main vn-ac-email-main">
+      <main class="vn-ac-main vn-ac-email-main${state.shopRecognized && !state.shopMoreOptions && !state.shopRecognitionPending ? " is-shop-recognized" : ""}">
         ${messageHTML()}
 
         <div class="vn-ac-signin-heading">
@@ -1523,6 +1537,7 @@
         <div class="vn-ac-shop-space">
           <div id="vnAcShopLoginMount" class="vn-ac-shop-mount" style="min-height:54px" aria-label="Continue with Shop"></div>
         </div>
+        ${state.shopRecognized && !state.shopMoreOptions && !state.shopRecognitionPending ? '<button type="button" class="vn-ac-more-options" data-ac-action="shop-more-options">More sign-in options</button>' : ""}
         <div class="vn-ac-or-divider" aria-hidden="true"><span>OR</span></div>
 
         <div class="vn-ac-email-form-wrap">
@@ -1707,6 +1722,21 @@
     console.warn("[VN ACCOUNT] Shop login unavailable:", reason);
   }
 
+  function applyShopRecognition() {
+    const main = document.querySelector(".vn-ac-email-main");
+    if (!main || !state.shopRecognized || state.shopMoreOptions) return;
+    state.shopRecognitionPending = false;
+    main.classList.add("is-shop-recognized");
+    if (!main.querySelector("[data-ac-action=shop-more-options]")) {
+      const more = document.createElement("button");
+      more.type = "button";
+      more.className = "vn-ac-more-options";
+      more.dataset.acAction = "shop-more-options";
+      more.textContent = "More sign-in options";
+      main.querySelector(".vn-ac-shop-space")?.insertAdjacentElement("afterend", more);
+    }
+  }
+
   function ensureShopLogin() {
     const slot = document.querySelector("#vnAcShopLoginMount");
     if (!slot) return;
@@ -1755,10 +1785,19 @@
         buttonLayout: "standalone",
         scope: "shop_app:oauth",
         storefrontOrigin: window.location.origin,
-        uxMode: "windoid"
+        uxMode: "windoid",
+        emailInputSelector: "#customer-authentication-web-email"
       },
       appearance: { preferredLoginExperience: "popup" },
-      onLoad: () => {},
+      onLoad: event => {
+        if (gen !== state.shopGen) return;
+        state.shopRecognized = event?.userFound === true;
+        state.shopMoreOptions = false;
+        const root = document.querySelector("#vnAccountOverlay");
+        const isVisible = root && !root.hidden && getComputedStyle(root).visibility !== "hidden";
+        state.shopRecognitionPending = state.shopRecognized && !isVisible;
+        if (isVisible) applyShopRecognition();
+      },
       onComplete: async event => {
         if (gen !== state.shopGen) return;
         const shopConsentToken = String(event?.shopConsentToken || "").trim();
@@ -2915,7 +2954,11 @@
 
   function closePanel() {
     const root = $("#vnAccountOverlay");
-    if (root) root.hidden = true;
+    if (root) {
+      root.hidden = true;
+      root.style.visibility = "";
+      root.style.pointerEvents = "";
+    }
     document.body.style.overflow = "";
     positionShopHost();
   }
@@ -2923,7 +2966,11 @@
   function openPanel() {
     if (!state.user) { state.screen = "email"; state.message = ""; }
     else { state.section = "dashboard"; state.message = ""; }
-    createRoot().hidden = false;
+    state.shopMoreOptions = false;
+    const root = createRoot();
+    root.hidden = false;
+    root.style.visibility = "";
+    root.style.pointerEvents = "";
     startShopLoginPreload();
     render();
     ensureShopLogin();
@@ -2935,6 +2982,10 @@
     }).catch(error => {
       state.messageType = "error"; state.message = explainAuthError(error); render();
     });
+    if (state.shopRecognized && !state.shopMoreOptions) {
+      state.shopRecognitionPending = true;
+      requestAnimationFrame(() => requestAnimationFrame(applyShopRecognition));
+    }
     window.setTimeout(focusEntry, 30);
   }
 
@@ -3005,6 +3056,11 @@
 
           case "continue-shop":
             goShop();
+            break;
+
+          case "shop-more-options":
+            state.shopMoreOptions = true;
+            render();
             break;
 
           case "privacy-open":
@@ -3418,8 +3474,18 @@
   // Warm the hidden account shell, logo and dashboard material before the
   // customer opens the panel so a reset cannot expose an uninitialised state.
   const prewarmAccountPanel = () => {
-    try { createRoot(); }
-    catch (error) { console.warn("[VN ACCOUNT] Dashboard prewarm skipped:", error); }
+    try {
+      const root = createRoot();
+      root.hidden = false;
+      root.style.visibility = "hidden";
+      root.style.pointerEvents = "none";
+      render();
+      if (!state.user && state.screen !== "verify") ensureShopLogin();
+      root.hidden = false;
+    } catch (error) {
+      console.warn("[VN ACCOUNT] Dashboard prewarm skipped:", error);
+    }
+    startShopLoginPreload();
   };
   if (document.body) prewarmAccountPanel();
   else document.addEventListener("DOMContentLoaded", prewarmAccountPanel, {once:true});
