@@ -1,7 +1,7 @@
 
 /* VN SHOP — ACCOUNT
-   Email OTP, dashboard, profile, addresses, orders, returns, legal panels.
-   Uses ClerkJS for email OTP authentication. Account data features without a secure backend remain session-only.
+   VN Worker owns account identity, sessions and customer data.
+   Clerk is used only for email-code verification; Shop login is a separate identity exchange.
 */
 (() => {
   "use strict";
@@ -58,6 +58,32 @@
 
   let configPromise = null;
   let clerkSignupBridgePromise = null;
+  let clerkLoadPromise = null;
+  const CLERK_PUBLISHABLE_KEY = "pk_test_aHVtYmxlLW94LTcwNTUuY2xlcmsuYWNjb3VudHMuZGV2JA";
+  const CLERK_SCRIPT_URL = "https://humble-ox-7055.clerk.accounts.dev/npm/@clerk/clerk-js@6.39.0/dist/clerk.browser.js";
+  function ensureClerkLoaded() {
+    if (state.clerk?.loaded && state.clerk.client) return Promise.resolve(state.clerk);
+    if (!clerkLoadPromise) {
+      clerkLoadPromise = new Promise((resolve, reject) => {
+        const initialize = async () => {
+          try {
+            const clerk = window.Clerk;
+            if (!clerk || typeof clerk.load !== "function") throw new Error("Clerk SDK did not initialize.");
+            await clerk.load({ telemetry: false });
+            state.clerk = clerk; resolve(clerk);
+          } catch (error) { clerkLoadPromise = null; reject(error); }
+        };
+        if (window.Clerk && typeof window.Clerk.load === "function") { initialize(); return; }
+        const script = document.createElement("script");
+        script.async = true; script.crossOrigin = "anonymous";
+        script.dataset.clerkPublishableKey = CLERK_PUBLISHABLE_KEY;
+        script.src = CLERK_SCRIPT_URL; script.onload = initialize;
+        script.onerror = () => { clerkLoadPromise = null; reject(new Error("Clerk SDK could not be downloaded.")); };
+        document.head.appendChild(script);
+      });
+    }
+    return clerkLoadPromise.then(clerk => { state.clerk = clerk; return clerk; });
+  }
 
   async function getClerkSignupBridge() {
     if (!clerkSignupBridgePromise) {
@@ -69,8 +95,8 @@
 
   const $ = (selector, root = document) => root.querySelector(selector);
 
-  // Start Shop SDK and login-element creation as soon as account.js executes.
-  // The real button is prepared off-screen, then moved into the panel on open.
+  // Prepare the Shop login element only when the account panel is opened.
+  // The host is positioned inside the panel after the SDK reports ready.
   const SHOP_CLIENT_ID = "90292cd96f43b8299e5b541fbe400d11";
   const SHOP_AUTH_WORKER = "https://vn-shop-auth.9ojeez9.workers.dev";
 
@@ -91,11 +117,8 @@
     ensureShopLogin();
   }
 
-  startShopLoginPreload();
-
-  // Shop subpages do not load Clerk. Send profile clicks straight to the
-  // main shop page, where the existing Clerk instance opens the account panel.
-  // Keep the main shop page's instant panel behavior unchanged.
+  // Shop subpages redirect profile clicks to the main shop page.
+  // Both identity providers are loaded lazily when the account panel opens.
   document.addEventListener("click", event => {
     const target = event.target;
     const trigger = target instanceof Element ? target.closest("#profile-open") : null;
@@ -181,67 +204,8 @@
       console.error("[VN ACCOUNT] Configuration error:", error);
       state.config = {};
     }
-
-    const clerk = window.Clerk;
-    if (!clerk || typeof clerk.load !== "function") {
-      // Clerk is intentionally loaded only on merch.html. Other shop pages
-      // restore the already-verified VN Account session through the account API.
-      await restoreWorkerAccountSession();
-      return;
-    }
-
-    try {
-      // Initialize the shop's existing Clerk instance immediately.
-      // The challenge-aware sign-up bridge is loaded lazily only when a new
-      // account is created, so its React startup can never block the storefront.
-      state.clerk = clerk;
-      await clerk.load();
-      const restoredShopSession = await restoreShopSession();
-      if (!restoredShopSession) {
-        syncClerkUser(clerk.user || null);
-        if (!clerk.user) await restoreWorkerAccountSession();
-      }
-
-      clerk.addListener(({ user }) => {
-        if (user === undefined) return;
-
-        // Clerk can emit a signed-out state while a passwordless attempt is
-        // being prepared. Do not replace the active OTP screen during that flow.
-        if (!user && (state.screen === "verify" || state.sendingCode || state.authAttempt)) {
-          return;
-        }
-
-        if (state.authProvider === "shop" && !user) return;
-        syncClerkUser(user || null);
-        if (user) {
-          loadAccountData().finally(render);
-        } else {
-          storeWorkerSessionToken("");
-          try { sessionStorage.removeItem(ACCOUNT_IDENTITY_KEY); } catch (_) {}
-          state.profile = {};
-          state.addresses = [];
-          state.orders = [];
-          state.returns = [];
-          state.issues = [];
-          state.screen = "email";
-          state.section = "dashboard";
-          render();
-        }
-      });
-
-      // Keep Clerk initialization independent from account-data API failures.
-      // A failed orders/returns request must never invalidate a working Clerk instance.
-      if (state.user) {
-        loadAccountData().catch(error => {
-          console.error("[VN ACCOUNT] Initial account data load failed; Clerk remains initialized:", error);
-          render();
-        });
-      }
-    } catch (error) {
-      console.error("[VN ACCOUNT] Clerk initialization failed:", error);
-      state.clerk = null;
-      await restoreWorkerAccountSession();
-    }
+    const restoredShopSession = await restoreShopSession();
+    if (!restoredShopSession) await restoreWorkerAccountSession();
   }
 
   function syncClerkUser(clerkUser) {
@@ -271,14 +235,7 @@
       first_name: clerkUser.firstName || "",
       last_name: clerkUser.lastName || ""
     };
-    try {
-      sessionStorage.setItem(ACCOUNT_IDENTITY_KEY, JSON.stringify({
-        id: clerkUser.id,
-        email,
-        firstName: clerkUser.firstName || "",
-        lastName: clerkUser.lastName || ""
-      }));
-    } catch (_) {}
+    // Clerk identity remains memory-only until the one-time VN exchange.
     state.screen = "account";
     updateAccountAvatar();
   }
@@ -315,16 +272,8 @@
     // validates the session token before the dashboard is made available.
     if (!identity?.id || !identity?.email) return false;
 
-    const clerkUser = {
-      id: identity.id,
-      firstName: identity.firstName || "",
-      lastName: identity.lastName || "",
-      primaryEmailAddress: { emailAddress: identity.email },
-      emailAddresses: [{ emailAddress: identity.email }]
-    };
-
-    state.clerkUser = clerkUser;
-    state.authProvider = "clerk";
+    state.clerkUser = null;
+    state.authProvider = "vn";
     state.user = {
       id: identity.id,
       email: identity.email,
@@ -363,7 +312,7 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ sessionToken: state.shopSessionToken })
         });
-      } else {
+      } else if (state.authProvider === "clerk") {
         const clerkSession = state.clerk?.session;
         if (!clerkSession || typeof clerkSession.getToken !== "function") {
           throw new Error("Your verified email session is not ready. Please sign in again.");
@@ -374,6 +323,8 @@
           method: "POST",
           headers: { Authorization: "Bearer " + clerkToken }
         });
+      } else {
+        throw new Error("Your VN SHOP session has expired. Please sign in again.");
       }
       const result = await response.json().catch(() => ({}));
       if (!response.ok || !result.token || !result.userId) throw new Error(result.error || "Could not establish your secure VN SHOP account session.");
@@ -391,12 +342,24 @@
       state.email = state.user.email;
       try {
         sessionStorage.setItem(ACCOUNT_IDENTITY_KEY, JSON.stringify({
-          id: result.userId,
-          email: state.user.email,
+          id: result.userId, email: state.user.email,
           firstName: state.user.user_metadata.first_name,
           lastName: state.user.user_metadata.last_name
         }));
       } catch (_) {}
+      if (state.authProvider === "clerk" && state.clerk) {
+        const clerkInstance = state.clerk;
+        try { await clerkInstance.signOut(); }
+        catch (signOutError) { console.warn("[VN ACCOUNT] Clerk sign-out failed; VN session remains active.", signOutError); }
+        state.clerk = null; state.clerkUser = null; state.authProvider = "vn";
+        try {
+          await fetch(ACCOUNT_API + "/api/auth/cleanup", {
+            method: "POST", headers: { Authorization: "Bearer " + result.token }
+          });
+        } catch (cleanupError) {
+          console.warn("[VN ACCOUNT] Clerk cleanup request failed; Worker Cron will retry.", cleanupError);
+        }
+      }
       return result.token;
     })();
     try {
@@ -420,8 +383,10 @@
     let response = await send(token);
     if (response.status === 401 && path !== "/api/auth/exchange") {
       storeWorkerSessionToken("");
-      token = await exchangeWorkerSession();
-      response = await send(token);
+      if (state.authProvider === "clerk" || state.authProvider === "shop") {
+        token = await exchangeWorkerSession();
+        response = await send(token);
+      }
     }
     const result = await response.json().catch(() => ({}));
     if (!response.ok) {
@@ -1285,7 +1250,7 @@
             <h3>Information you provide</h3>
             <p>If you use account sign-in, your email address is processed to send a verification code and establish your account session. If you choose to receive updates from 9ojeez9, that preference is held only in the current account-panel session and is not persistently stored at this stage.</p>
             <h3>Authentication</h3>
-            <p>Account authentication is provided by Clerk. Your email address, verification requests, and authentication session are processed as needed to provide sign-in functionality. Never share a verification code with anyone.</p>
+            <p>Clerk is used only to send and verify one-time email codes. After verification, VN SHOP creates and manages its own account session. Clerk user IDs, tokens, and authentication cookies are not stored by VN SHOP. A temporary email-only cleanup flag remains until the Clerk user is deleted. Never share a verification code with anyone.</p>
             <h3>Cookies and preferences</h3>
             <p>The website stores your cookie preferences in your browser so that your selections can be remembered. You can review those choices using the Cookie Choices control in the website footer.</p>
             <h3>How information is used</h3>
@@ -2493,19 +2458,31 @@
       /identifier.*not found|no account.*found|could not find.*user/i.test(String(error?.message || ""));
   }
 
+  function isExistingClerkUser(error) {
+    const errors = Array.isArray(error?.errors) ? error.errors : [];
+    return errors.some(item => ["form_identifier_exists", "identifier_exists"].includes(item.code)) ||
+      /identifier.*already exists|account.*already exists|email.*already registered/i.test(String(error?.message || ""));
+  }
+
+  async function prepareClerkEmailSignIn(emailAddress) {
+    const attempt = await state.clerk.client.signIn.create({ identifier: emailAddress });
+    const factor = attempt.supportedFirstFactors?.find(item => item.strategy === "email_code");
+    if (!factor?.emailAddressId) {
+      throw new Error("Email verification is not enabled as a sign-in method for this Clerk account.");
+    }
+    const prepared = await attempt.prepareFirstFactor({
+      strategy: "email_code",
+      emailAddressId: factor.emailAddressId
+    });
+    return prepared || attempt;
+  }
+
   function sendCode(email, source = "") {
     const normalizedEmail = String(email || "").trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
       state.messageType = "error"; state.message = "Enter a valid email address."; state.screen = "email"; render(); return;
     }
-    // Email OTP remains on merch.html, where Clerk is loaded. The Shop
-    // login button is available immediately on every page through its preload.
-    if (!state.clerk?.loaded || !state.clerk.client) {
-      if (!/\/merch\.html$/i.test(window.location.pathname)) {
-        window.location.href = new URL("/merch.html#profile", window.location.origin).href;
-        return;
-      }
-    }
+
     const requestId = ++state.sendRequestId;
     state.email = normalizedEmail; state.screen = "verify"; state.messageType = "info";
     state.message = source === "shop"
@@ -2518,20 +2495,27 @@
       try {
         if (configPromise) await configPromise;
         if (requestId !== state.sendRequestId) return;
-        if (!state.clerk?.loaded || !state.clerk.client) throw new Error("Sign-in is unavailable because Clerk could not be initialized.");
+        if (!state.clerk?.loaded || !state.clerk.client) await ensureClerkLoaded();
+        if (!state.clerk?.client) throw new Error("Sign-in is unavailable because Clerk could not be initialized.");
         let authAttempt, authMode;
         try {
-          const signInAttempt = await state.clerk.client.signIn.create({ identifier: normalizedEmail });
-          const factor = signInAttempt.supportedFirstFactors?.find(f => f.strategy === "email_code");
-          if (!factor?.emailAddressId) throw new Error("Email verification is not enabled as a sign-in method for this Clerk account.");
-          const prepared = await signInAttempt.prepareFirstFactor({ strategy: "email_code", emailAddressId: factor.emailAddressId });
-          authAttempt = prepared || signInAttempt; authMode = "signin";
+          authAttempt = await prepareClerkEmailSignIn(normalizedEmail);
+          authMode = "signin";
         } catch (error) {
           if (!isUnknownClerkUser(error)) throw error;
           const signup = await getClerkSignupBridge();
-          await signup.create(normalizedEmail);
-          await signup.sendEmailCode();
-          authAttempt = signup; authMode = "signup";
+          try {
+            await signup.create(normalizedEmail);
+            await signup.sendEmailCode();
+            authAttempt = signup;
+            authMode = "signup";
+          } catch (signupError) {
+            if (!isExistingClerkUser(signupError)) throw signupError;
+            // Cleanup may have failed, leaving the address in Clerk. Treat
+            // "already exists" as a sign-in case and send the normal sign-in OTP.
+            authAttempt = await prepareClerkEmailSignIn(normalizedEmail);
+            authMode = "signin";
+          }
         }
         if (requestId !== state.sendRequestId) return;
         state.authAttempt = authAttempt; state.authMode = authMode; state.messageType = "info"; state.message = "";
@@ -2895,61 +2879,19 @@
   }
 
 
-  async function signOut(allDevices = false) {
-    if (state.authProvider === "shop") {
-      const workerToken = readWorkerSessionToken();
-      if (workerToken) {
-        try {
-          await fetch(ACCOUNT_API + "/api/auth/logout", { method: "POST", headers: { Authorization: "Bearer " + workerToken } });
-        } catch (error) {
-          console.warn("[VN ACCOUNT] VN session revocation request failed:", error);
-        }
-      }
-      storeWorkerSessionToken("");
-      try { sessionStorage.removeItem(ACCOUNT_IDENTITY_KEY); } catch (_) {}
-      try { sessionStorage.removeItem("vn_shop_session"); } catch (_) {}
-      state.shopSessionToken = "";
-      state.authProvider = "";
-      state.clerkUser = null;
-      state.user = null;
-      state.email = "";
-      state.profile = {};
-      state.addresses = [];
-      state.orders = [];
-      state.returns = [];
-      state.issues = [];
-      state.screen = "email";
-      state.section = "dashboard";
-      closePanel();
-      return;
+  async function signOut() {
+    const token = readWorkerSessionToken();
+    if (token) {
+      try { await fetch(ACCOUNT_API + "/api/auth/logout", { method: "POST", headers: { Authorization: "Bearer " + token } }); }
+      catch (error) { console.warn("[VN ACCOUNT] VN session revocation request failed:", error); }
     }
-    if (!state.clerk) {
-      try {
-        sessionStorage.setItem("vn_account_signout_all_devices", allDevices ? "1" : "0");
-      } catch (_) {}
-      window.location.href = new URL("/merch.html#signout", window.location.origin).href;
-      return;
-    }
-    try {
-      const workerToken = readWorkerSessionToken();
-      if (workerToken) {
-        try {
-          await fetch(ACCOUNT_API + "/api/auth/logout", { method: "POST", headers: { Authorization: "Bearer " + workerToken } });
-        } catch (error) {
-          console.warn("[VN ACCOUNT] VN session revocation request failed:", error);
-        }
-      }
-      storeWorkerSessionToken("");
-      try { sessionStorage.removeItem(ACCOUNT_IDENTITY_KEY); } catch (_) {}
-      if (allDevices) await state.clerk.signOut();
-      else if (state.clerk.session?.id) await state.clerk.signOut({ sessionId: state.clerk.session.id });
-      else await state.clerk.signOut();
-      closePanel();
-    } catch (error) {
-      state.messageType = "error";
-      state.message = "Could not sign out: " + (error?.errors?.[0]?.message || error.message || "Please try again.");
-      render();
-    }
+    storeWorkerSessionToken("");
+    try { sessionStorage.removeItem(ACCOUNT_IDENTITY_KEY); } catch (_) {}
+    try { sessionStorage.removeItem("vn_shop_session"); } catch (_) {}
+    state.shopSessionToken = ""; state.clerk = null; state.clerkUser = null;
+    state.authProvider = ""; state.user = null; state.email = "";
+    state.profile = {}; state.addresses = []; state.orders = []; state.returns = []; state.issues = [];
+    state.screen = "email"; state.section = "dashboard"; closePanel();
   }
 
 
@@ -3028,19 +2970,20 @@
   }
 
   function openPanel() {
-    if (!state.user) {
-      state.screen = "email";
-      state.message = "";
-    } else {
-      state.section = "dashboard";
-      state.message = "";
-    }
-
+    if (!state.user) { state.screen = "email"; state.message = ""; }
+    else { state.section = "dashboard"; state.message = ""; }
     createRoot().hidden = false;
     render();
+    startShopLoginPreload();
     ensureShopLogin();
     positionShopHost();
     document.body.style.overflow = "hidden";
+    Promise.resolve(configPromise).then(() => {
+      if (!state.user) return ensureClerkLoaded();
+      return null;
+    }).catch(error => {
+      state.messageType = "error"; state.message = explainAuthError(error); render();
+    });
     window.setTimeout(focusEntry, 30);
   }
 
@@ -3494,17 +3437,7 @@
     window.setTimeout(() => {
       const allDevices = sessionStorage.getItem("vn_account_signout_all_devices") === "1";
       try { sessionStorage.removeItem("vn_account_signout_all_devices"); } catch (_) {}
-      if (state.clerk) {
-        signOut(allDevices);
-      } else {
-        storeWorkerSessionToken("");
-        try { sessionStorage.removeItem(ACCOUNT_IDENTITY_KEY); } catch (_) {}
-        state.clerkUser = null;
-        state.user = null;
-        state.authProvider = "";
-        state.email = "";
-        closePanel();
-      }
+      signOut();
     }, 0);
   } else if (openProfileHash) {
     requestAnimationFrame(() => {

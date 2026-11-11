@@ -912,16 +912,7 @@
 
           case "signout":
             state.email = "";
-
-            if (window.Clerk?.signOut) {
-              const sessionId = window.Clerk.session?.id;
-              const signOutRequest = sessionId
-                ? window.Clerk.signOut({ sessionId })
-                : window.Clerk.signOut();
-              signOutRequest.finally(render);
-            } else {
-              render();
-            }
+            render();
             break;
 
           case "pay":

@@ -131,6 +131,21 @@ describe.sequential("VN SHOP account Worker — D1 integration", () => {
     expect(legacy.user_id).toBe("legacy-email-only-user");
   });
 
+  it("never persists a Clerk subject and keeps the cleanup queue email-only", async () => {
+    const email = "clerk-subject-not-stored@example.com";
+    const account = await __test.resolveVNAccount(db, {
+      email,
+      clerkUserId: "user_transient_only",
+      firstName: "",
+      lastName: ""
+    });
+    const row = await db.prepare("SELECT clerk_user_id FROM vn_accounts WHERE account_id=?")
+      .bind(account.userId).first();
+    expect(row.clerk_user_id).toBeNull();
+    const columns = await db.prepare("PRAGMA table_info(clerk_cleanup_pending)").all();
+    expect((columns.results || []).map(column => column.name).sort()).toEqual(["created_at", "email"]);
+  });
+
   it("requires an explicit cancellation reason and records the selected reason", async () => {
     const id = "cancel-reason-test";
     await insertCustomerOrder(id);

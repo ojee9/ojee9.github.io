@@ -2,14 +2,8 @@ const CLERK_ISSUER = "https://humble-ox-7055.clerk.accounts.dev";
 const ALLOWED_ORIGIN = "https://ojee9.github.io";
 const JWKS_URL = `${CLERK_ISSUER}/.well-known/jwks.json`;
 
-const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+const SESSION_TTL_MS = 90 * 24 * 60 * 60 * 1000;
 const MAX_BODY_SIZE = 64 * 1024;
-
-const ADMIN_EMAILS = new Set([
-  "9ojeez9@gmail.com",
-  "recordsvunion@gmail.com",
-  "studiovnions@gmail.com"
-]);
 
 const ADMIN_CACHE_TTL_MS = 10 * 1000;
 const adminVerificationCache = new Map();
@@ -137,7 +131,7 @@ async function isAdmin(env, userId) {
     const account = await env.DB.prepare(`
       SELECT email, role FROM vn_accounts WHERE account_id = ? LIMIT 1
     `).bind(userId).first();
-    return Boolean(account && (account.role === "admin" || ADMIN_EMAILS.has(normalizeEmail(account.email))));
+    return Boolean(account && account.role === "admin");
   } catch {
     return false;
   }
@@ -226,7 +220,7 @@ async function authenticateClerk(request) {
     if (!Number.isFinite(claims.exp) || claims.exp <= currentTime) return null;
     if (claims.iat !== undefined && (!Number.isFinite(claims.iat) || claims.iat > currentTime + 60)) return null;
     if (claims.nbf !== undefined && (!Number.isFinite(claims.nbf) || claims.nbf > currentTime)) return null;
-    if (claims.azp !== undefined && claims.azp !== ALLOWED_ORIGIN) return null;
+    if (claims.azp !== ALLOWED_ORIGIN) return null;
 
     let jwks = await getJWKS();
     let jwk = jwks.keys.find(key => key.kid === header.kid);
@@ -310,6 +304,8 @@ async function authenticateWorkerSession(request, db) {
     return null;
   }
 
+  const refreshedExpiry = new Date(Date.now() + SESSION_TTL_MS).toISOString();
+  await db.prepare("UPDATE customer_sessions SET expires_at = ? WHERE token_hash = ?").bind(refreshedExpiry, tokenHash).run();
   return { sub: session.user_id };
 }
 
@@ -354,7 +350,57 @@ async function getVerifiedClerkIdentity(env, claims) {
     || entries.find(item => item.verification?.status === "verified");
   const email = normalizeEmail(primary?.email_address || "");
   if (!email) throw new AppError("A verified email address is required.", 403);
-  return { email, clerkUserId: claims.sub, firstName: validText(user.first_name || "", 120), lastName: validText(user.last_name || "", 120) };
+  return { email, firstName: validText(user.first_name || "", 120), lastName: validText(user.last_name || "", 120) };
+}
+
+async function cleanupClerkPendingEmail(env, email) {
+  const normalizedEmail = normalizeEmail(email);
+  if (!normalizedEmail) throw new AppError("Cleanup email is invalid.", 400);
+  if (!env.CLERK_SECRET_KEY) throw new Error("CLERK_SECRET_KEY is not configured.");
+  const searchUrl = new URL("https://api.clerk.com/v1/users");
+  searchUrl.searchParams.append("email_address[]", normalizedEmail);
+  searchUrl.searchParams.set("limit", "100");
+  const searchResponse = await fetch(searchUrl.toString(), {
+    headers: { Authorization: `Bearer ${env.CLERK_SECRET_KEY}`, Accept: "application/json" }
+  });
+  if (!searchResponse.ok) throw new Error(`Clerk user search returned HTTP ${searchResponse.status}.`);
+  const searchResult = await searchResponse.json();
+  const users = Array.isArray(searchResult.data) ? searchResult.data : [];
+  for (const user of users) {
+    const addresses = Array.isArray(user.email_addresses) ? user.email_addresses : [];
+    const verifiedMatch = addresses.some(item =>
+      normalizeEmail(item.email_address) === normalizedEmail && item.verification?.status === "verified"
+    );
+    if (!verifiedMatch || typeof user.id !== "string" || !user.id.startsWith("user_")) continue;
+    const deleted = await fetch(`https://api.clerk.com/v1/users/${encodeURIComponent(user.id)}`, {
+      method: "DELETE", headers: { Authorization: `Bearer ${env.CLERK_SECRET_KEY}`, Accept: "application/json" }
+    });
+    if (!deleted.ok && deleted.status !== 404) throw new Error(`Clerk user deletion returned HTTP ${deleted.status}.`);
+  }
+  await env.DB.prepare("DELETE FROM clerk_cleanup_pending WHERE email = ? COLLATE NOCASE").bind(normalizedEmail).run();
+  return true;
+}
+
+async function runClerkCleanupCron(env) {
+  await ensureSchema(env.DB);
+  const result = await env.DB.prepare("SELECT email, created_at FROM clerk_cleanup_pending ORDER BY created_at ASC LIMIT 200").all();
+  for (const row of result.results || []) {
+    try { await cleanupClerkPendingEmail(env, row.email); }
+    catch (error) {
+      console.error("[VN SHOP] Clerk cleanup retry failed; pending flag retained.", {
+        email: row.email, created_at: row.created_at, message: String(error?.message || error)
+      });
+    }
+  }
+  const cutoff = new Date(Date.now() - 7 * 86400000).toISOString();
+  const overdueResult = await env.DB.prepare("SELECT email, created_at FROM clerk_cleanup_pending WHERE created_at < ? ORDER BY created_at ASC").bind(cutoff).all();
+  const overdue = (overdueResult.results || []).map(row => ({
+    email: row.email, created_at: row.created_at,
+    age_days: Math.floor((Date.now() - Date.parse(row.created_at)) / 86400000)
+  }));
+  if (overdue.length) console.error("[VN SHOP] CLERK CLEANUP OVER-7-DAY REPORT", JSON.stringify({
+    generated_at: nowISO(), count: overdue.length, pending: overdue
+  }));
 }
 
 async function getVerifiedShopIdentity(sessionToken) {
@@ -395,65 +441,24 @@ async function getVerifiedShopIdentity(sessionToken) {
   return { email, clerkUserId: null, firstName: validText(user.first_name || user.firstName || user.given_name || "", 120), lastName: validText(user.last_name || user.lastName || user.family_name || "", 120) };
 }
 
-async function migrateLegacyAccount(db, legacyUserId, accountId) {
-  if (!legacyUserId || legacyUserId === accountId) return;
-  const profileColumns = await getColumns(db, "customer_profiles");
-  const oldProfile = await db.prepare("SELECT * FROM customer_profiles WHERE user_id = ? LIMIT 1").bind(legacyUserId).first();
-  const newProfile = await db.prepare("SELECT * FROM customer_profiles WHERE user_id = ? LIMIT 1").bind(accountId).first();
-  if (oldProfile && !newProfile) {
-    await db.prepare("UPDATE customer_profiles SET user_id = ?, updated_at = ? WHERE user_id = ?").bind(accountId, nowISO(), legacyUserId).run();
-  } else if (oldProfile && newProfile) {
-    const fields = ["first_name","last_name","phone","country","country_code","marketing_consent","date_of_birth","avatar_url"];
-    const updates = fields.filter(field => profileColumns.includes(field) && oldProfile[field] != null && oldProfile[field] !== "");
-    if (updates.length) {
-      await db.prepare(`UPDATE customer_profiles SET ${updates.map(field => `${field} = COALESCE(NULLIF(${field}, ''), ?)`).join(", ")}, updated_at = ? WHERE user_id = ?`)
-        .bind(...updates.map(field => oldProfile[field]), nowISO(), accountId).run();
-    }
-    await db.prepare("DELETE FROM customer_profiles WHERE user_id = ?").bind(legacyUserId).run();
-  }
-  for (const table of ["customer_addresses", "customer_orders", "customer_returns", "admin_orders", "admin_order_queue", "issues"]) {
-    const columns = await getColumns(db, table);
-    if (columns.includes("user_id")) await db.prepare(`UPDATE ${table} SET user_id = ? WHERE user_id = ?`).bind(accountId, legacyUserId).run();
-  }
-}
-
 async function resolveVNAccount(db, identity) {
   const email = normalizeEmail(identity.email);
   if (!email) throw new AppError("Verified email is missing.", 401);
   let account = await db.prepare("SELECT * FROM vn_accounts WHERE email = ? COLLATE NOCASE LIMIT 1").bind(email).first();
-  if (!account && identity.clerkUserId) {
-    account = await db.prepare("SELECT * FROM vn_accounts WHERE clerk_user_id = ? LIMIT 1").bind(identity.clerkUserId).first();
-    if (account) {
-      const emailOwner = await db.prepare("SELECT account_id FROM vn_accounts WHERE email = ? COLLATE NOCASE AND account_id <> ? LIMIT 1").bind(email, account.account_id).first();
-      if (emailOwner) throw new AppError("This verified email is already linked to another VN SHOP account. Contact support to merge accounts safely.", 409);
-    }
-  }
-  // Never infer ownership from editable profile or order-form email fields.
-  // Only a verified immutable Clerk subject may identify a legacy account.
-  const legacyUserId = identity.clerkUserId || null;
   const now = nowISO();
   if (!account) {
     const accountId = randomId("vn_");
-    await db.prepare(`INSERT OR IGNORE INTO vn_accounts (account_id,email,clerk_user_id,role,created_at,updated_at) VALUES (?,?,?,'customer',?,?)`)
-      .bind(accountId, email, legacyUserId, now, now).run();
+    await db.prepare(`INSERT OR IGNORE INTO vn_accounts (account_id,email,role,created_at,updated_at) VALUES (?,?,'customer',?,?)`)
+      .bind(accountId, email, now, now).run();
     account = await db.prepare("SELECT * FROM vn_accounts WHERE email = ? COLLATE NOCASE LIMIT 1").bind(email).first();
-    if (!account && identity.clerkUserId) account = await db.prepare("SELECT * FROM vn_accounts WHERE clerk_user_id = ? LIMIT 1").bind(identity.clerkUserId).first();
     if (!account) throw new AppError("Unable to establish your VN SHOP account. Please retry sign-in.",503);
-  } else if (identity.clerkUserId && account.clerk_user_id !== identity.clerkUserId) {
-    await db.prepare("UPDATE vn_accounts SET clerk_user_id = ?, email = ?, updated_at = ? WHERE account_id = ?")
-      .bind(identity.clerkUserId, email, now, account.account_id).run();
-  } else if (account.email !== email) {
-    await db.prepare("UPDATE vn_accounts SET email = ?, updated_at = ? WHERE account_id = ?")
-      .bind(email, now, account.account_id).run();
   }
-  if (legacyUserId) await migrateLegacyAccount(db, legacyUserId, account.account_id);
   await ensureProfile(db, account.account_id, { email, first_name: identity.firstName, last_name: identity.lastName });
   const columns = await getColumns(db, "customer_profiles");
   const updates = ["email", "first_name", "last_name"].filter(field => columns.includes(field) && identity[field === "email" ? "email" : field === "first_name" ? "firstName" : "lastName"]);
   if (updates.length) await db.prepare(`UPDATE customer_profiles SET ${updates.map(field => `${field} = ?`).join(", ")}, updated_at = ? WHERE user_id = ?`)
     .bind(...updates.map(field => field === "email" ? email : identity[field === "first_name" ? "firstName" : "lastName"]), now, account.account_id).run();
-  if (ADMIN_EMAILS.has(email)) await db.prepare("UPDATE vn_accounts SET role = 'admin', updated_at = ? WHERE account_id = ?").bind(now, account.account_id).run();
-  return { userId: account.account_id, email, isAdmin: ADMIN_EMAILS.has(email) || account.role === "admin", firstName: identity.firstName || "", lastName: identity.lastName || "" };
+  return { userId: account.account_id, email, isAdmin: account.role === "admin", firstName: identity.firstName || "", lastName: identity.lastName || "" };
 }
 
 async function readBody(request) {
@@ -621,6 +626,12 @@ async function ensureSchema(db) {
     db.prepare(`
       CREATE INDEX IF NOT EXISTS idx_customer_sessions_user
       ON customer_sessions(user_id)
+    `),
+    db.prepare(`
+      CREATE TABLE IF NOT EXISTS clerk_cleanup_pending (
+        email TEXT PRIMARY KEY COLLATE NOCASE,
+        created_at TEXT NOT NULL
+      )
     `),
 
     db.prepare(`
@@ -2290,11 +2301,39 @@ async function handleRequest(request, env) {
       const identity = await getVerifiedClerkIdentity(env, claims);
       const account = await resolveVNAccount(env.DB, identity);
       const session = await createSession(env.DB, account.userId);
+      try {
+        await env.DB.prepare("INSERT OR IGNORE INTO clerk_cleanup_pending (email, created_at) VALUES (?, ?)")
+          .bind(normalizeEmail(identity.email), nowISO()).run();
+      } catch (flagError) {
+        const sessionHash = await sha256(session.token);
+        await env.DB.prepare("DELETE FROM customer_sessions WHERE token_hash = ?").bind(sessionHash).run();
+        throw flagError;
+      }
       return json({ success: true, token: session.token, expiresAt: session.expiresAt, userId: account.userId, email: account.email, firstName: account.firstName, lastName: account.lastName, isAdmin: account.isAdmin, is_admin: account.isAdmin });
     } catch (err) {
       if (err instanceof AppError) return error(err.message, err.status);
       console.error("Clerk account exchange failed:", err);
       return error("Could not establish your VN SHOP account right now. Please try again.", 500);
+    }
+  }
+
+
+  if (path === "/api/auth/cleanup" && method === "POST") {
+    const sessionClaims = await authenticateWorkerSession(request, env.DB);
+    if (!sessionClaims?.sub) return error("Authentication required.", 401);
+    const account = await env.DB.prepare("SELECT email FROM vn_accounts WHERE account_id = ? LIMIT 1").bind(sessionClaims.sub).first();
+    if (!account?.email) return error("VN SHOP account not found.", 404);
+    const email = normalizeEmail(account.email);
+    const pending = await env.DB.prepare("SELECT email FROM clerk_cleanup_pending WHERE email = ? COLLATE NOCASE LIMIT 1").bind(email).first();
+    if (!pending) return json({ success: true, cleanupPending: false });
+    try {
+      await cleanupClerkPendingEmail(env, email);
+      return json({ success: true, cleanupPending: false });
+    } catch (cleanupError) {
+      console.error("[VN SHOP] Immediate Clerk cleanup failed; Cron will retry.", {
+        email, message: String(cleanupError?.message || cleanupError)
+      });
+      return json({ success: true, cleanupPending: true });
     }
   }
 
@@ -2690,6 +2729,11 @@ export default {
       console.error("VN SHOP account Worker failure:",err);
       return withCors(error("An unexpected server error occurred. Please try again.",500),request);
     }
+  },
+  async scheduled(controller, env, ctx) {
+    ctx.waitUntil(runClerkCleanupCron(env).catch(error => {
+      console.error("[VN SHOP] Clerk cleanup Cron failed.", String(error?.message || error));
+    }));
   }
 };
 
