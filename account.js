@@ -104,21 +104,28 @@
   const SHOP_AUTH_WORKER = "https://vn-shop-auth.9ojeez9.workers.dev";
 
   function startShopLoginPreload() {
-    // Start the Shopify module request as soon as this deferred account script
-    // executes, not when the customer first clicks the profile control.
+    if (!document.body) {
+      document.addEventListener("DOMContentLoaded", startShopLoginPreload, { once: true });
+      return;
+    }
+    if (state.shopHost) return;
     if (!state.shopModulePreload && document.head) {
       const hint = document.createElement("link");
       hint.rel = "modulepreload";
       hint.href = "https://cdn.shopify.com/shopifycloud/shop-js/modules/v2/loader.sdk.esm.js";
+      hint.crossOrigin = "anonymous";
       document.head.appendChild(hint);
       state.shopModulePreload = hint;
     }
-    loadShopSdk().catch(error => {
-      console.warn("[VN ACCOUNT] Shop SDK preload failed:", error);
-    });
+    const host = document.createElement("div");
+    host.dataset.vnShopHost = "true";
+    host.style.cssText = "position:fixed;left:0;top:0;width:320px;height:54px;z-index:10002;overflow:visible;opacity:0;pointer-events:none;";
+    host.setAttribute("aria-hidden", "true");
+    host.inert = true;
+    document.body.appendChild(host);
+    state.shopHost = host;
+    ensureShopLogin();
   }
-
-  // Begin downloading and initializing the SDK before any account interaction.
   startShopLoginPreload();
 
   // Shop subpages redirect profile clicks to the main shop page.
@@ -493,17 +500,20 @@
       .vn-ac-signin-heading h1{margin:0;font-size:32px;font-weight:700;line-height:1.2;letter-spacing:-.7px;color:#f5f5f5}
       .vn-ac-signin-heading p{margin:9px 0 0;font-size:15px;line-height:1.5;color:#a9a5ad}
       .vn-ac-email-main{display:flex;flex-direction:column;align-items:stretch;width:100%;max-width:480px;margin-inline:auto}
-      .vn-ac-email-main .vn-ac-or-divider{max-height:40px;opacity:1;overflow:hidden;transition:max-height .3s ease,opacity .2s ease}
-      .vn-ac-email-main .vn-ac-email-form-wrap{max-height:260px;opacity:1;overflow:visible;transition:max-height .38s ease,opacity .2s ease}
+      .vn-ac-email-main .vn-ac-or-divider{max-height:40px;opacity:1;overflow:hidden;transition:max-height .3s ease .42s,opacity .2s ease .2s}
+      .vn-ac-email-main .vn-ac-email-form-wrap{max-height:260px;opacity:1;overflow:visible;transition:max-height .38s ease .42s,opacity .22s ease .2s}
+      .vn-ac-email-main .vn-ac-email-form-wrap form>label,.vn-ac-email-main .vn-ac-email-form-wrap form>p{max-height:90px;opacity:1;overflow:hidden;transition:max-height .3s ease .42s,opacity .2s ease .2s}
       .vn-ac-email-main.is-shop-recognized .vn-ac-or-divider{max-height:0;opacity:0;pointer-events:none}
       .vn-ac-email-main.is-shop-recognized .vn-ac-email-form-wrap{max-height:0;opacity:0;pointer-events:none}
+      .vn-ac-email-main.is-shop-recognized .vn-ac-email-form-wrap form>label,.vn-ac-email-main.is-shop-recognized .vn-ac-email-form-wrap form>p{max-height:0;opacity:0;pointer-events:none}
       .vn-ac-email-main.is-shop-recognized .vn-ac-shop-space{margin-bottom:8px}
       .vn-ac-email-bar{transform:translate3d(0,0,0) scale(1);transform-origin:center center;will-change:transform,opacity;transition:transform .42s cubic-bezier(.2,.75,.25,1),opacity .32s ease}
       .vn-ac-email-main.is-shop-recognized .vn-ac-email-bar{transform:translate3d(var(--shop-merge-x,0px),var(--shop-merge-y,-76px),0) scale(var(--shop-merge-scale-x,1),var(--shop-merge-scale-y,.9));opacity:0}
       .vn-ac-email-main.is-shop-recognized .vn-ac-shop-mount{animation:vnShopMergeIn .42s cubic-bezier(.2,.75,.25,1) both}
       @keyframes vnShopMergeIn{0%{transform:scale(.96);filter:brightness(1.25)}100%{transform:scale(1);filter:brightness(1)}}
-      .vn-ac-more-options{display:block;margin:7px auto 0;padding:8px 12px;border:0;background:transparent;color:#c5c1ca;font:500 12px/1.4 Arial,sans-serif;text-decoration:underline;text-underline-offset:3px;cursor:pointer;opacity:1;transition:opacity .2s ease,transform .2s ease}
-      .vn-ac-more-options.is-hiding{opacity:0;transform:translateY(-4px);pointer-events:none}
+      .vn-ac-more-options{display:block;margin:7px auto 0;padding:8px 12px;border:0;background:transparent;color:#c5c1ca;font:500 12px/1.4 Arial,sans-serif;text-decoration:underline;text-underline-offset:3px;cursor:pointer;opacity:0;transform:translateY(-4px);transition:opacity .2s ease .42s,transform .2s ease .42s}
+      .vn-ac-more-options.is-visible{opacity:1;transform:translateY(0)}
+      .vn-ac-more-options.is-hiding{opacity:0;transform:translateY(-4px);pointer-events:none;transition-delay:0s}
       .vn-ac-more-options:hover{color:#fff}
       .vn-ac-more-options[hidden]{display:none!important}
       .vn-ac-shop-space{width:100%;max-width:480px;margin:0 auto 18px}.vn-ac-shop-mount{display:flex;align-items:stretch;justify-content:center;width:100%;min-height:54px}.vn-ac-shop-mount>*{display:block;width:100%}.vn-ac-shop-continue{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:54px;padding:0 20px;border:1px solid #d9d9d9;border-radius:4px;background:#fff;color:#111;text-decoration:none;font:600 15px/1.2 Arial,sans-serif;cursor:pointer;transition:background .16s ease,border-color .16s ease}.vn-ac-shop-continue:hover{background:#f2f2f2;border-color:#fff}.vn-ac-shop-continue:focus-visible{outline:2px solid #fff;outline-offset:3px}.vn-ac-shop-continue svg{width:19px;height:19px;flex:0 0 19px}.vn-ac-or-divider{display:flex;align-items:center;gap:13px;width:100%;max-width:480px;margin:0 auto 18px;color:#a9a5ad;font-size:11px;line-height:1;letter-spacing:1.5px}.vn-ac-or-divider:before,.vn-ac-or-divider:after{content:"";height:1px;flex:1;background:#39343e}
@@ -1730,164 +1740,108 @@
   }
 
   function setShopError(reason) {
-    clearTimeout(state.shopTimer);
-    state.shopTimer = null;
-    state.shopStatus = "error";
-    console.warn("[VN ACCOUNT] Shop login unavailable:", reason);
+    clearTimeout(state.shopTimer); state.shopTimer = null; state.shopStatus = "error";
+    console.warn("[VN ACCOUNT] Shop login unavailable:", reason); positionShopHost();
   }
 
   function applyShopRecognition() {
-    const main = document.querySelector(".vn-ac-email-main");
-    if (!main || !state.shopRecognized || state.shopMoreOptions) return;
-    state.shopRecognitionPending = false;
-
-    const emailBar = main.querySelector(".vn-ac-email-bar");
-    const shopMount = main.querySelector(".vn-ac-shop-mount");
-    if (emailBar && shopMount) {
-      const from = emailBar.getBoundingClientRect();
-      const to = shopMount.getBoundingClientRect();
-      if (from.width && from.height && to.width && to.height) {
-        main.style.setProperty("--shop-merge-x", (to.left + to.width / 2 - from.left - from.width / 2) + "px");
-        main.style.setProperty("--shop-merge-y", (to.top + to.height / 2 - from.top - from.height / 2) + "px");
-        main.style.setProperty("--shop-merge-scale-x", String(to.width / from.width));
-        main.style.setProperty("--shop-merge-scale-y", String(to.height / from.height));
+    const main=document.querySelector(".vn-ac-email-main"), root=document.querySelector("#vnAccountOverlay");
+    if(!main||!root||root.hidden||!state.shopRecognized||state.shopMoreOptions)return;
+    if(state.shopStatus!=="ready"||!state.shopHost){state.shopRecognitionPending=true;return;}
+    positionShopHost();
+    const bar=main.querySelector(".vn-ac-email-bar"), target=state.shopLoginInstance?.element||state.shopHost;
+    if(bar&&target){
+      const from=bar.getBoundingClientRect(),to=target.getBoundingClientRect();
+      if(from.width&&from.height&&to.width&&to.height){
+        main.style.setProperty("--shop-merge-x",(to.left+to.width/2-from.left-from.width/2)+"px");
+        main.style.setProperty("--shop-merge-y",(to.top+to.height/2-from.top-from.height/2)+"px");
+        main.style.setProperty("--shop-merge-scale-x",String(to.width/from.width));
+        main.style.setProperty("--shop-merge-scale-y",String(to.height/from.height));
       }
     }
-
-    main.classList.remove("is-shop-recognized");
-    void main.offsetWidth;
-    main.classList.add("is-shop-recognized");
-
-    if (!main.querySelector("[data-ac-action=shop-more-options]")) {
-      const more = document.createElement("button");
-      more.type = "button";
-      more.className = "vn-ac-more-options";
-      more.dataset.acAction = "shop-more-options";
-      more.textContent = "More sign-in options";
-      main.querySelector(".vn-ac-shop-space")?.insertAdjacentElement("afterend", more);
+    state.shopRecognitionPending=false;
+    main.classList.remove("is-shop-recognized"); void main.offsetWidth; main.classList.add("is-shop-recognized");
+    if(!main.querySelector("[data-ac-action=shop-more-options]")){
+      const more=document.createElement("button"); more.type="button"; more.className="vn-ac-more-options";
+      more.dataset.acAction="shop-more-options"; more.textContent="More sign-in options";
+      main.querySelector(".vn-ac-shop-space")?.insertAdjacentElement("afterend",more);
+      requestAnimationFrame(()=>more.classList.add("is-visible"));
     }
   }
 
   function ensureShopLogin() {
-    const slot = document.querySelector("#vnAcShopLoginMount");
-    if (!slot) return;
-
-    state.shopHost = slot;
-    if (state.shopStatus === "ready") {
-      positionShopHost();
-      return;
-    }
-    if (state.shopStatus === "loading") return;
-
-    state.shopStatus = "loading";
-    const gen = state.shopGen;
-    state.shopTimer = window.setTimeout(() => {
-      if (gen === state.shopGen && state.shopStatus === "loading") {
-        setShopError("Shop login element did not finish initializing within 8s");
-      }
-    }, 8000);
-
-    createShopLogin(slot, gen).catch(error => {
-      if (gen === state.shopGen) setShopError(error);
-    });
+    const host=state.shopHost;
+    if(!host||state.shopStatus==="loading"||state.shopStatus==="ready")return;
+    state.shopStatus="loading"; const gen=state.shopGen; clearTimeout(state.shopTimer);
+    state.shopTimer=window.setTimeout(()=>{if(gen===state.shopGen&&state.shopStatus==="loading")setShopError("Shop login element did not finish initializing within 8s");},8000);
+    createShopLogin(host,gen).catch(error=>{if(gen===state.shopGen)setShopError(error);});
   }
 
   function positionShopHost() {
-    const slot = document.querySelector("#vnAcShopLoginMount");
-    if (!slot) {
-      state.shopHost = null;
-      return;
+    const host=state.shopHost; if(!host)return;
+    const root=document.querySelector("#vnAccountOverlay"),slot=document.querySelector("#vnAcShopLoginMount");
+    const show=Boolean(root&&!root.hidden&&!state.user&&state.screen==="email"&&slot&&state.shopStatus==="ready");
+    if(!show){
+      state.shopTracking=false; host.style.opacity="0"; host.style.pointerEvents="none";
+      host.setAttribute("aria-hidden","true"); host.inert=true; return;
     }
-
-    state.shopHost = slot;
-    const element = state.shopLoginInstance?.element;
-    if (state.shopStatus === "ready" && element && element.parentNode !== slot) {
-      slot.replaceChildren(element);
-    }
+    const rect=slot.getBoundingClientRect();
+    host.style.left=rect.left+"px"; host.style.top=rect.top+"px";
+    host.style.width=rect.width+"px"; host.style.height=rect.height+"px";
+    host.style.opacity="1"; host.style.pointerEvents="auto";
+    host.removeAttribute("aria-hidden"); host.inert=false;
+    if(!state.shopTracking){state.shopTracking=true;requestAnimationFrame(trackShopHost);}
   }
 
-  async function createShopLogin(host, gen) {
-    const sdk = await loadShopSdk();
-    if (gen !== state.shopGen) return;
+  function trackShopHost() {
+    if(!state.shopTracking)return;
+    positionShopHost();
+    if(state.shopTracking)requestAnimationFrame(trackShopHost);
+  }
 
-    const login = await sdk.create("login", {
-      attributes: {
-        buttonType: "continue",
-        buttonLayout: "standalone",
-        scope: "shop_app:oauth",
-        storefrontOrigin: window.location.origin,
-        uxMode: "windoid",
-        emailInputSelector: "#customer-authentication-web-email"
+  async function createShopLogin(host,gen) {
+    const sdk=await loadShopSdk(); if(gen!==state.shopGen)return;
+    const login=await sdk.create("login",{
+      attributes:{buttonType:"continue",buttonLayout:"standalone",scope:"shop_app:oauth",storefrontOrigin:window.location.origin,uxMode:"windoid"},
+      appearance:{preferredLoginExperience:"popup"},
+      onLoad:event=>{
+        if(gen!==state.shopGen)return;
+        state.shopRecognized=event?.userFound===true;
+        const root=document.querySelector("#vnAccountOverlay");
+        const visible=root&&!root.hidden&&getComputedStyle(root).visibility!=="hidden";
+        state.shopRecognitionPending=state.shopRecognized&&!visible;
+        if(state.shopRecognized&&visible)requestAnimationFrame(()=>{positionShopHost();applyShopRecognition();});
       },
-      appearance: { preferredLoginExperience: "popup" },
-      onLoad: event => {
-        if (gen !== state.shopGen) return;
-        state.shopRecognized = event?.userFound === true;
-        state.shopMoreOptions = false;
-        const root = document.querySelector("#vnAccountOverlay");
-        const isVisible = root && !root.hidden && getComputedStyle(root).visibility !== "hidden";
-        state.shopRecognitionPending = state.shopRecognized && !isVisible;
-        if (isVisible) applyShopRecognition();
-      },
-      onComplete: async event => {
-        if (gen !== state.shopGen) return;
-        const shopConsentToken = String(event?.shopConsentToken || "").trim();
-        if (event?.signedIn !== true || !shopConsentToken) {
-          state.messageType = "error";
-          state.message = "Shop did not return the authorization needed to create your VN SHOP session. Please try again or continue with email.";
-          render();
-          return;
+      onComplete:async event=>{
+        if(gen!==state.shopGen)return;
+        const shopConsentToken=String(event?.shopConsentToken||"").trim();
+        if(event?.signedIn!==true||!shopConsentToken){
+          state.messageType="error";state.message="Shop did not return the authorization needed to create your VN SHOP session. Please try again or continue with email.";render();return;
         }
-
-        state.busy = true;
-        state.messageType = "info";
-        state.message = "Connecting your Shop account to VN SHOP…";
-        render();
-
-        try {
-          const exchanged = await shopWorkerRequest({ action: "exchange", consentToken: shopConsentToken });
-          if (!exchanged.authenticated || !exchanged.sessionToken) {
-            throw new Error("Shop authorization could not be connected to VN SHOP.");
-          }
-          state.busy = false;
-          await acceptShopSession(exchanged.sessionToken);
-        } catch (error) {
-          state.busy = false;
-          state.messageType = "error";
-          state.message = error.message || "Could not connect your Shop account. Please try email sign-in instead.";
-          state.screen = "email";
-          render();
+        state.busy=true;state.messageType="info";state.message="Connecting your Shop account to VN SHOP…";render();
+        try{
+          const exchanged=await shopWorkerRequest({action:"exchange",consentToken:shopConsentToken});
+          if(!exchanged.authenticated||!exchanged.sessionToken)throw new Error("Shop authorization could not be connected to VN SHOP.");
+          state.busy=false;await acceptShopSession(exchanged.sessionToken);
+        }catch(error){
+          state.busy=false;state.messageType="error";state.message=error.message||"Could not connect your Shop account. Please try email sign-in instead.";
+          state.screen="email";render();
         }
       },
-      onError: () => {
-        if (gen !== state.shopGen) return;
-        if (state.shopStatus !== "ready") {
-          setShopError("error during load");
-          return;
-        }
-        state.messageType = "error";
-        state.message = "Shop sign-in could not be completed. Please try again or continue with email.";
-        const root = document.querySelector("#vnAccountOverlay");
-        if (root && !root.hidden) render();
+      onError:()=>{
+        if(gen!==state.shopGen)return;
+        if(state.shopStatus!=="ready"){setShopError("error during load");return;}
+        state.messageType="error";state.message="Shop sign-in could not be completed. Please try again or continue with email.";
+        const root=document.querySelector("#vnAccountOverlay");if(root&&!root.hidden)render();
       }
     });
-
-    if (gen !== state.shopGen) {
-      try { login.destroy(); } catch (_) {}
-      return;
-    }
-
-    login.element.classList.add("vn-ac-shop-login-element");
-    host.replaceChildren(login.element);
-    state.shopLoginInstance = login;
-
-    // create() çözüldüğünde bileşen hazırdır; onLoad olayına bağımlı değildir.
-    clearTimeout(state.shopTimer);
-    state.shopTimer = null;
-    state.shopStatus = "ready";
+    if(gen!==state.shopGen){try{login.destroy();}catch(_){}return;}
+    login.element.style.cssText="display:block;width:100%;max-width:100%;";
+    login.element.classList.add("vn-ac-shop-login-element");host.replaceChildren(login.element);
+    state.shopLoginInstance=login;clearTimeout(state.shopTimer);state.shopTimer=null;state.shopStatus="ready";
     positionShopHost();
+    if(state.shopRecognized&&!document.querySelector("#vnAccountOverlay")?.hidden)requestAnimationFrame(applyShopRecognition);
   }
-
 
 
   function renderVerify() {
@@ -3000,6 +2954,7 @@
     if (!state.user) { state.screen = "email"; state.message = ""; }
     else { state.section = "dashboard"; state.message = ""; }
     state.shopMoreOptions = false;
+    state.shopRecognitionPending = Boolean(state.shopRecognized);
     const root = createRoot();
     root.hidden = false;
     root.style.visibility = "visible";
@@ -3511,27 +3466,5 @@
     profileTrigger.addEventListener("focus", startShopLoginPreload, { passive: true });
   }
 
-  // Warm the hidden account shell, logo and dashboard material before the
-  // customer opens the panel so a reset cannot expose an uninitialised state.
-  const prewarmAccountPanel = () => {
-    try {
-      const root = createRoot();
-      // Keep the real panel and Shopify mount connected and layout-visible.
-      // visibility:hidden prevents some embedded login widgets from completing
-      // their initialization; opacity keeps the panel invisible to customers
-      // without removing it from layout or the visibility lifecycle.
-      root.hidden = false;
-      root.style.visibility = "visible";
-      root.style.opacity = "0";
-      root.style.pointerEvents = "none";
-      root.setAttribute("aria-hidden", "true");
-      render();
-      if (!state.user && state.screen !== "verify") ensureShopLogin();
-    } catch (error) {
-      console.warn("[VN ACCOUNT] Dashboard prewarm skipped:", error);
-    }
-    startShopLoginPreload();
-  };
-  if (document.body) prewarmAccountPanel();
-  else document.addEventListener("DOMContentLoaded", prewarmAccountPanel, {once:true});
+
 })();
