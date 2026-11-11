@@ -50,7 +50,6 @@
     shopRecognized: false,
     shopRecognitionPending: false,
     shopMoreOptions: false,
-    shopTracking: false,
     shopGen: 0,
     shopTimer: null,
     authProvider: "",
@@ -110,12 +109,16 @@
     }
     if (state.shopHost) return;
     if (!state.shopModulePreload && document.head) {
-      const hint = document.createElement("link");
-      hint.rel = "modulepreload";
-      hint.href = "https://cdn.shopify.com/shopifycloud/shop-js/modules/v2/loader.sdk.esm.js";
-      hint.crossOrigin = "anonymous";
-      document.head.appendChild(hint);
-      state.shopModulePreload = hint;
+      const sdkUrl = "https://cdn.shopify.com/shopifycloud/shop-js/modules/v2/loader.sdk.esm.js";
+      state.shopModulePreload = document.querySelector('link[rel="modulepreload"][href="' + sdkUrl + '"]');
+      if (!state.shopModulePreload) {
+        const hint = document.createElement("link");
+        hint.rel = "modulepreload";
+        hint.href = sdkUrl;
+        hint.crossOrigin = "anonymous";
+        document.head.appendChild(hint);
+        state.shopModulePreload = hint;
+      }
     }
     const host = document.createElement("div");
     host.dataset.vnShopHost = "true";
@@ -124,6 +127,8 @@
     host.inert = true;
     document.body.appendChild(host);
     state.shopHost = host;
+    window.addEventListener("resize", positionShopHost, { passive: true });
+    document.addEventListener("scroll", positionShopHost, { capture: true, passive: true });
     ensureShopLogin();
   }
   startShopLoginPreload();
@@ -501,7 +506,7 @@
       .vn-ac-signin-heading p{margin:9px 0 0;font-size:15px;line-height:1.5;color:#a9a5ad}
       .vn-ac-email-main{display:flex;flex-direction:column;align-items:stretch;width:100%;max-width:480px;margin-inline:auto}
       .vn-ac-email-main .vn-ac-or-divider{max-height:40px;opacity:1;overflow:hidden;transition:max-height .3s ease .42s,opacity .2s ease .2s}
-      .vn-ac-email-main .vn-ac-email-form-wrap{max-height:260px;opacity:1;overflow:visible;transition:max-height .38s ease .42s,opacity .22s ease .2s}
+      .vn-ac-email-main .vn-ac-email-form-wrap{max-height:260px;opacity:1;overflow:hidden;transition:max-height .38s ease .42s,opacity .22s ease .2s}
       .vn-ac-email-main .vn-ac-email-form-wrap form>label,.vn-ac-email-main .vn-ac-email-form-wrap form>p{max-height:90px;opacity:1;overflow:hidden;transition:max-height .3s ease .42s,opacity .2s ease .2s}
       .vn-ac-email-main.is-shop-recognized .vn-ac-or-divider{max-height:0;opacity:0;pointer-events:none}
       .vn-ac-email-main.is-shop-recognized .vn-ac-email-form-wrap{max-height:0;opacity:0;pointer-events:none}
@@ -1561,7 +1566,7 @@
         <div class="vn-ac-shop-space">
           <div id="vnAcShopLoginMount" class="vn-ac-shop-mount" style="min-height:54px" aria-label="Continue with Shop"></div>
         </div>
-        ${state.shopRecognized && !state.shopMoreOptions && !state.shopRecognitionPending ? '<button type="button" class="vn-ac-more-options" data-ac-action="shop-more-options">More sign-in options</button>' : ""}
+        ${state.shopRecognized && !state.shopMoreOptions && !state.shopRecognitionPending ? '<button type="button" class="vn-ac-more-options is-visible" data-ac-action="shop-more-options">More sign-in options</button>' : ""}
         <div class="vn-ac-or-divider" aria-hidden="true"><span>OR</span></div>
 
         <div class="vn-ac-email-form-wrap">
@@ -1778,25 +1783,32 @@
   }
 
   function positionShopHost() {
-    const host=state.shopHost; if(!host)return;
-    const root=document.querySelector("#vnAccountOverlay"),slot=document.querySelector("#vnAcShopLoginMount");
-    const show=Boolean(root&&!root.hidden&&!state.user&&state.screen==="email"&&slot&&state.shopStatus==="ready");
-    if(!show){
-      state.shopTracking=false; host.style.opacity="0"; host.style.pointerEvents="none";
-      host.setAttribute("aria-hidden","true"); host.inert=true; return;
-    }
-    const rect=slot.getBoundingClientRect();
-    host.style.left=rect.left+"px"; host.style.top=rect.top+"px";
-    host.style.width=rect.width+"px"; host.style.height=rect.height+"px";
-    host.style.opacity="1"; host.style.pointerEvents="auto";
-    host.removeAttribute("aria-hidden"); host.inert=false;
-    if(!state.shopTracking){state.shopTracking=true;requestAnimationFrame(trackShopHost);}
-  }
+    const host = state.shopHost;
+    if (!host) return;
 
-  function trackShopHost() {
-    if(!state.shopTracking)return;
-    positionShopHost();
-    if(state.shopTracking)requestAnimationFrame(trackShopHost);
+    const root = document.querySelector("#vnAccountOverlay");
+    const slot = document.querySelector("#vnAcShopLoginMount");
+    const show = Boolean(root && !root.hidden && !state.user && state.screen === "email" && slot && state.shopStatus === "ready");
+
+    if (!show) {
+      host.style.opacity = "0";
+      host.style.pointerEvents = "none";
+      host.setAttribute("aria-hidden", "true");
+      host.inert = true;
+      return;
+    }
+
+    // Keep the Shop button fixed at the slot's measured position during the
+    // merge. Chasing the collapsing slot every frame moves the target itself.
+    const rect = slot.getBoundingClientRect();
+    host.style.left = rect.left + "px";
+    host.style.top = rect.top + "px";
+    host.style.width = rect.width + "px";
+    host.style.height = rect.height + "px";
+    host.style.opacity = "1";
+    host.style.pointerEvents = "auto";
+    host.removeAttribute("aria-hidden");
+    host.inert = false;
   }
 
   async function createShopLogin(host,gen) {
