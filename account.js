@@ -95,26 +95,15 @@
 
   const $ = (selector, root = document) => root.querySelector(selector);
 
-  // Prepare the Shop login element only when the account panel is opened.
-  // The host is positioned inside the panel after the SDK reports ready.
+  // Warm Shopify's SDK on account intent, but mount its login element only
+  // inside the real account-panel slot so Shopify controls its own lifecycle.
   const SHOP_CLIENT_ID = "90292cd96f43b8299e5b541fbe400d11";
   const SHOP_AUTH_WORKER = "https://vn-shop-auth.9ojeez9.workers.dev";
 
   function startShopLoginPreload() {
-    if (!document.body) {
-      document.addEventListener("DOMContentLoaded", startShopLoginPreload, { once: true });
-      return;
-    }
-    if (state.shopHost) return;
-
-    const host = document.createElement("div");
-    host.dataset.vnShopHost = "true";
-    host.style.cssText = "position:fixed;left:0;top:0;width:320px;height:54px;z-index:10002;opacity:0;pointer-events:none;";
-    host.setAttribute("aria-hidden", "true");
-    host.inert = true;
-    document.body.appendChild(host);
-    state.shopHost = host;
-    ensureShopLogin();
+    loadShopSdk().catch(error => {
+      console.warn("[VN ACCOUNT] Shop SDK preload failed:", error);
+    });
   }
 
   // Shop subpages redirect profile clicks to the main shop page.
@@ -1711,87 +1700,49 @@
     return state.shopSdkPromise;
   }
 
-  function teardownShopLogin() {
-    state.shopGen += 1;
-    clearTimeout(state.shopTimer);
-    state.shopTimer = null;
-    const instance = state.shopLoginInstance;
-    state.shopLoginInstance = null;
-    if (instance) {
-      try { instance.destroy(); } catch (error) {
-        console.warn("[VN ACCOUNT] Shop login cleanup failed:", error);
-      }
-    }
-    if (state.shopHost) state.shopHost.replaceChildren();
-  }
-
   function setShopError(reason) {
     clearTimeout(state.shopTimer);
     state.shopTimer = null;
     state.shopStatus = "error";
     console.warn("[VN ACCOUNT] Shop login unavailable:", reason);
-    positionShopHost();
   }
 
   function ensureShopLogin() {
-    if (!state.shopHost) return;
-    if (state.shopStatus === "loading" || state.shopStatus === "ready") return;
+    const slot = document.querySelector("#vnAcShopLoginMount");
+    if (!slot) return;
 
-    teardownShopLogin();
+    state.shopHost = slot;
+    if (state.shopStatus === "ready") {
+      positionShopHost();
+      return;
+    }
+    if (state.shopStatus === "loading") return;
+
     state.shopStatus = "loading";
     const gen = state.shopGen;
-
     state.shopTimer = window.setTimeout(() => {
       if (gen === state.shopGen && state.shopStatus === "loading") {
-        setShopError("onLoad did not fire within 8s");
+        setShopError("Shop login element did not finish initializing within 8s");
       }
     }, 8000);
 
-    createShopLogin(state.shopHost, gen).catch(error => {
+    createShopLogin(slot, gen).catch(error => {
       if (gen === state.shopGen) setShopError(error);
     });
   }
 
   function positionShopHost() {
-    const host = state.shopHost;
-    if (!host) return;
-
-    const root = document.querySelector("#vnAccountOverlay");
     const slot = document.querySelector("#vnAcShopLoginMount");
-    const show = Boolean(
-      root && !root.hidden && !state.user && state.screen === "email" &&
-      slot && state.shopStatus === "ready"
-    );
-
-    if (!show) {
-      state.shopTracking = false;
-      host.style.opacity = "0";
-      host.style.pointerEvents = "none";
-      host.setAttribute("aria-hidden", "true");
-      host.inert = true;
+    if (!slot) {
+      state.shopHost = null;
       return;
     }
 
-    const rect = slot.getBoundingClientRect();
-    host.style.left = rect.left + "px";
-    host.style.top = rect.top + "px";
-    host.style.width = rect.width + "px";
-    host.style.height = rect.height + "px";
-    host.style.opacity = "1";
-    host.style.pointerEvents = "auto";
-    host.removeAttribute("aria-hidden");
-    host.inert = false;
-
-    if (!state.shopTracking) {
-      state.shopTracking = true;
-      requestAnimationFrame(trackShopHost);
+    state.shopHost = slot;
+    const element = state.shopLoginInstance?.element;
+    if (state.shopStatus === "ready" && element && element.parentNode !== slot) {
+      slot.replaceChildren(element);
     }
-  }
-
-  function trackShopHost() {
-    if (!state.shopTracking) return;
-    positionShopHost();
-    if (state.shopTracking) requestAnimationFrame(trackShopHost);
   }
 
   async function createShopLogin(host, gen) {
@@ -1856,7 +1807,7 @@
       return;
     }
 
-    login.element.style.cssText = "display:block;width:100%;";
+    login.element.classList.add("vn-ac-shop-login-element");
     host.replaceChildren(login.element);
     state.shopLoginInstance = login;
 
@@ -2973,8 +2924,8 @@
     if (!state.user) { state.screen = "email"; state.message = ""; }
     else { state.section = "dashboard"; state.message = ""; }
     createRoot().hidden = false;
-    render();
     startShopLoginPreload();
+    render();
     ensureShopLogin();
     positionShopHost();
     document.body.style.overflow = "hidden";
@@ -3230,6 +3181,7 @@
 
       const formData = new FormData(form);
       const email = String(formData.get("email") || "").trim();
+      state.email = email;
 
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         state.messageType = "error";
@@ -3283,6 +3235,12 @@
   });
 
   document.addEventListener("input", event => {
+    const emailField = event.target.closest("#customer-authentication-web-email");
+    if (emailField) {
+      state.email = emailField.value;
+      return;
+    }
+
     const addressField=event.target.closest("#vnAcAddressForm input, #vnAcAddressForm select");
     if(addressField){
       const wrapper=addressField.closest(".vn-ac-address-control");
@@ -3447,6 +3405,14 @@
     });
   } else if (new URLSearchParams(window.location.search).get("account") === "register") {
     window.setTimeout(() => openPanel(), 0);
+  }
+
+  // Warm Shopify's SDK on hover/focus before the customer opens the account
+  // panel; the login element itself is created in its final panel location.
+  const profileTrigger = document.querySelector("#profile-open");
+  if (profileTrigger) {
+    profileTrigger.addEventListener("pointerenter", startShopLoginPreload, { passive: true });
+    profileTrigger.addEventListener("focus", startShopLoginPreload, { passive: true });
   }
 
   // Warm the hidden account shell, logo and dashboard material before the
