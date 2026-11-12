@@ -509,6 +509,8 @@
       .vn-ac-email-main.is-shop-recognized .vn-ac-or-divider,.vn-ac-email-main.is-shop-recognized .vn-ac-email-form-wrap{max-height:0;opacity:0;margin-top:0;margin-bottom:0;pointer-events:none}
       .vn-ac-email-main.is-shop-recognized .vn-ac-email-form-wrap{overflow:hidden}
       .vn-ac-email-main.is-shop-recognized .vn-ac-shop-space{margin-bottom:8px}
+      .vn-ac-email-main.is-shop-unavailable .vn-ac-shop-space,
+      .vn-ac-email-main.is-shop-unavailable .vn-ac-or-divider{display:none}
       .vn-ac-shop-skeleton{height:54px;border-radius:4px;background:linear-gradient(90deg,rgba(255,255,255,.07),rgba(255,255,255,.14),rgba(255,255,255,.07));background-size:200% 100%;animation:vnAcSkel 1.1s linear infinite}
       @keyframes vnAcSkel{to{background-position:-200% 0}}
       @media(prefers-reduced-motion:reduce){.vn-ac-shop-skeleton{animation:none}}
@@ -517,7 +519,7 @@
       .vn-ac-more-options.is-hiding{opacity:0;transform:translateY(-4px);pointer-events:none;transition-delay:0s}
       .vn-ac-more-options:hover{color:#fff}
       .vn-ac-more-options[hidden]{display:none!important}
-      .vn-ac-shop-space{width:100%;max-width:480px;margin:0 auto 18px}.vn-ac-shop-mount{display:flex;align-items:stretch;justify-content:center;width:100%;min-height:54px}.vn-ac-shop-mount>*{display:block;width:100%}.vn-ac-shop-continue{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:54px;padding:0 20px;border:1px solid #d9d9d9;border-radius:4px;background:#fff;color:#111;text-decoration:none;font:600 15px/1.2 Arial,sans-serif;cursor:pointer;transition:background .16s ease,border-color .16s ease}.vn-ac-shop-continue:hover{background:#f2f2f2;border-color:#fff}.vn-ac-shop-continue:focus-visible{outline:2px solid #fff;outline-offset:3px}.vn-ac-shop-continue svg{width:19px;height:19px;flex:0 0 19px}.vn-ac-or-divider{display:flex;align-items:center;gap:13px;width:100%;max-width:480px;margin:0 auto 18px;color:#a9a5ad;font-size:11px;line-height:1;letter-spacing:1.5px}.vn-ac-or-divider:before,.vn-ac-or-divider:after{content:"";height:1px;flex:1;background:#39343e}
+      .vn-ac-shop-space{width:100%;max-width:480px;margin:0 auto 18px}.vn-ac-shop-mount{display:flex;align-items:stretch;justify-content:center;width:100%;min-height:54px};height:54px.vn-ac-shop-mount>*{display:block;width:100%}.vn-ac-shop-continue{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:54px;padding:0 20px;border:1px solid #d9d9d9;border-radius:4px;background:#fff;color:#111;text-decoration:none;font:600 15px/1.2 Arial,sans-serif;cursor:pointer;transition:background .16s ease,border-color .16s ease}.vn-ac-shop-continue:hover{background:#f2f2f2;border-color:#fff}.vn-ac-shop-continue:focus-visible{outline:2px solid #fff;outline-offset:3px}.vn-ac-shop-continue svg{width:19px;height:19px;flex:0 0 19px}.vn-ac-or-divider{display:flex;align-items:center;gap:13px;width:100%;max-width:480px;margin:0 auto 18px;color:#a9a5ad;font-size:11px;line-height:1;letter-spacing:1.5px}.vn-ac-or-divider:before,.vn-ac-or-divider:after{content:"";height:1px;flex:1;background:#39343e}
       .vn-ac-email-form-wrap{width:100%;max-width:480px;margin:0 auto}.vn-ac-email-form-wrap form{display:flex;flex-direction:column;width:100%}
       .vn-ac-consent-note{margin:24px auto 0!important;max-width:480px;text-align:center;color:#a4a4a4;font-size:12px;line-height:1.75}
       .vn-ac-consent-note a{color:#fff;text-decoration:underline;text-underline-offset:2px}
@@ -1752,21 +1754,25 @@
     const root = document.querySelector("#vnAccountOverlay");
     const main = document.querySelector(".vn-ac-email-main");
     if (!root || root.hidden || state.user || state.screen !== "email" || !main) return;
+
     const want = shopCollapsed();
     main.classList.toggle("is-shop-recognized", want);
     const wrap = main.querySelector(".vn-ac-email-form-wrap");
     if (wrap) wrap.inert = want;
+
     const more = main.querySelector("[data-ac-action=shop-more-options]");
     if (want && !more) {
       const btn = document.createElement("button");
       btn.type = "button";
-      btn.className = "vn-ac-more-options is-visible";
+      btn.className = "vn-ac-more-options";
       btn.dataset.acAction = "shop-more-options";
       btn.textContent = "More sign-in options";
       main.querySelector(".vn-ac-shop-space")?.insertAdjacentElement("afterend", btn);
+      requestAnimationFrame(() => requestAnimationFrame(() => btn.classList.add("is-visible")));
     } else if (!want && more) {
       more.remove();
     }
+    startShopTracking();
   }
 
   function ensureShopLogin() {
@@ -1777,36 +1783,75 @@
     createShopLogin(host,gen).catch(error=>{if(gen===state.shopGen)setShopError(error);});
   }
 
+  let shopTrackRaf = 0;
+  let shopPosKey = "";
+
+  function hideShopHost(host) {
+    if (shopPosKey === "hidden") return;
+    shopPosKey = "hidden";
+    host.style.opacity = "0";
+    host.style.pointerEvents = "none";
+    host.setAttribute("aria-hidden", "true");
+    host.inert = true;
+  }
+
+  // Keep the Shopify host under body permanently. Moving its iframe can restart
+  // the embedded login UI, so only its fixed viewport position may change.
   function positionShopHost() {
     const host = state.shopHost;
     if (!host) return;
     const root = document.querySelector("#vnAccountOverlay");
     const slot = document.querySelector("#vnAcShopLoginMount");
-    const show = Boolean(root && !root.hidden && !state.user && state.screen === "email" && slot && state.shopStatus === "ready");
+    const shell = root?.querySelector(".vn-ac-shell");
+    const policyOpen = Boolean(root?.querySelector(".vn-ac-policy-overlay:not([hidden])"));
+    const show = Boolean(
+      root && !root.hidden && !state.user && state.screen === "email" &&
+      slot && shell && !policyOpen && state.shopStatus === "ready"
+    );
 
-    if (!show) {
-      host.style.opacity = "0";
-      host.style.pointerEvents = "none";
-      host.setAttribute("aria-hidden", "true");
-      host.inert = true;
-      return;
-    }
+    if (!show) { hideShopHost(host); return; }
 
-    // Keep the same Shopify instance alive and attach it to the freshly
-    // rendered mount. Never recreate or absolutely position the real button.
-    if (host.parentElement !== slot) slot.appendChild(host);
     slot.querySelector(".vn-ac-shop-skeleton")?.remove();
     slot.setAttribute("aria-busy", "false");
-    host.style.position = "relative";
-    host.style.left = "auto";
-    host.style.top = "auto";
-    host.style.width = "100%";
-    host.style.height = "54px";
-    host.style.zIndex = "auto";
-    host.style.opacity = "1";
-    host.style.pointerEvents = "auto";
+
+    const r = slot.getBoundingClientRect();
+    const bounds = shell.getBoundingClientRect();
+    const clip = [
+      Math.max(0, bounds.top - r.top),
+      Math.max(0, r.right - bounds.right),
+      Math.max(0, r.bottom - bounds.bottom),
+      Math.max(0, bounds.left - r.left)
+    ];
+    const key = [r.left, r.top, r.width, ...clip].map(v => Math.round(v * 10)).join("|");
+    if (key === shopPosKey) return;
+    shopPosKey = key;
+
+    Object.assign(host.style, {
+      position: "fixed",
+      left: r.left + "px",
+      top: r.top + "px",
+      width: r.width + "px",
+      height: "54px",
+      zIndex: "10002",
+      opacity: "1",
+      pointerEvents: "auto",
+      clipPath: `inset(${clip[0]}px ${clip[1]}px ${clip[2]}px ${clip[3]}px)`
+    });
     host.removeAttribute("aria-hidden");
     host.inert = false;
+  }
+
+  function startShopTracking() {
+    if (shopTrackRaf) return;
+    const tick = () => {
+      shopTrackRaf = 0;
+      positionShopHost();
+      const root = document.querySelector("#vnAccountOverlay");
+      if (root && !root.hidden && !state.user && state.screen === "email") {
+        shopTrackRaf = requestAnimationFrame(tick);
+      }
+    };
+    shopTrackRaf = requestAnimationFrame(tick);
   }
 
   async function createShopLogin(host,gen) {
@@ -1848,6 +1893,7 @@
     state.shopLoginInstance=login;clearTimeout(state.shopTimer);state.shopTimer=null;state.shopStatus="ready";
     positionShopHost();
     syncShopRecognition();
+    startShopTracking();
   }
 
 
@@ -2409,6 +2455,7 @@
     if (!state.user) {
       content.innerHTML = state.screen === "verify" ? renderVerify() : renderEmail();
       positionShopHost();
+      startShopTracking();
       return;
     }
 
@@ -2969,6 +3016,7 @@
     root.removeAttribute("aria-hidden");
     startShopLoginPreload();
     render();
+    startShopTracking();
     ensureShopLogin();
     positionShopHost();
     document.body.style.overflow = "hidden";
