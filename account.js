@@ -504,16 +504,14 @@
       .vn-ac-signin-heading h1{margin:0;font-size:32px;font-weight:700;line-height:1.2;letter-spacing:-.7px;color:#f5f5f5}
       .vn-ac-signin-heading p{margin:9px 0 0;font-size:15px;line-height:1.5;color:#a9a5ad}
       .vn-ac-email-main{display:flex;flex-direction:column;align-items:stretch;width:100%;max-width:480px;margin-inline:auto}
-      .vn-ac-email-main .vn-ac-or-divider,.vn-ac-email-main .vn-ac-email-form-wrap{max-height:300px;opacity:1;transition:max-height .3s ease,opacity .2s ease,margin .3s ease}
+      .vn-ac-email-main .vn-ac-or-divider,.vn-ac-email-main .vn-ac-email-form-wrap{display:flex}
       .vn-ac-email-main .vn-ac-email-form-wrap{overflow:visible}
-      .vn-ac-email-main.is-shop-recognized .vn-ac-or-divider,.vn-ac-email-main.is-shop-recognized .vn-ac-email-form-wrap{max-height:0;opacity:0;margin-top:0;margin-bottom:0;pointer-events:none}
-      .vn-ac-email-main.is-shop-recognized .vn-ac-email-form-wrap{overflow:hidden}
+      .vn-ac-email-main.is-shop-recognized .vn-ac-or-divider,.vn-ac-email-main.is-shop-recognized .vn-ac-email-form-wrap{display:none}
       .vn-ac-email-main.is-shop-recognized .vn-ac-shop-space{margin-bottom:8px}
       .vn-ac-email-main.is-shop-unavailable .vn-ac-shop-space,
       .vn-ac-email-main.is-shop-unavailable .vn-ac-or-divider{display:none}
-      .vn-ac-more-options{display:block;margin:7px auto 0;padding:8px 12px;border:0;background:transparent;color:#c5c1ca;font:500 12px/1.4 Arial,sans-serif;text-decoration:underline;text-underline-offset:3px;cursor:pointer;opacity:0;transform:translateY(-4px);transition:opacity .2s ease .42s,transform .2s ease .42s}
-      .vn-ac-more-options.is-visible{opacity:1;transform:translateY(0)}
-      .vn-ac-more-options.is-hiding{opacity:0;transform:translateY(-4px);pointer-events:none;transition-delay:0s}
+      .vn-ac-more-options{display:block;margin:7px auto 0;padding:8px 12px;border:0;background:transparent;color:#c5c1ca;font:500 12px/1.4 Arial,sans-serif;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+      .vn-ac-more-options:hover{color:#fff}
       .vn-ac-more-options:hover{color:#fff}
       .vn-ac-more-options[hidden]{display:none!important}
       .vn-ac-shop-space{width:100%;max-width:480px;margin:0 auto 18px}.vn-ac-shop-mount{display:flex;align-items:stretch;justify-content:center;width:100%;height:54px;min-height:54px}.vn-ac-shop-mount>*{display:block;width:100%}.vn-ac-shop-continue{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:54px;padding:0 20px;border:1px solid #d9d9d9;border-radius:4px;background:#fff;color:#111;text-decoration:none;font:600 15px/1.2 Arial,sans-serif;cursor:pointer;transition:background .16s ease,border-color .16s ease}.vn-ac-shop-continue:hover{background:#f2f2f2;border-color:#fff}.vn-ac-shop-continue:focus-visible{outline:2px solid #fff;outline-offset:3px}.vn-ac-shop-continue svg{width:19px;height:19px;flex:0 0 19px}.vn-ac-or-divider{display:flex;align-items:center;gap:13px;width:100%;max-width:480px;margin:0 auto 18px;color:#a9a5ad;font-size:11px;line-height:1;letter-spacing:1.5px}.vn-ac-or-divider:before,.vn-ac-or-divider:after{content:"";height:1px;flex:1;background:#39343e}
@@ -1762,7 +1760,6 @@
       btn.dataset.acAction = "shop-more-options";
       btn.textContent = "More sign-in options";
       main.querySelector(".vn-ac-shop-space")?.insertAdjacentElement("afterend", btn);
-      requestAnimationFrame(() => requestAnimationFrame(() => btn.classList.add("is-visible")));
     } else if (!want && more) {
       more.remove();
     }
