@@ -511,15 +511,12 @@
       .vn-ac-email-main.is-shop-recognized .vn-ac-shop-space{margin-bottom:8px}
       .vn-ac-email-main.is-shop-unavailable .vn-ac-shop-space,
       .vn-ac-email-main.is-shop-unavailable .vn-ac-or-divider{display:none}
-      .vn-ac-shop-skeleton{height:54px;border-radius:4px;background:linear-gradient(90deg,rgba(255,255,255,.07),rgba(255,255,255,.14),rgba(255,255,255,.07));background-size:200% 100%;animation:vnAcSkel 1.1s linear infinite}
-      @keyframes vnAcSkel{to{background-position:-200% 0}}
-      @media(prefers-reduced-motion:reduce){.vn-ac-shop-skeleton{animation:none}}
       .vn-ac-more-options{display:block;margin:7px auto 0;padding:8px 12px;border:0;background:transparent;color:#c5c1ca;font:500 12px/1.4 Arial,sans-serif;text-decoration:underline;text-underline-offset:3px;cursor:pointer;opacity:0;transform:translateY(-4px);transition:opacity .2s ease .42s,transform .2s ease .42s}
       .vn-ac-more-options.is-visible{opacity:1;transform:translateY(0)}
       .vn-ac-more-options.is-hiding{opacity:0;transform:translateY(-4px);pointer-events:none;transition-delay:0s}
       .vn-ac-more-options:hover{color:#fff}
       .vn-ac-more-options[hidden]{display:none!important}
-      .vn-ac-shop-space{width:100%;max-width:480px;margin:0 auto 18px}.vn-ac-shop-mount{display:flex;align-items:stretch;justify-content:center;width:100%;min-height:54px};height:54px.vn-ac-shop-mount>*{display:block;width:100%}.vn-ac-shop-continue{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:54px;padding:0 20px;border:1px solid #d9d9d9;border-radius:4px;background:#fff;color:#111;text-decoration:none;font:600 15px/1.2 Arial,sans-serif;cursor:pointer;transition:background .16s ease,border-color .16s ease}.vn-ac-shop-continue:hover{background:#f2f2f2;border-color:#fff}.vn-ac-shop-continue:focus-visible{outline:2px solid #fff;outline-offset:3px}.vn-ac-shop-continue svg{width:19px;height:19px;flex:0 0 19px}.vn-ac-or-divider{display:flex;align-items:center;gap:13px;width:100%;max-width:480px;margin:0 auto 18px;color:#a9a5ad;font-size:11px;line-height:1;letter-spacing:1.5px}.vn-ac-or-divider:before,.vn-ac-or-divider:after{content:"";height:1px;flex:1;background:#39343e}
+      .vn-ac-shop-space{width:100%;max-width:480px;margin:0 auto 18px}.vn-ac-shop-mount{display:flex;align-items:stretch;justify-content:center;width:100%;height:54px;min-height:54px}.vn-ac-shop-mount>*{display:block;width:100%}.vn-ac-shop-continue{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:54px;padding:0 20px;border:1px solid #d9d9d9;border-radius:4px;background:#fff;color:#111;text-decoration:none;font:600 15px/1.2 Arial,sans-serif;cursor:pointer;transition:background .16s ease,border-color .16s ease}.vn-ac-shop-continue:hover{background:#f2f2f2;border-color:#fff}.vn-ac-shop-continue:focus-visible{outline:2px solid #fff;outline-offset:3px}.vn-ac-shop-continue svg{width:19px;height:19px;flex:0 0 19px}.vn-ac-or-divider{display:flex;align-items:center;gap:13px;width:100%;max-width:480px;margin:0 auto 18px;color:#a9a5ad;font-size:11px;line-height:1;letter-spacing:1.5px}.vn-ac-or-divider:before,.vn-ac-or-divider:after{content:"";height:1px;flex:1;background:#39343e}
       .vn-ac-email-form-wrap{width:100%;max-width:480px;margin:0 auto}.vn-ac-email-form-wrap form{display:flex;flex-direction:column;width:100%}
       .vn-ac-consent-note{margin:24px auto 0!important;max-width:480px;text-align:center;color:#a4a4a4;font-size:12px;line-height:1.75}
       .vn-ac-consent-note a{color:#fff;text-decoration:underline;text-underline-offset:2px}
@@ -1557,9 +1554,7 @@
         </div>
 
         <div class="vn-ac-shop-space">
-          <div id="vnAcShopLoginMount" class="vn-ac-shop-mount" aria-busy="${state.shopStatus === "ready" ? "false" : "true"}">
-            ${state.shopStatus === "ready" ? "" : '<div class="vn-ac-shop-skeleton" aria-hidden="true"></div>'}
-          </div>
+          <div id="vnAcShopLoginMount" class="vn-ac-shop-mount" aria-label="Continue with Shop"></div>
         </div>
         ${shopCollapsed() ? '<button type="button" class="vn-ac-more-options is-visible" data-ac-action="shop-more-options">More sign-in options</button>' : ""}
         <div class="vn-ac-or-divider" aria-hidden="true"><span>OR</span></div>
@@ -1747,7 +1742,6 @@
     positionShopHost();
     const main = document.querySelector(".vn-ac-email-main");
     main?.classList.add("is-shop-unavailable");
-    main?.querySelector(".vn-ac-shop-skeleton")?.remove();
   }
 
   function syncShopRecognition() {
@@ -1810,9 +1804,6 @@
     );
 
     if (!show) { hideShopHost(host); return; }
-
-    slot.querySelector(".vn-ac-shop-skeleton")?.remove();
-    slot.setAttribute("aria-busy", "false");
 
     const r = slot.getBoundingClientRect();
     const bounds = shell.getBoundingClientRect();
@@ -3022,21 +3013,7 @@
     document.body.style.overflow = "hidden";
     Promise.resolve(configPromise).then(() => {
       if (state.user) return null;
-      return new Promise(resolve => {
-        let settled = false;
-        const done = () => {
-          if (settled) return;
-          settled = true;
-          clearInterval(poll);
-          clearTimeout(cap);
-          resolve();
-        };
-        const poll = window.setInterval(() => {
-          if (state.shopStatus === "ready" || state.shopStatus === "error") done();
-        }, 100);
-        const cap = window.setTimeout(done, 2500);
-        if (state.shopStatus === "ready" || state.shopStatus === "error") done();
-      }).then(ensureClerkLoaded);
+      return ensureClerkLoaded();
     }).catch(error => {
       state.messageType = "error"; state.message = explainAuthError(error); render();
     });
