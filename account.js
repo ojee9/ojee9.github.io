@@ -1726,22 +1726,27 @@
         }
 
         return initialize({
-          clientId: SHOP_CLIENT_ID,
+          apiKey: SHOP_CLIENT_ID,
           locale: "en",
           features: { login: true },
           onRecognized: (event) => {
+            const recognized = event?.recognized === true;
+            const wasRecognized = state.shopRecognized;
             state.shopRecognitionKnown = true;
-            state.shopRecognized = event?.recognized === true;
-            if (state.shopRecognized) {
+            state.shopRecognized = recognized;
+            if (recognized && !wasRecognized) {
               const root = document.querySelector("#vnAccountOverlay");
               state.shopRecognitionAnimate = Boolean(
                 root && !root.hidden && !state.user && state.screen === "email" &&
                 document.querySelector(".vn-ac-email-main")
               );
-            } else {
+            } else if (!recognized) {
               state.shopRecognitionAnimate = false;
             }
             if (state.shopStatus === "ready") syncShopRecognition();
+          },
+          onError: (event) => {
+            console.warn("[VN ACCOUNT] Shop SDK error:", event?.code || "", event?.message || event?.cause || event);
           }
         });
       }).catch(error => {
@@ -1876,6 +1881,20 @@
     const login=await sdk.create("login",{
       attributes:{buttonType:"continue",buttonLayout:"standalone",scope:"shop_app:oauth",storefrontOrigin:window.location.origin,uxMode:"windoid"},
       appearance:{preferredLoginExperience:"popup"},
+      onLoad:event=>{
+        // The login feature exposes its own recognition result as a fallback
+        // to the SDK-level recognition event.
+        if(event?.userFound===true&&!state.shopRecognized){
+          state.shopRecognized=true;
+          state.shopRecognitionKnown=true;
+          const root=document.querySelector("#vnAccountOverlay");
+          state.shopRecognitionAnimate=Boolean(
+            root&&!root.hidden&&!state.user&&state.screen==="email"&&
+            document.querySelector(".vn-ac-email-main")
+          );
+          if(state.shopStatus==="ready")syncShopRecognition();
+        }
+      },
       onComplete:async event=>{
         if(gen!==state.shopGen)return;
         const shopConsentToken=String(event?.shopConsentToken||"").trim();
