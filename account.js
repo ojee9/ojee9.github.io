@@ -1845,7 +1845,7 @@
   async function createShopLogin(host,gen) {
     const sdk=await loadShopSdk(); if(gen!==state.shopGen)return;
     const login=await sdk.create("login",{
-      attributes:{buttonType:"continue",buttonLayout:"standalone",scope:"shop_app:oauth",storefrontOrigin:window.location.origin,uxMode:"windoid"},
+      attributes:{buttonType:"continue",buttonLayout:"standalone",emailInputSelector:"#customer-authentication-web-email",scope:"shop_app:oauth",storefrontOrigin:window.location.origin,uxMode:"windoid"},
       appearance:{preferredLoginExperience:"popup"},
       onLoad: event => {
         if (gen !== state.shopGen) return;
@@ -3089,7 +3089,10 @@
           case "shop-more-options":
             state.shopMoreOptions = true;
             syncShopRecognition();
-            $('input[name="email"]', root)?.focus();
+            requestAnimationFrame(() => {
+              state.shopLoginInstance?.notifyEmailFieldShown?.();
+              $('input[name="email"]', root)?.focus();
+            });
             break;
 
           case "privacy-open":
