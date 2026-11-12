@@ -50,6 +50,7 @@
     shopRecognized: false,
     shopMoreOptions: false,
     shopRecognitionKnown: false,
+    shopRecognitionAnimate: false,
     shopGen: 0,
     shopTimer: null,
     authProvider: "",
@@ -511,6 +512,9 @@
       .vn-ac-email-main.is-shop-recognized .vn-ac-or-divider{max-height:0;opacity:0;margin-top:0;margin-bottom:0}
       .vn-ac-email-main.is-shop-recognized .vn-ac-email-form-wrap{max-height:0;opacity:0;transform:translateY(-12px);margin-top:0;margin-bottom:0;pointer-events:none}
       .vn-ac-email-main.is-shop-recognized .vn-ac-shop-space{margin-bottom:8px;transition:margin .38s ease}
+      .vn-ac-email-main.is-shop-recognized-no-motion .vn-ac-or-divider,
+      .vn-ac-email-main.is-shop-recognized-no-motion .vn-ac-email-form-wrap,
+      .vn-ac-email-main.is-shop-recognized-no-motion .vn-ac-shop-space{transition:none!important}
       .vn-ac-email-main.is-shop-unavailable .vn-ac-shop-space,
       .vn-ac-email-main.is-shop-unavailable .vn-ac-or-divider{display:none}
       .vn-ac-more-options{display:block;margin:7px auto 0;padding:8px 12px;border:0;background:transparent;color:#c5c1ca;font:500 12px/1.4 Arial,sans-serif;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
@@ -1725,9 +1729,18 @@
           clientId: SHOP_CLIENT_ID,
           locale: "en",
           features: { login: true },
-          onRecognized: (event, context) => {
+          onRecognized: (event) => {
             state.shopRecognitionKnown = true;
-            state.shopRecognized = event?.recognized === true && context?.eligibleForSignInWithShop !== false;
+            state.shopRecognized = event?.recognized === true;
+            if (state.shopRecognized) {
+              const root = document.querySelector("#vnAccountOverlay");
+              state.shopRecognitionAnimate = Boolean(
+                root && !root.hidden && !state.user && state.screen === "email" &&
+                document.querySelector(".vn-ac-email-main")
+              );
+            } else {
+              state.shopRecognitionAnimate = false;
+            }
             if (state.shopStatus === "ready") syncShopRecognition();
           }
         });
@@ -1756,6 +1769,14 @@
     if (!root || root.hidden || state.user || state.screen !== "email" || !main) return;
 
     const want = shopCollapsed();
+    if (want && !state.shopRecognitionAnimate) {
+      main.classList.add("is-shop-recognized-no-motion");
+      requestAnimationFrame(() => {
+        if (main.isConnected) main.classList.remove("is-shop-recognized-no-motion");
+      });
+    } else {
+      main.classList.remove("is-shop-recognized-no-motion");
+    }
     main.classList.toggle("is-shop-recognized", want);
     const wrap = main.querySelector(".vn-ac-email-form-wrap");
     if (wrap) wrap.inert = want;
