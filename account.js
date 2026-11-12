@@ -49,6 +49,7 @@
     shopStatus: "idle",
     shopRecognized: false,
     shopMoreOptions: false,
+    shopRecognitionKnown: false,
     shopGen: 0,
     shopTimer: null,
     authProvider: "",
@@ -504,10 +505,12 @@
       .vn-ac-signin-heading h1{margin:0;font-size:32px;font-weight:700;line-height:1.2;letter-spacing:-.7px;color:#f5f5f5}
       .vn-ac-signin-heading p{margin:9px 0 0;font-size:15px;line-height:1.5;color:#a9a5ad}
       .vn-ac-email-main{display:flex;flex-direction:column;align-items:stretch;width:100%;max-width:480px;margin-inline:auto}
-      .vn-ac-email-main .vn-ac-or-divider,.vn-ac-email-main .vn-ac-email-form-wrap{display:flex}
-      .vn-ac-email-main .vn-ac-email-form-wrap{overflow:visible}
-      .vn-ac-email-main.is-shop-recognized .vn-ac-or-divider,.vn-ac-email-main.is-shop-recognized .vn-ac-email-form-wrap{display:none}
-      .vn-ac-email-main.is-shop-recognized .vn-ac-shop-space{margin-bottom:8px}
+      .vn-ac-email-main .vn-ac-or-divider,.vn-ac-email-main .vn-ac-email-form-wrap{display:flex;transition:max-height .38s cubic-bezier(.2,.7,.2,1),opacity .28s ease,transform .38s cubic-bezier(.2,.7,.2,1),margin .38s ease}
+      .vn-ac-email-main .vn-ac-or-divider{max-height:30px;opacity:1;overflow:hidden}
+      .vn-ac-email-main .vn-ac-email-form-wrap{max-height:260px;opacity:1;overflow:hidden;transform:translateY(0)}
+      .vn-ac-email-main.is-shop-recognized .vn-ac-or-divider{max-height:0;opacity:0;margin-top:0;margin-bottom:0}
+      .vn-ac-email-main.is-shop-recognized .vn-ac-email-form-wrap{max-height:0;opacity:0;transform:translateY(-12px);margin-top:0;margin-bottom:0;pointer-events:none}
+      .vn-ac-email-main.is-shop-recognized .vn-ac-shop-space{margin-bottom:8px;transition:margin .38s ease}
       .vn-ac-email-main.is-shop-unavailable .vn-ac-shop-space,
       .vn-ac-email-main.is-shop-unavailable .vn-ac-or-divider{display:none}
       .vn-ac-more-options{display:block;margin:7px auto 0;padding:8px 12px;border:0;background:transparent;color:#c5c1ca;font:500 12px/1.4 Arial,sans-serif;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
@@ -1721,7 +1724,12 @@
         return initialize({
           clientId: SHOP_CLIENT_ID,
           locale: "en",
-          features: { login: true }
+          features: { login: true },
+          onRecognized: (event, context) => {
+            state.shopRecognitionKnown = true;
+            state.shopRecognized = event?.recognized === true && context?.eligibleForSignInWithShop !== false;
+            if (state.shopStatus === "ready") syncShopRecognition();
+          }
         });
       }).catch(error => {
         state.shopSdkPromise = null;
@@ -1845,13 +1853,8 @@
   async function createShopLogin(host,gen) {
     const sdk=await loadShopSdk(); if(gen!==state.shopGen)return;
     const login=await sdk.create("login",{
-      attributes:{buttonType:"continue",buttonLayout:"standalone",emailInputSelector:"#customer-authentication-web-email",scope:"shop_app:oauth",storefrontOrigin:window.location.origin,uxMode:"windoid"},
+      attributes:{buttonType:"continue",buttonLayout:"standalone",scope:"shop_app:oauth",storefrontOrigin:window.location.origin,uxMode:"windoid"},
       appearance:{preferredLoginExperience:"popup"},
-      onLoad: event => {
-        if (gen !== state.shopGen) return;
-        state.shopRecognized = event?.userFound === true;
-        if (state.shopStatus === "ready") syncShopRecognition();
-      },
       onComplete:async event=>{
         if(gen!==state.shopGen)return;
         const shopConsentToken=String(event?.shopConsentToken||"").trim();
