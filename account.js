@@ -506,7 +506,7 @@
       .vn-ac-signin-heading p{margin:9px 0 0;font-size:15px;line-height:1.5;color:#a9a5ad}
       .vn-ac-email-main{display:flex;flex-direction:column;align-items:stretch;width:100%;max-width:480px;margin-inline:auto}
       .vn-ac-email-main .vn-ac-or-divider{max-height:40px;opacity:1;overflow:hidden;transition:max-height .3s ease .42s,opacity .2s ease .2s}
-      .vn-ac-email-main .vn-ac-email-form-wrap{max-height:260px;opacity:1;overflow:hidden;transition:max-height .38s ease .42s,opacity .22s ease .2s}
+      .vn-ac-email-main .vn-ac-email-form-wrap{max-height:260px;opacity:1;overflow:visible;transition:max-height .38s ease .42s,opacity .22s ease .2s}
       .vn-ac-email-main .vn-ac-email-form-wrap form>label,.vn-ac-email-main .vn-ac-email-form-wrap form>p{max-height:90px;opacity:1;overflow:hidden;transition:max-height .3s ease .42s,opacity .2s ease .2s}
       .vn-ac-email-main.is-shop-recognized .vn-ac-or-divider{max-height:0;opacity:0;pointer-events:none}
       .vn-ac-email-main.is-shop-recognized .vn-ac-email-form-wrap{max-height:0;opacity:0;pointer-events:none}
@@ -514,8 +514,7 @@
       .vn-ac-email-main.is-shop-recognized .vn-ac-shop-space{margin-bottom:8px}
       .vn-ac-email-bar{transform:translate3d(0,0,0) scale(1);transform-origin:center center;will-change:transform,opacity;transition:transform .42s cubic-bezier(.2,.75,.25,1),opacity .32s ease}
       .vn-ac-email-main.is-shop-recognized .vn-ac-email-bar{transform:translate3d(var(--shop-merge-x,0px),var(--shop-merge-y,-76px),0) scale(var(--shop-merge-scale-x,1),var(--shop-merge-scale-y,.9));opacity:0}
-      .vn-ac-email-main.is-shop-recognized .vn-ac-shop-mount{animation:vnShopMergeIn .42s cubic-bezier(.2,.75,.25,1) both}
-      @keyframes vnShopMergeIn{0%{transform:scale(.96);filter:brightness(1.25)}100%{transform:scale(1);filter:brightness(1)}}
+      .vn-ac-email-main.is-shop-recognized .vn-ac-shop-mount{transform:none}
       .vn-ac-more-options{display:block;margin:7px auto 0;padding:8px 12px;border:0;background:transparent;color:#c5c1ca;font:500 12px/1.4 Arial,sans-serif;text-decoration:underline;text-underline-offset:3px;cursor:pointer;opacity:0;transform:translateY(-4px);transition:opacity .2s ease .42s,transform .2s ease .42s}
       .vn-ac-more-options.is-visible{opacity:1;transform:translateY(0)}
       .vn-ac-more-options.is-hiding{opacity:0;transform:translateY(-4px);pointer-events:none;transition-delay:0s}
@@ -1107,12 +1106,7 @@
     injectStyles();
 
     let root = $("#vnAccountOverlay");
-    if (root) {
-      if (state.shopHost && state.shopHost.parentElement !== root) {
-        root.appendChild(state.shopHost);
-      }
-      return root;
-    }
+    if (root) return root;
 
     root = document.createElement("div");
     root.id = "vnAccountOverlay";
@@ -1519,9 +1513,6 @@
     });
 
     document.body.appendChild(root);
-    if (state.shopHost && state.shopHost.parentElement !== root) {
-      root.appendChild(state.shopHost);
-    }
     return root;
   }
 
@@ -1785,7 +1776,6 @@
   function positionShopHost() {
     const host = state.shopHost;
     if (!host) return;
-
     const root = document.querySelector("#vnAccountOverlay");
     const slot = document.querySelector("#vnAcShopLoginMount");
     const show = Boolean(root && !root.hidden && !state.user && state.screen === "email" && slot && state.shopStatus === "ready");
@@ -1798,13 +1788,15 @@
       return;
     }
 
-    // Keep the Shop button fixed at the slot's measured position during the
-    // merge. Chasing the collapsing slot every frame moves the target itself.
-    const rect = slot.getBoundingClientRect();
-    host.style.left = rect.left + "px";
-    host.style.top = rect.top + "px";
-    host.style.width = rect.width + "px";
-    host.style.height = rect.height + "px";
+    // Keep the same Shopify instance alive and attach it to the freshly
+    // rendered mount. Never recreate or absolutely position the real button.
+    if (host.parentElement !== slot) slot.appendChild(host);
+    host.style.position = "relative";
+    host.style.left = "auto";
+    host.style.top = "auto";
+    host.style.width = "100%";
+    host.style.height = "54px";
+    host.style.zIndex = "auto";
     host.style.opacity = "1";
     host.style.pointerEvents = "auto";
     host.removeAttribute("aria-hidden");
