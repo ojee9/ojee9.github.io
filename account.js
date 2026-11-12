@@ -48,7 +48,6 @@
     shopHost: null,
     shopStatus: "idle",
     shopRecognized: false,
-    shopRecognitionPending: false,
     shopMoreOptions: false,
     shopGen: 0,
     shopTimer: null,
@@ -505,16 +504,14 @@
       .vn-ac-signin-heading h1{margin:0;font-size:32px;font-weight:700;line-height:1.2;letter-spacing:-.7px;color:#f5f5f5}
       .vn-ac-signin-heading p{margin:9px 0 0;font-size:15px;line-height:1.5;color:#a9a5ad}
       .vn-ac-email-main{display:flex;flex-direction:column;align-items:stretch;width:100%;max-width:480px;margin-inline:auto}
-      .vn-ac-email-main .vn-ac-or-divider{max-height:40px;opacity:1;overflow:hidden;transition:max-height .3s ease .42s,opacity .2s ease .2s}
-      .vn-ac-email-main .vn-ac-email-form-wrap{max-height:260px;opacity:1;overflow:visible;transition:max-height .38s ease .42s,opacity .22s ease .2s}
-      .vn-ac-email-main .vn-ac-email-form-wrap form>label,.vn-ac-email-main .vn-ac-email-form-wrap form>p{max-height:90px;opacity:1;overflow:hidden;transition:max-height .3s ease .42s,opacity .2s ease .2s}
-      .vn-ac-email-main.is-shop-recognized .vn-ac-or-divider{max-height:0;opacity:0;pointer-events:none}
-      .vn-ac-email-main.is-shop-recognized .vn-ac-email-form-wrap{max-height:0;opacity:0;pointer-events:none}
-      .vn-ac-email-main.is-shop-recognized .vn-ac-email-form-wrap form>label,.vn-ac-email-main.is-shop-recognized .vn-ac-email-form-wrap form>p{max-height:0;opacity:0;pointer-events:none}
+      .vn-ac-email-main .vn-ac-or-divider,.vn-ac-email-main .vn-ac-email-form-wrap{max-height:300px;opacity:1;transition:max-height .3s ease,opacity .2s ease,margin .3s ease}
+      .vn-ac-email-main .vn-ac-email-form-wrap{overflow:visible}
+      .vn-ac-email-main.is-shop-recognized .vn-ac-or-divider,.vn-ac-email-main.is-shop-recognized .vn-ac-email-form-wrap{max-height:0;opacity:0;margin-top:0;margin-bottom:0;pointer-events:none}
+      .vn-ac-email-main.is-shop-recognized .vn-ac-email-form-wrap{overflow:hidden}
       .vn-ac-email-main.is-shop-recognized .vn-ac-shop-space{margin-bottom:8px}
-      .vn-ac-email-bar{transform:translate3d(0,0,0) scale(1);transform-origin:center center;will-change:transform,opacity;transition:transform .42s cubic-bezier(.2,.75,.25,1),opacity .32s ease}
-      .vn-ac-email-main.is-shop-recognized .vn-ac-email-bar{transform:translate3d(var(--shop-merge-x,0px),var(--shop-merge-y,-76px),0) scale(var(--shop-merge-scale-x,1),var(--shop-merge-scale-y,.9));opacity:0}
-      .vn-ac-email-main.is-shop-recognized .vn-ac-shop-mount{transform:none}
+      .vn-ac-shop-skeleton{height:54px;border-radius:4px;background:linear-gradient(90deg,rgba(255,255,255,.07),rgba(255,255,255,.14),rgba(255,255,255,.07));background-size:200% 100%;animation:vnAcSkel 1.1s linear infinite}
+      @keyframes vnAcSkel{to{background-position:-200% 0}}
+      @media(prefers-reduced-motion:reduce){.vn-ac-shop-skeleton{animation:none}}
       .vn-ac-more-options{display:block;margin:7px auto 0;padding:8px 12px;border:0;background:transparent;color:#c5c1ca;font:500 12px/1.4 Arial,sans-serif;text-decoration:underline;text-underline-offset:3px;cursor:pointer;opacity:0;transform:translateY(-4px);transition:opacity .2s ease .42s,transform .2s ease .42s}
       .vn-ac-more-options.is-visible{opacity:1;transform:translateY(0)}
       .vn-ac-more-options.is-hiding{opacity:0;transform:translateY(-4px);pointer-events:none;transition-delay:0s}
@@ -1544,9 +1541,12 @@
     `;
   }
 
+  const shopCollapsed = () =>
+    state.shopRecognized && state.shopStatus === "ready" && !state.shopMoreOptions;
+
   function renderEmail() {
     return `
-      <main class="vn-ac-main vn-ac-email-main${state.shopRecognized && !state.shopMoreOptions && !state.shopRecognitionPending ? " is-shop-recognized" : ""}">
+      <main class="vn-ac-main vn-ac-email-main${shopCollapsed() ? " is-shop-recognized" : ""}${state.shopStatus === "error" ? " is-shop-unavailable" : ""}">
         ${messageHTML()}
 
         <div class="vn-ac-signin-heading">
@@ -1555,12 +1555,14 @@
         </div>
 
         <div class="vn-ac-shop-space">
-          <div id="vnAcShopLoginMount" class="vn-ac-shop-mount" style="min-height:54px" aria-label="Continue with Shop"></div>
+          <div id="vnAcShopLoginMount" class="vn-ac-shop-mount" aria-busy="${state.shopStatus === "ready" ? "false" : "true"}">
+            ${state.shopStatus === "ready" ? "" : '<div class="vn-ac-shop-skeleton" aria-hidden="true"></div>'}
+          </div>
         </div>
-        ${state.shopRecognized && !state.shopMoreOptions && !state.shopRecognitionPending ? '<button type="button" class="vn-ac-more-options is-visible" data-ac-action="shop-more-options">More sign-in options</button>' : ""}
+        ${shopCollapsed() ? '<button type="button" class="vn-ac-more-options is-visible" data-ac-action="shop-more-options">More sign-in options</button>' : ""}
         <div class="vn-ac-or-divider" aria-hidden="true"><span>OR</span></div>
 
-        <div class="vn-ac-email-form-wrap">
+        <div class="vn-ac-email-form-wrap" ${shopCollapsed() ? "inert" : ""}>
         <form id="vnAcEmailForm">
           <div class="vn-ac-email-bar">
             <input
@@ -1736,32 +1738,34 @@
   }
 
   function setShopError(reason) {
-    clearTimeout(state.shopTimer); state.shopTimer = null; state.shopStatus = "error";
-    console.warn("[VN ACCOUNT] Shop login unavailable:", reason); positionShopHost();
+    clearTimeout(state.shopTimer);
+    state.shopTimer = null;
+    state.shopStatus = "error";
+    console.warn("[VN ACCOUNT] Shop login unavailable:", reason);
+    positionShopHost();
+    const main = document.querySelector(".vn-ac-email-main");
+    main?.classList.add("is-shop-unavailable");
+    main?.querySelector(".vn-ac-shop-skeleton")?.remove();
   }
 
-  function applyShopRecognition() {
-    const main=document.querySelector(".vn-ac-email-main"), root=document.querySelector("#vnAccountOverlay");
-    if(!main||!root||root.hidden||!state.shopRecognized||state.shopMoreOptions)return;
-    if(state.shopStatus!=="ready"||!state.shopHost){state.shopRecognitionPending=true;return;}
-    positionShopHost();
-    const bar=main.querySelector(".vn-ac-email-bar"), target=state.shopLoginInstance?.element||state.shopHost;
-    if(bar&&target){
-      const from=bar.getBoundingClientRect(),to=target.getBoundingClientRect();
-      if(from.width&&from.height&&to.width&&to.height){
-        main.style.setProperty("--shop-merge-x",(to.left+to.width/2-from.left-from.width/2)+"px");
-        main.style.setProperty("--shop-merge-y",(to.top+to.height/2-from.top-from.height/2)+"px");
-        main.style.setProperty("--shop-merge-scale-x",String(to.width/from.width));
-        main.style.setProperty("--shop-merge-scale-y",String(to.height/from.height));
-      }
-    }
-    state.shopRecognitionPending=false;
-    main.classList.remove("is-shop-recognized"); void main.offsetWidth; main.classList.add("is-shop-recognized");
-    if(!main.querySelector("[data-ac-action=shop-more-options]")){
-      const more=document.createElement("button"); more.type="button"; more.className="vn-ac-more-options";
-      more.dataset.acAction="shop-more-options"; more.textContent="More sign-in options";
-      main.querySelector(".vn-ac-shop-space")?.insertAdjacentElement("afterend",more);
-      requestAnimationFrame(()=>more.classList.add("is-visible"));
+  function syncShopRecognition() {
+    const root = document.querySelector("#vnAccountOverlay");
+    const main = document.querySelector(".vn-ac-email-main");
+    if (!root || root.hidden || state.user || state.screen !== "email" || !main) return;
+    const want = shopCollapsed();
+    main.classList.toggle("is-shop-recognized", want);
+    const wrap = main.querySelector(".vn-ac-email-form-wrap");
+    if (wrap) wrap.inert = want;
+    const more = main.querySelector("[data-ac-action=shop-more-options]");
+    if (want && !more) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "vn-ac-more-options is-visible";
+      btn.dataset.acAction = "shop-more-options";
+      btn.textContent = "More sign-in options";
+      main.querySelector(".vn-ac-shop-space")?.insertAdjacentElement("afterend", btn);
+    } else if (!want && more) {
+      more.remove();
     }
   }
 
@@ -1791,6 +1795,8 @@
     // Keep the same Shopify instance alive and attach it to the freshly
     // rendered mount. Never recreate or absolutely position the real button.
     if (host.parentElement !== slot) slot.appendChild(host);
+    slot.querySelector(".vn-ac-shop-skeleton")?.remove();
+    slot.setAttribute("aria-busy", "false");
     host.style.position = "relative";
     host.style.left = "auto";
     host.style.top = "auto";
@@ -1808,13 +1814,10 @@
     const login=await sdk.create("login",{
       attributes:{buttonType:"continue",buttonLayout:"standalone",scope:"shop_app:oauth",storefrontOrigin:window.location.origin,uxMode:"windoid"},
       appearance:{preferredLoginExperience:"popup"},
-      onLoad:event=>{
-        if(gen!==state.shopGen)return;
-        state.shopRecognized=event?.userFound===true;
-        const root=document.querySelector("#vnAccountOverlay");
-        const visible=root&&!root.hidden&&getComputedStyle(root).visibility!=="hidden";
-        state.shopRecognitionPending=state.shopRecognized&&!visible;
-        if(state.shopRecognized&&visible)requestAnimationFrame(()=>{positionShopHost();applyShopRecognition();});
+      onLoad: event => {
+        if (gen !== state.shopGen) return;
+        state.shopRecognized = event?.userFound === true;
+        if (state.shopStatus === "ready") syncShopRecognition();
       },
       onComplete:async event=>{
         if(gen!==state.shopGen)return;
@@ -1844,7 +1847,7 @@
     login.element.classList.add("vn-ac-shop-login-element");host.replaceChildren(login.element);
     state.shopLoginInstance=login;clearTimeout(state.shopTimer);state.shopTimer=null;state.shopStatus="ready";
     positionShopHost();
-    if(state.shopRecognized&&!document.querySelector("#vnAccountOverlay")?.hidden)requestAnimationFrame(applyShopRecognition);
+    syncShopRecognition();
   }
 
 
@@ -2958,7 +2961,6 @@
     if (!state.user) { state.screen = "email"; state.message = ""; }
     else { state.section = "dashboard"; state.message = ""; }
     state.shopMoreOptions = false;
-    state.shopRecognitionPending = Boolean(state.shopRecognized);
     const root = createRoot();
     root.hidden = false;
     root.style.visibility = "visible";
@@ -2971,16 +2973,26 @@
     positionShopHost();
     document.body.style.overflow = "hidden";
     Promise.resolve(configPromise).then(() => {
-      if (!state.user) return ensureClerkLoaded();
-      return null;
+      if (state.user) return null;
+      return new Promise(resolve => {
+        let settled = false;
+        const done = () => {
+          if (settled) return;
+          settled = true;
+          clearInterval(poll);
+          clearTimeout(cap);
+          resolve();
+        };
+        const poll = window.setInterval(() => {
+          if (state.shopStatus === "ready" || state.shopStatus === "error") done();
+        }, 100);
+        const cap = window.setTimeout(done, 2500);
+        if (state.shopStatus === "ready" || state.shopStatus === "error") done();
+      }).then(ensureClerkLoaded);
     }).catch(error => {
       state.messageType = "error"; state.message = explainAuthError(error); render();
     });
-    if (state.shopRecognized && !state.shopMoreOptions) {
-      state.shopRecognitionPending = true;
-      requestAnimationFrame(() => requestAnimationFrame(applyShopRecognition));
-    }
-    window.setTimeout(focusEntry, 30);
+    if (!shopCollapsed()) window.setTimeout(focusEntry, 30);
   }
 
   function goShop() {
@@ -3052,15 +3064,11 @@
             goShop();
             break;
 
-          case "shop-more-options": {
+          case "shop-more-options":
             state.shopMoreOptions = true;
-            const main = action.closest(".vn-ac-email-main");
-            main?.classList.remove("is-shop-recognized");
-            action.classList.add("is-hiding");
-            action.addEventListener("transitionend", () => action.remove(), { once: true });
-            window.setTimeout(() => action.remove(), 260);
+            syncShopRecognition();
+            $('input[name="email"]', root)?.focus();
             break;
-          }
 
           case "privacy-open":
           case "policy-open": {
