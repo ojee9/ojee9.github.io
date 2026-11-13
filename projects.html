@@ -153,9 +153,9 @@
                 <span>VN STUDIOS</span>
                 <div class="entry-meta-right">
                   <div class="entry-tags">
-                    <a class="archive-tag" href="?category=projects&amp;tag=ANNOUNCEMENT" aria-label="Browse ANNOUNCEMENT entries" style="--tag-color:#F2D13D;color:inherit;text-decoration:none">ANNOUNCEMENT</a>
-                    <a class="archive-tag" href="?category=projects&amp;tag=STUDIO" aria-label="Browse STUDIO entries" style="--tag-color:#C4A36A;color:inherit;text-decoration:none">STUDIO</a>
-                    <a class="archive-tag" href="?category=projects&amp;tag=GAMING" aria-label="Browse GAMING entries" style="--tag-color:#FF7900;color:inherit;text-decoration:none">GAMING</a>
+                    <span class="archive-tag" style="--tag-color:#F2D13D">ANNOUNCEMENT</span>
+                    <span class="archive-tag" style="--tag-color:#C4A36A">STUDIO</span>
+                    <span class="archive-tag" style="--tag-color:#FF7900">GAMING</span>
                   </div>
                   <span>AVAILABLE SOON</span>
                 </div>
@@ -188,10 +188,10 @@
                 <span>Club 01</span>
                 <div class="entry-meta-right">
                   <div class="entry-tags">
-                    <a class="archive-tag" href="?category=projects&amp;tag=SPOTLIGHT" aria-label="Browse SPOTLIGHT entries" style="--tag-color:#C8102E;color:inherit;text-decoration:none">SPOTLIGHT</a>
-                    <a class="archive-tag" href="?category=projects&amp;tag=CLUB" aria-label="Browse CLUB entries" style="--tag-color:#F05A83;color:inherit;text-decoration:none">CLUB</a>
-                    <a class="archive-tag" href="?category=projects&amp;tag=NEWS" aria-label="Browse NEWS entries" style="--tag-color:#F2D13D;color:inherit;text-decoration:none">NEWS</a>
-                    <a class="archive-tag" href="?category=projects&amp;tag=Q%26A" aria-label="Browse Q&A entries" style="--tag-color:#FF7900;color:inherit;text-decoration:none">Q&amp;A</a>
+                    <span class="archive-tag" style="--tag-color:#C8102E">SPOTLIGHT</span>
+                    <span class="archive-tag" style="--tag-color:#F05A83">CLUB</span>
+                    <span class="archive-tag" style="--tag-color:#F2D13D">NEWS</span>
+                    <span class="archive-tag" style="--tag-color:#FF7900">Q&amp;A</span>
                   </div>
                   <span>AVAILABLE SOON</span>
                 </div>
@@ -232,10 +232,10 @@
                 <span>VN STUDIOS</span>
                 <div class="entry-meta-right">
                   <div class="entry-tags">
-                    <a class="archive-tag" href="?category=projects&amp;tag=FASHION" aria-label="Browse FASHION entries" style="--tag-color:#D47F94;color:inherit;text-decoration:none">FASHION</a>
-                    <a class="archive-tag" href="?category=projects&amp;tag=MERCH" aria-label="Browse MERCH entries" style="--tag-color:#F05A83;color:inherit;text-decoration:none">MERCH</a>
-                    <a class="archive-tag" href="?category=projects&amp;tag=NEWS" aria-label="Browse NEWS entries" style="--tag-color:#F2D13D;color:inherit;text-decoration:none">NEWS</a>
-                    <a class="archive-tag" href="?category=projects&amp;tag=SNEAK%20PEEK" aria-label="Browse SNEAK PEEK entries" style="--tag-color:#7953B8;color:inherit;text-decoration:none">SNEAK PEEK</a>
+                    <span class="archive-tag" style="--tag-color:#D47F94">FASHION</span>
+                    <span class="archive-tag" style="--tag-color:#F05A83">MERCH</span>
+                    <span class="archive-tag" style="--tag-color:#F2D13D">NEWS</span>
+                    <span class="archive-tag" style="--tag-color:#7953B8">SNEAK PEEK</span>
                   </div>
                   <span>AVAILABLE SOON</span>
                 </div>
@@ -619,11 +619,7 @@
       const selectedTagsPanel = document.getElementById("selected-tags");
       const selectedTagsList = document.getElementById("selected-tags-list");
       const clearSelectedTagsButton = document.getElementById("clear-selected-tags");
-      const archiveTagParams = new URLSearchParams(location.search);
-      const requestedTag = (archiveTagParams.get("tag") || "").toUpperCase();
-      let selectedArchiveTags = Object.prototype.hasOwnProperty.call(archiveTagColors, requestedTag)
-        ? [requestedTag]
-        : [];
+      let selectedArchiveTags = [];
 
       let activeCategory = "projects";
 
@@ -679,9 +675,8 @@
       }
 
       function renderEntryTags(record) {
-        const category = activeCategory;
         return (record.archiveTags || []).map(tag =>
-          '<a class="archive-tag" href="?category=' + encodeURIComponent(category) + '&amp;tag=' + encodeURIComponent(tag) + '" aria-label="Browse ' + tag + ' entries" style="--tag-color:' + archiveTagColors[tag] + ';color:inherit;text-decoration:none">' + tag + '</a>'
+          '<span class="archive-tag" style="--tag-color:' + archiveTagColors[tag] + '">' + tag + '</span>'
         ).join("");
       }
       function updateEntryTagScrollHints() {
@@ -1079,8 +1074,7 @@
       populateYears();
       updateMobileFilterCount();
 
-      const queryCategory = archiveTagParams.get("category");
-      const initialCategory = queryCategory || location.hash.slice(1);
+      const initialCategory = location.hash.slice(1);
       setCategory(
         categories[initialCategory] ? initialCategory : "projects"
       );
