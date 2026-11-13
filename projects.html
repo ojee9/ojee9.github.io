@@ -539,8 +539,49 @@
       const filterPanel = document.querySelector(".filter-panel");
       const projectsContent = document.querySelector(".projects-content");
 
+      const PROJECT_ANALYTICS_ENDPOINT = "https://vn-project-analytics.9ojeez9.workers.dev";
       const trackedContentViews = new Set();
       const pendingContentViewTimers = new WeakMap();
+      let projectRankings = new Map();
+      let projectRankingsLoaded = false;
+      let projectRankingsRequest = null;
+
+      async function loadProjectRankings() {
+        if (projectRankingsLoaded) return;
+        if (projectRankingsRequest) return projectRankingsRequest;
+
+        projectRankingsRequest = (async () => {
+          try {
+            const response = await fetch(`${PROJECT_ANALYTICS_ENDPOINT}/rankings`);
+            if (!response.ok) throw new Error(`Rankings request failed: ${response.status}`);
+
+            const data = await response.json();
+            projectRankings = new Map(
+              (Array.isArray(data.items) ? data.items : []).map(item => [
+                item.content_id,
+                Number(item.total_views) || 0
+              ])
+            );
+            projectRankingsLoaded = true;
+          } catch (error) {
+            console.error("Unable to load project rankings:", error);
+            projectRankings = new Map();
+          } finally {
+            projectRankingsRequest = null;
+          }
+        })();
+
+        return projectRankingsRequest;
+      }
+
+      function renderActiveCategory() {
+        if (activeCategory === "events") renderEvents();
+        else renderArchiveEntries();
+      }
+
+      function compareByAllTimeViews(a, b) {
+        return (projectRankings.get(b.id) || 0) - (projectRankings.get(a.id) || 0);
+      }
       const contentViewObserver = "IntersectionObserver" in window
         ? new IntersectionObserver(entries => {
             entries.forEach(entry => {
@@ -561,11 +602,28 @@
                   if (!card.isConnected || trackedContentViews.has(contentId)) return;
 
                   trackedContentViews.add(contentId);
+                  const contentType = card.dataset.contentType || "archive";
+                  const contentTitle = card.querySelector(".event-title")?.textContent.trim() || "";
+
                   window.gtag("event", "project_view", {
                     content_id: contentId,
-                    content_type: card.dataset.contentType || "archive",
-                    content_title: card.querySelector(".event-title")?.textContent.trim() || ""
+                    content_type: contentType,
+                    content_title: contentTitle
                   });
+
+                  fetch(`${PROJECT_ANALYTICS_ENDPOINT}/view`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      content_id: contentId,
+                      content_type: contentType,
+                      content_title: contentTitle
+                    }),
+                    keepalive: true
+                  }).catch(error => {
+                    console.error("Unable to record project view:", error);
+                  });
+
                   contentViewObserver.unobserve(card);
                 }, 1000);
 
@@ -796,7 +854,7 @@
         });
 
         if (getSort() === "all-time") {
-          filtered.sort((a, b) => a.date.localeCompare(b.date));
+          filtered.sort(compareByAllTimeViews);
         } else {
           filtered.sort((a, b) => b.date.localeCompare(a.date));
         }
@@ -846,7 +904,7 @@
         });
 
         if (getSort() === "all-time") {
-          filtered = [...filtered].reverse();
+          filtered.sort(compareByAllTimeViews);
         }
 
         return filtered;
@@ -1088,24 +1146,19 @@
 
       document.addEventListener("change", event => {
         updateMobileFilterCount();
-        if (activeCategory === "events" && event.target.matches(
-          'input[name="event-status"], input[name="year"], input[name="sort"]'
-        )) {
-          renderEvents();
+
+        const sortChanged = event.target.matches('input[name="sort"]');
+        const otherFilterChanged = event.target.matches(
+          'input[name="event-status"], input[name="year"], input[name="collection"]'
+        );
+
+        if (sortChanged && getSort() === "all-time") {
+          loadProjectRankings().then(renderActiveCategory);
+          return;
         }
 
-        if (activeCategory === "merch" && event.target.matches(
-          'input[name="collection"], input[name="sort"]'
-        )) {
-          renderArchiveEntries();
-        }
-
-        if (
-          activeCategory !== "events" &&
-          activeCategory !== "merch" &&
-          event.target.matches('input[name="sort"]')
-        ) {
-          renderArchiveEntries();
+        if (sortChanged || otherFilterChanged) {
+          renderActiveCategory();
         }
       });
 
