@@ -1726,7 +1726,7 @@
         }
 
         return initialize({
-          apiKey: SHOP_CLIENT_ID,
+          clientId: SHOP_CLIENT_ID,
           locale: "en",
           features: { login: true },
           onRecognized: (event) => {
