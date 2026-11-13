@@ -1728,11 +1728,20 @@
           throw new Error("Shop SDK could not be initialized.");
         }
 
+        console.info("[VN SHOP DIAG] SDK module loaded; initializing", {
+          initializeType: typeof initialize,
+          clientIdPresent: Boolean(SHOP_CLIENT_ID)
+        });
         return initialize({
           clientId: SHOP_CLIENT_ID,
           locale: "en",
           features: { login: true },
-          onRecognized: (event) => {
+          onRecognized: (event, context) => {
+            console.info("[VN SHOP DIAG] onRecognized fired", {
+              event,
+              context,
+              at: new Date().toISOString()
+            });
             const recognized = event?.recognized === true;
             const wasRecognized = state.shopRecognized;
             state.shopRecognitionKnown = true;
@@ -1749,6 +1758,13 @@
             if (state.shopStatus === "ready") syncShopRecognition();
           },
           onError: (event) => {
+            console.error("[VN SHOP DIAG] SDK onError", {
+              code: event?.code,
+              feature: event?.feature,
+              message: event?.message,
+              cause: event?.cause || null,
+              event
+            });
             console.warn("[VN ACCOUNT] Shop SDK error:", event?.code || "", event?.message || event?.cause || event);
           }
         });
@@ -1837,9 +1853,21 @@
     try {
       const sdk = await loadShopSdk();
       if (gen !== state.shopEmailListenerGen || !input.isConnected) return;
+      console.info("[VN SHOP DIAG] Creating email listener", {
+        inputConnected: input.isConnected,
+        inputId: input.id,
+        sdkCreateType: typeof sdk?.create
+      });
       const listener = await sdk.create("listener", {
         inputElement: input,
+        onReady: event => {
+          console.info("[VN SHOP DIAG] Email listener ready", { event });
+        },
         onMatched: () => {
+          console.info("[VN SHOP DIAG] Email listener onMatched", {
+            inputConnected: input.isConnected,
+            at: new Date().toISOString()
+          });
           if (gen !== state.shopEmailListenerGen || !input.isConnected) return;
           state.shopRecognized = true;
           state.shopRecognitionKnown = true;
@@ -1859,8 +1887,14 @@
       }
       state.shopEmailListener = listener;
       state.shopEmailListenerInput = input;
+      console.info("[VN SHOP DIAG] Email listener instance created", {
+        hasDestroy: typeof listener?.destroy === "function",
+        hasOnMatched: typeof listener?.onMatched === "function",
+        element: listener?.element ?? null
+      });
     } catch (error) {
       if (gen === state.shopEmailListenerGen) {
+        console.error("[VN SHOP DIAG] Email listener creation failed", error);
         console.warn("[VN ACCOUNT] Shop email recognition unavailable:", error);
       }
     }
@@ -1948,6 +1982,10 @@
       attributes:{buttonType:"continue",buttonLayout:"standalone",scope:"shop_app:oauth",storefrontOrigin:window.location.origin,uxMode:"windoid"},
       appearance:{preferredLoginExperience:"popup"},
       onLoad:event=>{
+        console.info("[VN SHOP DIAG] Login onLoad fired", {
+          event,
+          at: new Date().toISOString()
+        });
         // The login feature exposes its own recognition result as a fallback
         // to the SDK-level recognition event.
         if(event?.userFound===true&&!state.shopRecognized){
@@ -1960,6 +1998,9 @@
           );
           if(state.shopStatus==="ready")syncShopRecognition();
         }
+      },
+      onReady:event=>{
+        console.info("[VN SHOP DIAG] Login onReady fired", { event });
       },
       onComplete:async event=>{
         if(gen!==state.shopGen)return;
@@ -1987,6 +2028,11 @@
     if(gen!==state.shopGen){try{login.destroy();}catch(_){}return;}
     login.element.style.cssText="display:block;width:100%;max-width:100%;";
     login.element.classList.add("vn-ac-shop-login-element");host.replaceChildren(login.element);
+    console.info("[VN SHOP DIAG] Login instance created", {
+      hasElement: Boolean(login?.element),
+      elementTagName: login?.element?.tagName || null,
+      elementConnectedBeforeMount: Boolean(login?.element?.isConnected)
+    });
     state.shopLoginInstance=login;clearTimeout(state.shopTimer);state.shopTimer=null;state.shopStatus="ready";
     positionShopHost();
     syncShopRecognition();
