@@ -45,6 +45,7 @@
     loadingData: false,
     shopSdkPromise: null,
     shopLoginInstance: null,
+    shopPopupWindow: null,
     shopEmailListener: null,
     shopEmailListenerInput: null,
     shopEmailListenerGen: 0,
@@ -105,6 +106,7 @@
   // inside the real account-panel slot so Shopify controls its own lifecycle.
   const SHOP_CLIENT_ID = "90292cd96f43b8299e5b541fbe400d11";
   const SHOP_AUTH_WORKER = "https://vn-shop-auth.9ojeez9.workers.dev";
+  const SHOP_AUTH_WORKER_ORIGIN = new URL(SHOP_AUTH_WORKER).origin;
 
   function startShopLoginPreload() {
     if (!document.body) {
@@ -1719,6 +1721,58 @@
     }
   }
 
+  function startShopPopup() {
+    const loginUrl = SHOP_AUTH_WORKER + "/shop/login";
+
+    if (state.shopPopupWindow && !state.shopPopupWindow.closed) {
+      state.shopPopupWindow.focus();
+      return;
+    }
+
+    const popup = window.open(
+      loginUrl,
+      "vnShopAuthPopup",
+      "popup=yes,width=520,height=720,resizable=yes,scrollbars=yes"
+    );
+
+    if (!popup) {
+      window.location.assign(loginUrl);
+      return;
+    }
+
+    state.shopPopupWindow = popup;
+  }
+
+  window.addEventListener("message", event => {
+    if (event.origin !== SHOP_AUTH_WORKER_ORIGIN) return;
+    if (!state.shopPopupWindow || event.source !== state.shopPopupWindow) return;
+
+    const popup = state.shopPopupWindow;
+    state.shopPopupWindow = null;
+
+    try {
+      if (popup && !popup.closed) popup.close();
+    } catch (_) {}
+
+    if (event.data?.type === "VN_SHOP_AUTH_SUCCESS") {
+      const token = String(event.data.sessionToken || "").trim();
+      if (!token || token.length > 5000) {
+        state.messageType = "error";
+        state.message = "Shop returned an invalid session. Please try again.";
+        render();
+        return;
+      }
+      acceptShopSession(token);
+      return;
+    }
+
+    if (event.data?.type === "VN_SHOP_AUTH_ERROR") {
+      state.messageType = "error";
+      state.message = "Shop sign-in could not be completed. Please try again or continue with email.";
+      render();
+    }
+  });
+
   function loadShopSdk() {
     if (!state.shopSdkPromise) {
       state.shopSdkPromise = import(
@@ -2049,8 +2103,17 @@
       }
     });
     if(gen!==state.shopGen){try{login.destroy();}catch(_){}return;}
-    login.element.style.cssText="display:block;width:100%;max-width:100%;";
-    login.element.classList.add("vn-ac-shop-login-element");host.replaceChildren(login.element);
+    login.element.style.cssText="display:block;position:absolute;inset:0;width:100%;height:54px;max-width:100%;opacity:0;pointer-events:none;";
+    login.element.classList.add("vn-ac-shop-login-element");
+    login.element.setAttribute("aria-hidden","true");
+    const shopButton=document.createElement("button");
+    shopButton.type="button";
+    shopButton.className="vn-ac-shop-continue";
+    shopButton.textContent="Continue with Shop";
+    shopButton.style.cssText="position:absolute;inset:0;z-index:2;";
+    shopButton.addEventListener("click",startShopPopup);
+    host.style.isolation="isolate";
+    host.replaceChildren(login.element,shopButton);
     console.info("[VN SHOP DIAG] Login instance created", {
       hasElement: Boolean(login?.element),
       elementTagName: login?.element?.tagName || null,
