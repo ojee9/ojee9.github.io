@@ -1737,11 +1737,15 @@
           locale: "en",
           features: { login: true },
           onRecognized: (event, context) => {
-            console.info("[VN SHOP DIAG] onRecognized fired", {
-              event,
-              context,
-              at: new Date().toISOString()
-            });
+            console.info(
+              "[VN SHOP DIAG] onRecognized values",
+              "recognized=" + String(event?.recognized),
+              "eventKeys=" + Object.keys(event || {}).join(","),
+              "contextKeys=" + Object.keys(context || {}).join(","),
+              "eligibleForSignInWithShop=" + String(context?.eligibleForSignInWithShop),
+              "eventJSON=" + JSON.stringify(event ?? null),
+              "contextJSON=" + JSON.stringify(context ?? null)
+            );
             const recognized = event?.recognized === true;
             const wasRecognized = state.shopRecognized;
             state.shopRecognitionKnown = true;
@@ -1982,10 +1986,12 @@
       attributes:{buttonType:"continue",buttonLayout:"standalone",scope:"shop_app:oauth",storefrontOrigin:window.location.origin,uxMode:"windoid"},
       appearance:{preferredLoginExperience:"popup"},
       onLoad:event=>{
-        console.info("[VN SHOP DIAG] Login onLoad fired", {
-          event,
-          at: new Date().toISOString()
-        });
+        console.info(
+          "[VN SHOP DIAG] Login onLoad values",
+          "userFound=" + String(event?.userFound),
+          "eventKeys=" + Object.keys(event || {}).join(","),
+          "eventJSON=" + JSON.stringify(event ?? null)
+        );
         // The login feature exposes its own recognition result as a fallback
         // to the SDK-level recognition event.
         if(event?.userFound===true&&!state.shopRecognized){
@@ -2000,7 +2006,11 @@
         }
       },
       onReady:event=>{
-        console.info("[VN SHOP DIAG] Login onReady fired", { event });
+        console.info(
+          "[VN SHOP DIAG] Login onReady values",
+          "eventKeys=" + Object.keys(event || {}).join(","),
+          "eventJSON=" + JSON.stringify(event ?? null)
+        );
       },
       onComplete:async event=>{
         if(gen!==state.shopGen)return;
