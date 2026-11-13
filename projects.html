@@ -6,6 +6,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#080808">
   <meta name="description" content="Explore OJEE | PROJECTS, an editorial archive of VN Records featuring news, announcements, events, selected projects, creative releases and updates from across the VNION ecosystem.">
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-3EDYHGQD8N"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag("js", new Date());
+    gtag("config", "G-3EDYHGQD8N");
+  </script>
   <link rel="canonical" href="https://ojee9.github.io/projects.html">
   <title>OJEE | PROJECTS | NEWS | EVENTS | VNION</title>
   <meta property="og:title" content="OJEE | PROJECTS | NEWS | EVENTS | VNION">
@@ -531,6 +539,56 @@
       const filterPanel = document.querySelector(".filter-panel");
       const projectsContent = document.querySelector(".projects-content");
 
+      const trackedContentViews = new Set();
+      const pendingContentViewTimers = new WeakMap();
+      const contentViewObserver = "IntersectionObserver" in window
+        ? new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+              const card = entry.target;
+              const contentId = card.dataset.entryId;
+
+              if (!contentId || trackedContentViews.has(contentId)) {
+                contentViewObserver.unobserve(card);
+                return;
+              }
+
+              if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
+                if (pendingContentViewTimers.has(card)) return;
+
+                const timer = window.setTimeout(() => {
+                  pendingContentViewTimers.delete(card);
+
+                  if (!card.isConnected || trackedContentViews.has(contentId)) return;
+
+                  trackedContentViews.add(contentId);
+                  window.gtag("event", "project_view", {
+                    content_id: contentId,
+                    content_type: card.dataset.contentType || "archive",
+                    content_title: card.querySelector(".event-title")?.textContent.trim() || ""
+                  });
+                  contentViewObserver.unobserve(card);
+                }, 1000);
+
+                pendingContentViewTimers.set(card, timer);
+              } else {
+                const timer = pendingContentViewTimers.get(card);
+                if (timer) window.clearTimeout(timer);
+                pendingContentViewTimers.delete(card);
+              }
+            });
+          }, { threshold: [0, 0.5] })
+        : null;
+
+      function observeContentCards() {
+        if (!contentViewObserver) return;
+
+        grid.querySelectorAll(".event-card[data-entry-id]").forEach(card => {
+          if (!trackedContentViews.has(card.dataset.entryId)) {
+            contentViewObserver.observe(card);
+          }
+        });
+      }
+
       function updateFilterPanelPosition() {
         if (window.innerWidth <= 650) {
           filterPanel.style.removeProperty("margin-top");
@@ -807,7 +865,7 @@
 
 
         grid.innerHTML = filtered.map(event => `
-          <article class="event-card">
+          <article class="event-card" data-entry-id="${event.id}" data-content-type="event">
             <a class="event-image-link"
                href="${event.ticketUrl}"
                target="_blank"
@@ -856,6 +914,7 @@
             </div>
           </article>
         `).join("");
+        observeContentCards();
         updateEntryTagScrollHints();
       }
 
@@ -872,7 +931,7 @@
 
 
         grid.innerHTML = filtered.map(entry => `
-          <article class="event-card" data-entry-id="${entry.id}">
+          <article class="event-card" data-entry-id="${entry.id}" data-content-type="${activeCategory}">
             <div class="event-image-link">
               <img
                 class="event-image"
@@ -919,6 +978,7 @@
             </div>
           </article>
         `).join("");
+        observeContentCards();
         updateEntryTagScrollHints();
       }
 
