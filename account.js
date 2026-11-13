@@ -1774,15 +1774,33 @@
     if (!root || root.hidden || state.user || state.screen !== "email" || !main) return;
 
     const want = shopCollapsed();
-    if (want && !state.shopRecognitionAnimate) {
-      main.classList.add("is-shop-recognized-no-motion");
+    const animateRecognition = want && state.shopRecognitionAnimate;
+    main.classList.remove("is-shop-recognized-no-motion");
+
+    if (animateRecognition && !main.classList.contains("is-shop-recognized")) {
+      // Let the ready Shop button settle in its final slot before collapsing
+      // the email form, so the transition is visible instead of being skipped.
+      void main.offsetWidth;
       requestAnimationFrame(() => {
-        if (main.isConnected) main.classList.remove("is-shop-recognized-no-motion");
+        if (main.isConnected && shopCollapsed()) {
+          main.classList.add("is-shop-recognized");
+        }
+        state.shopRecognitionAnimate = false;
       });
     } else {
-      main.classList.remove("is-shop-recognized-no-motion");
+      if (want && !main.classList.contains("is-shop-recognized")) {
+        main.classList.add("is-shop-recognized-no-motion");
+        void main.offsetWidth;
+        main.classList.add("is-shop-recognized");
+        requestAnimationFrame(() => {
+          if (main.isConnected) main.classList.remove("is-shop-recognized-no-motion");
+        });
+      } else {
+        main.classList.toggle("is-shop-recognized", want);
+      }
+      if (want) state.shopRecognitionAnimate = false;
     }
-    main.classList.toggle("is-shop-recognized", want);
+
     const wrap = main.querySelector(".vn-ac-email-form-wrap");
     if (wrap) wrap.inert = want;
 
