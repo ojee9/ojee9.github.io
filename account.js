@@ -1549,9 +1549,8 @@
     state.shopRecognized && state.shopStatus === "ready" && !state.shopMoreOptions;
 
   function renderEmail() {
-    const showRecognizedState = shopCollapsed() && !state.shopRecognitionAnimate;
     return `
-      <main class="vn-ac-main vn-ac-email-main${showRecognizedState ? " is-shop-recognized" : ""}${state.shopStatus === "error" ? " is-shop-unavailable" : ""}">
+      <main class="vn-ac-main vn-ac-email-main${shopCollapsed() ? " is-shop-recognized" : ""}${state.shopStatus === "error" ? " is-shop-unavailable" : ""}">
         ${messageHTML()}
 
         <div class="vn-ac-signin-heading">
@@ -1562,10 +1561,10 @@
         <div class="vn-ac-shop-space">
           <div id="vnAcShopLoginMount" class="vn-ac-shop-mount" aria-label="Continue with Shop"></div>
         </div>
-        ${showRecognizedState ? '<button type="button" class="vn-ac-more-options is-visible" data-ac-action="shop-more-options">More sign-in options</button>' : ""}
+        ${shopCollapsed() ? '<button type="button" class="vn-ac-more-options is-visible" data-ac-action="shop-more-options">More sign-in options</button>' : ""}
         <div class="vn-ac-or-divider" aria-hidden="true"><span>OR</span></div>
 
-        <div class="vn-ac-email-form-wrap" ${showRecognizedState ? "inert" : ""}>
+        <div class="vn-ac-email-form-wrap" ${shopCollapsed() ? "inert" : ""}>
         <form id="vnAcEmailForm">
           <div class="vn-ac-email-bar">
             <input
@@ -1775,33 +1774,17 @@
     if (!root || root.hidden || state.user || state.screen !== "email" || !main) return;
 
     const want = shopCollapsed();
-    const animateRecognition = want && state.shopRecognitionAnimate;
-    main.classList.remove("is-shop-recognized-no-motion");
-
-    if (animateRecognition && !main.classList.contains("is-shop-recognized")) {
-      // Let the ready Shop button settle in its final slot before collapsing
-      // the email form, so the transition is visible instead of being skipped.
-      void main.offsetWidth;
+    if (want && !state.shopRecognitionAnimate) {
+      // Recognition was already complete before the panel became visible:
+      // render the compact Shop-only state without replaying the transition.
+      main.classList.add("is-shop-recognized-no-motion");
       requestAnimationFrame(() => {
-        if (main.isConnected && shopCollapsed()) {
-          main.classList.add("is-shop-recognized");
-        }
-        state.shopRecognitionAnimate = false;
+        if (main.isConnected) main.classList.remove("is-shop-recognized-no-motion");
       });
     } else {
-      if (want && !main.classList.contains("is-shop-recognized")) {
-        main.classList.add("is-shop-recognized-no-motion");
-        void main.offsetWidth;
-        main.classList.add("is-shop-recognized");
-        requestAnimationFrame(() => {
-          if (main.isConnected) main.classList.remove("is-shop-recognized-no-motion");
-        });
-      } else {
-        main.classList.toggle("is-shop-recognized", want);
-      }
-      if (want) state.shopRecognitionAnimate = false;
+      main.classList.remove("is-shop-recognized-no-motion");
     }
-
+    main.classList.toggle("is-shop-recognized", want);
     const wrap = main.querySelector(".vn-ac-email-form-wrap");
     if (wrap) wrap.inert = want;
 
@@ -1816,6 +1799,7 @@
     } else if (!want && more) {
       more.remove();
     }
+    state.shopRecognitionAnimate = false;
     startShopTracking();
   }
 
@@ -3058,9 +3042,6 @@
     if (!state.user) { state.screen = "email"; state.message = ""; }
     else { state.section = "dashboard"; state.message = ""; }
     state.shopMoreOptions = false;
-    // A returning Shop user should see the normal form first, then the
-    // recognized layout should animate only after the Shop button is mounted.
-    state.shopRecognitionAnimate = Boolean(!state.user && state.shopRecognized);
     const root = createRoot();
     root.hidden = false;
     root.style.visibility = "visible";
@@ -3072,7 +3053,6 @@
     startShopTracking();
     ensureShopLogin();
     positionShopHost();
-    if (state.shopStatus === "ready" && shopCollapsed()) syncShopRecognition();
     document.body.style.overflow = "hidden";
     Promise.resolve(configPromise).then(() => {
       if (state.user) return null;
