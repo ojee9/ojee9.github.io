@@ -399,7 +399,7 @@
           image: "assets/visuals/FLINTA-9ojeez9-showyourmonster-YATAY.png",
           ticketUrl: "https://biletino.com/en/e-1do8/flinta-halloween-party/#",
           tags: "Halloween, 18+, Show Your Inner Monster",
-          status: "present",
+          status: "past",
           descriptionEN: "Unleash your inner monster at FLINTA for a Halloween night of cocktails, music, immersive decorations and rooftop nightlife. Inspired by Show Your Inner Monster, the evening invites guests to embrace the darker side of Halloween through creative costumes, atmospheric visuals and a night made for dancing. 9ojeez9 joins the lineup for a dedicated two-hour set, from 21:00 to 23:00. The night also features a special pole dance performance.",
           descriptionTR: "FLINTA’da kokteyller, müzik, etkileyici dekorasyonlar ve rooftop atmosferiyle bir Halloween gecesine hazır ol. Show Your Inner Monster temasından ilham alan etkinlik, yaratıcı kostümlerle Halloween’in karanlık tarafını keşfetmeye ve gece boyunca dans etmeye davet ediyor. 9ojeez9, gecenin müzik programında 21:00–23:00 saatleri arasında iki saatlik özel bir set ile yer alıyor. Etkinlikte ayrıca özel bir pole dance performansı bulunuyor."
         },
@@ -814,8 +814,26 @@
         )?.value || "newest";
       }
 
+      function normalizeSearchText(value) {
+        return String(value ?? "")
+          .toLocaleLowerCase("tr-TR")
+          .replace(/ı/g, "i")
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "");
+      }
+
+      const hottestRanks = new Map([
+        ["gta-love-launch-2026", 3],
+        ["vn-legacy-collection", 2],
+        ["vn-club-magazine-01", 1]
+      ]);
+
+      function compareByHottest(a, b) {
+        return (hottestRanks.get(b.id) || 0) - (hottestRanks.get(a.id) || 0);
+      }
+
       function getFilteredEvents() {
-        const query = searchInput.value.trim().toLowerCase();
+        const query = normalizeSearchText(searchInput.value.trim());
 
         const selectedStatuses = [
           ...document.querySelectorAll(
@@ -839,9 +857,10 @@
             event.tags,
             ...(event.archiveTags || []),
             event.dateLabel
-          ].join(" ").toLowerCase();
+          ].join(" ");
+          const normalizedSearchable = normalizeSearchText(searchable);
 
-          const matchesQuery = !query || searchable.includes(query);
+          const matchesQuery = !query || normalizedSearchable.includes(query);
           const matchesStatus = selectedStatuses.length === 0 ||
             selectedStatuses.includes(event.status);
           const matchesYear = selectedYears.length === 0 ||
@@ -855,15 +874,15 @@
 
         if (getSort() === "all-time") {
           filtered.sort(compareByAllTimeViews);
-        } else {
-          filtered.sort((a, b) => b.date.localeCompare(a.date));
+        } else if (getSort() === "hottest") {
+          filtered.sort(compareByHottest);
         }
 
         return filtered;
       }
 
       function getFilteredArchiveEntries() {
-        const query = searchInput.value.trim().toLowerCase();
+        const query = normalizeSearchText(searchInput.value.trim());
 
         const selectedCollections = [
           ...document.querySelectorAll(
@@ -881,11 +900,14 @@
             entry.artist,
             entry.tags,
             ...(entry.archiveTags || []),
-            ...entry.descriptionEN,
-            ...entry.collections
-          ].join(" ").toLowerCase();
+            ...(entry.descriptionEN || []),
+            ...(entry.descriptionTR || []),
+            ...entry.collections,
+            ...(entry.details || []).flat()
+          ].join(" ");
+          const normalizedSearchable = normalizeSearchText(searchable);
 
-          const matchesQuery = !query || searchable.includes(query);
+          const matchesQuery = !query || normalizedSearchable.includes(query);
 
           const matchesCollection =
             activeCategory !== "merch" ||
@@ -905,6 +927,8 @@
 
         if (getSort() === "all-time") {
           filtered.sort(compareByAllTimeViews);
+        } else if (getSort() === "hottest") {
+          filtered.sort(compareByHottest);
         }
 
         return filtered;
@@ -1081,6 +1105,7 @@
           renderArchiveEntries();
         }
 
+        updateMobileFilterCount();
         updateFilterPanelPosition();
       }
 
@@ -1124,6 +1149,7 @@
         renderTagFilters();
         if (activeCategory === "events") renderEvents();
         else renderArchiveEntries();
+        updateMobileFilterCount();
       });
 
       selectedTagsList.addEventListener("click", event => {
@@ -1134,6 +1160,7 @@
         renderTagFilters();
         if (activeCategory === "events") renderEvents();
         else renderArchiveEntries();
+        updateMobileFilterCount();
       });
 
       clearSelectedTagsButton.addEventListener("click", () => {
@@ -1182,6 +1209,8 @@
         } else {
           renderArchiveEntries();
         }
+
+        updateMobileFilterCount();
       });
 
       populateYears();
