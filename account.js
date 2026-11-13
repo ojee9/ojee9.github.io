@@ -2008,9 +2008,22 @@
       onReady:event=>{
         console.info(
           "[VN SHOP DIAG] Login onReady values",
+          "userFound=" + String(event?.detail?.userFound),
           "eventKeys=" + Object.keys(event || {}).join(","),
-          "eventJSON=" + JSON.stringify(event ?? null)
+          "detailJSON=" + JSON.stringify(event?.detail ?? null)
         );
+        if(event?.detail?.userFound===true&&!state.shopRecognized){
+          state.shopRecognized=true;
+          state.shopRecognitionKnown=true;
+          const root=document.querySelector("#vnAccountOverlay");
+          const main=document.querySelector(".vn-ac-email-main");
+          state.shopRecognitionAnimate=Boolean(
+            root&&!root.hidden&&!state.user&&state.screen==="email"&&
+            !state.shopMoreOptions&&main&&
+            !main.classList.contains("is-shop-recognized")
+          );
+          if(state.shopStatus==="ready")syncShopRecognition();
+        }
       },
       onComplete:async event=>{
         if(gen!==state.shopGen)return;
