@@ -45,6 +45,9 @@
     loadingData: false,
     shopSdkPromise: null,
     shopLoginInstance: null,
+    shopEmailListener: null,
+    shopEmailListenerInput: null,
+    shopEmailListenerGen: 0,
     shopHost: null,
     shopStatus: "idle",
     shopRecognized: false,
@@ -1773,18 +1776,25 @@
     const main = document.querySelector(".vn-ac-email-main");
     if (!root || root.hidden || state.user || state.screen !== "email" || !main) return;
 
+    // Do not consume a late recognition event until the Shop button itself is ready.
+    if (state.shopRecognized && state.shopStatus !== "ready") return;
+
     const want = shopCollapsed();
-    if (want && !state.shopRecognitionAnimate) {
-      // Recognition was already complete before the panel became visible:
-      // render the compact Shop-only state without replaying the transition.
+    const animate = want && state.shopRecognitionAnimate &&
+      !main.classList.contains("is-shop-recognized");
+
+    if (want && !animate) {
       main.classList.add("is-shop-recognized-no-motion");
+      void main.offsetWidth;
+      main.classList.add("is-shop-recognized");
       requestAnimationFrame(() => {
         if (main.isConnected) main.classList.remove("is-shop-recognized-no-motion");
       });
     } else {
       main.classList.remove("is-shop-recognized-no-motion");
+      main.classList.toggle("is-shop-recognized", want);
     }
-    main.classList.toggle("is-shop-recognized", want);
+
     const wrap = main.querySelector(".vn-ac-email-form-wrap");
     if (wrap) wrap.inert = want;
 
@@ -1801,6 +1811,59 @@
     }
     state.shopRecognitionAnimate = false;
     startShopTracking();
+  }
+
+  function clearShopEmailListener() {
+    state.shopEmailListenerGen += 1;
+    const listener = state.shopEmailListener;
+    state.shopEmailListener = null;
+    state.shopEmailListenerInput = null;
+    if (listener) {
+      try { listener.destroy(); } catch (error) {
+        console.warn("[VN ACCOUNT] Shop email listener cleanup failed:", error);
+      }
+    }
+  }
+
+  async function ensureShopEmailListener(input) {
+    if (!input || !input.isConnected || state.user || state.screen !== "email") {
+      clearShopEmailListener();
+      return;
+    }
+    if (state.shopEmailListenerInput === input) return;
+
+    clearShopEmailListener();
+    const gen = state.shopEmailListenerGen;
+    try {
+      const sdk = await loadShopSdk();
+      if (gen !== state.shopEmailListenerGen || !input.isConnected) return;
+      const listener = await sdk.create("listener", {
+        inputElement: input,
+        onMatched: () => {
+          if (gen !== state.shopEmailListenerGen || !input.isConnected) return;
+          state.shopRecognized = true;
+          state.shopRecognitionKnown = true;
+          const root = document.querySelector("#vnAccountOverlay");
+          const main = document.querySelector(".vn-ac-email-main");
+          state.shopRecognitionAnimate = Boolean(
+            root && !root.hidden && !state.user && state.screen === "email" &&
+            !state.shopMoreOptions && main &&
+            !main.classList.contains("is-shop-recognized")
+          );
+          if (state.shopStatus === "ready") syncShopRecognition();
+        }
+      });
+      if (gen !== state.shopEmailListenerGen || !input.isConnected) {
+        listener.destroy();
+        return;
+      }
+      state.shopEmailListener = listener;
+      state.shopEmailListenerInput = input;
+    } catch (error) {
+      if (gen === state.shopEmailListenerGen) {
+        console.warn("[VN ACCOUNT] Shop email recognition unavailable:", error);
+      }
+    }
   }
 
   function ensureShopLogin() {
@@ -2488,6 +2551,11 @@
 
     if (!state.user) {
       content.innerHTML = state.screen === "verify" ? renderVerify() : renderEmail();
+      if (state.screen === "email") {
+        ensureShopEmailListener($("#customer-authentication-web-email", content));
+      } else {
+        clearShopEmailListener();
+      }
       positionShopHost();
       startShopTracking();
       return;
@@ -3035,6 +3103,7 @@
       root.setAttribute("aria-hidden", "true");
     }
     document.body.style.overflow = "";
+    clearShopEmailListener();
     positionShopHost();
   }
 
