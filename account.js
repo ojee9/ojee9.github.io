@@ -2103,14 +2103,15 @@
       }
     });
     if(gen!==state.shopGen){try{login.destroy();}catch(_){}return;}
-    login.element.style.cssText="display:block;position:absolute;inset:0;width:100%;height:54px;max-width:100%;opacity:0;pointer-events:none;";
+    // Keep Shopify's own rendered button visible for the official Shop appearance,
+    // but let our transparent overlay own the click so authentication stays on the VN Worker.
+    login.element.style.cssText="display:block;position:absolute;inset:0;width:100%;height:54px;max-width:100%;opacity:1;pointer-events:none;visibility:visible;";
     login.element.classList.add("vn-ac-shop-login-element");
     login.element.setAttribute("aria-hidden","true");
     const shopButton=document.createElement("button");
     shopButton.type="button";
-    shopButton.className="vn-ac-shop-continue";
-    shopButton.textContent="Continue with Shop";
-    shopButton.style.cssText="position:absolute;inset:0;z-index:2;";
+    shopButton.setAttribute("aria-label","Continue with Shop");
+    shopButton.style.cssText="position:absolute;inset:0;z-index:2;width:100%;height:54px;border:0;padding:0;background:transparent;color:transparent;font-size:0;cursor:pointer;";
     shopButton.addEventListener("click",startShopPopup);
     host.style.isolation="isolate";
     host.replaceChildren(login.element,shopButton);
