@@ -511,12 +511,12 @@
       .vn-ac-signin-heading h1{margin:0;font-size:32px;font-weight:700;line-height:1.2;letter-spacing:-.7px;color:#f5f5f5}
       .vn-ac-signin-heading p{margin:9px 0 0;font-size:15px;line-height:1.5;color:#a9a5ad}
       .vn-ac-email-main{display:flex;flex-direction:column;align-items:stretch;width:100%;max-width:480px;margin-inline:auto}
-      .vn-ac-email-main .vn-ac-or-divider,.vn-ac-email-main .vn-ac-email-form-wrap{display:flex;transition:max-height .38s cubic-bezier(.2,.7,.2,1),opacity .28s ease,transform .38s cubic-bezier(.2,.7,.2,1),margin .38s ease}
+      .vn-ac-email-main .vn-ac-or-divider,.vn-ac-email-main .vn-ac-email-form-wrap{display:flex;transition:max-height .52s cubic-bezier(.22,1,.36,1),opacity .34s ease,transform .52s cubic-bezier(.22,1,.36,1),margin .52s cubic-bezier(.22,1,.36,1)}
       .vn-ac-email-main .vn-ac-or-divider{max-height:30px;opacity:1;overflow:hidden}
-      .vn-ac-email-main .vn-ac-email-form-wrap{max-height:260px;opacity:1;overflow:hidden;transform:translateY(0)}
+      .vn-ac-email-main .vn-ac-email-form-wrap{max-height:260px;opacity:1;overflow:hidden;transform:translateY(0) scale(1);transform-origin:top center}
       .vn-ac-email-main.is-shop-recognized .vn-ac-or-divider{max-height:0;opacity:0;margin-top:0;margin-bottom:0}
-      .vn-ac-email-main.is-shop-recognized .vn-ac-email-form-wrap{max-height:0;opacity:0;transform:translateY(-12px);margin-top:0;margin-bottom:0;pointer-events:none}
-      .vn-ac-email-main.is-shop-recognized .vn-ac-shop-space{margin-bottom:8px;transition:margin .38s ease}
+      .vn-ac-email-main.is-shop-recognized .vn-ac-email-form-wrap{max-height:0;opacity:0;transform:translateY(-22px) scale(.985);margin-top:0;margin-bottom:0;pointer-events:none}
+      .vn-ac-email-main.is-shop-recognized .vn-ac-shop-space{margin-bottom:8px;transition:margin .52s cubic-bezier(.22,1,.36,1)}
       .vn-ac-email-main.is-shop-recognized-no-motion .vn-ac-or-divider,
       .vn-ac-email-main.is-shop-recognized-no-motion .vn-ac-email-form-wrap,
       .vn-ac-email-main.is-shop-recognized-no-motion .vn-ac-shop-space{transition:none!important}
@@ -1857,7 +1857,18 @@
     const animate = want && state.shopRecognitionAnimate &&
       !main.classList.contains("is-shop-recognized");
 
-    if (want && !animate) {
+    main.classList.remove("is-shop-recognized-no-motion");
+    if (animate) {
+      // Commit the expanded layout first, then animate the email section
+      // upward into the Shop button instead of snapping both states together.
+      void main.offsetWidth;
+      requestAnimationFrame(() => {
+        if (main.isConnected && shopCollapsed()) {
+          main.classList.add("is-shop-recognized");
+        }
+        state.shopRecognitionAnimate = false;
+      });
+    } else if (want && !main.classList.contains("is-shop-recognized")) {
       main.classList.add("is-shop-recognized-no-motion");
       void main.offsetWidth;
       main.classList.add("is-shop-recognized");
@@ -1865,7 +1876,6 @@
         if (main.isConnected) main.classList.remove("is-shop-recognized-no-motion");
       });
     } else {
-      main.classList.remove("is-shop-recognized-no-motion");
       main.classList.toggle("is-shop-recognized", want);
     }
 
@@ -2103,35 +2113,21 @@
       }
     });
     if(gen!==state.shopGen){try{login.destroy();}catch(_){}return;}
-    // Keep Shopify's original button and restore its purple brand classes if recognition changes them.
-    login.element.style.cssText="display:block;position:absolute;inset:0;width:100%;height:54px;max-width:100%;opacity:1;pointer-events:none;visibility:visible;";
+    // Keep the SDK active for recognition, but render a stable Shop-purple CTA
+    // because the SDK changes its internal button appearance after email matching.
+    login.element.style.cssText="display:block;position:absolute;inset:0;width:100%;height:54px;max-width:100%;opacity:0;pointer-events:none;visibility:visible;";
     login.element.classList.add("vn-ac-shop-login-element");
     login.element.setAttribute("aria-hidden","true");
     const shopButton=document.createElement("button");
     shopButton.type="button";
     shopButton.setAttribute("aria-label","Continue with Shop");
-    shopButton.style.cssText="position:absolute;inset:0;z-index:2;width:100%;height:54px;border:0;padding:0;background:transparent;color:transparent;font-size:0;cursor:pointer;";
+    shopButton.textContent="Continue with Shop";
+    shopButton.style.cssText="position:absolute;inset:0;z-index:2;width:100%;height:54px;border:1px solid rgba(255,255,255,.5);border-radius:4px;padding:0 20px;background:#5433EB;color:#fff;font:600 15px/1.2 Arial,sans-serif;cursor:pointer;transition:background .18s ease,transform .18s ease,box-shadow .18s ease;";
+    shopButton.addEventListener("mouseenter",()=>{shopButton.style.background="#4526D9";});
+    shopButton.addEventListener("mouseleave",()=>{shopButton.style.background="#5433EB";});
     shopButton.addEventListener("click",startShopPopup);
     host.style.isolation="isolate";
     host.replaceChildren(login.element,shopButton);
-    const shopRoot=login.element.shadowRoot;
-    if(shopRoot){
-      const enforcePurpleShopButton=()=>{
-        const button=shopRoot.querySelector('button[aria-label="Continue with Shop"]');
-        if(!button)return;
-        const unwanted=[...button.classList].filter(name=>(name.startsWith("bg-")&&name!=="bg-purple-primary")||(name.startsWith("hover:bg-")&&name!=="hover:bg-purple-d0"));
-        if(unwanted.length)button.classList.remove(...unwanted);
-        if(!button.classList.contains("bg-purple-primary"))button.classList.add("bg-purple-primary");
-        if(!button.classList.contains("hover:bg-purple-d0"))button.classList.add("hover:bg-purple-d0");
-        for(const name of ["text-white","border-white/20","rounded-login-button","shadow-sm","w-full","justify-center"]){
-          if(!button.classList.contains(name))button.classList.add(name);
-        }
-      };
-      const purpleObserver=new MutationObserver(enforcePurpleShopButton);
-      purpleObserver.observe(shopRoot,{subtree:true,childList:true,attributes:true,attributeFilter:["class"]});
-      enforcePurpleShopButton();
-      login.element.__vnShopPurpleObserver=purpleObserver;
-    }
     console.info("[VN SHOP DIAG] Login instance created", {
       hasElement: Boolean(login?.element),
       elementTagName: login?.element?.tagName || null,
