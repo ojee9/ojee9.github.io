@@ -510,13 +510,15 @@
       .vn-ac-signin-heading{margin:0 0 24px;text-align:center}
       .vn-ac-signin-heading h1{margin:0;font-size:32px;font-weight:700;line-height:1.2;letter-spacing:-.7px;color:#f5f5f5}
       .vn-ac-signin-heading p{margin:9px 0 0;font-size:15px;line-height:1.5;color:#a9a5ad}
-      .vn-ac-email-main{display:flex;flex-direction:column;align-items:stretch;width:100%;max-width:480px;margin-inline:auto}
+      .vn-ac-email-main{display:flex;flex-direction:column;align-items:stretch;width:100%;max-width:480px;margin-inline:auto;transform:translateY(0);transition:transform .52s cubic-bezier(.22,1,.36,1)}
+      .vn-ac-email-main.is-shop-recognized{transform:translateY(-24px)}
       .vn-ac-email-main .vn-ac-or-divider,.vn-ac-email-main .vn-ac-email-form-wrap{display:flex;transition:max-height .52s cubic-bezier(.22,1,.36,1),opacity .34s ease,transform .52s cubic-bezier(.22,1,.36,1),margin .52s cubic-bezier(.22,1,.36,1)}
       .vn-ac-email-main .vn-ac-or-divider{max-height:30px;opacity:1;overflow:hidden}
       .vn-ac-email-main .vn-ac-email-form-wrap{max-height:260px;opacity:1;overflow:hidden;transform:translateY(0) scale(1);transform-origin:top center}
       .vn-ac-email-main.is-shop-recognized .vn-ac-or-divider{max-height:0;opacity:0;margin-top:0;margin-bottom:0}
       .vn-ac-email-main.is-shop-recognized .vn-ac-email-form-wrap{max-height:0;opacity:0;transform:translateY(-22px) scale(.985);margin-top:0;margin-bottom:0;pointer-events:none}
       .vn-ac-email-main.is-shop-recognized .vn-ac-shop-space{margin-bottom:8px;transition:margin .52s cubic-bezier(.22,1,.36,1)}
+      .vn-ac-email-main.is-shop-recognized-no-motion,
       .vn-ac-email-main.is-shop-recognized-no-motion .vn-ac-or-divider,
       .vn-ac-email-main.is-shop-recognized-no-motion .vn-ac-email-form-wrap,
       .vn-ac-email-main.is-shop-recognized-no-motion .vn-ac-shop-space{transition:none!important}
