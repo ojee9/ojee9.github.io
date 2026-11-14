@@ -2103,8 +2103,7 @@
       }
     });
     if(gen!==state.shopGen){try{login.destroy();}catch(_){}return;}
-    // Keep Shopify's own rendered button visible for the official Shop appearance,
-    // but let our transparent overlay own the click so authentication stays on the VN Worker.
+    // Keep Shopify's original button and restore its purple brand classes if recognition changes them.
     login.element.style.cssText="display:block;position:absolute;inset:0;width:100%;height:54px;max-width:100%;opacity:1;pointer-events:none;visibility:visible;";
     login.element.classList.add("vn-ac-shop-login-element");
     login.element.setAttribute("aria-hidden","true");
@@ -2115,6 +2114,24 @@
     shopButton.addEventListener("click",startShopPopup);
     host.style.isolation="isolate";
     host.replaceChildren(login.element,shopButton);
+    const shopRoot=login.element.shadowRoot;
+    if(shopRoot){
+      const enforcePurpleShopButton=()=>{
+        const button=shopRoot.querySelector('button[aria-label="Continue with Shop"]');
+        if(!button)return;
+        const unwanted=[...button.classList].filter(name=>(name.startsWith("bg-")&&name!=="bg-purple-primary")||(name.startsWith("hover:bg-")&&name!=="hover:bg-purple-d0"));
+        if(unwanted.length)button.classList.remove(...unwanted);
+        if(!button.classList.contains("bg-purple-primary"))button.classList.add("bg-purple-primary");
+        if(!button.classList.contains("hover:bg-purple-d0"))button.classList.add("hover:bg-purple-d0");
+        for(const name of ["text-white","border-white/20","rounded-login-button","shadow-sm","w-full","justify-center"]){
+          if(!button.classList.contains(name))button.classList.add(name);
+        }
+      };
+      const purpleObserver=new MutationObserver(enforcePurpleShopButton);
+      purpleObserver.observe(shopRoot,{subtree:true,childList:true,attributes:true,attributeFilter:["class"]});
+      enforcePurpleShopButton();
+      login.element.__vnShopPurpleObserver=purpleObserver;
+    }
     console.info("[VN SHOP DIAG] Login instance created", {
       hasElement: Boolean(login?.element),
       elementTagName: login?.element?.tagName || null,
