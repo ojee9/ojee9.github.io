@@ -57,6 +57,7 @@
     shopRecognitionAnimate: false,
     shopGen: 0,
     shopTimer: null,
+    shopPanelOpenedAt: 0,
     authProvider: "",
     shopSessionToken: "",
     workerSessionToken: "",
@@ -504,7 +505,7 @@
       .vn-ac-signin-heading h1{margin:0;font-size:32px;font-weight:700;line-height:1.2;letter-spacing:-.7px;color:#f5f5f5}
       .vn-ac-signin-heading p{margin:9px 0 0;font-size:15px;line-height:1.5;color:#a9a5ad}
       .vn-ac-email-main{display:flex;flex-direction:column;align-items:stretch;width:100%;max-width:480px;margin-inline:auto;transform:translateY(0);transition:transform .52s cubic-bezier(.22,1,.36,1)}
-      .vn-ac-email-main.is-shop-recognized{transform:translateY(-35px)}
+      .vn-ac-email-main.is-shop-recognized{transform:translateY(-37px)}
       .vn-ac-email-main .vn-ac-or-divider,.vn-ac-email-main .vn-ac-email-form-wrap{display:flex;transition:max-height .52s cubic-bezier(.22,1,.36,1),opacity .34s ease,transform .52s cubic-bezier(.22,1,.36,1),margin .52s cubic-bezier(.22,1,.36,1)}
       .vn-ac-email-main .vn-ac-or-divider{max-height:30px;opacity:1;overflow:hidden}
       .vn-ac-email-main .vn-ac-email-form-wrap{max-height:260px;opacity:1;overflow:hidden;transform:translateY(0) scale(1);transform-origin:top center}
@@ -1793,9 +1794,11 @@
 
   function loadShopSdk() {
     if (!state.shopSdkPromise) {
+      const sdkLoadStartedAt = performance.now();
       state.shopSdkPromise = import(
         "https://cdn.shopify.com/shopifycloud/shop-js/modules/v2/loader.sdk.esm.js"
       ).then(({ initialize }) => {
+        shopTiming("Shop SDK module loaded", { moduleLoadMs: Math.round((performance.now() - sdkLoadStartedAt) * 10) / 10 });
         if (typeof initialize !== "function") {
           throw new Error("Shop SDK could not be initialized.");
         }
@@ -1809,6 +1812,7 @@
           locale: "en",
           features: { login: true },
           onRecognized: (event, context) => {
+            shopTiming("Shop recognition callback", { recognized: event?.recognized === true });
             console.info(
               "[VN SHOP DIAG] onRecognized values",
               "recognized=" + String(event?.recognized),
@@ -2019,6 +2023,7 @@
   }
 
   async function createShopLogin(slot,gen) {
+    const loginCreateStartedAt = performance.now();
     const sdk=await loadShopSdk(); if(gen!==state.shopGen)return;
     const login=await sdk.create("login",{
       attributes:{buttonType:"continue",buttonLayout:"standalone",scope:"shop_app:oauth",storefrontOrigin:window.location.origin,uxMode:"windoid"},
@@ -2099,6 +2104,7 @@
     login.element.classList.add("vn-ac-shop-login-element");
     login.element.removeAttribute("aria-hidden");
     currentSlot.replaceChildren(login.element);
+    shopTiming("Shop button mounted", { sdkCreateMs: Math.round((performance.now() - loginCreateStartedAt) * 10) / 10 });
     state.shopHost=currentSlot;
     console.info("[VN SHOP DIAG] Login instance created", {
       hasElement: Boolean(login?.element),
@@ -3241,10 +3247,19 @@
     positionShopHost();
   }
 
+  function shopTiming(label, details = {}) {
+    if (!state.shopPanelOpenedAt) return;
+    console.info("[VN SHOP TIMING]", label, {
+      elapsedMs: Math.round((performance.now() - state.shopPanelOpenedAt) * 10) / 10,
+      ...details
+    });
+  }
+
   function openPanel() {
     if (!state.user) { state.screen = "email"; state.message = ""; }
     else { state.section = "dashboard"; state.message = ""; }
     state.shopMoreOptions = false;
+    state.shopPanelOpenedAt = performance.now();
     const root = createRoot();
     root.hidden = false;
     root.style.visibility = "visible";
@@ -3253,6 +3268,18 @@
     root.removeAttribute("aria-hidden");
     startShopLoginPreload();
     render();
+    const logo = root.querySelector(".vn-ac-brand img");
+    if (logo && !logo.dataset.vnTimingBound) {
+      logo.dataset.vnTimingBound = "1";
+      if (logo.complete) shopTiming("VN logo available", { loaded: logo.naturalWidth > 0, alreadyCached: true });
+      else {
+        logo.addEventListener("load", () => shopTiming("VN logo loaded", { loaded: true }), { once: true });
+        logo.addEventListener("error", () => shopTiming("VN logo failed", { loaded: false }), { once: true });
+      }
+    } else if (logo?.complete) {
+      shopTiming("VN logo available", { loaded: logo.naturalWidth > 0, alreadyCached: true });
+    }
+    requestAnimationFrame(() => shopTiming("Panel first paint"));
     startShopTracking();
     ensureShopLogin();
     positionShopHost();
