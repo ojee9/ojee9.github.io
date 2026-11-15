@@ -403,15 +403,19 @@ async function runClerkCleanupCron(env) {
   }));
 }
 
-async function getVerifiedShopIdentity(sessionToken) {
+async function getVerifiedShopIdentity(env, sessionToken) {
   if (!sessionToken || typeof sessionToken !== "string" || sessionToken.length > 8192) throw new AppError("A valid Shop session is required.", 401);
 
   let response;
   try {
-    response = await fetch("https://vn-shop-auth.9ojeez9.workers.dev", {
-      method: "POST", headers: { "Content-Type": "application/json", "Origin": ALLOWED_ORIGIN },
+    if (!env.SHOP_AUTH || typeof env.SHOP_AUTH.fetch !== "function") {
+      throw new AppError("Shop authentication service binding is not configured.", 503);
+    }
+    response = await env.SHOP_AUTH.fetch(new Request("https://vn-shop-auth.internal/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Origin": ALLOWED_ORIGIN },
       body: JSON.stringify({ action: "verify", sessionToken })
-    });
+    }));
   } catch (err) {
     console.error("Shop identity verification request failed:", err);
     throw new AppError("Shop sign-in verification is temporarily unavailable.", 503);
@@ -2365,7 +2369,7 @@ async function handleRequest(request, env) {
   if (path === "/api/auth/shop-exchange" && method === "POST") {
     try {
       const body = await readBody(request);
-      const identity = await getVerifiedShopIdentity(body.sessionToken);
+      const identity = await getVerifiedShopIdentity(env, body.sessionToken);
       const account = await resolveVNAccount(env.DB, identity);
       const session = await createSession(env.DB, account.userId);
       return json({ success: true, token: session.token, expiresAt: session.expiresAt, userId: account.userId, email: account.email, firstName: account.firstName, lastName: account.lastName, isAdmin: account.isAdmin, is_admin: account.isAdmin });
