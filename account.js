@@ -1655,6 +1655,14 @@
     state.section = "dashboard";
     state.message = "";
     state.messageType = "info";
+    try {
+      sessionStorage.setItem(ACCOUNT_IDENTITY_KEY, JSON.stringify({
+        id: state.user.id,
+        email: state.user.email,
+        firstName,
+        lastName
+      }));
+    } catch (_) {}
     updateAccountAvatar();
   }
 
@@ -1676,6 +1684,7 @@
       return true;
     } catch (error) {
       try { sessionStorage.removeItem("vn_shop_session"); } catch (_) {}
+      try { sessionStorage.removeItem(ACCOUNT_IDENTITY_KEY); } catch (_) {}
       storeWorkerSessionToken("");
       state.shopSessionToken = "";
       state.authProvider = "";
@@ -2663,7 +2672,10 @@
     let cachedIdentity = null;
     if (!state.user) {
       try {
-        if (readWorkerSessionToken()) {
+        const hasSavedSession = Boolean(
+          readWorkerSessionToken() || sessionStorage.getItem("vn_shop_session")
+        );
+        if (hasSavedSession) {
           cachedIdentity = JSON.parse(sessionStorage.getItem(ACCOUNT_IDENTITY_KEY) || "null");
         }
       } catch (_) {}
