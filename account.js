@@ -504,7 +504,7 @@
       .vn-ac-signin-heading h1{margin:0;font-size:32px;font-weight:700;line-height:1.2;letter-spacing:-.7px;color:#f5f5f5}
       .vn-ac-signin-heading p{margin:9px 0 0;font-size:15px;line-height:1.5;color:#a9a5ad}
       .vn-ac-email-main{display:flex;flex-direction:column;align-items:stretch;width:100%;max-width:480px;margin-inline:auto;transform:translateY(0);transition:transform .52s cubic-bezier(.22,1,.36,1)}
-      .vn-ac-email-main.is-shop-recognized{transform:translateY(-33px)}
+      .vn-ac-email-main.is-shop-recognized{transform:translateY(-35px)}
       .vn-ac-email-main .vn-ac-or-divider,.vn-ac-email-main .vn-ac-email-form-wrap{display:flex;transition:max-height .52s cubic-bezier(.22,1,.36,1),opacity .34s ease,transform .52s cubic-bezier(.22,1,.36,1),margin .52s cubic-bezier(.22,1,.36,1)}
       .vn-ac-email-main .vn-ac-or-divider{max-height:30px;opacity:1;overflow:hidden}
       .vn-ac-email-main .vn-ac-email-form-wrap{max-height:260px;opacity:1;overflow:hidden;transform:translateY(0) scale(1);transform-origin:top center}
@@ -2087,12 +2087,19 @@
       }
     });
     if(gen!==state.shopGen){try{login.destroy();}catch(_){}return;}
-    // Mount Shopify's original login element as the visible, interactive CTA.
-    // Keep the SDK element intact so its own recognition and authentication flow run.
+    const currentSlot=document.querySelector("#vnAcShopLoginMount");
+    if(!currentSlot||state.user||state.screen!=="email"){
+      try{login.destroy();}catch(_){}
+      if(gen===state.shopGen){state.shopStatus="idle";state.shopHost=null;}
+      return;
+    }
+    // Mount Shopify's original login element into the current live panel slot.
+    // A panel rerender may have replaced the slot while the SDK was initializing.
     login.element.style.cssText="display:block;position:relative;width:100%;height:54px;max-width:100%;opacity:1;pointer-events:auto;visibility:visible;";
     login.element.classList.add("vn-ac-shop-login-element");
     login.element.removeAttribute("aria-hidden");
-    slot.replaceChildren(login.element);
+    currentSlot.replaceChildren(login.element);
+    state.shopHost=currentSlot;
     console.info("[VN SHOP DIAG] Login instance created", {
       hasElement: Boolean(login?.element),
       elementTagName: login?.element?.tagName || null,
