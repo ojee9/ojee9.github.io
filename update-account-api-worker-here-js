@@ -417,11 +417,36 @@ async function getVerifiedShopIdentity(sessionToken) {
     throw new AppError("Shop sign-in verification is temporarily unavailable.", 503);
   }
 
+  let responseText;
+  try {
+    responseText = await response.text();
+  } catch (err) {
+    console.error("Shop identity verification response could not be read:", {
+      status: response.status,
+      contentType: response.headers.get("content-type") || "",
+      url: response.url || "",
+      redirected: response.redirected === true,
+      message: String(err?.message || err)
+    });
+    throw new AppError("Shop sign-in verification returned an invalid response.", 502);
+  }
+
   let result;
   try {
-    result = await response.json();
+    result = JSON.parse(responseText);
   } catch (err) {
-    console.error("Shop identity verification returned invalid JSON:", err);
+    const safeSnippet = responseText.slice(0, 200)
+      .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, "[email]")
+      .replace(/(Bearer\s+)[A-Za-z0-9._~-]+/gi, "$1[redacted]")
+      .replace(/(sessionToken["'\s:=]+)[^"'\s,}]+/gi, "$1[redacted]");
+    console.error("Shop identity verification returned invalid JSON:", {
+      status: response.status,
+      contentType: response.headers.get("content-type") || "",
+      url: response.url || "",
+      redirected: response.redirected === true,
+      bodySnippet: safeSnippet,
+      message: String(err?.message || err)
+    });
     throw new AppError("Shop sign-in verification returned an invalid response.", 502);
   }
 
