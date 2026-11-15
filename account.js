@@ -113,7 +113,6 @@
       document.addEventListener("DOMContentLoaded", startShopLoginPreload, { once: true });
       return;
     }
-    if (state.shopHost) return;
     if (!state.shopModulePreload && document.head) {
       const sdkUrl = "https://cdn.shopify.com/shopifycloud/shop-js/modules/v2/loader.sdk.esm.js";
       state.shopModulePreload = document.querySelector('link[rel="modulepreload"][href="' + sdkUrl + '"]');
@@ -126,16 +125,8 @@
         state.shopModulePreload = hint;
       }
     }
-    const host = document.createElement("div");
-    host.dataset.vnShopHost = "true";
-    host.style.cssText = "position:fixed;left:0;top:0;width:320px;height:54px;z-index:10002;overflow:visible;opacity:0;pointer-events:none;";
-    host.setAttribute("aria-hidden", "true");
-    host.inert = true;
-    document.body.appendChild(host);
-    state.shopHost = host;
-    window.addEventListener("resize", positionShopHost, { passive: true });
-    document.addEventListener("scroll", positionShopHost, { capture: true, passive: true });
-    ensureShopLogin();
+    // The Shop SDK element is mounted directly into its real account-panel slot.
+
   }
   startShopLoginPreload();
 
@@ -1622,7 +1613,9 @@
       }
     }
 
-    if (state.shopHost) state.shopHost.replaceChildren();
+    const slot = document.querySelector("#vnAcShopLoginMount");
+    if (slot) slot.replaceChildren();
+    state.shopHost = null;
     state.shopStatus = "idle";
   }
 
@@ -1994,82 +1987,38 @@
   }
 
   function ensureShopLogin() {
-    const host=state.shopHost;
-    if(!host||state.shopStatus==="loading"||state.shopStatus==="ready")return;
-    state.shopStatus="loading"; const gen=state.shopGen; clearTimeout(state.shopTimer);
-    state.shopTimer=window.setTimeout(()=>{if(gen===state.shopGen&&state.shopStatus==="loading")setShopError("Shop login element did not finish initializing within 8s");},8000);
-    createShopLogin(host,gen).catch(error=>{if(gen===state.shopGen)setShopError(error);});
-  }
-
-  let shopTrackRaf = 0;
-  let shopPosKey = "";
-
-  function hideShopHost(host) {
-    if (shopPosKey === "hidden") return;
-    shopPosKey = "hidden";
-    host.style.opacity = "0";
-    host.style.pointerEvents = "none";
-    host.setAttribute("aria-hidden", "true");
-    host.inert = true;
-  }
-
-  // Keep the Shopify host under body permanently. Moving its iframe can restart
-  // the embedded login UI, so only its fixed viewport position may change.
-  function positionShopHost() {
-    const host = state.shopHost;
-    if (!host) return;
-    const root = document.querySelector("#vnAccountOverlay");
     const slot = document.querySelector("#vnAcShopLoginMount");
-    const shell = root?.querySelector(".vn-ac-shell");
-    const policyOpen = Boolean(root?.querySelector(".vn-ac-policy-overlay:not([hidden])"));
-    const show = Boolean(
-      root && !root.hidden && !state.user && state.screen === "email" &&
-      slot && shell && !policyOpen && state.shopStatus === "ready"
-    );
-
-    if (!show) { hideShopHost(host); return; }
-
-    const r = slot.getBoundingClientRect();
-    const bounds = shell.getBoundingClientRect();
-    const clip = [
-      Math.max(0, bounds.top - r.top),
-      Math.max(0, r.right - bounds.right),
-      Math.max(0, r.bottom - bounds.bottom),
-      Math.max(0, bounds.left - r.left)
-    ];
-    const key = [r.left, r.top, r.width, ...clip].map(v => Math.round(v * 10)).join("|");
-    if (key === shopPosKey) return;
-    shopPosKey = key;
-
-    Object.assign(host.style, {
-      position: "fixed",
-      left: r.left + "px",
-      top: r.top + "px",
-      width: r.width + "px",
-      height: "54px",
-      zIndex: "10002",
-      opacity: "1",
-      pointerEvents: "auto",
-      clipPath: `inset(${clip[0]}px ${clip[1]}px ${clip[2]}px ${clip[3]}px)`
+    if (!slot || state.user || state.screen !== "email") return;
+    state.shopHost = slot;
+    if (state.shopStatus === "ready" && state.shopLoginInstance?.element) {
+      if (state.shopLoginInstance.element.parentNode !== slot) {
+        slot.replaceChildren(state.shopLoginInstance.element);
+      }
+      return;
+    }
+    if (state.shopStatus === "loading") return;
+    state.shopStatus = "loading";
+    const gen = state.shopGen;
+    clearTimeout(state.shopTimer);
+    state.shopTimer = window.setTimeout(() => {
+      if (gen === state.shopGen && state.shopStatus === "loading") {
+        setShopError("Shop login element did not finish initializing within 8s");
+      }
+    }, 8000);
+    createShopLogin(slot, gen).catch(error => {
+      if (gen === state.shopGen) setShopError(error);
     });
-    host.removeAttribute("aria-hidden");
-    host.inert = false;
+  }
+
+  function positionShopHost() {
+    // Native Shop SDK element stays in the account panel's own mount point.
   }
 
   function startShopTracking() {
-    if (shopTrackRaf) return;
-    const tick = () => {
-      shopTrackRaf = 0;
-      positionShopHost();
-      const root = document.querySelector("#vnAccountOverlay");
-      if (root && !root.hidden && !state.user && state.screen === "email") {
-        shopTrackRaf = requestAnimationFrame(tick);
-      }
-    };
-    shopTrackRaf = requestAnimationFrame(tick);
+    // No floating overlay, iframe relocation, or viewport-position tracking.
   }
 
-  async function createShopLogin(host,gen) {
+  async function createShopLogin(slot,gen) {
     const sdk=await loadShopSdk(); if(gen!==state.shopGen)return;
     const login=await sdk.create("login",{
       attributes:{buttonType:"continue",buttonLayout:"standalone",scope:"shop_app:oauth",storefrontOrigin:window.location.origin,uxMode:"windoid"},
@@ -2143,17 +2092,14 @@
     login.element.style.cssText="display:block;position:relative;width:100%;height:54px;max-width:100%;opacity:1;pointer-events:auto;visibility:visible;";
     login.element.classList.add("vn-ac-shop-login-element");
     login.element.removeAttribute("aria-hidden");
-    host.style.isolation="isolate";
-    host.replaceChildren(login.element);
+    slot.replaceChildren(login.element);
     console.info("[VN SHOP DIAG] Login instance created", {
       hasElement: Boolean(login?.element),
       elementTagName: login?.element?.tagName || null,
       elementConnectedBeforeMount: Boolean(login?.element?.isConnected)
     });
     state.shopLoginInstance=login;clearTimeout(state.shopTimer);state.shopTimer=null;state.shopStatus="ready";
-    positionShopHost();
     syncShopRecognition();
-    startShopTracking();
   }
 
 
