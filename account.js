@@ -306,6 +306,7 @@
     };
     state.email = identity.email;
     state.screen = "account";
+    updateAccountAvatar();
 
     try {
       await loadAccountData();
@@ -319,6 +320,7 @@
         try { sessionStorage.removeItem(ACCOUNT_IDENTITY_KEY); } catch (_) {}
       }
       console.warn("[VN ACCOUNT] Could not restore the saved VN Account session:", error);
+      updateAccountAvatar();
       return false;
     }
   }
@@ -1679,6 +1681,7 @@
       state.authProvider = "";
       state.user = null;
       console.warn("[VN ACCOUNT] Saved Shop session could not be restored:", error);
+      updateAccountAvatar();
       return false;
     }
   }
@@ -1711,6 +1714,9 @@
       } catch (_) {}
 
       applyShopUser(verified.user);
+      // Show the authenticated account shell immediately; hydrate saved profile
+      // and dashboard data in place instead of leaving the sign-in panel visible.
+      render();
       await loadAccountData();
     } catch (error) {
       console.error("[VN ACCOUNT] Shop popup authentication failed:", error);
@@ -1731,10 +1737,18 @@
       return;
     }
 
+    const width = 520;
+    const height = 720;
+    const screenLeft = Number(window.screenX ?? window.screenLeft ?? 0);
+    const screenTop = Number(window.screenY ?? window.screenTop ?? 0);
+    const windowWidth = Number(window.outerWidth || window.screen?.availWidth || width);
+    const windowHeight = Number(window.outerHeight || window.screen?.availHeight || height);
+    const left = Math.max(0, Math.round(screenLeft + (windowWidth - width) / 2));
+    const top = Math.max(0, Math.round(screenTop + (windowHeight - height) / 2));
     const popup = window.open(
       loginUrl,
       "vnShopAuthPopup",
-      "popup=yes,width=520,height=720,resizable=yes,scrollbars=yes"
+      "popup=yes,width=" + width + ",height=" + height + ",left=" + left + ",top=" + top + ",resizable=yes,scrollbars=yes"
     );
 
     if (!popup) {
@@ -2115,21 +2129,13 @@
       }
     });
     if(gen!==state.shopGen){try{login.destroy();}catch(_){}return;}
-    // Keep the SDK active for recognition, but render a stable Shop-purple CTA
-    // because the SDK changes its internal button appearance after email matching.
-    login.element.style.cssText="display:block;position:absolute;inset:0;width:100%;height:54px;max-width:100%;opacity:0;pointer-events:none;visibility:visible;";
+    // Mount Shopify's original login element as the visible, interactive CTA.
+    // Keep the SDK element intact so its own recognition and authentication flow run.
+    login.element.style.cssText="display:block;position:relative;width:100%;height:54px;max-width:100%;opacity:1;pointer-events:auto;visibility:visible;";
     login.element.classList.add("vn-ac-shop-login-element");
-    login.element.setAttribute("aria-hidden","true");
-    const shopButton=document.createElement("button");
-    shopButton.type="button";
-    shopButton.setAttribute("aria-label","Continue with Shop");
-    shopButton.textContent="Continue with Shop";
-    shopButton.style.cssText="position:absolute;inset:0;z-index:2;width:100%;height:54px;border:1px solid rgba(255,255,255,.5);border-radius:4px;padding:0 20px;background:#5433EB;color:#fff;font:600 15px/1.2 Arial,sans-serif;cursor:pointer;transition:background .18s ease,transform .18s ease,box-shadow .18s ease;";
-    shopButton.addEventListener("mouseenter",()=>{shopButton.style.background="#4526D9";});
-    shopButton.addEventListener("mouseleave",()=>{shopButton.style.background="#5433EB";});
-    shopButton.addEventListener("click",startShopPopup);
+    login.element.removeAttribute("aria-hidden");
     host.style.isolation="isolate";
-    host.replaceChildren(login.element,shopButton);
+    host.replaceChildren(login.element);
     console.info("[VN SHOP DIAG] Login instance created", {
       hasElement: Boolean(login?.element),
       elementTagName: login?.element?.tagName || null,
@@ -2654,11 +2660,22 @@
   function updateAccountAvatar() {
     const button = document.querySelector("#profile-open");
     if (!button) return;
-    const name = [state.profile.first_name, state.profile.last_name].filter(Boolean).join(" ").trim();
-    const initialSource = name || state.user?.email || "";
-    if (state.user && initialSource) {
+    let cachedIdentity = null;
+    if (!state.user) {
+      try {
+        if (readWorkerSessionToken()) {
+          cachedIdentity = JSON.parse(sessionStorage.getItem(ACCOUNT_IDENTITY_KEY) || "null");
+        }
+      } catch (_) {}
+    }
+    const firstName = state.profile.first_name || cachedIdentity?.firstName || "";
+    const lastName = state.profile.last_name || cachedIdentity?.lastName || "";
+    const name = [firstName, lastName].filter(Boolean).join(" ").trim();
+    const email = state.user?.email || cachedIdentity?.email || "";
+    const initialSource = name || email;
+    if ((state.user || (cachedIdentity?.id && email)) && initialSource) {
       button.textContent = initialSource.trim().charAt(0).toLocaleUpperCase();
-      button.setAttribute("aria-label", name || state.user.email || "Account");
+      button.setAttribute("aria-label", name || email || "Account");
       button.classList.add("vn-ac-avatar-initial");
     } else {
       button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/></svg>';
@@ -3170,7 +3187,9 @@
     state.shopSessionToken = ""; state.clerk = null; state.clerkUser = null;
     state.authProvider = ""; state.user = null; state.email = "";
     state.profile = {}; state.addresses = []; state.orders = []; state.returns = []; state.issues = [];
-    state.screen = "email"; state.section = "dashboard"; closePanel();
+    state.screen = "email"; state.section = "dashboard";
+    updateAccountAvatar();
+    closePanel();
   }
 
 
@@ -3722,6 +3741,7 @@
   const openProfileHash = window.location.hash === "#profile";
   const signOutFromHash = window.location.hash === "#signout";
 
+  updateAccountAvatar();
   configPromise = loadConfig();
   configPromise.then(() => {
     if (state.user) render();
