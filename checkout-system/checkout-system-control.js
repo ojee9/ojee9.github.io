@@ -698,7 +698,7 @@ document.getElementById("pay-now").addEventListener("click",async()=>{
   const order=result.order||result.admin_order||result;
   if(!order||!(order.id||order.order_id||order.orderNumber||order.order_number))throw new Error("The order service did not return a confirmed order reference. Please contact support before retrying.");
   const confirmedPaymentStatus=String(order.paymentStatus||order.payment_status||"").toLowerCase();
-  if(confirmedPaymentStatus!=="paid")throw new Error("The order was not confirmed as paid. The completion screen and receipt have not been opened.");
+  if(!isAdminOrder&&confirmedPaymentStatus!=="paid")throw new Error("The order was not confirmed as paid. The completion screen and receipt have not been opened.");
   const receiptRecord={...payload,...order,customer:order.customer||customer,items:Array.isArray(order.items)?order.items:items,isAdminOrder,adminOrder:isAdminOrder,createdAt:order.createdAt||order.created_at||new Date().toISOString(),paymentStatus:order.paymentStatus||order.payment_status};
   sessionStorage.setItem("vn-shop-order-complete",JSON.stringify(receiptRecord));
   sessionStorage.setItem("vn-shop-checkout-cart",JSON.stringify(items));
