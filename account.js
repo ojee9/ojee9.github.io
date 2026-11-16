@@ -2026,8 +2026,14 @@
     const loginCreateStartedAt = performance.now();
     const sdk=await loadShopSdk(); if(gen!==state.shopGen)return;
     const login=await sdk.create("login",{
+      id:"vn-shop-account-login",
       attributes:{buttonType:"continue",buttonLayout:"standalone",scope:"shop_app:oauth",storefrontOrigin:window.location.origin,uxMode:"windoid"},
       appearance:{preferredLoginExperience:"popup"},
+      onBeforeAuthenticate:()=>{
+        try{
+          sessionStorage.setItem("vn_shop_return_path",window.location.pathname+window.location.search+window.location.hash);
+        }catch(_){}
+      },
       onLoad:event=>{
         console.info(
           "[VN SHOP DIAG] Login onLoad values",
@@ -2079,6 +2085,26 @@
           const exchanged=await shopWorkerRequest({action:"exchange",consentToken:shopConsentToken});
           if(!exchanged.authenticated||!exchanged.sessionToken)throw new Error("Shop authorization could not be connected to VN SHOP.");
           state.busy=false;await acceptShopSession(exchanged.sessionToken);
+          const redirectParams=new URLSearchParams(window.location.search);
+          if(redirectParams.has("code")&&redirectParams.has("iss")){
+            let returnPath="";
+            try{
+              returnPath=sessionStorage.getItem("vn_shop_return_path")||"";
+              sessionStorage.removeItem("vn_shop_return_path");
+            }catch(_){}
+            const target=returnPath?new URL(returnPath,window.location.origin):null;
+            if(target&&target.origin===window.location.origin){
+              if(target.pathname!==window.location.pathname){
+                closePanel();
+                window.location.replace(target.href);
+                return;
+              }
+              history.replaceState(null,"",target.pathname+target.search+target.hash);
+            }else{
+              history.replaceState(null,"",window.location.pathname);
+            }
+            closePanel();
+          }
         }catch(error){
           state.busy=false;state.messageType="error";state.message=error.message||"Could not connect your Shop account. Please try email sign-in instead.";
           state.screen="email";render();
@@ -3768,6 +3794,12 @@
         window.setTimeout(() => openPanel(), 350);
       });
     });
+  } else if (
+    new URLSearchParams(window.location.search).has("code") &&
+    new URLSearchParams(window.location.search).has("iss")
+  ) {
+    // Recreate the same Shop login instance so the SDK can resume redirect completion.
+    window.setTimeout(() => openPanel(), 0);
   } else if (new URLSearchParams(window.location.search).get("account") === "register") {
     window.setTimeout(() => openPanel(), 0);
   }
