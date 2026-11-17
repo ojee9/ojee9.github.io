@@ -505,7 +505,7 @@
       .vn-ac-signin-heading h1{margin:0;font-size:32px;font-weight:700;line-height:1.2;letter-spacing:-.7px;color:#f5f5f5}
       .vn-ac-signin-heading p{margin:9px 0 0;font-size:15px;line-height:1.5;color:#a9a5ad}
       .vn-ac-email-main{display:flex;flex-direction:column;align-items:stretch;width:100%;max-width:480px;margin-inline:auto;transform:translateY(0);transition:transform .52s cubic-bezier(.22,1,.36,1)}
-      .vn-ac-email-main.is-shop-recognized{transform:translateY(-51px)}
+      .vn-ac-email-main.is-shop-recognized{transform:translateY(-54px)}
       .vn-ac-email-main .vn-ac-or-divider,.vn-ac-email-main .vn-ac-email-form-wrap{display:flex;transition:max-height .52s cubic-bezier(.22,1,.36,1),opacity .34s ease,transform .52s cubic-bezier(.22,1,.36,1),margin .52s cubic-bezier(.22,1,.36,1)}
       .vn-ac-email-main .vn-ac-or-divider{max-height:30px;opacity:1;overflow:hidden}
       .vn-ac-email-main .vn-ac-email-form-wrap{max-height:260px;opacity:1;overflow:hidden;transform:translateY(0) scale(1);transform-origin:top center}
@@ -2027,7 +2027,8 @@
     const sdk=await loadShopSdk(); if(gen!==state.shopGen)return;
     const login=await sdk.create("login",{
       id:"vn-shop-account-login",
-      attributes:{buttonType:"continue",buttonLayout:"standalone",scope:"shop_app:oauth",storefrontOrigin:window.location.origin,returnTo:"same-page",uxMode:"windoid"},
+      returnTo:"same-page",
+      attributes:{buttonType:"continue",buttonLayout:"standalone",scope:"shop_app:oauth",storefrontOrigin:window.location.origin,uxMode:"windoid"},
       appearance:{preferredLoginExperience:"popup"},
       onBeforeAuthenticate:()=>{
         try{
@@ -2080,11 +2081,11 @@
         if(event?.signedIn!==true||!shopConsentToken){
           state.messageType="error";state.message="Shop did not return the authorization needed to create your VN SHOP session. Please try again or continue with email.";render();return;
         }
-        state.busy=true;state.messageType="info";state.message="Connecting your Shop account to VN SHOP…";render();
         try{
           const exchanged=await shopWorkerRequest({action:"exchange",consentToken:shopConsentToken});
           if(!exchanged.authenticated||!exchanged.sessionToken)throw new Error("Shop authorization could not be connected to VN SHOP.");
-          state.busy=false;await acceptShopSession(exchanged.sessionToken);
+          await acceptShopSession(exchanged.sessionToken);
+          if(!state.user)return;
           const redirectParams=new URLSearchParams(window.location.search);
           if(redirectParams.has("code")&&redirectParams.has("iss")){
             let returnPath="";
