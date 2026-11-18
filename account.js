@@ -2027,7 +2027,7 @@
     const sdk=await loadShopSdk(); if(gen!==state.shopGen)return;
     const login=await sdk.create("login",{
       id:"vn-shop-account-login",
-      attributes:{clientId:SHOP_CLIENT_ID,buttonType:"continue",buttonLayout:"standalone",scope:"shop_app:oauth",storefrontOrigin:window.location.origin,uxMode:"windoid"},
+      attributes:{clientId:SHOP_CLIENT_ID,buttonType:"continue",buttonLayout:"standalone",scope:"shop_app:oauth",storefrontOrigin:window.location.origin,uxMode:"windoid",returnTo:"same-page"},
       appearance:{preferredLoginExperience:"popup"},
       onBeforeAuthenticate:()=>{
         try{
