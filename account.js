@@ -2128,6 +2128,16 @@
       if(gen===state.shopGen){state.shopStatus="idle";state.shopHost=null;}
       return;
     }
+    // Keep Shopify's native button appearance, but route its click through the
+    // existing VN Worker OIDC + PKCE flow. The Shop SDK login redirect flow is
+    // not supported on this GitHub Pages headless storefront.
+    login.element.addEventListener("click",event=>{
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+      startShopPopup();
+    },true);
+
     // Mount Shopify's original login element into the current live panel slot.
     // A panel rerender may have replaced the slot while the SDK was initializing.
     login.element.style.cssText="display:block;position:relative;width:100%;height:54px;max-width:100%;opacity:1;pointer-events:auto;visibility:visible;";
