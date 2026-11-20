@@ -1432,9 +1432,9 @@ async function createAdminCustomerOrder(db,userId,body,requestKey=null) {
       id,user_id,order_number,vn_code,created_at,updated_at,customer_json,subtotal,shipping,taxes,total,currency,country_code,
       order_status,payment_status,delivered_at,shipping_method,payment_method,order_json,is_admin_order,
       admin_payment_exempt,admin_stock_exempt,payment_number,created_by_admin,payment_source,request_key
-    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,'Received','Paid',NULL,?,?,?,0,1,0,?,1,'admin_offline',?)`)
+    ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,'Received','Paid',NULL,?,?,?,0,1,1,?,1,'admin_offline',?)`)
       .bind(id,userId,orderNumber,vnCode,timestamp,timestamp,JSON.stringify(order.customer),order.subtotal,order.shipping,order.taxes,
-        order.total,order.currency,order.countryCode,order.shippingMethod,"Admin offline settlement",JSON.stringify(orderObject),paymentNumber,requestKey),
+        order.total,order.currency,order.countryCode,order.shippingMethod,order.paymentMethod||"Admin offline settlement",JSON.stringify(orderObject),paymentNumber,requestKey),
     ...order.items.map(item=>db.prepare(`INSERT INTO customer_order_items
       (id,order_id,product_id,title,variant,quantity,unit_price,total_price,image,item_json,active)
       VALUES (?,?,?,?,?,?,?,?,?,?,1)`)
@@ -1472,9 +1472,10 @@ function serializeCreatedAdminCustomerOrder(row) {
     Boolean(row.created_by_admin)&&row.payment_source==="admin_offline"&&row.payment_status==="Paid",order:data};
 }
 
-async function deleteAdminCreatedCustomerOrder(db,orderId) {
-  const row=await db.prepare(`SELECT id,created_by_admin,payment_source,payment_status FROM customer_orders WHERE id=? LIMIT 1`).bind(orderId).first();
+async function deleteAdminCreatedCustomerOrder(db,orderId,actorId=null) {
+  const row=await db.prepare(`SELECT id,user_id,created_by_admin,payment_source,payment_status FROM customer_orders WHERE id=? LIMIT 1`).bind(orderId).first();
   if(!row) return false;
+  if(actorId&&row.user_id!==actorId) throw new AppError("You can only remove orders created by your own administrator account.",403);
   if(Number(row.created_by_admin)!==1||row.payment_source!=="admin_offline"||row.payment_status!=="Paid")
     throw new AppError("Only admin-created offline-paid customer orders can be removed this way.",403);
   await db.batch([
@@ -1493,19 +1494,24 @@ async function deleteAdminCreatedCustomerOrder(db,orderId) {
   return true;
 }
 
-async function deleteAdminOrder(db,orderId) {
-  const queued=await db.prepare(`SELECT id,payment_source FROM admin_order_queue WHERE id=? LIMIT 1`).bind(orderId).first();
-  if(queued) return await deleteQueuedAdminOrder(db,orderId);
-  const final=await db.prepare(`SELECT id,payment_source,payment_status FROM admin_orders WHERE id=? LIMIT 1`).bind(orderId).first();
+async function deleteAdminOrder(db,orderId,actorId=null) {
+  const queued=await db.prepare(`SELECT id,user_id,payment_source FROM admin_order_queue WHERE id=? LIMIT 1`).bind(orderId).first();
+  if(queued) {
+    if(actorId&&queued.user_id!==actorId) throw new AppError("You can only remove orders created by your own administrator account.",403);
+    return await deleteQueuedAdminOrder(db,orderId);
+  }
+  const final=await db.prepare(`SELECT id,user_id,payment_source,payment_status FROM admin_orders WHERE id=? LIMIT 1`).bind(orderId).first();
   if(!final) return false;
+  if(actorId&&final.user_id!==actorId) throw new AppError("You can only remove orders created by your own administrator account.",403);
   if(final.payment_source!=="admin_offline"||final.payment_status!=="Paid")
     throw new AppError("Provider-paid admin orders must follow the payment provider cancellation and refund policy.",409);
   await db.batch([
     db.prepare(`DELETE FROM admin_order_events WHERE admin_order_id=?`).bind(orderId),
     db.prepare(`DELETE FROM payment_reference_registry WHERE order_id=?`).bind(orderId),
+    db.prepare(`DELETE FROM admin_order_number_registry WHERE admin_order_id=?`).bind(orderId),
+    db.prepare(`DELETE FROM admin_order_code_registry WHERE admin_order_id=?`).bind(orderId),
     db.prepare(`DELETE FROM admin_orders WHERE id=? AND payment_source='admin_offline' AND payment_status='Paid'`).bind(orderId)
   ]);
-  // Delivered identifiers remain permanently allocated even if the order record is removed.
   return true;
 }
 
@@ -1534,7 +1540,7 @@ async function prepareAdminOrder(db, userId, body, requestKey = null) {
     ) VALUES (?,?,?,?,?,?,'received',?,?,?,?,?,?,?,?,?,?,'Paid',?,?,?,'admin_offline')`).bind(
       id,userId,identifiers.orderNumber,identifiers.vnCode,timestamp,timestamp,JSON.stringify(order.customer),
       JSON.stringify(serialized.items),order.subtotal,order.shipping,order.taxes,order.total,order.currency,order.countryCode,
-      order.shippingMethod,"Admin offline settlement",paymentNumber,JSON.stringify(queueOrder),requestKey
+      order.shippingMethod,order.paymentMethod||"Admin offline settlement",paymentNumber,JSON.stringify(queueOrder),requestKey
     ).run();
     const saved=requestKey
       ? await db.prepare(`SELECT * FROM admin_order_queue WHERE user_id=? AND request_key=? LIMIT 1`).bind(userId,requestKey).first()
@@ -1685,7 +1691,7 @@ async function listOrders(db,userId,admin,includeActor=false) {
     for(const item of itemsResult.results||[]){if(!itemMap.has(item.order_id))itemMap.set(item.order_id,[]);itemMap.get(item.order_id).push({id:item.id,productId:item.product_id,title:item.title,variant:item.variant,quantity:item.quantity,unitPrice:item.unit_price,totalPrice:item.total_price,image:item.image,...parseJSON(item.item_json,{})});}
     for(const event of eventsResult.results||[]){if(!eventMap.has(event.order_id))eventMap.set(event.order_id,[]);const clean={from_status:event.from_status,to_status:event.to_status,reason:event.reason,created_at:event.created_at};if(includeActor)clean.actor_id=event.actor_id;eventMap.get(event.order_id).push(clean);}
   }
-  return orders.map(o=>({id:o.id,orderNumber:o.order_number,vnCode:o.vn_code,createdAt:o.created_at,updatedAt:o.updated_at,deliveredAt:o.delivered_at||null,customer:parseJSON(o.customer_json,{}),items:itemMap.get(o.id)||[],subtotal:o.subtotal,shipping:o.shipping,taxes:o.taxes,total:o.total,currency:o.currency,countryCode:o.country_code,orderStatus:o.order_status,status:o.order_status,paymentStatus:o.payment_status,paymentNumber:o.payment_number||null,paymentSource:o.payment_source||null,createdByAdmin:Boolean(o.created_by_admin),adminRemovable:Number(o.created_by_admin)===1&&o.payment_source==="admin_offline"&&o.payment_status==="Paid",shippingMethod:o.shipping_method,paymentMethod:o.payment_method,events:eventMap.get(o.id)||[]}));
+  return orders.map(o=>({id:o.id,userId:o.user_id,orderNumber:o.order_number,vnCode:o.vn_code,createdAt:o.created_at,updatedAt:o.updated_at,deliveredAt:o.delivered_at||null,customer:parseJSON(o.customer_json,{}),items:itemMap.get(o.id)||[],subtotal:o.subtotal,shipping:o.shipping,taxes:o.taxes,total:o.total,currency:o.currency,countryCode:o.country_code,orderStatus:o.order_status,status:o.order_status,paymentStatus:o.payment_status,paymentNumber:o.payment_number||null,paymentSource:o.payment_source||null,createdByAdmin:Boolean(o.created_by_admin),adminRemovable:Number(o.created_by_admin)===1&&o.payment_source==="admin_offline"&&o.payment_status==="Paid",shippingMethod:o.shipping_method,paymentMethod:o.payment_method,events:eventMap.get(o.id)||[]}));
 }
 
 async function getOrderForUser(db, userId, orderId) {
@@ -1968,14 +1974,22 @@ async function authenticateOperationSession(request, db) {
   return { id:row.id, actorId:row.actor_id || "legacy-operator" };
 }
 
-async function listOperationOrders(db) {
+async function authenticateOperationsActor(request, db, env) {
+  const operatorSession=await authenticateOperationSession(request,db);
+  if(operatorSession) return operatorSession;
+  const accountSession=await authenticateWorkerSession(request,db);
+  if(!accountSession?.sub || !(await isAdmin(env,accountSession.sub))) return null;
+  return {id:accountSession.sub,actorId:accountSession.sub,accountAdmin:true};
+}
+
+async function listOperationOrders(db,actorId=null) {
   const orders=await listOrders(db,null,true,true);
-  return orders.map(order=>({ ...order, order_number:order.orderNumber, vn_code:order.vnCode, order_status:order.orderStatus,
+  return orders.map(order=>({ ...order, adminRemovable:order.adminRemovable&&(!actorId||order.userId===actorId), order_number:order.orderNumber, vn_code:order.vnCode, order_status:order.orderStatus,
     customer_email:order.customer?.email||"", first_name:order.customer?.firstName||order.customer?.first_name||"",
     last_name:order.customer?.lastName||order.customer?.last_name||"" }));
 }
 
-async function listOperationAdminOrders(db) {
+async function listOperationAdminOrders(db,actorId=null) {
   const queued = await db.prepare(`SELECT * FROM admin_order_queue ORDER BY created_at DESC`).all();
   const finalRows = await db.prepare(`SELECT * FROM admin_orders ORDER BY delivered_at DESC`).all();
   const rows = (queued.results || []).map(row => ({
@@ -1986,11 +2000,11 @@ async function listOperationAdminOrders(db) {
     subtotal: row.subtotal, shipping: row.shipping, taxes: row.taxes, total: row.total,
     currency: row.currency, shippingMethod: row.shipping_method, paymentMethod: row.payment_method,
     paymentStatus: row.payment_status, paymentNumber: row.payment_number, paymentSource: row.payment_source || "admin_offline",
-    isQueue: true
+    isQueue: true, adminRemovable:!actorId||row.user_id===actorId
   }));
   for (const row of finalRows.results || []) {
     const serialized = await serializeAdminOrder(row);
-    rows.push({ ...serialized, order_number: row.order_number, vn_code: row.vn_code, created_at: row.created_at, isQueue: false });
+    rows.push({ ...serialized, order_number: row.order_number, vn_code: row.vn_code, created_at: row.created_at, isQueue: false, adminRemovable:!actorId||row.user_id===actorId });
   }
   return rows;
 }
@@ -2219,14 +2233,14 @@ async function handleRequest(request, env) {
   }
 
   if (path.startsWith("/api/operations/") && path !== "/api/operations/auth") {
-    const operationSession=await authenticateOperationSession(request,env.DB);
-    if (!operationSession) return error("Operations session required.", 401);
+    const operationSession=await authenticateOperationsActor(request,env.DB,env);
+    if (!operationSession) return error("Administrator account or operations session required.", 401);
     const operationActor=operationSession.actorId;
-    if (path === "/api/operations/orders" && method === "GET") return json({ success: true, orders: await listOperationOrders(env.DB) });
-    if (path === "/api/operations/admin-orders" && method === "GET") return json({ success: true, orders: await listOperationAdminOrders(env.DB) });
+    if (path === "/api/operations/orders" && method === "GET") return json({ success: true, orders: await listOperationOrders(env.DB,operationSession.accountAdmin?operationActor:null) });
+    if (path === "/api/operations/admin-orders" && method === "GET") return json({ success: true, orders: await listOperationAdminOrders(env.DB,operationSession.accountAdmin?operationActor:null) });
     if (segments[2] === "orders" && segments[3] && segments.length === 4 && method === "DELETE") {
       try {
-        const deleted=await deleteAdminCreatedCustomerOrder(env.DB,segments[3]);
+        const deleted=await deleteAdminCreatedCustomerOrder(env.DB,segments[3],operationSession.accountAdmin?operationActor:null);
         return deleted ? json({success:true}) : error("Admin-created customer order not found.",404);
       } catch(err) {
         if(err instanceof AppError) return error(err.message,err.status);
@@ -2235,7 +2249,7 @@ async function handleRequest(request, env) {
     }
     if (segments[2] === "admin-orders" && segments[3] && segments.length === 4 && method === "DELETE") {
       try {
-        const deleted=await deleteAdminOrder(env.DB,segments[3]);
+        const deleted=await deleteAdminOrder(env.DB,segments[3],operationSession.accountAdmin?operationActor:null);
         return deleted ? json({success:true}) : error("Admin order not found.",404);
       } catch(err) {
         if(err instanceof AppError) return error(err.message,err.status);
