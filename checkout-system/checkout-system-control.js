@@ -145,6 +145,8 @@ const loadCheckoutAccount=async()=>{
   checkoutIsAdmin=result.is_admin===true||result.isAdmin===true;
   const adminOrderSwitch=document.getElementById("admin-order-type-switch");
   if(adminOrderSwitch)adminOrderSwitch.hidden=!checkoutIsAdmin;
+  const adminNoPaymentOption=document.querySelector("[data-admin-payment-option]");
+  if(adminNoPaymentOption)adminNoPaymentOption.hidden=!checkoutIsAdmin;
   checkoutAccountProfile=result.profile||{};
   checkoutSavedAddresses=Array.isArray(result.addresses)?result.addresses:[];
   if(checkoutSignInLink)checkoutSignInLink.hidden=true;
@@ -170,6 +172,8 @@ const loadCheckoutAccount=async()=>{
   checkoutAccountLoaded=!checkoutAccountToken;
   const adminOrderSwitch=document.getElementById("admin-order-type-switch");
   if(adminOrderSwitch)adminOrderSwitch.hidden=true;
+  const adminNoPaymentOption=document.querySelector("[data-admin-payment-option]");
+  if(adminNoPaymentOption)adminNoPaymentOption.hidden=true;
   shopSaveSection.hidden=true;
   savedAddressPanel.hidden=true;
   const hasLiveSession=Boolean(checkoutAccountToken||sessionStorage.getItem("vn_shop_session"));
@@ -681,8 +685,8 @@ document.getElementById("pay-now").addEventListener("click",async()=>{
   const selectedShipping=document.querySelector('input[name="shipping-method"]:checked');
   const selectedPayment=document.querySelector('input[name="payment-method"]:checked');
   if(!selectedShipping)throw new Error("Select a shipping method before placing your order.");
-  if(!selectedPayment)throw new Error("Select a payment method before continuing.");
-  const paymentLabels={card:"Credit card",apple:"Apple Pay",paypal:"PayPal",later:"Pay over time"};
+  if(!selectedPayment&&!checkoutIsAdmin)throw new Error("Select a payment method before continuing.");
+  const paymentLabels={card:"Credit card",apple:"Apple Pay",paypal:"PayPal",later:"Pay over time","admin-offline":"Admin offline settlement"};
   const customer={firstName:information.firstName||"",lastName:information.lastName||"",email:information.email||"",phone:[dial(),information.phone].filter(Boolean).join(" "),address:[information.address,information.apartment,information.city,information.state,information.postal,information.country].filter(Boolean).join(", ")};
   await persistCheckoutAccountData(information);
   const payload={customer,items,subtotal:checkoutAmounts.subtotalTRY,shipping:checkoutAmounts.shippingPaymentTRY,taxes:checkoutAmounts.taxesTRY,total:checkoutAmounts.totalTRY,currency:"TRY",countryCode:"TR",originalSubtotalUSD:checkoutAmounts.subtotalUSD,originalShippingUSD:checkoutAmounts.shippingUSD,originalTaxesUSD:checkoutAmounts.taxesUSD,exchangeRateProvider:checkoutAmounts.fxProvider,exchangeRateTRYPerUSD:checkoutAmounts.fxRate,exchangeRateUpdatedAt:new Date(checkoutAmounts.fxUpdatedAt).toISOString(),shippingMethod:selectedShipping.value==="standard"?"Standard Shipping":selectedShipping.value,paymentMethod:"Admin offline settlement",orderType:isAdminOrder?"admin":"customer",status:"received"};

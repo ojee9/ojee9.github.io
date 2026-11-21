@@ -61,7 +61,7 @@ function orderCard(o,internal=false){
  const lines=(o.items||[]).map(x=>escape(x.name||x.product_name||x.title||x.product?.name||x.product?.title||"Product") +" × "+escape(x.quantity||1)).join(" · ");
  const current=statusKey(o.status||o.order_status||"received");
  const next=internal?[]:current==="received"?["preparing"]:current==="preparing"?["on shipping"]:current==="on shipping"||current==="delivering"?["delivered"]:[];
- const removable=internal?(o.paymentSource==="admin_offline"&&String(o.paymentStatus||"").toLowerCase()==="paid"):(o.adminRemovable===true);
+ const removable=o.adminRemovable===true&&(!internal||(o.paymentSource==="admin_offline"&&String(o.paymentStatus||"").toLowerCase()==="paid"));
  const canCancel=!internal&&!removable&&["received","preparing","delivering","on shipping"].includes(current);
  const removeAction=internal?"remove-admin-order":"remove-admin-customer-order";
  const removeControl=removable?'<button type="button" class="secondary" data-action="'+removeAction+'" data-id="'+id+'" aria-label="Remove admin-created order" title="Remove order">×</button>':'';
