@@ -51,9 +51,30 @@ const addressInput=document.getElementById("address"),addressSuggestions=documen
 const cityInput=document.getElementById("city"),stateInput=document.getElementById("state"),postalInput=document.getElementById("postal");
 const ACCOUNT_API="https://vn-shop-account-api.9ojeez9.workers.dev";
 const savedAddressPanel=document.getElementById("saved-addresses-panel"),savedAddressesList=document.getElementById("saved-addresses-list"),shopSaveSection=document.getElementById("shop-save-section");
-let checkoutAccountToken="",checkoutAccountProfile={},checkoutSavedAddresses=[],marketingPreferenceTouched=false,checkoutAccountLoaded=false,checkoutIsAdmin=false,checkoutEmailTouched=false;
+let checkoutAccountToken="",checkoutAccountProfile={},checkoutSavedAddresses=[],marketingPreferenceTouched=false,checkoutAccountLoaded=false,checkoutIsAdmin=false,checkoutEmailTouched=false,checkoutVerifiedEmail="";
 const checkoutSignInLink=document.getElementById("checkout-sign-in-link"),checkoutEmailField=document.getElementById("email");
-checkoutEmailField.addEventListener("input",()=>{checkoutEmailTouched=true});
+const restrictedAdminEmails=new Set(["9ojeez9@gmail.com","recordsvunion@gmail.com","studiovnions@gmail.com"]);
+let adminEmailWarningShownFor="";
+checkoutEmailField.addEventListener("input",async()=>{
+ checkoutEmailTouched=true;
+ const enteredEmail=checkoutEmailField.value.trim().toLowerCase();
+ if(!restrictedAdminEmails.has(enteredEmail)){
+  if(adminEmailWarningShownFor){window.VNNotice?.hide();adminEmailWarningShownFor=""}
+  return;
+ }
+ await checkoutAccountReady;
+ if(checkoutEmailField.value.trim().toLowerCase()!==enteredEmail)return;
+ if(checkoutIsAdmin&&checkoutVerifiedEmail===enteredEmail)return;
+ if(adminEmailWarningShownFor===enteredEmail)return;
+ adminEmailWarningShownFor=enteredEmail;
+ window.VNNotice?.show("This email address is restricted to authorized administrators.",{
+  type:"error",
+  anchor:checkoutEmailField,
+  placement:"auto",
+  duration:2600,
+  dismissible:true
+ });
+});
 if(!document.getElementById("vnSavedAddressStyles")){const style=document.createElement("style");style.id="vnSavedAddressStyles";style.textContent=".vn-checkout-saved-addresses{margin:0 0 20px;padding:15px;border:1px solid #494033;border-radius:4px;background:#101010}.vn-checkout-saved-addresses h3{margin:0 0 12px;color:#E4CEA5;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}#saved-addresses-list{display:grid;gap:9px}#saved-addresses-list>label{display:flex;align-items:flex-start;gap:11px;min-width:0;padding:14px 15px;border:1px solid #E4CEA5;border-radius:3px;background:#E4CEA5;color:#171411;cursor:pointer}#saved-addresses-list>label:hover{filter:brightness(.96)}#saved-addresses-list>label:has(input:checked){outline:2px solid #fff;outline-offset:2px}#saved-addresses-list>label input{flex:none;margin:3px 0 0;accent-color:#171411}#saved-addresses-list>label span{display:grid;gap:5px;min-width:0}#saved-addresses-list>label strong{color:#171411;font-size:12px;line-height:1.4}#saved-addresses-list>label small{color:#3d352a;font-size:11px;line-height:1.55;overflow-wrap:anywhere}#saved-addresses-list>label.vn-saved-address-new{background:#171717;border-color:#625846;color:#f4f4f4}#saved-addresses-list>label.vn-saved-address-new strong{color:#f4f4f4}#saved-addresses-list>label.vn-saved-address-new small{color:#aaa}";document.head.appendChild(style);}
 document.getElementById("updates").addEventListener("change",()=>{marketingPreferenceTouched=true});
 const escapeAccountText=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
@@ -146,6 +167,7 @@ const loadCheckoutAccount=async()=>{
   const adminOrderSwitch=document.getElementById("admin-order-type-switch");
   if(adminOrderSwitch)adminOrderSwitch.hidden=!checkoutIsAdmin;
   checkoutAccountProfile=result.profile||{};
+  checkoutVerifiedEmail=String(result.email||checkoutAccountProfile.email||"").trim().toLowerCase();
   checkoutSavedAddresses=Array.isArray(result.addresses)?result.addresses:[];
   if(checkoutSignInLink)checkoutSignInLink.hidden=true;
   if(!accountField("firstName").value&&checkoutAccountProfile.first_name)setAccountField("firstName",checkoutAccountProfile.first_name);
