@@ -1367,7 +1367,7 @@ async function generateAdminCode(db) {
   const row = await db.prepare(`UPDATE admin_order_code_sequence SET next_number=next_number+1 WHERE id=1 RETURNING next_number-1 AS allocated`).first();
   const number = Number(row?.allocated);
   if (!Number.isSafeInteger(number) || number < 1) throw new AppError("Unable to allocate a VN-A code.",503);
-  return `VN-A${String(number).padStart(2,"0")}`;
+  return `VN-A${String(number).padStart(3,"0")}`;
 }
 
 async function generateUniqueCustomerOrderNumber(db) {
@@ -1410,7 +1410,7 @@ async function generateUniqueCustomerCode(db) {
 async function reserveAdminIdentifiers(db, orderId, createdAt=nowISO()) {
   for (let attempt=0;attempt<120;attempt++) {
     const orderNumber=randomDigits(6);
-    const codeNumber=Number(randomDigits(6));
+    const codeNumber=Number(randomDigits(3));
     if(!codeNumber) continue;
     const results=await db.batch([
       db.prepare(`INSERT OR IGNORE INTO admin_order_number_registry(order_number,admin_order_id,created_at,state) VALUES (?,?,?,'reserved')`).bind(orderNumber,orderId,createdAt),
@@ -1418,7 +1418,7 @@ async function reserveAdminIdentifiers(db, orderId, createdAt=nowISO()) {
     ]);
     const numberReserved=Boolean(results?.[0]?.meta?.changes);
     const codeReserved=Boolean(results?.[1]?.meta?.changes);
-    if(numberReserved&&codeReserved) return {orderNumber,vnCode:`VN-A${String(codeNumber).padStart(2,"0")}`,codeNumber};
+    if(numberReserved&&codeReserved) return {orderNumber,vnCode:`VN-A${String(codeNumber).padStart(3,"0")}`,codeNumber};
     await db.batch([
       db.prepare(`DELETE FROM admin_order_number_registry WHERE admin_order_id=?`).bind(orderId),
       db.prepare(`DELETE FROM admin_order_code_registry WHERE admin_order_id=?`).bind(orderId)
@@ -1447,7 +1447,7 @@ async function createAdminCustomerOrder(db,userId,body,requestKey=null) {
         admin_payment_exempt,admin_stock_exempt,payment_number,created_by_admin,payment_source,request_key
       ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,'Received','Paid',NULL,?,?,?,0,1,1,?,1,'admin_offline',?)`)
         .bind(id,userId,orderNumber,vnCode,timestamp,timestamp,JSON.stringify(order.customer),order.subtotal,order.shipping,order.taxes,
-          order.total,order.currency,order.countryCode,order.shippingMethod,order.paymentMethod||"Admin offline settlement",JSON.stringify(orderObject),paymentNumber,requestKey),
+          order.total,order.currency,order.countryCode,order.shippingMethod,order.paymentMethod||"Credit card",JSON.stringify(orderObject),paymentNumber,requestKey),
       ...order.items.map(item=>db.prepare(`INSERT INTO customer_order_items
         (id,order_id,product_id,title,variant,quantity,unit_price,total_price,image,item_json,active)
         VALUES (?,?,?,?,?,?,?,?,?,?,1)`)
@@ -1553,7 +1553,7 @@ async function prepareAdminOrder(db, userId, body, requestKey = null) {
     ) VALUES (?,?,?,?,?,?,'received',?,?,?,?,?,?,?,?,?,?,'Paid',?,?,?,'admin_offline')`).bind(
       id,userId,identifiers.orderNumber,identifiers.vnCode,timestamp,timestamp,JSON.stringify(order.customer),
       JSON.stringify(serialized.items),order.subtotal,order.shipping,order.taxes,order.total,order.currency,order.countryCode,
-      order.shippingMethod,order.paymentMethod||"Admin offline settlement",paymentNumber,JSON.stringify(queueOrder),requestKey
+      order.shippingMethod,order.paymentMethod||"Admin settlement",paymentNumber,JSON.stringify(queueOrder),requestKey
     ).run();
     const saved=requestKey
       ? await db.prepare(`SELECT * FROM admin_order_queue WHERE user_id=? AND request_key=? LIMIT 1`).bind(userId,requestKey).first()

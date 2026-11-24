@@ -103,7 +103,6 @@ a.package-card:hover{background:rgba(255,255,255,.52);transform:translateY(-3px)
 .receipt-top .eyebrow{font-size:9px;letter-spacing:.22em}
 .receipt-top h2{margin:12px 0 8px;font-size:clamp(30px,5vw,54px);font-weight:800;letter-spacing:-.07em}
 .receipt-top p{margin:0;font-size:10px;letter-spacing:.12em}
-.receipt-status{display:inline-flex;margin-top:16px;padding:7px 10px;border:1px solid rgba(20,20,20,.28);font-size:8px;letter-spacing:.15em;text-transform:uppercase}
 .receipt-section{padding:22px 0;border-bottom:1px solid var(--line)}
 .receipt-section:last-child{border-bottom:0}
 .receipt-section h3{margin:0 0 14px;font-size:9px;letter-spacing:.2em}
@@ -207,7 +206,6 @@ a.package-card:hover{background:rgba(255,255,255,.52);transform:translateY(-3px)
 .receipt-top .eyebrow,.receipt-section h3,.meta-label{font-family:Inter,Arial,sans-serif}
 .receipt-top h2{font-family:"Courier Prime",Courier,monospace;font-size:clamp(25px,4vw,42px);letter-spacing:-.055em}
 .receipt-top p{font-size:11px;letter-spacing:.04em}
-.receipt-status{border:1px dashed rgba(36,33,28,.48);font-family:Inter,Arial,sans-serif}
 .receipt-section{padding:19px 0;border-bottom:1px dashed rgba(36,33,28,.36)}
 .receipt-section h3{font-size:9px;letter-spacing:.17em}
 .meta-label{font-size:8px;letter-spacing:.12em}
@@ -514,7 +512,6 @@ html.atmosphere-ready .footer-sublogo{filter:invert(1)}
 .receipt-top{padding:6px 0 16px}
 .receipt-top .eyebrow{font-size:11px;color:#3b352b}
 .receipt-top p{font-size:12px;color:#2b261e}
-.receipt-card .receipt-status{font-size:10px;font-weight:700;color:#1b1812}
 .receipt-section{padding:14px 0}
 .receipt-section h3{font-size:12px;font-weight:800;color:#1b1812;margin-bottom:10px}
 .receipt-meta{gap:10px 18px}
@@ -635,7 +632,6 @@ html.atmosphere-ready .footer-sublogo{filter:invert(1)}
         <span class="eyebrow">VN SHOP® · ORDER RECEIPT</span>
         <h2 id="receipt-heading">ORDER RECEIVED</h2>
         <p>THANK YOU FOR CHOOSING VN SHOP.</p>
-        <span class="receipt-status" id="payment-status">PAYMENT SUCCESSFUL</span>
       </header>
       <section class="receipt-section">
         <h3>ORDER INFORMATION</h3>
@@ -700,7 +696,7 @@ const items=Array.isArray(cart)?cart:[];
 const order=read(["vn-shop-order-complete","vn-shop-last-order","vn-order-confirmation"]);
 const rawPaymentStatus=String(order?.paymentStatus||order?.payment_status||order?.payment_status_label||order?.paymentStatusLabel||"").trim().toLowerCase();
 const paymentIsSuccessful=["success","successful","paid","completed","succeeded","payment successful"].includes(rawPaymentStatus);
-const isAdminOrder=Boolean(order?.isAdminOrder||order?.adminOrder||order?.adminPaymentExempt);
+const isAdminOrder=Boolean(order?.isAdminOrder||order?.adminOrder);
 const orderReference=order?.orderNumber||order?.order_number||order?.id||order?.order_id;
 if(!order||!orderReference||(!paymentIsSuccessful&&!isAdminOrder)){
   ["vn-shop-order-complete","vn-shop-last-order","vn-order-confirmation"].forEach(key=>{
@@ -719,8 +715,7 @@ set("subtotal",money(order?.subtotal??order?.sub_total??(receiptCurrency==="TRY"
 set("order-number",order?.orderNumber||order?.order_number||order?.id||"—");
 set("vn-code",order?.vnCode||order?.vn_code||"—");
 set("order-status",order?.orderStatus||order?.order_status||"Received");
-const paymentDisplay=isAdminOrder?"Not required":"Success";
-set("receipt-payment-status",paymentDisplay);
+set("receipt-payment-status","Success");
 set("receipt-heading",isAdminOrder?"ORDER RECEIVED":"PAYMENT SUCCESSFUL");
 const date=order?.createdAt||order?.created_at||order?.orderDate||order?.date;
 set("order-date",date?new Intl.DateTimeFormat("en-US",{dateStyle:"long"}).format(new Date(date)):new Intl.DateTimeFormat("en-US",{dateStyle:"long"}).format(new Date()));
@@ -766,9 +761,9 @@ const grand=order?.total??order?.grandTotal??order?.grand_total;
 set("shipping-total",money(shipping??0,receiptCurrency));
 set("tax-total",money(taxes??0,receiptCurrency));
 set("grand-total",money(grand??(receiptCurrency==="TRY"?NaN:total+Number(shipping??0)+Number(taxes??0)),receiptCurrency));
-set("payment-status",isAdminOrder?"PAYMENT NOT REQUIRED":"PAYMENT SUCCESSFUL");
+
 const paymentLabels={card:"Credit card",apple:"Apple Pay",paypal:"PayPal",later:"Pay over time"};
-set("payment-method",paymentLabels[order?.paymentMethod]||order?.paymentMethod||order?.payment_method||"Credit card");
+set("payment-method",isAdminOrder?"Admin settlement":(paymentLabels[order?.paymentMethod]||order?.paymentMethod||order?.payment_method||"Credit card"));
 const reduced=matchMedia("(prefers-reduced-motion: reduce)").matches;
 if(!reduced&&matchMedia("(hover:hover) and (pointer:fine)").matches){
  const canvas=$("light-trail"),ctx=canvas.getContext("2d"),scene=$("scene-2"),points=[];let w=0,h=0,dpr=1,frame=0,active=false,scrolling=false,scrollTimer=0;
