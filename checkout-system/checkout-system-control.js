@@ -145,8 +145,6 @@ const loadCheckoutAccount=async()=>{
   checkoutIsAdmin=result.is_admin===true||result.isAdmin===true;
   const adminOrderSwitch=document.getElementById("admin-order-type-switch");
   if(adminOrderSwitch)adminOrderSwitch.hidden=!checkoutIsAdmin;
-  const adminNoPaymentOption=document.querySelector("[data-admin-payment-option]");
-  if(adminNoPaymentOption)adminNoPaymentOption.hidden=!checkoutIsAdmin;
   checkoutAccountProfile=result.profile||{};
   checkoutSavedAddresses=Array.isArray(result.addresses)?result.addresses:[];
   if(checkoutSignInLink)checkoutSignInLink.hidden=true;
@@ -172,8 +170,6 @@ const loadCheckoutAccount=async()=>{
   checkoutAccountLoaded=!checkoutAccountToken;
   const adminOrderSwitch=document.getElementById("admin-order-type-switch");
   if(adminOrderSwitch)adminOrderSwitch.hidden=true;
-  const adminNoPaymentOption=document.querySelector("[data-admin-payment-option]");
-  if(adminNoPaymentOption)adminNoPaymentOption.hidden=true;
   shopSaveSection.hidden=true;
   savedAddressPanel.hidden=true;
   const hasLiveSession=Boolean(checkoutAccountToken||sessionStorage.getItem("vn_shop_session"));
@@ -641,6 +637,7 @@ const persistCheckoutAccountData=async information=>{
   state:String(information.state||"").trim(),
   postal_code:String(information.postal||"").trim(),
   country:String(information.country||"TR").trim(),
+  country_code:"TR",
   phone:[dial(),String(information.phone||"").trim()].filter(Boolean).join(" ").trim(),
   is_default:!checkoutSavedAddresses.some(item=>item.is_default)
  };
