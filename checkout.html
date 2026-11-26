@@ -28,14 +28,6 @@
 .vn-admin-order-switch-options label:focus-within{outline:2px solid #8c7c5e;outline-offset:-3px;border-radius:999px}
 @media(prefers-reduced-motion:reduce){.vn-admin-order-switch-options::before,.vn-admin-order-switch-options label{transition:none}}
 </style>
-<style>
-.vn-checkout-saved-addresses{margin:0 0 22px;padding:16px;border:1px solid #dedbd4;border-radius:10px;background:#faf9f6}
-.vn-checkout-saved-addresses h3{margin:0 0 12px;font-size:13px;font-weight:650;letter-spacing:.02em}
-.vn-checkout-saved-addresses label{display:flex;align-items:flex-start;gap:10px;padding:11px 0;border-top:1px solid #e8e5df;cursor:pointer;font-size:13px;line-height:1.5}
-.vn-checkout-saved-addresses input{flex:0 0 auto;margin:3px 0 0;accent-color:#17110b}
-.vn-checkout-saved-addresses strong{display:block;font-weight:650}
-.vn-checkout-saved-addresses small{display:block;margin-top:2px;color:#77736c;font-size:11px}
-</style>
 </head>
 <body class="checkout-page">
 <header class="header checkout-header">
@@ -51,16 +43,12 @@
       <div class="or"><span>OR</span></div>
       <form id="info">
         <section class="contact-section">
-          <div class="heading"><h1>Contact</h1><a id="checkout-sign-in-link" href="merch.html?account=register" hidden>Sign in</a></div>
+          <div class="heading"><h1>Contact</h1><a href="merch.html?account=register">Sign in</a></div>
           <label class="vn-ac-address-control checkout-email-control"><span>Email</span><div class="helpwrap"><input name="email" id="email" type="email" autocomplete="email" placeholder=" " required><button class="help" type="button" aria-label="Required for your order">?</button></div></label>
           <label class="check"><input type="checkbox" id="updates" name="updates"><span>Sign up to receive updates from 9ojeez9</span></label>
         </section>
         <section class="address-section">
           <h2>Shipping address</h2>
-          <section class="vn-checkout-saved-addresses" id="saved-addresses-panel" hidden aria-label="Saved shipping addresses">
-            <h3>Saved addresses</h3>
-            <div id="saved-addresses-list" role="radiogroup" aria-label="Choose a saved shipping address"></div>
-          </section>
           <div class="address-confirmation" id="address-confirmation" hidden aria-live="polite">
             <strong class="address-warning-title">Warning</strong>
             <strong class="address-warning-question">Is the shipping address correct?</strong>

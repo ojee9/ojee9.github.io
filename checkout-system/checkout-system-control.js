@@ -50,13 +50,11 @@ updatePhone();if(country.value!=="TR")showCountry();
 const addressInput=document.getElementById("address"),addressSuggestions=document.getElementById("address-suggestions");
 const cityInput=document.getElementById("city"),stateInput=document.getElementById("state"),postalInput=document.getElementById("postal");
 const ACCOUNT_API="https://vn-shop-account-api.9ojeez9.workers.dev";
-const savedAddressPanel=document.getElementById("saved-addresses-panel"),savedAddressesList=document.getElementById("saved-addresses-list"),shopSaveSection=document.getElementById("shop-save-section");
-let checkoutAccountToken="",checkoutAccountProfile={},checkoutSavedAddresses=[],marketingPreferenceTouched=false,checkoutAccountLoaded=false,checkoutIsAdmin=false,checkoutEmailTouched=false,checkoutVerifiedEmail="";
-const checkoutSignInLink=document.getElementById("checkout-sign-in-link"),checkoutEmailField=document.getElementById("email");
+let checkoutAccountToken="",checkoutIsAdmin=false,checkoutVerifiedEmail="";
+const checkoutEmailField=document.getElementById("email");
 const restrictedAdminEmails=new Set(["9ojeez9@gmail.com","recordsvunion@gmail.com","studiovnions@gmail.com"]);
 let adminEmailWarningShownFor="";
 checkoutEmailField.addEventListener("input",async()=>{
- checkoutEmailTouched=true;
  const enteredEmail=checkoutEmailField.value.trim().toLowerCase();
  if(!restrictedAdminEmails.has(enteredEmail)){
   if(adminEmailWarningShownFor){window.VNNotice?.hide();adminEmailWarningShownFor=""}
@@ -75,47 +73,6 @@ checkoutEmailField.addEventListener("input",async()=>{
   dismissible:true
  });
 });
-if(!document.getElementById("vnSavedAddressStyles")){const style=document.createElement("style");style.id="vnSavedAddressStyles";style.textContent=".vn-checkout-saved-addresses{margin:0 0 20px;padding:15px;border:1px solid #494033;border-radius:4px;background:#101010}.vn-checkout-saved-addresses h3{margin:0 0 12px;color:#E4CEA5;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}#saved-addresses-list{display:grid;gap:9px}#saved-addresses-list>label{display:flex;align-items:flex-start;gap:11px;min-width:0;padding:14px 15px;border:1px solid #E4CEA5;border-radius:3px;background:#E4CEA5;color:#171411;cursor:pointer}#saved-addresses-list>label:hover{filter:brightness(.96)}#saved-addresses-list>label:has(input:checked){outline:2px solid #fff;outline-offset:2px}#saved-addresses-list>label input{flex:none;margin:3px 0 0;accent-color:#171411}#saved-addresses-list>label span{display:grid;gap:5px;min-width:0}#saved-addresses-list>label strong{color:#171411;font-size:12px;line-height:1.4}#saved-addresses-list>label small{color:#3d352a;font-size:11px;line-height:1.55;overflow-wrap:anywhere}#saved-addresses-list>label.vn-saved-address-new{background:#171717;border-color:#625846;color:#f4f4f4}#saved-addresses-list>label.vn-saved-address-new strong{color:#f4f4f4}#saved-addresses-list>label.vn-saved-address-new small{color:#aaa}";document.head.appendChild(style);}
-document.getElementById("updates").addEventListener("change",()=>{marketingPreferenceTouched=true});
-const escapeAccountText=value=>String(value??"").replace(/[&<>"']/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]));
-const accountField=name=>form.elements.namedItem(name);
-const setAccountField=(name,value)=>{const field=accountField(name);if(!field)return;field.value=String(value??"");field.dispatchEvent(new Event("input",{bubbles:true}));field.dispatchEvent(new Event("change",{bubbles:true}))};
-const normalizedAddressValue=value=>String(value??"").trim().toLocaleLowerCase("tr-TR").replace(/\s+/g," ");
-const normalizedPhone=value=>String(value??"").replace(/\D/g,"").replace(/^(90|0)/,"");
-const normalizedCountry=value=>{const text=normalizedAddressValue(value);return text==="türkiye"||text==="turkey"?"tr":text.toUpperCase()};
-const addressMatches=(left,right)=>["first_name","last_name","address","apartment","city","state","postal_code"].every(key=>normalizedAddressValue(left[key])===normalizedAddressValue(right[key]))&&normalizedCountry(left.country)===normalizedCountry(right.country)&&normalizedPhone(left.phone)===normalizedPhone(right.phone);
-const renderSavedAddresses=(selectedId="")=>{
- if(!Array.isArray(checkoutSavedAddresses)||!checkoutSavedAddresses.length){savedAddressPanel.hidden=true;savedAddressesList.replaceChildren();return}
- checkoutSavedAddresses=checkoutSavedAddresses.filter((address,index,list)=>list.findIndex(item=>addressMatches(item,address))===index);
- const newChecked=selectedId==="__none__"?"checked":"";
- savedAddressesList.innerHTML='<label class="vn-saved-address-new"><input type="radio" name="vn-saved-address" value="new" '+newChecked+'><span><strong>Enter a new address</strong><small>Use a different shipping address for this order</small></span></label>'+checkoutSavedAddresses.map((address,index)=>{
-  const id=String(address.id??index),title=[address.first_name,address.last_name].filter(Boolean).join(" ")||"Saved address";
-  const detail=[address.address,address.apartment,address.city,address.state,address.postal_code,address.country].filter(Boolean).join(", ");
-  const checked=selectedId==="__none__"?"":(selectedId?selectedId===id:!!address.is_default)?"checked":"";
-  return '<label><input type="radio" name="vn-saved-address" value="'+escapeAccountText(id)+'" data-saved-address-index="'+index+'" '+checked+'><span><strong>'+escapeAccountText(title)+(address.is_default?' · DEFAULT':'')+'</strong><small>'+escapeAccountText(detail)+'</small></span></label>';
- }).join("");
- savedAddressPanel.hidden=false;
-};
-const applySavedAddress=address=>{
- if(!address)return;
- const addressCountry=String(address.country||"TR").trim();
- const countryOption=[...country.options].find(option=>option.value.toUpperCase()===addressCountry.toUpperCase()||option.textContent.trim().toLocaleLowerCase("tr-TR")===addressCountry.toLocaleLowerCase("tr-TR"));
- if(countryOption)country.value=countryOption.value;
- setAccountField("firstName",address.first_name||checkoutAccountProfile.first_name||"");
- setAccountField("lastName",address.last_name||checkoutAccountProfile.last_name||"");
- setAccountField("address",address.address||"");
- setAccountField("apartment",address.apartment||"");
- setAccountField("city",address.city||"");
- setAccountField("state",address.state||"");
- setAccountField("postal",address.postal_code||"");
- const phoneCountryCode=String(address.phone_country||addressCountry||"TR").toUpperCase();
- if(phoneCountry.querySelector('option[value="'+phoneCountryCode+'"]'))phoneCountry.value=phoneCountryCode;
- updatePhone();
- let phone=String(address.phone||"");
- const prefix=dial();
- if(prefix&&phone.trim().startsWith(prefix))phone=phone.trim().slice(prefix.length).trim();
- setAccountField("phone",phone);
-};
 const exchangeCheckoutShopSession=async()=>{
  const shopToken=sessionStorage.getItem("vn_shop_session")||"";
  if(!shopToken)return false;
@@ -153,72 +110,23 @@ const requestAccountApi=async(path,options={})=>{
  return result;
 };
 const loadCheckoutAccount=async()=>{
- if(checkoutSignInLink)checkoutSignInLink.hidden=true;
  checkoutAccountToken=sessionStorage.getItem("vn_account_session")||"";
  try{
   if(!checkoutAccountToken)await exchangeCheckoutShopSession();
-  if(!checkoutAccountToken){
-   checkoutAccountLoaded=true;
-   if(checkoutSignInLink)checkoutSignInLink.hidden=false;
-   return;
-  }
+  if(!checkoutAccountToken)return;
   const result=await requestAccountApi("/api/account");
   checkoutIsAdmin=result.is_admin===true||result.isAdmin===true;
+  checkoutVerifiedEmail=String(result.email||result.profile?.email||"").trim().toLowerCase();
   const adminOrderSwitch=document.getElementById("admin-order-type-switch");
   if(adminOrderSwitch)adminOrderSwitch.hidden=!checkoutIsAdmin;
-  checkoutAccountProfile=result.profile||{};
-  checkoutVerifiedEmail=String(result.email||checkoutAccountProfile.email||"").trim().toLowerCase();
-  checkoutSavedAddresses=Array.isArray(result.addresses)?result.addresses:[];
-  if(checkoutSignInLink)checkoutSignInLink.hidden=true;
-  if(!accountField("firstName").value&&checkoutAccountProfile.first_name)setAccountField("firstName",checkoutAccountProfile.first_name);
-  if(!accountField("lastName").value&&checkoutAccountProfile.last_name)setAccountField("lastName",checkoutAccountProfile.last_name);
-  if(!checkoutEmailTouched){
-   const accountEmail=String(result.email||checkoutAccountProfile.email||"").trim();
-   if(accountEmail)checkoutEmailField.value=accountEmail;
-  }
-  if(!marketingPreferenceTouched&&typeof checkoutAccountProfile.marketing_updates!=="undefined"){
-   const optedIn=checkoutAccountProfile.marketing_updates===true||checkoutAccountProfile.marketing_updates===1||checkoutAccountProfile.marketing_updates==="1";
-   document.getElementById("updates").checked=optedIn;
-  }
-  const hasSessionAddress=Boolean(addressInput.value||cityInput.value||postalInput.value);
-  const defaultAddress=checkoutSavedAddresses.find(address=>address.is_default)||checkoutSavedAddresses[0];
-  renderSavedAddresses(hasSessionAddress?"__none__":String(defaultAddress?.id??""));
-  if(!hasSessionAddress&&defaultAddress)applySavedAddress(defaultAddress);
-  checkoutAccountLoaded=true;
-  shopSaveSection.hidden=false;
  }catch(error){
-  console.warn("[VN CHECKOUT] Could not load saved account information:",error);
+  console.warn("[VN CHECKOUT] Could not verify VN SHOP account:",error);
   checkoutIsAdmin=false;
-  checkoutAccountLoaded=!checkoutAccountToken;
   const adminOrderSwitch=document.getElementById("admin-order-type-switch");
   if(adminOrderSwitch)adminOrderSwitch.hidden=true;
-  shopSaveSection.hidden=true;
-  savedAddressPanel.hidden=true;
-  const hasLiveSession=Boolean(checkoutAccountToken||sessionStorage.getItem("vn_shop_session"));
-  if(checkoutSignInLink)checkoutSignInLink.hidden=hasLiveSession;
  }
 };
 let checkoutAccountReady=loadCheckoutAccount();
-savedAddressesList.addEventListener("change",event=>{
- const input=event.target.closest('input[name="vn-saved-address"]');
- if(!input)return;
- if(input.value==="new"){
-  ["address","apartment","city","state","postal"].forEach(name=>setAccountField(name,""));
-  renderSavedAddresses("__none__");
-  const newAddress=savedAddressesList.querySelector('input[name="vn-saved-address"][value="new"]');
-  if(newAddress)newAddress.checked=true;
-  return;
- }
- const index=Number(input.dataset.savedAddressIndex);
- const address=checkoutSavedAddresses[index];
- if(address){applySavedAddress(address);renderSavedAddresses(String(address.id??index))}
-});
-form.addEventListener("input",event=>{
- if(!event.target.matches("#address,#apartment,#city,#state,#postal"))return;
- const newAddress=savedAddressesList.querySelector('input[name="vn-saved-address"][value="new"]');
- if(newAddress)newAddress.checked=true;
-});
-
 /* Live shipping estimate is displayed in the order summary only. */
 const normalizeShippingCity=value=>String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLocaleLowerCase("tr-TR").replace(/ı/g,"i").replace(/\s+/g," ").trim();
 const turkishProvinces=new Set("adana adiyaman afyonkarahisar agri amasya ankara antalya artvin aydin balikesir bilecik bingol bitlis bolu burdur bursa canakkale cankiri corum denizli diyarbakir edirne elazig erzincan erzurum eskisehir gaziantep giresun gumushane hakkari hatay igdir isparta istanbul izmir kahramanmaras karabuk karaman kars kastamonu kayseri kilis kirikkale kirklareli kirsehir kocaeli konya kutahya malatya manisa mardin mersin mugla mus nevsehir nigde ordu osmaniye rize sakarya samsun siirt sinop sivas sanliurfa sirnak tekirdag tokat trabzon tunceli usak van yalova yozgat zonguldak".split(" "));
@@ -629,52 +537,6 @@ saveChoiceButton.addEventListener("click",()=>{
  saveChoiceButton.textContent=shopSaveOptOut?"SAVE":"NOT NOW";
  saveChoiceButton.setAttribute("aria-pressed",String(shopSaveOptOut));
 });
-const persistCheckoutAccountData=async information=>{
- if(!checkoutAccountToken)return;
- if(!checkoutAccountLoaded)throw new Error("We couldn't securely load your VN SHOP account data. Refresh checkout or sign in again before placing your order.");
- const profileUpdate={
-  first_name:String(information.firstName||"").trim(),
-  last_name:String(information.lastName||"").trim(),
-  country:String(information.country||"TR").trim(),
-  marketing_updates:Boolean(information.updates)
- };
- await requestAccountApi("/api/profile",{method:"PUT",body:JSON.stringify(profileUpdate)});
- const profileCheck=await requestAccountApi("/api/account");
- const verifiedProfile=profileCheck.profile||{};
- for(const key of ["first_name","last_name","country","marketing_updates"]){
-  const matches=key==="marketing_updates"
-   ? (verifiedProfile[key]===true||verifiedProfile[key]===1||verifiedProfile[key]==="1")===profileUpdate[key]
-   : String(verifiedProfile[key]??"")===String(profileUpdate[key]??"");
-  if(!matches)throw new Error("Your VN SHOP account did not confirm the saved "+key.replace("_"," ")+" value. Refresh your account and retry.");
- }
- checkoutAccountProfile=verifiedProfile;
- checkoutSavedAddresses=Array.isArray(profileCheck.addresses)?profileCheck.addresses:checkoutSavedAddresses;
- if(shopSaveOptOut)return;
- const address={
-  first_name:profileUpdate.first_name,
-  last_name:profileUpdate.last_name,
-  address:String(information.address||"").trim(),
-  apartment:String(information.apartment||"").trim(),
-  city:String(information.city||"").trim(),
-  state:String(information.state||"").trim(),
-  postal_code:String(information.postal||"").trim(),
-  country:String(information.country||"TR").trim(),
-  country_code:"TR",
-  phone:[dial(),String(information.phone||"").trim()].filter(Boolean).join(" ").trim(),
-  is_default:!checkoutSavedAddresses.some(item=>item.is_default)
- };
- if(!address.address||!address.city||!address.postal_code){
-  throw new Error("Complete the shipping address or choose NOT NOW before continuing.");
- }
- if(checkoutSavedAddresses.some(existing=>addressMatches(existing,address)))return;
- await requestAccountApi("/api/addresses",{method:"POST",body:JSON.stringify(address)});
- const refreshedAccount=await requestAccountApi("/api/account");
- const refreshedAddresses=Array.isArray(refreshedAccount.addresses)?refreshedAccount.addresses:[];
- if(!refreshedAddresses.some(saved=>addressMatches(saved,address))){
-  throw new Error("VN SHOP did not confirm that your checkout address was saved to your account. Please retry.");
- }
- checkoutSavedAddresses=refreshedAddresses;
-};
 document.querySelectorAll('input[name="vn-admin-order-type"]').forEach(input=>input.addEventListener("change",()=>{
  const button=document.getElementById("pay-now");
  if(button)button.textContent="Place order";
@@ -707,8 +569,7 @@ document.getElementById("pay-now").addEventListener("click",async()=>{
   if(!selectedPayment&&!checkoutIsAdmin)throw new Error("Select a payment method before continuing.");
   const paymentLabels={card:"Credit card",apple:"Apple Pay",paypal:"PayPal",later:"Pay over time","admin-offline":"Admin offline settlement"};
   const customer={firstName:information.firstName||"",lastName:information.lastName||"",email:information.email||"",phone:[dial(),information.phone].filter(Boolean).join(" "),address:[information.address,information.apartment,information.city,information.state,information.postal,information.country].filter(Boolean).join(", ")};
-  await persistCheckoutAccountData(information);
-  const payload={customer,items,subtotal:checkoutAmounts.subtotalTRY,shipping:checkoutAmounts.shippingPaymentTRY,taxes:checkoutAmounts.taxesTRY,total:checkoutAmounts.totalTRY,currency:"TRY",countryCode:"TR",originalSubtotalUSD:checkoutAmounts.subtotalUSD,originalShippingUSD:checkoutAmounts.shippingUSD,originalTaxesUSD:checkoutAmounts.taxesUSD,exchangeRateProvider:checkoutAmounts.fxProvider,exchangeRateTRYPerUSD:checkoutAmounts.fxRate,exchangeRateUpdatedAt:new Date(checkoutAmounts.fxUpdatedAt).toISOString(),shippingMethod:selectedShipping.value==="standard"?"Standard Shipping":selectedShipping.value,paymentMethod:"Admin offline settlement",orderType:isAdminOrder?"admin":"customer",status:"received"};
+const payload={customer,items,subtotal:checkoutAmounts.subtotalTRY,shipping:checkoutAmounts.shippingPaymentTRY,taxes:checkoutAmounts.taxesTRY,total:checkoutAmounts.totalTRY,currency:"TRY",countryCode:"TR",originalSubtotalUSD:checkoutAmounts.subtotalUSD,originalShippingUSD:checkoutAmounts.shippingUSD,originalTaxesUSD:checkoutAmounts.taxesUSD,exchangeRateProvider:checkoutAmounts.fxProvider,exchangeRateTRYPerUSD:checkoutAmounts.fxRate,exchangeRateUpdatedAt:new Date(checkoutAmounts.fxUpdatedAt).toISOString(),shippingMethod:selectedShipping.value==="standard"?"Standard Shipping":selectedShipping.value,paymentMethod:"Admin offline settlement",orderType:isAdminOrder?"admin":"customer",status:"received"};
   let idempotencyKey=sessionStorage.getItem("vn-shop-order-idempotency-key");
   if(!idempotencyKey){idempotencyKey=crypto.randomUUID();sessionStorage.setItem("vn-shop-order-idempotency-key",idempotencyKey)}
   const token=checkoutAccountToken||sessionStorage.getItem("vn_account_session")||"";
