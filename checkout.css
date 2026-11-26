@@ -3001,3 +3001,36 @@ body.checkout-page{margin:0;background:#C6BBA7;color:#f5f5f5;font:13px Arial,Hel
   transform:none!important;
   align-self:center;
 }
+
+
+/* Restore the checkout's dark writing-field appearance consistently. */
+.checkout-page input:not([type="checkbox]):not([type="radio]):not([type="button]):not([type="submit]):not([type="reset]):not([type="hidden]),
+.checkout-page textarea,
+.checkout-page select{
+  background-color:#111!important;
+  color:#f5f1e8!important;
+}
+.checkout-page input::placeholder,
+.checkout-page textarea::placeholder{
+  color:#aaa!important;
+  opacity:1;
+}
+.checkout-page input:focus,
+.checkout-page textarea:focus,
+.checkout-page select:focus{
+  background-color:#141414!important;
+  color:#f5f1e8!important;
+}
+.checkout-page input:-webkit-autofill,
+.checkout-page input:-webkit-autofill:hover,
+.checkout-page input:-webkit-autofill:focus,
+.checkout-page textarea:-webkit-autofill,
+.checkout-page select:-webkit-autofill{
+  -webkit-box-shadow:0 0 0 1000px #111 inset!important;
+  -webkit-text-fill-color:#f5f1e8!important;
+  caret-color:#f5f1e8!important;
+}
+.checkout-page select option{
+  background:#111!important;
+  color:#f5f1e8!important;
+}
