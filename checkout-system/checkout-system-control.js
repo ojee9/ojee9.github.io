@@ -115,6 +115,13 @@ const loadCheckoutAccount=async()=>{
   const result=await requestAccountApi("/api/account");
   checkoutIsAdmin=result.is_admin===true||result.isAdmin===true;
   checkoutVerifiedEmail=String(result.email||result.profile?.email||"").trim().toLowerCase();
+  if(checkoutVerifiedEmail){
+   checkoutEmailField.value=checkoutVerifiedEmail;
+   checkoutEmailField.dispatchEvent(new Event("input",{bubbles:true}));
+   checkoutEmailField.dispatchEvent(new Event("change",{bubbles:true}));
+   const signInLink=document.querySelector('#info .heading a[href="merch.html?account=register"]');
+   if(signInLink)signInLink.hidden=true;
+  }
   const adminOrderSwitch=document.getElementById("admin-order-type-switch");
   if(adminOrderSwitch)adminOrderSwitch.hidden=!checkoutIsAdmin;
  }catch(error){
